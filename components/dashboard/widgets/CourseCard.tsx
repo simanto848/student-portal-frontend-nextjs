@@ -1,0 +1,39 @@
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+
+interface CourseCardProps {
+    title: string;
+    studentCount: number;
+    progress: {
+        current: number;
+        total: number;
+        label: string;
+    };
+    variant?: "teacher" | "student"; // Teacher sees grading progress, Student sees grade
+}
+
+export function CourseCard({ title, studentCount, progress, variant = "teacher" }: CourseCardProps) {
+    const percentage = (progress.current / progress.total) * 100;
+
+    return (
+        <Card className="bg-[#e4e4dc] border-none shadow-sm"> {/* Beige background */}
+            <CardHeader className="pb-2">
+                <CardTitle className="text-lg font-bold text-[#1a3d32]">{title}</CardTitle>
+                <p className="text-sm text-gray-600">{studentCount} Students</p>
+            </CardHeader>
+            <CardContent className="pb-2">
+                <div className="flex justify-between text-sm mb-2 font-medium text-[#1a3d32]">
+                    <span>{progress.label}</span>
+                    <span>{progress.current}/{progress.total} {variant === 'teacher' ? 'Graded' : 'Classes'}</span>
+                </div>
+                <Progress value={percentage} className="h-2 bg-gray-300" indicatorClassName="bg-[#3e6253]" />
+            </CardContent>
+            <CardFooter className="pt-4">
+                <Button className="w-full bg-[#3e6253] hover:bg-[#2c4a3e] text-white">
+                    View Course
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}

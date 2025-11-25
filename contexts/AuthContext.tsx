@@ -56,8 +56,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             localStorage.setItem('accessToken', data.accessToken);
             localStorage.setItem('refreshToken', data.refreshToken);
 
-            // Redirect based on role (can be customized)
-            router.push('/dashboard');
+            // Redirect based on role
+            let targetRole = role;
+            if (['super_admin', 'moderator', 'admin'].includes(role)) {
+                targetRole = 'admin';
+            }
+            router.push(`/dashboard/${targetRole}`);
         } catch (error) {
             console.error('Login failed:', error);
             throw error;
