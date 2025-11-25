@@ -1,0 +1,44 @@
+import { api, handleApiError, extractArrayData, extractItemData } from './axios-instance';
+import { CourseSyllabus } from './types';
+
+export const syllabusService = {
+    getAllSyllabi: async (): Promise<CourseSyllabus[]> => {
+        try {
+            const response = await api.get('/academic/syllabus');
+            return extractArrayData<CourseSyllabus>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    getSyllabusById: async (id: string): Promise<CourseSyllabus> => {
+        try {
+            const response = await api.get(`/academic/syllabus/${id}`);
+            return extractItemData<CourseSyllabus>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    createSyllabus: async (data: Partial<CourseSyllabus>): Promise<CourseSyllabus> => {
+        try {
+            const response = await api.post('/academic/syllabus', data);
+            return extractItemData<CourseSyllabus>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    updateSyllabus: async (id: string, data: Partial<CourseSyllabus>): Promise<CourseSyllabus> => {
+        try {
+            const response = await api.patch(`/academic/syllabus/${id}`, data);
+            return extractItemData<CourseSyllabus>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    deleteSyllabus: async (id: string): Promise<void> => {
+        try {
+            await api.delete(`/academic/syllabus/${id}`);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+};
