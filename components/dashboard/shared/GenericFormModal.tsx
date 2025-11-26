@@ -12,12 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useState, useCallback } from "react";
 
 export interface FormField {
     name: string;
     label: string;
-    type: "text" | "email" | "number" | "select" | "date" | "textarea" | "time";
+    type: "text" | "email" | "number" | "select" | "date" | "textarea" | "time" | "searchable-select";
     placeholder?: string;
     required?: boolean;
     options?: { label: string; value: string }[];
@@ -36,7 +37,6 @@ interface GenericFormModalProps {
     isSubmitting?: boolean;
 }
 
-// Inner form component that manages its own state
 function FormContent({
     fields,
     initialData,
@@ -90,6 +90,13 @@ function FormContent({
                                     ))}
                                 </SelectContent>
                             </Select>
+                        ) : field.type === "searchable-select" ? (
+                            <SearchableSelect
+                                options={field.options || []}
+                                value={formData[field.name] || ""}
+                                onChange={(value) => handleChange(field.name, value)}
+                                placeholder={field.placeholder}
+                            />
                         ) : field.type === "textarea" ? (
                             <textarea
                                 id={field.name}
@@ -158,7 +165,6 @@ export function GenericFormModal({
     initialData = {},
     isSubmitting = false,
 }: GenericFormModalProps) {
-    // Generate a unique key based on initialData to reset form state
     const formKey = JSON.stringify(initialData);
 
     return (

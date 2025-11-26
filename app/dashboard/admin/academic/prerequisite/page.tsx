@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
@@ -10,7 +11,6 @@ import { academicService, CoursePrerequisite, Course, AcademicApiError } from "@
 import { toast } from "sonner";
 import { GitMerge } from "lucide-react";
 
-// Helper to get name from object or string
 const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === 'string') return item;
@@ -18,7 +18,6 @@ const getName = (item: any): string => {
     return "N/A";
 };
 
-// Helper to get ID from object or string
 const getId = (item: any): string => {
     if (!item) return "";
     if (typeof item === 'string') return item;
@@ -32,6 +31,7 @@ interface CoursePrerequisiteWithNames extends CoursePrerequisite {
 }
 
 export default function CoursePrerequisiteManagementPage() {
+    const router = useRouter();
     const [prerequisites, setPrerequisites] = useState<CoursePrerequisite[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +56,7 @@ export default function CoursePrerequisiteManagementPage() {
         {
             name: "courseId",
             label: "Course",
-            type: "select",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a course",
             options: Array.isArray(courses)
@@ -68,7 +68,7 @@ export default function CoursePrerequisiteManagementPage() {
         {
             name: "prerequisiteId",
             label: "Prerequisite Course",
-            type: "select",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a prerequisite course",
             options: Array.isArray(courses)
@@ -93,9 +93,7 @@ export default function CoursePrerequisiteManagementPage() {
             setPrerequisites(Array.isArray(prereqData) ? prereqData : []);
             setCourses(Array.isArray(coursesData) ? coursesData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setPrerequisites([]);
         } finally {
@@ -127,9 +125,7 @@ export default function CoursePrerequisiteManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete prerequisite";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete prerequisite";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -167,9 +163,7 @@ export default function CoursePrerequisiteManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save prerequisite";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save prerequisite";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -201,6 +195,7 @@ export default function CoursePrerequisiteManagementPage() {
                         columns={columns}
                         searchKey="courseName"
                         searchPlaceholder="Search by course name..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/prerequisite/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
@@ -13,6 +14,7 @@ import { CalendarRange } from "lucide-react";
 import { format } from "date-fns";
 
 export default function SessionManagementPage() {
+    const router = useRouter();
     const [sessions, setSessions] = useState<Session[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -133,9 +135,7 @@ export default function SessionManagementPage() {
             fetchSessions();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete session";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete session";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -146,7 +146,6 @@ export default function SessionManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            // Validate required fields
             if (!data.name || data.name.trim().length < 3) {
                 toast.error("Session name must be at least 3 characters");
                 setIsSubmitting(false);
@@ -190,9 +189,7 @@ export default function SessionManagementPage() {
             fetchSessions();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save session";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save session";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -220,6 +217,7 @@ export default function SessionManagementPage() {
                         columns={columns}
                         searchKey="name"
                         searchPlaceholder="Search session by name..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/session/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />

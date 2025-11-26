@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
@@ -11,13 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BookOpen } from "lucide-react";
 
-// Helper to get department name
 const getDepartmentName = (course: Course): string => {
     if (typeof course.departmentId === 'object' && course.departmentId?.name) return course.departmentId.name;
     return "N/A";
 };
 
-// Helper to get department ID
 const getDepartmentId = (course: Course): string => {
     if (typeof course.departmentId === 'string') return course.departmentId;
     if (typeof course.departmentId === 'object' && course.departmentId?.id) return course.departmentId.id;
@@ -25,6 +24,7 @@ const getDepartmentId = (course: Course): string => {
 };
 
 export default function CourseManagementPage() {
+    const router = useRouter();
     const [courses, setCourses] = useState<Course[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -160,9 +160,7 @@ export default function CourseManagementPage() {
             setCourses(Array.isArray(coursesData) ? coursesData : []);
             setDepartments(Array.isArray(deptsData) ? deptsData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setCourses([]);
             setDepartments([]);
@@ -195,9 +193,7 @@ export default function CourseManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete course";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete course";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -254,9 +250,7 @@ export default function CourseManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save course";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save course";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -284,6 +278,7 @@ export default function CourseManagementPage() {
                         columns={columns}
                         searchKey="name"
                         searchPlaceholder="Search course by name or code..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/course/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
