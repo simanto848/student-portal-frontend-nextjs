@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, CourseSyllabus, SessionCourse, AcademicApiError } from "@/services/academic.service";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { FileText } from "lucide-react";
+import { BookOpenCheck } from "lucide-react";
 
-// Helper to get name from object or string
 const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === 'string') return item;
@@ -19,7 +18,6 @@ const getName = (item: any): string => {
     return "N/A";
 };
 
-// Helper to get ID from object or string
 const getId = (item: any): string => {
     if (!item) return "";
     if (typeof item === 'string') return item;
@@ -27,7 +25,12 @@ const getId = (item: any): string => {
     return "";
 };
 
-export default function CourseSyllabusManagementPage() {
+interface SyllabusWithDetails extends CourseSyllabus {
+    courseName: string;
+}
+
+export default function SyllabusManagementPage() {
+    const router = useRouter();
     const [syllabi, setSyllabi] = useState<CourseSyllabus[]>([]);
     const [sessionCourses, setSessionCourses] = useState<SessionCourse[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -37,88 +40,102 @@ export default function CourseSyllabusManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const columns: Column<CourseSyllabus>[] = [
+    const columns: Column<SyllabusWithDetails>[] = [
         {
             header: "Course",
-            accessorKey: "sessionCourseId",
-            cell: (item) => {
-                const sc = item.sessionCourseId as any;
-                if (sc && sc.courseId) return getName(sc.courseId);
-                return "N/A";
-            }
+            accessorKey: "courseName",
         },
-        { header: "Version", accessorKey: "version" },
+        {
+            header: "Version",
+            accessorKey: "version",
+        },
         {
             header: "Status",
             accessorKey: "status",
-            cell: (item) => (
-                <Badge
-                    variant={item.status === "Published" ? "default" : "secondary"}
-                    className={
-                        item.status === "Published" ? "bg-green-100 text-green-800" :
-                            item.status === "Approved" ? "bg-blue-100 text-blue-800" :
-                                item.status === "Draft" ? "bg-gray-100 text-gray-800" :
-                                    "bg-yellow-100 text-yellow-800"
-                    }
-                >
-                    {item.status}
-                </Badge>
-            )
+            cell: (item) => {
+                let colorClass = "bg-gray-100 text-gray-800";
+                switch (item.status) {
+                    case 'Approved': colorClass = "bg-blue-100 text-blue-800"; break;
+                    case 'Published': colorClass = "bg-green-100 text-green-800"; break;
+                    case 'Pending Approval': colorClass = "bg-yellow-100 text-yellow-800"; break;
+                    case 'Archived': colorClass = "bg-red-100 text-red-800"; break;
+                }
+                return (
+                    <span className={`px-2 py-1 rounded-full text-xs ${colorClass}`}>
+                        {item.status}
+                    </span>
+                );
+            },
         },
     ];
 
     const formFields: FormField[] = useMemo(() => [
         {
             name: "sessionCourseId",
-            label: "Course",
-            type: "select",
+            label: "Course (Session)",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a course",
-            options: Array.isArray(sessionCourses)
-                ? sessionCourses
-                    .map(sc => {
-                        const courseName = (sc.courseId as any)?.name || "Unknown Course";
-                        const sessionName = (sc.sessionId as any)?.name || "Unknown Session";
-                        return { label: `${courseName} (${sessionName})`, value: sc.id };
-                    })
-                : []
+            options: sessionCourses.map(sc => {
+                const courseName = typeof sc.courseId === 'object' ? sc.courseId.name : 'Unknown Course';
+                const courseCode = typeof sc.courseId === 'object' ? sc.courseId.code : '';
+                return { label: `${courseName} (${courseCode})`, value: sc.id };
+            }),
         },
         {
             name: "version",
             label: "Version",
             type: "text",
             required: true,
-            placeholder: "e.g. 1.0"
+            placeholder: "e.g. 1.0",
         },
         {
             name: "overview",
             label: "Overview",
             type: "textarea",
-            placeholder: "Course overview..."
+            required: false,
+            placeholder: "Course overview...",
         },
         {
             name: "objectives",
             label: "Objectives",
             type: "textarea",
-            placeholder: "Learning objectives..."
+            required: false,
+            placeholder: "Learning objectives...",
+        },
+        {
+            name: "prerequisites",
+            label: "Prerequisites Description",
+            type: "textarea",
+            required: false,
+            placeholder: "Describe prerequisites...",
         },
         {
             name: "gradingPolicy",
             label: "Grading Policy",
             type: "textarea",
-            placeholder: "Grading breakdown..."
+            required: false,
+            placeholder: "Grading breakdown...",
+        },
+        {
+            name: "policies",
+            label: "Policies",
+            type: "textarea",
+            required: false,
+            placeholder: "Course policies...",
         },
         {
             name: "status",
             label: "Status",
             type: "select",
+            required: true,
             options: [
                 { label: "Draft", value: "Draft" },
                 { label: "Pending Approval", value: "Pending Approval" },
                 { label: "Approved", value: "Approved" },
                 { label: "Published", value: "Published" },
                 { label: "Archived", value: "Archived" },
-            ]
+            ],
         },
     ], [sessionCourses]);
 
@@ -129,16 +146,14 @@ export default function CourseSyllabusManagementPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [syllabiData, scData] = await Promise.all([
+            const [syllabiData, sessionCoursesData] = await Promise.all([
                 academicService.getAllSyllabi(),
-                academicService.getAllSessionCourses()
+                academicService.getAllSessionCourses(),
             ]);
             setSyllabi(Array.isArray(syllabiData) ? syllabiData : []);
-            setSessionCourses(Array.isArray(scData) ? scData : []);
+            setSessionCourses(Array.isArray(sessionCoursesData) ? sessionCoursesData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setSyllabi([]);
         } finally {
@@ -151,12 +166,12 @@ export default function CourseSyllabusManagementPage() {
         setIsFormModalOpen(true);
     };
 
-    const handleEdit = (syllabus: CourseSyllabus) => {
+    const handleEdit = (syllabus: SyllabusWithDetails) => {
         setSelectedSyllabus(syllabus);
         setIsFormModalOpen(true);
     };
 
-    const handleDeleteClick = (syllabus: CourseSyllabus) => {
+    const handleDeleteClick = (syllabus: SyllabusWithDetails) => {
         setSelectedSyllabus(syllabus);
         setIsDeleteModalOpen(true);
     };
@@ -170,9 +185,7 @@ export default function CourseSyllabusManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete syllabus";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete syllabus";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -183,18 +196,14 @@ export default function CourseSyllabusManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            if (!data.sessionCourseId || !data.version) {
-                toast.error("Course and Version are required");
-                setIsSubmitting(false);
-                return;
-            }
-
             const submitData = {
                 sessionCourseId: data.sessionCourseId,
-                version: data.version.trim(),
-                overview: data.overview?.trim() || undefined,
-                objectives: data.objectives?.trim() || undefined,
-                gradingPolicy: data.gradingPolicy?.trim() || undefined,
+                version: data.version,
+                overview: data.overview || undefined,
+                objectives: data.objectives || undefined,
+                prerequisites: data.prerequisites || undefined,
+                gradingPolicy: data.gradingPolicy || undefined,
+                policies: data.policies || undefined,
                 status: data.status as any,
             };
 
@@ -208,9 +217,7 @@ export default function CourseSyllabusManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save syllabus";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save syllabus";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -221,11 +228,11 @@ export default function CourseSyllabusManagementPage() {
         <DashboardLayout>
             <div className="space-y-6">
                 <PageHeader
-                    title="Course Syllabus Management"
-                    subtitle="Manage course content and policies"
-                    actionLabel="Add New Syllabus"
+                    title="Syllabus Management"
+                    subtitle="Manage course syllabi"
+                    actionLabel="Add Syllabus"
                     onAction={handleCreate}
-                    icon={FileText}
+                    icon={BookOpenCheck}
                 />
 
                 {isLoading ? (
@@ -234,10 +241,19 @@ export default function CourseSyllabusManagementPage() {
                     </div>
                 ) : (
                     <DataTable
-                        data={syllabi}
+                        data={syllabi.map(s => {
+                            const course = typeof s.sessionCourseId === 'object' && s.sessionCourseId ? (s.sessionCourseId as any).courseId : null;
+                            const courseName = typeof course === 'object' ? course.name : 'N/A';
+
+                            return {
+                                ...s,
+                                courseName: courseName,
+                            };
+                        })}
                         columns={columns}
-                        searchKey="version"
-                        searchPlaceholder="Search by version..."
+                        searchKey="courseName"
+                        searchPlaceholder="Search by course..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/syllabus/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
@@ -256,17 +272,21 @@ export default function CourseSyllabusManagementPage() {
                     isOpen={isFormModalOpen}
                     onClose={() => setIsFormModalOpen(false)}
                     onSubmit={handleFormSubmit}
-                    title={selectedSyllabus ? "Edit Syllabus" : "Add New Syllabus"}
-                    description={selectedSyllabus ? "Update syllabus information" : "Create a new course syllabus"}
+                    title={selectedSyllabus ? "Edit Syllabus" : "Add Syllabus"}
+                    description={selectedSyllabus ? "Update syllabus information" : "Create a new syllabus"}
                     fields={formFields}
                     initialData={selectedSyllabus ? {
                         sessionCourseId: getId(selectedSyllabus.sessionCourseId),
                         version: selectedSyllabus.version,
                         overview: selectedSyllabus.overview || "",
                         objectives: selectedSyllabus.objectives || "",
+                        prerequisites: selectedSyllabus.prerequisites || "",
                         gradingPolicy: selectedSyllabus.gradingPolicy || "",
+                        policies: selectedSyllabus.policies || "",
                         status: selectedSyllabus.status,
-                    } : { status: "Draft", version: "1.0" }}
+                    } : {
+                        status: "Draft",
+                    }}
                     isSubmitting={isSubmitting}
                 />
             </div>

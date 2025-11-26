@@ -41,4 +41,20 @@ export const scheduleService = {
             return handleApiError(error);
         }
     },
+    getScheduleByBatch: async (batchId: string): Promise<CourseSchedule[]> => {
+        try {
+            const response = await api.get(`/academic/schedules/batch/${batchId}`);
+            return extractArrayData<CourseSchedule>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    getScheduleByTeacher: async (teacherId: string): Promise<CourseSchedule[]> => {
+        try {
+            const response = await api.get(`/academic/schedules/teacher/${teacherId}`);
+            return extractArrayData<CourseSchedule>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
 };

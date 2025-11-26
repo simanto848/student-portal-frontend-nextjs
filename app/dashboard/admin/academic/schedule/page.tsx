@@ -1,26 +1,23 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, CourseSchedule, Batch, SessionCourse, Classroom, AcademicApiError } from "@/services/academic.service";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { CalendarClock } from "lucide-react";
 
-// Helper to get name from object or string
 const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === 'string') return item;
     if (typeof item === 'object' && item.name) return item.name;
-    if (typeof item === 'object' && item.roomNumber) return item.roomNumber;
     return "N/A";
 };
 
-// Helper to get ID from object or string
 const getId = (item: any): string => {
     if (!item) return "";
     if (typeof item === 'string') return item;
@@ -28,7 +25,15 @@ const getId = (item: any): string => {
     return "";
 };
 
-export default function CourseScheduleManagementPage() {
+interface ScheduleWithDetails extends CourseSchedule {
+    batchName: string;
+    courseName: string;
+    teacherName: string;
+    roomName: string;
+}
+
+export default function ScheduleManagementPage() {
+    const router = useRouter();
     const [schedules, setSchedules] = useState<CourseSchedule[]>([]);
     const [batches, setBatches] = useState<Batch[]>([]);
     const [sessionCourses, setSessionCourses] = useState<SessionCourse[]>([]);
@@ -40,45 +45,35 @@ export default function CourseScheduleManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const columns: Column<CourseSchedule>[] = [
+    const columns: Column<ScheduleWithDetails>[] = [
         {
             header: "Batch",
-            accessorKey: "batchId",
-            cell: (item) => getName(item.batchId)
+            accessorKey: "batchName",
         },
         {
             header: "Course",
-            accessorKey: "sessionCourseId",
-            cell: (item) => {
-                const sc = item.sessionCourseId as any;
-                if (sc && sc.courseId) return getName(sc.courseId);
-                return "N/A";
-            }
+            accessorKey: "courseName",
         },
-        { header: "Day", accessorKey: "dayOfWeek" },
+        {
+            header: "Day",
+            accessorKey: "dayOfWeek",
+        },
         {
             header: "Time",
             accessorKey: "startTime",
-            cell: (item) => `${item.startTime} - ${item.endTime}`
+            cell: (item) => `${item.startTime} - ${item.endTime}`,
         },
         {
             header: "Room",
-            accessorKey: "roomNumber",
-            cell: (item) => getName(item.roomNumber)
+            accessorKey: "roomName",
         },
         {
             header: "Status",
             accessorKey: "isActive",
             cell: (item) => (
-                <Badge
-                    variant={item.isActive ? "default" : "destructive"}
-                    className={item.isActive
-                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                        : "bg-red-100 text-red-800 hover:bg-red-200"
-                    }
-                >
-                    {item.isActive ? "Active" : "Inactive"}
-                </Badge>
+                <span className={`px-2 py-1 rounded-full text-xs ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {item.isActive ? 'Active' : 'Inactive'}
+                </span>
             ),
         },
     ];
@@ -87,33 +82,27 @@ export default function CourseScheduleManagementPage() {
         {
             name: "batchId",
             label: "Batch",
-            type: "select",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a batch",
-            options: Array.isArray(batches)
-                ? batches
-                    .filter(b => b.status)
-                    .map(b => ({ label: b.name, value: b.id }))
-                : []
+            options: batches.filter(b => b.status).map(b => ({ label: b.name, value: b.id })),
         },
         {
             name: "sessionCourseId",
-            label: "Course",
-            type: "select",
+            label: "Course (Session)",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a course",
-            options: Array.isArray(sessionCourses)
-                ? sessionCourses
-                    .map(sc => {
-                        const courseName = (sc.courseId as any)?.name || "Unknown Course";
-                        const sessionName = (sc.sessionId as any)?.name || "Unknown Session";
-                        return { label: `${courseName} (${sessionName})`, value: sc.id };
-                    })
-                : []
+            // Note: Ideally we should filter session courses based on the selected batch's session
+            options: sessionCourses.map(sc => {
+                const courseName = typeof sc.courseId === 'object' ? sc.courseId.name : 'Unknown Course';
+                const courseCode = typeof sc.courseId === 'object' ? sc.courseId.code : '';
+                return { label: `${courseName} (${courseCode})`, value: sc.id };
+            }),
         },
         {
             name: "dayOfWeek",
-            label: "Day",
+            label: "Day of Week",
             type: "select",
             required: true,
             options: [
@@ -124,31 +113,27 @@ export default function CourseScheduleManagementPage() {
                 { label: "Thursday", value: "Thursday" },
                 { label: "Friday", value: "Friday" },
                 { label: "Saturday", value: "Saturday" },
-            ]
+            ],
         },
         {
             name: "startTime",
             label: "Start Time",
             type: "time",
-            required: true
+            required: true,
         },
         {
             name: "endTime",
             label: "End Time",
             type: "time",
-            required: true
+            required: true,
         },
         {
             name: "roomNumber",
             label: "Classroom",
-            type: "select",
-            required: true,
+            type: "searchable-select",
+            required: false,
             placeholder: "Select a classroom",
-            options: Array.isArray(classrooms)
-                ? classrooms
-                    .filter(c => c.isActive)
-                    .map(c => ({ label: `${c.roomNumber} (${c.buildingName})`, value: c.id }))
-                : []
+            options: classrooms.filter(c => c.isActive).map(c => ({ label: `${c.roomNumber} - ${c.buildingName}`, value: c.id })),
         },
         {
             name: "classType",
@@ -162,36 +147,39 @@ export default function CourseScheduleManagementPage() {
                 { label: "Seminar", value: "Seminar" },
                 { label: "Workshop", value: "Workshop" },
                 { label: "Other", value: "Other" },
-            ]
+            ],
         },
         {
             name: "startDate",
             label: "Start Date",
             type: "date",
-            required: true
+            required: true,
         },
         {
             name: "endDate",
             label: "End Date",
-            type: "date"
-        },
-        {
-            name: "isActive",
-            label: "Status",
-            type: "select",
-            options: [
-                { label: "Active", value: "true" },
-                { label: "Inactive", value: "false" }
-            ]
+            type: "date",
+            required: false,
         },
         {
             name: "isRecurring",
             label: "Recurring",
             type: "select",
+            required: true,
             options: [
                 { label: "Yes", value: "true" },
-                { label: "No", value: "false" }
-            ]
+                { label: "No", value: "false" },
+            ],
+        },
+        {
+            name: "isActive",
+            label: "Status",
+            type: "select",
+            required: true,
+            options: [
+                { label: "Active", value: "true" },
+                { label: "Inactive", value: "false" },
+            ],
         },
     ], [batches, sessionCourses, classrooms]);
 
@@ -202,20 +190,18 @@ export default function CourseScheduleManagementPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [schedulesData, batchesData, scData, classroomsData] = await Promise.all([
+            const [schedulesData, batchesData, sessionCoursesData, classroomsData] = await Promise.all([
                 academicService.getAllSchedules(),
                 academicService.getAllBatches(),
                 academicService.getAllSessionCourses(),
-                academicService.getAllClassrooms()
+                academicService.getAllClassrooms(),
             ]);
             setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
             setBatches(Array.isArray(batchesData) ? batchesData : []);
-            setSessionCourses(Array.isArray(scData) ? scData : []);
+            setSessionCourses(Array.isArray(sessionCoursesData) ? sessionCoursesData : []);
             setClassrooms(Array.isArray(classroomsData) ? classroomsData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setSchedules([]);
         } finally {
@@ -228,12 +214,12 @@ export default function CourseScheduleManagementPage() {
         setIsFormModalOpen(true);
     };
 
-    const handleEdit = (schedule: CourseSchedule) => {
+    const handleEdit = (schedule: ScheduleWithDetails) => {
         setSelectedSchedule(schedule);
         setIsFormModalOpen(true);
     };
 
-    const handleDeleteClick = (schedule: CourseSchedule) => {
+    const handleDeleteClick = (schedule: ScheduleWithDetails) => {
         setSelectedSchedule(schedule);
         setIsDeleteModalOpen(true);
     };
@@ -247,9 +233,7 @@ export default function CourseScheduleManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete schedule";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete schedule";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -260,18 +244,6 @@ export default function CourseScheduleManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            if (!data.batchId || !data.sessionCourseId || !data.roomNumber) {
-                toast.error("Batch, Course and Classroom are required");
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!data.startTime || !data.endTime) {
-                toast.error("Start and End times are required");
-                setIsSubmitting(false);
-                return;
-            }
-
             const submitData = {
                 batchId: data.batchId,
                 sessionCourseId: data.sessionCourseId,
@@ -280,10 +252,10 @@ export default function CourseScheduleManagementPage() {
                 endTime: data.endTime,
                 roomNumber: data.roomNumber,
                 classType: data.classType as any,
-                startDate: new Date(data.startDate).toISOString(),
-                endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
-                isActive: data.isActive === "true",
+                startDate: data.startDate,
+                endDate: data.endDate || undefined,
                 isRecurring: data.isRecurring === "true",
+                isActive: data.isActive === "true",
             };
 
             if (selectedSchedule) {
@@ -296,9 +268,7 @@ export default function CourseScheduleManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save schedule";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save schedule";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -309,9 +279,9 @@ export default function CourseScheduleManagementPage() {
         <DashboardLayout>
             <div className="space-y-6">
                 <PageHeader
-                    title="Course Schedule Management"
-                    subtitle="Manage class routines and schedules"
-                    actionLabel="Add New Schedule"
+                    title="Schedule Management"
+                    subtitle="Manage course schedules"
+                    actionLabel="Add Schedule"
                     onAction={handleCreate}
                     icon={CalendarClock}
                 />
@@ -322,10 +292,23 @@ export default function CourseScheduleManagementPage() {
                     </div>
                 ) : (
                     <DataTable
-                        data={schedules}
+                        data={schedules.map(s => {
+                            const course = typeof s.sessionCourseId === 'object' && s.sessionCourseId ? (s.sessionCourseId as any).courseId : null;
+                            const courseName = typeof course === 'object' ? course.name : 'N/A';
+                            const room = typeof s.roomNumber === 'object' ? s.roomNumber : null;
+
+                            return {
+                                ...s,
+                                batchName: getName(s.batchId),
+                                courseName: courseName,
+                                teacherName: s.teacher ? s.teacher.fullName : 'N/A',
+                                roomName: room ? `${room.roomNumber} - ${room.buildingName}` : 'N/A',
+                            };
+                        })}
                         columns={columns}
-                        searchKey="dayOfWeek"
-                        searchPlaceholder="Search by day..."
+                        searchKey="batchName"
+                        searchPlaceholder="Search by batch..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/schedule/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
@@ -336,7 +319,7 @@ export default function CourseScheduleManagementPage() {
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
                     title="Delete Schedule"
-                    description="Are you sure you want to delete this class schedule? This action cannot be undone."
+                    description="Are you sure you want to delete this schedule? This action cannot be undone."
                     isDeleting={isDeleting}
                 />
 
@@ -344,8 +327,8 @@ export default function CourseScheduleManagementPage() {
                     isOpen={isFormModalOpen}
                     onClose={() => setIsFormModalOpen(false)}
                     onSubmit={handleFormSubmit}
-                    title={selectedSchedule ? "Edit Schedule" : "Add New Schedule"}
-                    description={selectedSchedule ? "Update class schedule" : "Create a new class schedule"}
+                    title={selectedSchedule ? "Edit Schedule" : "Add Schedule"}
+                    description={selectedSchedule ? "Update schedule information" : "Create a new schedule"}
                     fields={formFields}
                     initialData={selectedSchedule ? {
                         batchId: getId(selectedSchedule.batchId),
@@ -355,11 +338,15 @@ export default function CourseScheduleManagementPage() {
                         endTime: selectedSchedule.endTime,
                         roomNumber: getId(selectedSchedule.roomNumber),
                         classType: selectedSchedule.classType,
-                        startDate: selectedSchedule.startDate.split('T')[0],
-                        endDate: selectedSchedule.endDate ? selectedSchedule.endDate.split('T')[0] : "",
-                        isActive: selectedSchedule.isActive ? "true" : "false",
-                        isRecurring: selectedSchedule.isRecurring ? "true" : "false",
-                    } : { isActive: "true", isRecurring: "true", classType: "Lecture" }}
+                        startDate: selectedSchedule.startDate ? new Date(selectedSchedule.startDate).toISOString().split('T')[0] : "",
+                        endDate: selectedSchedule.endDate ? new Date(selectedSchedule.endDate).toISOString().split('T')[0] : "",
+                        isRecurring: selectedSchedule.isRecurring.toString(),
+                        isActive: selectedSchedule.isActive.toString(),
+                    } : {
+                        isRecurring: "true",
+                        isActive: "true",
+                        classType: "Lecture",
+                    }}
                     isSubmitting={isSubmitting}
                 />
             </div>

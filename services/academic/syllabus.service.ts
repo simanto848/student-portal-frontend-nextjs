@@ -41,4 +41,20 @@ export const syllabusService = {
             return handleApiError(error);
         }
     },
+    approveSyllabus: async (id: string): Promise<CourseSyllabus> => {
+        try {
+            const response = await api.post(`/academic/syllabus/${id}/approve`);
+            return extractItemData<CourseSyllabus>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    publishSyllabus: async (id: string): Promise<CourseSyllabus> => {
+        try {
+            const response = await api.post(`/academic/syllabus/${id}/publish`);
+            return extractItemData<CourseSyllabus>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
 };

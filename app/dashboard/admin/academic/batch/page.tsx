@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, Batch, Program, Department, Session, AcademicApiError } from "@/services/academic.service";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Users } from "lucide-react";
+import { Users, GraduationCap, Building2, Calendar } from "lucide-react";
 
-// Helper to get name from object or string
 const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === 'string') return item;
@@ -19,7 +18,6 @@ const getName = (item: any): string => {
     return "N/A";
 };
 
-// Helper to get ID from object or string
 const getId = (item: any): string => {
     if (!item) return "";
     if (typeof item === 'string') return item;
@@ -27,7 +25,14 @@ const getId = (item: any): string => {
     return "";
 };
 
+interface BatchWithDetails extends Batch {
+    programName: string;
+    departmentName: string;
+    sessionName: string;
+}
+
 export default function BatchManagementPage() {
+    const router = useRouter();
     const [batches, setBatches] = useState<Batch[]>([]);
     const [programs, setPrograms] = useState<Program[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -39,50 +44,38 @@ export default function BatchManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const columns: Column<Batch>[] = [
-        { header: "Batch Name", accessorKey: "name" },
+    const columns: Column<BatchWithDetails>[] = [
+        {
+            header: "Name",
+            accessorKey: "name",
+        },
         {
             header: "Program",
-            accessorKey: "programId",
-            cell: (item) => getName(item.programId)
+            accessorKey: "programName",
+        },
+        {
+            header: "Department",
+            accessorKey: "departmentName",
         },
         {
             header: "Session",
-            accessorKey: "sessionId",
-            cell: (item) => getName(item.sessionId)
+            accessorKey: "sessionName",
         },
         {
-            header: "Students",
-            accessorKey: "currentStudents",
-            cell: (item) => (
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{item.currentStudents}</span>
-                    <span className="text-xs text-muted-foreground">/ {item.maxStudents}</span>
-                </div>
-            )
+            header: "Year",
+            accessorKey: "year",
         },
         {
-            header: "Semester",
+            header: "Current Semester",
             accessorKey: "currentSemester",
-            cell: (item) => (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#588157]/20 text-[#344e41]">
-                    {item.currentSemester}
-                </span>
-            )
         },
         {
             header: "Status",
             accessorKey: "status",
             cell: (item) => (
-                <Badge
-                    variant={item.status ? "default" : "destructive"}
-                    className={item.status
-                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                        : "bg-red-100 text-red-800 hover:bg-red-200"
-                    }
-                >
-                    {item.status ? "Active" : "Inactive"}
-                </Badge>
+                <span className={`px-2 py-1 rounded-full text-xs ${item.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {item.status ? 'Active' : 'Inactive'}
+                </span>
             ),
         },
     ];
@@ -93,73 +86,74 @@ export default function BatchManagementPage() {
             label: "Batch Name",
             type: "text",
             required: true,
-            placeholder: "e.g. CSE-24"
+            placeholder: "e.g. CSE-2024",
         },
         {
             name: "year",
             label: "Year",
             type: "number",
             required: true,
-            placeholder: "e.g. 2024"
+            placeholder: "e.g. 2024",
         },
         {
             name: "programId",
             label: "Program",
-            type: "select",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a program",
-            options: Array.isArray(programs)
-                ? programs
-                    .filter(p => p.status)
-                    .map(p => ({ label: `${p.name} (${p.shortName})`, value: p.id }))
-                : []
+            options: programs.filter(p => p.status).map(p => ({ label: p.name, value: p.id })),
         },
         {
             name: "departmentId",
             label: "Department",
-            type: "select",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a department",
-            options: Array.isArray(departments)
-                ? departments
-                    .filter(d => d.status)
-                    .map(d => ({ label: `${d.name} (${d.shortName})`, value: d.id }))
-                : []
+            options: departments.filter(d => d.status).map(d => ({ label: d.name, value: d.id })),
         },
         {
             name: "sessionId",
             label: "Session",
-            type: "select",
+            type: "searchable-select",
             required: true,
             placeholder: "Select a session",
-            options: Array.isArray(sessions)
-                ? sessions
-                    .filter(s => s.status)
-                    .map(s => ({ label: s.name, value: s.id }))
-                : []
-        },
-        {
-            name: "maxStudents",
-            label: "Max Students",
-            type: "number",
-            required: true,
-            placeholder: "e.g. 50"
+            options: sessions.filter(s => s.status).map(s => ({ label: s.name, value: s.id })),
         },
         {
             name: "currentSemester",
             label: "Current Semester",
             type: "number",
             required: true,
-            placeholder: "e.g. 1"
+            placeholder: "e.g. 1",
+        },
+        {
+            name: "maxStudents",
+            label: "Max Students",
+            type: "number",
+            required: true,
+            placeholder: "e.g. 60",
+        },
+        {
+            name: "startDate",
+            label: "Start Date",
+            type: "date",
+            required: false,
+        },
+        {
+            name: "endDate",
+            label: "End Date",
+            type: "date",
+            required: false,
         },
         {
             name: "status",
             label: "Status",
             type: "select",
+            required: true,
             options: [
                 { label: "Active", value: "true" },
-                { label: "Inactive", value: "false" }
-            ]
+                { label: "Inactive", value: "false" },
+            ],
         },
     ], [programs, departments, sessions]);
 
@@ -174,16 +168,14 @@ export default function BatchManagementPage() {
                 academicService.getAllBatches(),
                 academicService.getAllPrograms(),
                 academicService.getAllDepartments(),
-                academicService.getAllSessions()
+                academicService.getAllSessions(),
             ]);
             setBatches(Array.isArray(batchesData) ? batchesData : []);
             setPrograms(Array.isArray(programsData) ? programsData : []);
             setDepartments(Array.isArray(deptsData) ? deptsData : []);
             setSessions(Array.isArray(sessionsData) ? sessionsData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setBatches([]);
         } finally {
@@ -196,12 +188,12 @@ export default function BatchManagementPage() {
         setIsFormModalOpen(true);
     };
 
-    const handleEdit = (batch: Batch) => {
+    const handleEdit = (batch: BatchWithDetails) => {
         setSelectedBatch(batch);
         setIsFormModalOpen(true);
     };
 
-    const handleDeleteClick = (batch: Batch) => {
+    const handleDeleteClick = (batch: BatchWithDetails) => {
         setSelectedBatch(batch);
         setIsDeleteModalOpen(true);
     };
@@ -215,9 +207,7 @@ export default function BatchManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete batch";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete batch";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -228,48 +218,17 @@ export default function BatchManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            if (!data.name || data.name.trim().length < 3) {
-                toast.error("Batch name must be at least 3 characters");
-                setIsSubmitting(false);
-                return;
-            }
-
-            const year = Number(data.year);
-            if (!year || year < 2000 || year > 2100) {
-                toast.error("Year must be between 2000 and 2100");
-                setIsSubmitting(false);
-                return;
-            }
-
-            if (!data.programId || !data.departmentId || !data.sessionId) {
-                toast.error("Program, Department and Session are required");
-                setIsSubmitting(false);
-                return;
-            }
-
-            const maxStudents = Number(data.maxStudents);
-            if (!maxStudents || maxStudents < 1 || maxStudents > 500) {
-                toast.error("Max students must be between 1 and 500");
-                setIsSubmitting(false);
-                return;
-            }
-
-            const currentSemester = Number(data.currentSemester);
-            if (!currentSemester || currentSemester < 1) {
-                toast.error("Current semester must be at least 1");
-                setIsSubmitting(false);
-                return;
-            }
-
             const submitData = {
-                name: data.name.trim(),
-                year: year,
+                name: data.name,
+                year: parseInt(data.year),
                 programId: data.programId,
                 departmentId: data.departmentId,
                 sessionId: data.sessionId,
-                maxStudents: maxStudents,
-                currentSemester: currentSemester,
-                status: data.status === "true"
+                currentSemester: parseInt(data.currentSemester),
+                maxStudents: parseInt(data.maxStudents),
+                startDate: data.startDate || undefined,
+                endDate: data.endDate || undefined,
+                status: data.status === "true",
             };
 
             if (selectedBatch) {
@@ -282,9 +241,7 @@ export default function BatchManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save batch";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save batch";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -297,7 +254,7 @@ export default function BatchManagementPage() {
                 <PageHeader
                     title="Batch Management"
                     subtitle="Manage student batches"
-                    actionLabel="Add New Batch"
+                    actionLabel="Add Batch"
                     onAction={handleCreate}
                     icon={Users}
                 />
@@ -308,10 +265,16 @@ export default function BatchManagementPage() {
                     </div>
                 ) : (
                     <DataTable
-                        data={batches}
+                        data={batches.map(b => ({
+                            ...b,
+                            programName: getName(b.programId),
+                            departmentName: getName(b.departmentId),
+                            sessionName: getName(b.sessionId),
+                        }))}
                         columns={columns}
                         searchKey="name"
-                        searchPlaceholder="Search batch by name..."
+                        searchPlaceholder="Search by batch name..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/batch/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
@@ -322,7 +285,7 @@ export default function BatchManagementPage() {
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
                     title="Delete Batch"
-                    description={`Are you sure you want to delete "${selectedBatch?.name}"? This action cannot be undone.`}
+                    description="Are you sure you want to delete this batch? This action cannot be undone."
                     isDeleting={isDeleting}
                 />
 
@@ -330,19 +293,24 @@ export default function BatchManagementPage() {
                     isOpen={isFormModalOpen}
                     onClose={() => setIsFormModalOpen(false)}
                     onSubmit={handleFormSubmit}
-                    title={selectedBatch ? "Edit Batch" : "Add New Batch"}
-                    description={selectedBatch ? "Update batch information" : "Create a new student batch"}
+                    title={selectedBatch ? "Edit Batch" : "Add Batch"}
+                    description={selectedBatch ? "Update batch information" : "Create a new batch"}
                     fields={formFields}
                     initialData={selectedBatch ? {
                         name: selectedBatch.name,
-                        year: String(selectedBatch.year),
+                        year: selectedBatch.year.toString(),
                         programId: getId(selectedBatch.programId),
                         departmentId: getId(selectedBatch.departmentId),
                         sessionId: getId(selectedBatch.sessionId),
-                        maxStudents: String(selectedBatch.maxStudents),
-                        currentSemester: String(selectedBatch.currentSemester),
-                        status: selectedBatch.status ? "true" : "false"
-                    } : { status: "true", maxStudents: "50", currentSemester: "1" }}
+                        currentSemester: selectedBatch.currentSemester.toString(),
+                        maxStudents: selectedBatch.maxStudents.toString(),
+                        startDate: selectedBatch.startDate ? new Date(selectedBatch.startDate).toISOString().split('T')[0] : "",
+                        endDate: selectedBatch.endDate ? new Date(selectedBatch.endDate).toISOString().split('T')[0] : "",
+                        status: selectedBatch.status.toString(),
+                    } : {
+                        status: "true",
+                        currentSemester: "1",
+                    }}
                     isSubmitting={isSubmitting}
                 />
             </div>

@@ -1,17 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, Classroom, Department, AcademicApiError } from "@/services/academic.service";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Monitor } from "lucide-react";
+import { Building2 } from "lucide-react";
 
-// Helper to get name from object or string
 const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === 'string') return item;
@@ -19,7 +18,6 @@ const getName = (item: any): string => {
     return "N/A";
 };
 
-// Helper to get ID from object or string
 const getId = (item: any): string => {
     if (!item) return "";
     if (typeof item === 'string') return item;
@@ -27,7 +25,12 @@ const getId = (item: any): string => {
     return "";
 };
 
+interface ClassroomWithDetails extends Classroom {
+    departmentName: string;
+}
+
 export default function ClassroomManagementPage() {
+    const router = useRouter();
     const [classrooms, setClassrooms] = useState<Classroom[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -37,29 +40,39 @@ export default function ClassroomManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const columns: Column<Classroom>[] = [
-        { header: "Room Number", accessorKey: "roomNumber" },
-        { header: "Building", accessorKey: "buildingName" },
-        { header: "Capacity", accessorKey: "capacity" },
-        { header: "Type", accessorKey: "roomType" },
+    const columns: Column<ClassroomWithDetails>[] = [
+        {
+            header: "Room Number",
+            accessorKey: "roomNumber",
+        },
+        {
+            header: "Building",
+            accessorKey: "buildingName",
+        },
+        {
+            header: "Type",
+            accessorKey: "roomType",
+        },
+        {
+            header: "Capacity",
+            accessorKey: "capacity",
+        },
+        {
+            header: "Floor",
+            accessorKey: "floor",
+            cell: (item) => item.floor?.toString() || "N/A",
+        },
         {
             header: "Department",
-            accessorKey: "departmentId",
-            cell: (item) => getName(item.departmentId)
+            accessorKey: "departmentName",
         },
         {
             header: "Status",
             accessorKey: "isActive",
             cell: (item) => (
-                <Badge
-                    variant={item.isActive ? "default" : "destructive"}
-                    className={item.isActive
-                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                        : "bg-red-100 text-red-800 hover:bg-red-200"
-                    }
-                >
-                    {item.isActive ? "Active" : "Inactive"}
-                </Badge>
+                <span className={`px-2 py-1 rounded-full text-xs ${item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {item.isActive ? 'Active' : 'Inactive'}
+                </span>
             ),
         },
     ];
@@ -70,27 +83,28 @@ export default function ClassroomManagementPage() {
             label: "Room Number",
             type: "text",
             required: true,
-            placeholder: "e.g. 101"
+            placeholder: "e.g. 101",
         },
         {
             name: "buildingName",
             label: "Building Name",
             type: "text",
             required: true,
-            placeholder: "e.g. Academic Building 1"
+            placeholder: "e.g. Academic Building 1",
         },
         {
             name: "floor",
             label: "Floor",
             type: "number",
-            placeholder: "e.g. 1"
+            required: false,
+            placeholder: "e.g. 1",
         },
         {
             name: "capacity",
             label: "Capacity",
             type: "number",
             required: true,
-            placeholder: "e.g. 60"
+            placeholder: "e.g. 50",
         },
         {
             name: "roomType",
@@ -105,42 +119,49 @@ export default function ClassroomManagementPage() {
                 { label: "Conference Room", value: "Conference Room" },
                 { label: "Virtual", value: "Virtual" },
                 { label: "Other", value: "Other" },
-            ]
+            ],
         },
         {
             name: "departmentId",
-            label: "Department (Optional)",
-            type: "select",
-            placeholder: "Select a department",
-            options: Array.isArray(departments)
-                ? departments
-                    .filter(d => d.status)
-                    .map(d => ({ label: `${d.name} (${d.shortName})`, value: d.id }))
-                : []
+            label: "Department",
+            type: "searchable-select",
+            required: false,
+            placeholder: "Select a department (optional)",
+            options: departments.filter(d => d.status).map(d => ({ label: d.name, value: d.id })),
+        },
+        {
+            name: "facilities",
+            label: "Facilities",
+            type: "text",
+            required: false,
+            placeholder: "e.g. Projector, Whiteboard (comma separated)",
         },
         {
             name: "isActive",
             label: "Status",
             type: "select",
+            required: true,
             options: [
                 { label: "Active", value: "true" },
-                { label: "Inactive", value: "false" }
-            ]
+                { label: "Inactive", value: "false" },
+            ],
         },
         {
             name: "isUnderMaintenance",
-            label: "Under Maintenance",
+            label: "Maintenance",
             type: "select",
+            required: true,
             options: [
+                { label: "No", value: "false" },
                 { label: "Yes", value: "true" },
-                { label: "No", value: "false" }
-            ]
+            ],
         },
         {
             name: "maintenanceNotes",
             label: "Maintenance Notes",
             type: "textarea",
-            placeholder: "Details about maintenance..."
+            required: false,
+            placeholder: "Details about maintenance...",
         },
     ], [departments]);
 
@@ -153,14 +174,12 @@ export default function ClassroomManagementPage() {
         try {
             const [classroomsData, deptsData] = await Promise.all([
                 academicService.getAllClassrooms(),
-                academicService.getAllDepartments()
+                academicService.getAllDepartments(),
             ]);
             setClassrooms(Array.isArray(classroomsData) ? classroomsData : []);
             setDepartments(Array.isArray(deptsData) ? deptsData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setClassrooms([]);
         } finally {
@@ -173,12 +192,12 @@ export default function ClassroomManagementPage() {
         setIsFormModalOpen(true);
     };
 
-    const handleEdit = (classroom: Classroom) => {
+    const handleEdit = (classroom: ClassroomWithDetails) => {
         setSelectedClassroom(classroom);
         setIsFormModalOpen(true);
     };
 
-    const handleDeleteClick = (classroom: Classroom) => {
+    const handleDeleteClick = (classroom: ClassroomWithDetails) => {
         setSelectedClassroom(classroom);
         setIsDeleteModalOpen(true);
     };
@@ -192,9 +211,7 @@ export default function ClassroomManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete classroom";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete classroom";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -205,29 +222,17 @@ export default function ClassroomManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            if (!data.roomNumber || !data.buildingName) {
-                toast.error("Room number and building name are required");
-                setIsSubmitting(false);
-                return;
-            }
-
-            const capacity = Number(data.capacity);
-            if (!capacity || capacity < 1) {
-                toast.error("Capacity must be at least 1");
-                setIsSubmitting(false);
-                return;
-            }
-
             const submitData = {
-                roomNumber: data.roomNumber.trim(),
-                buildingName: data.buildingName.trim(),
-                floor: data.floor ? Number(data.floor) : undefined,
-                capacity: capacity,
+                roomNumber: data.roomNumber,
+                buildingName: data.buildingName,
+                floor: data.floor ? parseInt(data.floor) : undefined,
+                capacity: parseInt(data.capacity),
                 roomType: data.roomType as any,
                 departmentId: data.departmentId || undefined,
+                facilities: data.facilities ? data.facilities.split(',').map(f => f.trim()) : [],
                 isActive: data.isActive === "true",
                 isUnderMaintenance: data.isUnderMaintenance === "true",
-                maintenanceNotes: data.maintenanceNotes?.trim() || undefined,
+                maintenanceNotes: data.maintenanceNotes || undefined,
             };
 
             if (selectedClassroom) {
@@ -240,9 +245,7 @@ export default function ClassroomManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save classroom";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save classroom";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -255,9 +258,9 @@ export default function ClassroomManagementPage() {
                 <PageHeader
                     title="Classroom Management"
                     subtitle="Manage classrooms and facilities"
-                    actionLabel="Add New Classroom"
+                    actionLabel="Add Classroom"
                     onAction={handleCreate}
-                    icon={Monitor}
+                    icon={Building2}
                 />
 
                 {isLoading ? (
@@ -266,10 +269,14 @@ export default function ClassroomManagementPage() {
                     </div>
                 ) : (
                     <DataTable
-                        data={classrooms}
+                        data={classrooms.map(c => ({
+                            ...c,
+                            departmentName: c.departmentId ? (c.departmentId as any).name : 'N/A',
+                        }))}
                         columns={columns}
                         searchKey="roomNumber"
                         searchPlaceholder="Search by room number..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/classroom/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
@@ -280,7 +287,7 @@ export default function ClassroomManagementPage() {
                     onClose={() => setIsDeleteModalOpen(false)}
                     onConfirm={handleConfirmDelete}
                     title="Delete Classroom"
-                    description={`Are you sure you want to delete room "${selectedClassroom?.roomNumber}"? This action cannot be undone.`}
+                    description="Are you sure you want to delete this classroom? This action cannot be undone."
                     isDeleting={isDeleting}
                 />
 
@@ -288,20 +295,24 @@ export default function ClassroomManagementPage() {
                     isOpen={isFormModalOpen}
                     onClose={() => setIsFormModalOpen(false)}
                     onSubmit={handleFormSubmit}
-                    title={selectedClassroom ? "Edit Classroom" : "Add New Classroom"}
+                    title={selectedClassroom ? "Edit Classroom" : "Add Classroom"}
                     description={selectedClassroom ? "Update classroom information" : "Create a new classroom"}
                     fields={formFields}
                     initialData={selectedClassroom ? {
                         roomNumber: selectedClassroom.roomNumber,
                         buildingName: selectedClassroom.buildingName,
-                        floor: String(selectedClassroom.floor || ""),
-                        capacity: String(selectedClassroom.capacity),
+                        floor: selectedClassroom.floor?.toString() || "",
+                        capacity: selectedClassroom.capacity.toString(),
                         roomType: selectedClassroom.roomType,
                         departmentId: getId(selectedClassroom.departmentId),
-                        isActive: selectedClassroom.isActive ? "true" : "false",
-                        isUnderMaintenance: selectedClassroom.isUnderMaintenance ? "true" : "false",
+                        facilities: selectedClassroom.facilities.join(', '),
+                        isActive: selectedClassroom.isActive.toString(),
+                        isUnderMaintenance: selectedClassroom.isUnderMaintenance.toString(),
                         maintenanceNotes: selectedClassroom.maintenanceNotes || "",
-                    } : { isActive: "true", isUnderMaintenance: "false", roomType: "Lecture Hall" }}
+                    } : {
+                        isActive: "true",
+                        isUnderMaintenance: "false",
+                    }}
                     isSubmitting={isSubmitting}
                 />
             </div>
