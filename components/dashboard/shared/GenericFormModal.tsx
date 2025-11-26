@@ -13,18 +13,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { useState, useCallback } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Check, ChevronsUpDown, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState, useCallback, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export interface FormField {
     name: string;
     label: string;
-    type: "text" | "email" | "number" | "select" | "date" | "textarea" | "time" | "searchable-select";
+    type: "text" | "email" | "number" | "select" | "date" | "textarea" | "time" | "searchable-select" | "multi-select";
     placeholder?: string;
     required?: boolean;
     options?: { label: string; value: string }[];
 }
 
-type FormDataType = Record<string, string>;
+type FormDataType = Record<string, any>;
 
 interface GenericFormModalProps {
     isOpen: boolean;
@@ -52,7 +57,7 @@ function FormContent({
 }) {
     const [formData, setFormData] = useState<FormDataType>(initialData);
 
-    const handleChange = useCallback((name: string, value: string) => {
+    const handleChange = useCallback((name: string, value: any) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     }, []);
 
@@ -97,6 +102,73 @@ function FormContent({
                                 onChange={(value) => handleChange(field.name, value)}
                                 placeholder={field.placeholder}
                             />
+                        ) : field.type === "multi-select" ? (
+                            <div className="space-y-2">
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                    {Array.isArray(formData[field.name]) && formData[field.name].map((val: string) => {
+                                        const option = field.options?.find(o => o.value === val);
+                                        return (
+                                            <Badge key={val} variant="secondary" className="bg-[#a3b18a]/30 text-[#344e41] hover:bg-[#a3b18a]/40">
+                                                {option?.label || val}
+                                                <button
+                                                    type="button"
+                                                    className="ml-1 hover:text-red-500"
+                                                    onClick={() => {
+                                                        const current = Array.isArray(formData[field.name]) ? formData[field.name] : [];
+                                                        handleChange(field.name, current.filter((v: string) => v !== val));
+                                                    }}
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </button>
+                                            </Badge>
+                                        );
+                                    })}
+                                </div>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            className="w-full justify-between bg-white border-[#a3b18a]/50 text-[#344e41]"
+                                        >
+                                            {field.placeholder || "Select items..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-full p-0 bg-white border-[#a3b18a]/30">
+                                        <Command>
+                                            <CommandInput placeholder="Search..." />
+                                            <CommandEmpty>No item found.</CommandEmpty>
+                                            <CommandGroup className="max-h-[200px] overflow-auto">
+                                                {field.options?.map((option) => (
+                                                    <CommandItem
+                                                        key={option.value}
+                                                        value={option.label}
+                                                        onSelect={() => {
+                                                            const current = Array.isArray(formData[field.name]) ? formData[field.name] : [];
+                                                            const isSelected = current.includes(option.value);
+                                                            const newValue = isSelected
+                                                                ? current.filter((v: string) => v !== option.value)
+                                                                : [...current, option.value];
+                                                            handleChange(field.name, newValue);
+                                                        }}
+                                                    >
+                                                        <Check
+                                                            className={cn(
+                                                                "mr-2 h-4 w-4",
+                                                                Array.isArray(formData[field.name]) && formData[field.name].includes(option.value)
+                                                                    ? "opacity-100"
+                                                                    : "opacity-0"
+                                                            )}
+                                                        />
+                                                        {option.label}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
                         ) : field.type === "textarea" ? (
                             <textarea
                                 id={field.name}

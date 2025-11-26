@@ -142,16 +142,21 @@ export interface CourseSchedule {
     batch?: Batch;
     sessionCourseId: string | SessionCourse;
     sessionCourse?: SessionCourse;
-    teacherId?: string;
+    teacherId?: string | {
+        _id: string;
+        fullName: string;
+        email: string;
+        registrationNumber?: string;
+    };
     teacher?: {
         fullName: string;
         email: string;
         registrationNumber?: string;
     };
-    dayOfWeek: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+    daysOfWeek: ('Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday')[];
     startTime: string;
     endTime: string;
-    roomNumber?: string | Classroom;
+    classroomId?: string | Classroom;
     classroom?: Classroom;
     building?: string;
     isRecurring: boolean;
@@ -159,6 +164,7 @@ export interface CourseSchedule {
     endDate?: string;
     classType: 'Lecture' | 'Tutorial' | 'Lab' | 'Seminar' | 'Workshop' | 'Other';
     isActive: boolean;
+    updatedAt?: string;
 }
 
 export interface CoursePrerequisite {

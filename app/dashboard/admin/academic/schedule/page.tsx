@@ -8,6 +8,7 @@ import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, CourseSchedule, Batch, SessionCourse, Classroom, AcademicApiError } from "@/services/academic.service";
+import { teacherService, Teacher } from "@/services/teacher.service";
 import { toast } from "sonner";
 import { CalendarClock } from "lucide-react";
 
@@ -38,6 +39,7 @@ export default function ScheduleManagementPage() {
     const [batches, setBatches] = useState<Batch[]>([]);
     const [sessionCourses, setSessionCourses] = useState<SessionCourse[]>([]);
     const [classrooms, setClassrooms] = useState<Classroom[]>([]);
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -55,8 +57,9 @@ export default function ScheduleManagementPage() {
             accessorKey: "courseName",
         },
         {
-            header: "Day",
-            accessorKey: "dayOfWeek",
+            header: "Days",
+            accessorKey: "daysOfWeek",
+            cell: (item) => Array.isArray(item.daysOfWeek) ? item.daysOfWeek.join(", ") : item.daysOfWeek,
         },
         {
             header: "Time",
@@ -93,7 +96,6 @@ export default function ScheduleManagementPage() {
             type: "searchable-select",
             required: true,
             placeholder: "Select a course",
-            // Note: Ideally we should filter session courses based on the selected batch's session
             options: sessionCourses.map(sc => {
                 const courseName = typeof sc.courseId === 'object' ? sc.courseId.name : 'Unknown Course';
                 const courseCode = typeof sc.courseId === 'object' ? sc.courseId.code : '';
@@ -101,9 +103,17 @@ export default function ScheduleManagementPage() {
             }),
         },
         {
-            name: "dayOfWeek",
-            label: "Day of Week",
-            type: "select",
+            name: "teacherId",
+            label: "Teacher",
+            type: "searchable-select",
+            required: true,
+            placeholder: "Select a teacher",
+            options: teachers.map(t => ({ label: `${t.fullName} (${t.email})`, value: t.id })),
+        },
+        {
+            name: "daysOfWeek",
+            label: "Days of Week",
+            type: "multi-select",
             required: true,
             options: [
                 { label: "Sunday", value: "Sunday" },
@@ -128,7 +138,7 @@ export default function ScheduleManagementPage() {
             required: true,
         },
         {
-            name: "roomNumber",
+            name: "classroomId",
             label: "Classroom",
             type: "searchable-select",
             required: false,
@@ -181,7 +191,7 @@ export default function ScheduleManagementPage() {
                 { label: "Inactive", value: "false" },
             ],
         },
-    ], [batches, sessionCourses, classrooms]);
+    ], [batches, sessionCourses, classrooms, teachers]);
 
     useEffect(() => {
         fetchData();
@@ -190,16 +200,18 @@ export default function ScheduleManagementPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [schedulesData, batchesData, sessionCoursesData, classroomsData] = await Promise.all([
+            const [schedulesData, batchesData, sessionCoursesData, classroomsData, teachersData] = await Promise.all([
                 academicService.getAllSchedules(),
                 academicService.getAllBatches(),
                 academicService.getAllSessionCourses(),
                 academicService.getAllClassrooms(),
+                teacherService.getAllTeachers(),
             ]);
             setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
             setBatches(Array.isArray(batchesData) ? batchesData : []);
             setSessionCourses(Array.isArray(sessionCoursesData) ? sessionCoursesData : []);
             setClassrooms(Array.isArray(classroomsData) ? classroomsData : []);
+            setTeachers(Array.isArray(teachersData) ? teachersData : []);
         } catch (error) {
             const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
@@ -247,13 +259,14 @@ export default function ScheduleManagementPage() {
             const submitData = {
                 batchId: data.batchId,
                 sessionCourseId: data.sessionCourseId,
-                dayOfWeek: data.dayOfWeek as any,
+                teacherId: data.teacherId,
+                daysOfWeek: data.daysOfWeek as any,
                 startTime: data.startTime,
                 endTime: data.endTime,
-                roomNumber: data.roomNumber,
+                classroomId: data.classroomId,
                 classType: data.classType as any,
-                startDate: data.startDate,
-                endDate: data.endDate || undefined,
+                startDate: new Date(data.startDate).toISOString(),
+                endDate: data.endDate ? new Date(data.endDate).toISOString() : undefined,
                 isRecurring: data.isRecurring === "true",
                 isActive: data.isActive === "true",
             };
@@ -295,13 +308,15 @@ export default function ScheduleManagementPage() {
                         data={schedules.map(s => {
                             const course = typeof s.sessionCourseId === 'object' && s.sessionCourseId ? (s.sessionCourseId as any).courseId : null;
                             const courseName = typeof course === 'object' ? course.name : 'N/A';
-                            const room = typeof s.roomNumber === 'object' ? s.roomNumber : null;
+                            const room = typeof s.classroomId === 'object' ? s.classroomId : null;
+
+                            const teacher = teachers.find(t => t.id === s.teacherId);
 
                             return {
                                 ...s,
                                 batchName: getName(s.batchId),
                                 courseName: courseName,
-                                teacherName: s.teacher ? s.teacher.fullName : 'N/A',
+                                teacherName: teacher ? teacher.fullName : (s.teacher ? s.teacher.fullName : 'N/A'),
                                 roomName: room ? `${room.roomNumber} - ${room.buildingName}` : 'N/A',
                             };
                         })}
@@ -333,10 +348,11 @@ export default function ScheduleManagementPage() {
                     initialData={selectedSchedule ? {
                         batchId: getId(selectedSchedule.batchId),
                         sessionCourseId: getId(selectedSchedule.sessionCourseId),
-                        dayOfWeek: selectedSchedule.dayOfWeek,
+                        teacherId: getId(selectedSchedule.teacherId),
+                        daysOfWeek: selectedSchedule.daysOfWeek,
                         startTime: selectedSchedule.startTime,
                         endTime: selectedSchedule.endTime,
-                        roomNumber: getId(selectedSchedule.roomNumber),
+                        classroomId: getId(selectedSchedule.classroomId),
                         classType: selectedSchedule.classType,
                         startDate: selectedSchedule.startDate ? new Date(selectedSchedule.startDate).toISOString().split('T')[0] : "",
                         endDate: selectedSchedule.endDate ? new Date(selectedSchedule.endDate).toISOString().split('T')[0] : "",
