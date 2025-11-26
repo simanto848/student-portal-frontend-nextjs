@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
@@ -11,13 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { GraduationCap } from "lucide-react";
 
-// Helper to get department name from program
 const getDepartmentName = (prog: Program): string => {
     if (typeof prog.departmentId === 'object' && prog.departmentId?.name) return prog.departmentId.name;
     return "N/A";
 };
 
-// Helper to get department ID from program
 const getDepartmentId = (prog: Program): string => {
     if (typeof prog.departmentId === 'string') return prog.departmentId;
     if (typeof prog.departmentId === 'object' && prog.departmentId?.id) return prog.departmentId.id;
@@ -25,6 +24,7 @@ const getDepartmentId = (prog: Program): string => {
 };
 
 export default function ProgramManagementPage() {
+    const router = useRouter();
     const [programs, setPrograms] = useState<Program[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -42,13 +42,13 @@ export default function ProgramManagementPage() {
             accessorKey: "departmentId",
             cell: (item) => getDepartmentName(item)
         },
-        { 
-            header: "Duration", 
+        {
+            header: "Duration",
             accessorKey: "duration",
             cell: (item) => `${item.duration} Year${item.duration > 1 ? 's' : ''}`
         },
-        { 
-            header: "Credits", 
+        {
+            header: "Credits",
             accessorKey: "totalCredits",
             cell: (item) => (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#a3b18a]/30 text-[#344e41]">
@@ -69,10 +69,10 @@ export default function ProgramManagementPage() {
             header: "Status",
             accessorKey: "status",
             cell: (item) => (
-                <Badge 
-                    variant={item.status ? "default" : "destructive"} 
-                    className={item.status 
-                        ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                <Badge
+                    variant={item.status ? "default" : "destructive"}
+                    className={item.status
+                        ? "bg-green-100 text-green-800 hover:bg-green-200"
                         : "bg-red-100 text-red-800 hover:bg-red-200"
                     }
                 >
@@ -82,21 +82,20 @@ export default function ProgramManagementPage() {
         },
     ];
 
-    // Generate form fields dynamically based on departments state
     const formFields: FormField[] = useMemo(() => [
-        { 
-            name: "name", 
-            label: "Program Name", 
-            type: "text", 
-            required: true, 
-            placeholder: "e.g. Bachelor of Science in Computer Science" 
+        {
+            name: "name",
+            label: "Program Name",
+            type: "text",
+            required: true,
+            placeholder: "e.g. Bachelor of Science in Computer Science"
         },
-        { 
-            name: "shortName", 
-            label: "Short Name", 
-            type: "text", 
-            required: true, 
-            placeholder: "e.g. BSC-CSE" 
+        {
+            name: "shortName",
+            label: "Short Name",
+            type: "text",
+            required: true,
+            placeholder: "e.g. BSC-CSE"
         },
         {
             name: "departmentId",
@@ -104,25 +103,25 @@ export default function ProgramManagementPage() {
             type: "select",
             required: true,
             placeholder: "Select a department",
-            options: Array.isArray(departments) 
+            options: Array.isArray(departments)
                 ? departments
-                    .filter(d => d.status) // Only show active departments
-                    .map(d => ({ label: `${d.name} (${d.shortName})`, value: d.id })) 
+                    .filter(d => d.status)
+                    .map(d => ({ label: `${d.name} (${d.shortName})`, value: d.id }))
                 : []
         },
-        { 
-            name: "duration", 
-            label: "Duration (Years)", 
-            type: "number", 
-            required: true, 
-            placeholder: "e.g. 4" 
+        {
+            name: "duration",
+            label: "Duration (Years)",
+            type: "number",
+            required: true,
+            placeholder: "e.g. 4"
         },
-        { 
-            name: "totalCredits", 
-            label: "Total Credits", 
-            type: "number", 
-            required: true, 
-            placeholder: "e.g. 160" 
+        {
+            name: "totalCredits",
+            label: "Total Credits",
+            type: "number",
+            required: true,
+            placeholder: "e.g. 160"
         },
         {
             name: "description",
@@ -155,9 +154,7 @@ export default function ProgramManagementPage() {
             setPrograms(Array.isArray(programsData) ? programsData : []);
             setDepartments(Array.isArray(deptsData) ? deptsData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError 
-                ? error.message 
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setPrograms([]);
             setDepartments([]);
@@ -190,9 +187,7 @@ export default function ProgramManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError 
-                ? error.message 
-                : "Failed to delete program";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete program";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -203,7 +198,6 @@ export default function ProgramManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            // Validate required fields
             if (!data.name || data.name.trim().length < 3) {
                 toast.error("Program name must be at least 3 characters");
                 setIsSubmitting(false);
@@ -262,9 +256,7 @@ export default function ProgramManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError 
-                ? error.message 
-                : "Failed to save program";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save program";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -292,6 +284,7 @@ export default function ProgramManagementPage() {
                         columns={columns}
                         searchKey="name"
                         searchPlaceholder="Search program by name..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/program/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />

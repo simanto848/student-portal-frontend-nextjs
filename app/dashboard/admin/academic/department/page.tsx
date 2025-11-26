@@ -1,23 +1,23 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, Faculty, Department, AcademicApiError } from "@/services/academic.service";
+import { teacherService, Teacher } from "@/services/teacher.service";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Building } from "lucide-react";
 
-// Helper to get faculty name from department
 const getFacultyName = (dept: Department): string => {
     if (typeof dept.facultyId === 'object' && dept.facultyId?.name) return dept.facultyId.name;
     return "N/A";
 };
 
-// Helper to get faculty ID from department
 const getFacultyId = (dept: Department): string => {
     if (typeof dept.facultyId === 'string') return dept.facultyId;
     if (typeof dept.facultyId === 'object' && dept.facultyId?.id) return dept.facultyId.id;
@@ -25,8 +25,10 @@ const getFacultyId = (dept: Department): string => {
 };
 
 export default function DepartmentManagementPage() {
+    const router = useRouter();
     const [departments, setDepartments] = useState<Department[]>([]);
     const [faculties, setFaculties] = useState<Faculty[]>([]);
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -46,15 +48,18 @@ export default function DepartmentManagementPage() {
             header: "Head",
             accessorKey: "departmentHeadId",
             cell: (item) => {
-                if (item.departmentHead?.fullName) {
-                    return (
-                        <span>
-                            {item.departmentHead.fullName}
-                            {item.isActingHead && (
-                                <span className="ml-1 text-xs text-[#588157]">(Acting)</span>
-                            )}
-                        </span>
-                    );
+                if (item.departmentHeadId) {
+                    const head = teachers.find(t => t.id === item.departmentHeadId);
+                    if (head) {
+                        return (
+                            <span>
+                                {head.fullName}
+                                {item.isActingHead && (
+                                    <span className="ml-1 text-xs text-[#588157]">(Acting)</span>
+                                )}
+                            </span>
+                        );
+                    }
                 }
                 return <span className="text-[#344e41]/50 italic">Not Assigned</span>;
             }
@@ -72,10 +77,10 @@ export default function DepartmentManagementPage() {
             header: "Status",
             accessorKey: "status",
             cell: (item) => (
-                <Badge 
-                    variant={item.status ? "default" : "destructive"} 
-                    className={item.status 
-                        ? "bg-green-100 text-green-800 hover:bg-green-200" 
+                <Badge
+                    variant={item.status ? "default" : "destructive"}
+                    className={item.status
+                        ? "bg-green-100 text-green-800 hover:bg-green-200"
                         : "bg-red-100 text-red-800 hover:bg-red-200"
                     }
                 >
@@ -85,34 +90,33 @@ export default function DepartmentManagementPage() {
         },
     ];
 
-    // Generate form fields dynamically based on faculties state
     const formFields: FormField[] = useMemo(() => [
-        { 
-            name: "name", 
-            label: "Department Name", 
-            type: "text", 
-            required: true, 
-            placeholder: "e.g. Computer Science and Engineering" 
+        {
+            name: "name",
+            label: "Department Name",
+            type: "text",
+            required: true,
+            placeholder: "e.g. Computer Science and Engineering"
         },
-        { 
-            name: "shortName", 
-            label: "Short Name", 
-            type: "text", 
-            required: true, 
-            placeholder: "e.g. CSE" 
+        {
+            name: "shortName",
+            label: "Short Name",
+            type: "text",
+            required: true,
+            placeholder: "e.g. CSE"
         },
-        { 
-            name: "email", 
-            label: "Email", 
-            type: "email", 
-            required: true, 
-            placeholder: "dept@university.edu" 
+        {
+            name: "email",
+            label: "Email",
+            type: "email",
+            required: true,
+            placeholder: "dept@university.edu"
         },
-        { 
-            name: "phone", 
-            label: "Phone", 
-            type: "text", 
-            placeholder: "+880 1XXX-XXXXXX" 
+        {
+            name: "phone",
+            label: "Phone",
+            type: "text",
+            placeholder: "+880 1XXX-XXXXXX"
         },
         {
             name: "facultyId",
@@ -120,11 +124,30 @@ export default function DepartmentManagementPage() {
             type: "select",
             required: true,
             placeholder: "Select a faculty",
-            options: Array.isArray(faculties) 
+            options: Array.isArray(faculties)
                 ? faculties
-                    .filter(f => f.status) // Only show active faculties
-                    .map(f => ({ label: f.name, value: f.id })) 
+                    .filter(f => f.status)
+                    .map(f => ({ label: f.name, value: f.id }))
                 : []
+        },
+        {
+            name: "departmentHeadId",
+            label: "Department Head",
+            type: "select",
+            placeholder: "Select a department head",
+            options: Array.isArray(teachers)
+                ? teachers
+                    .map(t => ({ label: `${t.fullName} (${t.designation || 'N/A'})`, value: t.id }))
+                : []
+        },
+        {
+            name: "isActingHead",
+            label: "Is Acting Head?",
+            type: "select",
+            options: [
+                { label: "Yes", value: "true" },
+                { label: "No", value: "false" }
+            ]
         },
         {
             name: "status",
@@ -135,7 +158,7 @@ export default function DepartmentManagementPage() {
                 { label: "Inactive", value: "false" }
             ]
         },
-    ], [faculties]);
+    ], [faculties, teachers]);
 
     useEffect(() => {
         fetchData();
@@ -144,19 +167,20 @@ export default function DepartmentManagementPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [deptsData, facultiesData] = await Promise.all([
+            const [deptsData, facultiesData, teachersData] = await Promise.all([
                 academicService.getAllDepartments(),
-                academicService.getAllFaculties()
+                academicService.getAllFaculties(),
+                teacherService.getAllTeachers()
             ]);
             setDepartments(Array.isArray(deptsData) ? deptsData : []);
             setFaculties(Array.isArray(facultiesData) ? facultiesData : []);
+            setTeachers(Array.isArray(teachersData) ? teachersData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError 
-                ? error.message 
-                : "Failed to load data";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
             setDepartments([]);
             setFaculties([]);
+            setTeachers([]);
         } finally {
             setIsLoading(false);
         }
@@ -186,9 +210,7 @@ export default function DepartmentManagementPage() {
             fetchData();
             setIsDeleteModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError 
-                ? error.message 
-                : "Failed to delete department";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to delete department";
             toast.error(message);
         } finally {
             setIsDeleting(false);
@@ -199,7 +221,6 @@ export default function DepartmentManagementPage() {
     const handleFormSubmit = async (data: Record<string, string>) => {
         setIsSubmitting(true);
         try {
-            // Validate required fields
             if (!data.name || data.name.trim().length < 3) {
                 toast.error("Department name must be at least 3 characters");
                 setIsSubmitting(false);
@@ -236,6 +257,8 @@ export default function DepartmentManagementPage() {
                 email: data.email.toLowerCase().trim(),
                 phone: data.phone?.trim() || undefined,
                 facultyId: data.facultyId,
+                departmentHeadId: data.departmentHeadId || undefined,
+                isActingHead: data.isActingHead === "true",
                 status: data.status === "true"
             };
 
@@ -249,9 +272,7 @@ export default function DepartmentManagementPage() {
             fetchData();
             setIsFormModalOpen(false);
         } catch (error) {
-            const message = error instanceof AcademicApiError 
-                ? error.message 
-                : "Failed to save department";
+            const message = error instanceof AcademicApiError ? error.message : "Failed to save department";
             toast.error(message);
         } finally {
             setIsSubmitting(false);
@@ -279,6 +300,7 @@ export default function DepartmentManagementPage() {
                         columns={columns}
                         searchKey="name"
                         searchPlaceholder="Search department by name..."
+                        onView={(item) => router.push(`/dashboard/admin/academic/department/${item.id}`)}
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
@@ -306,8 +328,10 @@ export default function DepartmentManagementPage() {
                         email: selectedDepartment.email,
                         phone: selectedDepartment.phone || "",
                         facultyId: getFacultyId(selectedDepartment),
+                        departmentHeadId: selectedDepartment.departmentHeadId || "",
+                        isActingHead: selectedDepartment.isActingHead ? "true" : "false",
                         status: selectedDepartment.status ? "true" : "false"
-                    } : { status: "true" }}
+                    } : { status: "true", isActingHead: "false" }}
                     isSubmitting={isSubmitting}
                 />
             </div>
