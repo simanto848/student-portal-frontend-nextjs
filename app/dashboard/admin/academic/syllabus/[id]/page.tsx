@@ -134,6 +134,132 @@ export default function SyllabusDetailsPage() {
                         </div>
                     </div>
 
+                    {/* Textbooks */}
+                    <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-[#588157]/10 rounded-lg">
+                                <BookOpenCheck className="h-5 w-5 text-[#588157]" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-[#344e41]">Textbooks</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {syllabus.textbooks && syllabus.textbooks.length > 0 ? (
+                                <ul className="space-y-3">
+                                    {syllabus.textbooks.map((book, index) => (
+                                        <li key={index} className="p-3 bg-[#f8f9fa] rounded-lg">
+                                            <p className="font-semibold text-[#344e41]">{book.title}</p>
+                                            <p className="text-sm text-[#344e41]/70">
+                                                {book.author} {book.edition ? `(${book.edition})` : ""}
+                                            </p>
+                                            {book.isbn && <p className="text-xs text-[#344e41]/50">ISBN: {book.isbn}</p>}
+                                            {book.required && <span className="text-xs font-medium text-red-600">Required</span>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-base text-[#344e41]/70">No textbooks listed.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Assessment Breakdown */}
+                    <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-[#588157]/10 rounded-lg">
+                                <ListChecks className="h-5 w-5 text-[#588157]" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-[#344e41]">Assessment Breakdown</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {syllabus.assessmentBreakdown ? (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {Object.entries(syllabus.assessmentBreakdown).map(([key, value]) => (
+                                        value ? (
+                                            <div key={key} className="p-3 bg-[#f8f9fa] rounded-lg flex justify-between items-center">
+                                                <span className="capitalize text-sm font-medium text-[#344e41]/70">{key}</span>
+                                                <span className="font-bold text-[#344e41]">{value}%</span>
+                                            </div>
+                                        ) : null
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-base text-[#344e41]/70">No assessment breakdown provided.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Weekly Schedule */}
+                    <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6 md:col-span-2">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-[#588157]/10 rounded-lg">
+                                <FileText className="h-5 w-5 text-[#588157]" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-[#344e41]">Weekly Schedule</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {syllabus.weeklySchedule && syllabus.weeklySchedule.length > 0 ? (
+                                <div className="grid gap-4">
+                                    {syllabus.weeklySchedule.map((week, index) => (
+                                        <div key={index} className="p-4 bg-[#f8f9fa] rounded-lg border border-[#a3b18a]/10">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className="px-2 py-1 bg-[#588157] text-white text-xs font-bold rounded">Week {week.week}</span>
+                                                <h3 className="font-semibold text-[#344e41]">{week.topic}</h3>
+                                            </div>
+                                            {week.readings && (
+                                                <p className="text-sm text-[#344e41]/80 mt-1"><span className="font-medium">Readings:</span> {week.readings}</p>
+                                            )}
+                                            {week.assignments && (
+                                                <p className="text-sm text-[#344e41]/80 mt-1"><span className="font-medium">Assignments:</span> {week.assignments}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-base text-[#344e41]/70">No weekly schedule provided.</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Additional Resources */}
+                    <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6 md:col-span-2">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-[#588157]/10 rounded-lg">
+                                <BookOpenCheck className="h-5 w-5 text-[#588157]" />
+                            </div>
+                            <h2 className="text-lg font-semibold text-[#344e41]">Additional Resources</h2>
+                        </div>
+
+                        <div className="space-y-4">
+                            {syllabus.additionalResources && syllabus.additionalResources.length > 0 ? (
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    {syllabus.additionalResources.map((resource, index) => (
+                                        <div key={index} className="p-4 bg-[#f8f9fa] rounded-lg border border-[#a3b18a]/10">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="font-semibold text-[#344e41]">{resource.title}</h3>
+                                                {resource.type && (
+                                                    <span className="px-2 py-0.5 bg-[#a3b18a]/20 text-[#344e41] text-xs rounded capitalize">{resource.type}</span>
+                                                )}
+                                            </div>
+                                            {resource.description && (
+                                                <p className="text-sm text-[#344e41]/70 mt-2">{resource.description}</p>
+                                            )}
+                                            {resource.url && (
+                                                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#588157] hover:underline mt-2 block truncate">
+                                                    {resource.url}
+                                                </a>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-base text-[#344e41]/70">No additional resources listed.</p>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Status Card */}
                     <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6 md:col-span-2">
                         <div className="flex items-center gap-3 mb-6">

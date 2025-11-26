@@ -175,6 +175,28 @@ export interface CoursePrerequisite {
     prerequisite?: Course;
 }
 
+export interface Textbook {
+    title: string;
+    author: string;
+    edition?: string;
+    isbn?: string;
+    required?: boolean;
+}
+
+export interface WeeklyScheduleItem {
+    week: number;
+    topic: string;
+    readings?: string;
+    assignments?: string;
+}
+
+export interface Resource {
+    title: string;
+    type?: string;
+    description?: string;
+    url?: string;
+}
+
 export interface CourseSyllabus {
     id: string;
     sessionCourseId: string | SessionCourse;
@@ -183,11 +205,11 @@ export interface CourseSyllabus {
     overview?: string;
     objectives?: string;
     prerequisites?: string;
-    textbooks?: any;
+    textbooks?: Textbook[];
     gradingPolicy?: string;
-    assessmentBreakdown?: any;
-    weeklySchedule?: any;
-    additionalResources?: any;
+    assessmentBreakdown?: Record<string, number>;
+    weeklySchedule?: WeeklyScheduleItem[];
+    additionalResources?: Resource[];
     policies?: string;
     status: 'Draft' | 'Pending Approval' | 'Approved' | 'Published' | 'Archived';
     createdById?: string;
