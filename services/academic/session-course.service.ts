@@ -2,9 +2,9 @@ import { api, handleApiError, extractArrayData, extractItemData } from './axios-
 import { SessionCourse } from './types';
 
 export const sessionCourseService = {
-    getAllSessionCourses: async (): Promise<SessionCourse[]> => {
+    getAllSessionCourses: async (params?: any): Promise<SessionCourse[]> => {
         try {
-            const response = await api.get('/academic/session-courses');
+            const response = await api.get('/academic/session-courses', { params });
             return extractArrayData<SessionCourse>(response);
         } catch (error) {
             return handleApiError(error);
@@ -37,6 +37,22 @@ export const sessionCourseService = {
     deleteSessionCourse: async (id: string): Promise<void> => {
         try {
             await api.delete(`/academic/session-courses/${id}`);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    getBatchSessionCourses: async (batchId: string): Promise<SessionCourse[]> => {
+        try {
+            const response = await api.get(`/academic/session-courses/batch/${batchId}`);
+            return extractArrayData<SessionCourse>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    syncSessionCourses: async (data: { sessionId: string; departmentId: string; semester: number; courseIds: string[] }): Promise<SessionCourse[]> => {
+        try {
+            const response = await api.post('/academic/session-courses/sync', data);
+            return extractArrayData<SessionCourse>(response);
         } catch (error) {
             return handleApiError(error);
         }

@@ -46,10 +46,8 @@ export function DataTable<T extends { id: string | number }>({
     // Filter data
     const filteredData = data.filter((item) => {
         const value = item[searchKey];
-        if (typeof value === "string") {
-            return value.toLowerCase().includes(searchTerm.toLowerCase());
-        }
-        return false;
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
     });
 
     // Pagination
@@ -98,8 +96,8 @@ export function DataTable<T extends { id: string | number }>({
                     <TableHeader>
                         <TableRow className="bg-[#a3b18a]/40 hover:bg-[#a3b18a]/40 border-b border-[#a3b18a]/30">
                             {columns.map((column) => (
-                                <TableHead 
-                                    key={String(column.accessorKey)} 
+                                <TableHead
+                                    key={String(column.accessorKey)}
                                     className="text-[#344e41] font-bold uppercase text-xs tracking-wider py-4"
                                 >
                                     {column.header}
@@ -119,16 +117,16 @@ export function DataTable<T extends { id: string | number }>({
                             </TableRow>
                         ) : (
                             paginatedData.map((item, index) => (
-                                <TableRow 
-                                    key={item.id} 
+                                <TableRow
+                                    key={item.id}
                                     className={`
                                         border-b border-[#a3b18a]/20 hover:bg-[#a3b18a]/20 transition-colors
                                         ${index % 2 === 0 ? 'bg-[#dad7cd]/30' : 'bg-[#dad7cd]/50'}
                                     `}
                                 >
                                     {columns.map((column) => (
-                                        <TableCell 
-                                            key={String(column.accessorKey)} 
+                                        <TableCell
+                                            key={String(column.accessorKey)}
                                             className="font-medium text-[#344e41] py-4"
                                         >
                                             {column.cell ? column.cell(item) : (item[column.accessorKey] as React.ReactNode)}
@@ -136,30 +134,30 @@ export function DataTable<T extends { id: string | number }>({
                                     ))}
                                     <TableCell className="text-right space-x-1 py-4">
                                         {onView && (
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                onClick={() => onView(item)} 
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => onView(item)}
                                                 className="h-8 w-8 text-[#344e41] hover:text-[#588157] hover:bg-[#588157]/10"
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </Button>
                                         )}
                                         {onEdit && (
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                onClick={() => onEdit(item)} 
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => onEdit(item)}
                                                 className="h-8 w-8 text-[#344e41] hover:text-[#588157] hover:bg-[#588157]/10"
                                             >
                                                 <Edit className="h-4 w-4" />
                                             </Button>
                                         )}
                                         {onDelete && (
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                onClick={() => onDelete(item)} 
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={() => onDelete(item)}
                                                 className="h-8 w-8 text-[#344e41] hover:text-red-600 hover:bg-red-50"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -181,8 +179,8 @@ export function DataTable<T extends { id: string | number }>({
                     </div>
                 ) : (
                     paginatedData.map((item) => (
-                        <div 
-                            key={item.id} 
+                        <div
+                            key={item.id}
                             className="bg-[#dad7cd]/50 rounded-lg p-4 border border-[#a3b18a]/30"
                         >
                             {columns.map((column) => (
@@ -195,9 +193,9 @@ export function DataTable<T extends { id: string | number }>({
                             ))}
                             <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-[#a3b18a]/30">
                                 {onView && (
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => onView(item)}
                                         className="text-[#344e41] border-[#a3b18a] hover:bg-[#588157]/10"
                                     >
@@ -205,9 +203,9 @@ export function DataTable<T extends { id: string | number }>({
                                     </Button>
                                 )}
                                 {onEdit && (
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => onEdit(item)}
                                         className="text-[#344e41] border-[#a3b18a] hover:bg-[#588157]/10"
                                     >
@@ -215,9 +213,9 @@ export function DataTable<T extends { id: string | number }>({
                                     </Button>
                                 )}
                                 {onDelete && (
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         onClick={() => onDelete(item)}
                                         className="text-red-600 border-red-200 hover:bg-red-50"
                                     >
@@ -252,11 +250,10 @@ export function DataTable<T extends { id: string | number }>({
                                 variant={currentPage === page ? "default" : "outline"}
                                 size="sm"
                                 onClick={() => setCurrentPage(page)}
-                                className={`h-8 w-8 p-0 border-none ${
-                                    currentPage === page 
-                                        ? 'bg-[#588157] text-white hover:bg-[#3a5a40]' 
+                                className={`h-8 w-8 p-0 border-none ${currentPage === page
+                                        ? 'bg-[#588157] text-white hover:bg-[#3a5a40]'
                                         : 'bg-[#dad7cd] hover:bg-[#a3b18a]/30 text-[#344e41]'
-                                }`}
+                                    }`}
                             >
                                 {page}
                             </Button>

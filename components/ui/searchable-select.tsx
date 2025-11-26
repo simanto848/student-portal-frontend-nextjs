@@ -5,14 +5,6 @@ import { Check, ChevronsUpDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from "@/components/ui/command";
-import {
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -79,8 +71,8 @@ export function SearchableSelect({
                             <div
                                 key={option.value}
                                 className={cn(
-                                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-[#a3b18a]/20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                                    value === option.value ? "bg-[#a3b18a]/20" : ""
+                                    "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-primary hover:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                                    value === option.value ? "bg-primary/10" : ""
                                 )}
                                 onClick={() => {
                                     onChange(option.value);

@@ -5,10 +5,12 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
-import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, SessionCourse, Session, Course, Department, AcademicApiError } from "@/services/academic.service";
 import { toast } from "sonner";
-import { BookCopy } from "lucide-react";
+import { BookCopy, Filter, X } from "lucide-react";
+import { SessionCourseForm } from "./SessionCourseForm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 // Helper to get name from object or string
 const getName = (item: any): string => {
@@ -16,14 +18,6 @@ const getName = (item: any): string => {
     if (typeof item === 'string') return item;
     if (typeof item === 'object' && item.name) return item.name;
     return "N/A";
-};
-
-// Helper to get ID from object or string
-const getId = (item: any): string => {
-    if (!item) return "";
-    if (typeof item === 'string') return item;
-    if (typeof item === 'object' && item.id) return item.id;
-    return "";
 };
 
 export default function SessionCourseManagementPage() {
@@ -38,6 +32,11 @@ export default function SessionCourseManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Filters
+    const [selectedSession, setSelectedSession] = useState<string>("all");
+    const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
+    const [selectedSemester, setSelectedSemester] = useState<string>("all");
+
     const columns: Column<SessionCourse>[] = [
         {
             header: "Session",
@@ -47,7 +46,15 @@ export default function SessionCourseManagementPage() {
         {
             header: "Course",
             accessorKey: "courseId",
-            cell: (item) => getName(item.courseId)
+            cell: (item) => {
+                const course = item.courseId as any;
+                return (
+                    <div>
+                        <div className="font-medium">{course.name || "N/A"}</div>
+                        <div className="text-xs text-muted-foreground">{course.code || "N/A"}</div>
+                    </div>
+                );
+            }
         },
         {
             header: "Department",
@@ -59,57 +66,11 @@ export default function SessionCourseManagementPage() {
             accessorKey: "semester",
             cell: (item) => (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#588157]/20 text-[#344e41]">
-                    {item.semester}
+                    Semester {item.semester}
                 </span>
             )
         },
     ];
-
-    const formFields: FormField[] = useMemo(() => [
-        {
-            name: "sessionId",
-            label: "Session",
-            type: "select",
-            required: true,
-            placeholder: "Select a session",
-            options: Array.isArray(sessions)
-                ? sessions
-                    .filter(s => s.status)
-                    .map(s => ({ label: s.name, value: s.id }))
-                : []
-        },
-        {
-            name: "courseId",
-            label: "Course",
-            type: "select",
-            required: true,
-            placeholder: "Select a course",
-            options: Array.isArray(courses)
-                ? courses
-                    .filter(c => c.status)
-                    .map(c => ({ label: `${c.name} (${c.code})`, value: c.id }))
-                : []
-        },
-        {
-            name: "departmentId",
-            label: "Department",
-            type: "select",
-            required: true,
-            placeholder: "Select a department",
-            options: Array.isArray(departments)
-                ? departments
-                    .filter(d => d.status)
-                    .map(d => ({ label: `${d.name} (${d.shortName})`, value: d.id }))
-                : []
-        },
-        {
-            name: "semester",
-            label: "Semester",
-            type: "number",
-            required: true,
-            placeholder: "e.g. 1"
-        },
-    ], [sessions, courses, departments]);
 
     useEffect(() => {
         fetchData();
@@ -173,39 +134,27 @@ export default function SessionCourseManagementPage() {
         }
     };
 
-    const handleFormSubmit = async (data: Record<string, string>) => {
-        setIsSubmitting(true);
+    const handleFormSubmit = async (data: any) => {
         try {
-            if (!data.sessionId || !data.courseId || !data.departmentId) {
-                toast.error("Session, Course and Department are required");
-                setIsSubmitting(false);
-                return;
-            }
+            setIsSubmitting(true);
 
-            const semester = Number(data.semester);
-            if (!semester || semester < 1) {
-                toast.error("Semester must be at least 1");
-                setIsSubmitting(false);
-                return;
-            }
+            // Use the sync endpoint for both create and update (manage)
+            // Ensure courseId is an array
+            const courseIds = Array.isArray(data.courseId) ? data.courseId : [data.courseId];
 
-            const submitData = {
+            await academicService.syncSessionCourses({
                 sessionId: data.sessionId,
-                courseId: data.courseId,
                 departmentId: data.departmentId,
-                semester: semester,
-            };
+                semester: Number(data.semester),
+                courseIds: courseIds
+            });
 
-            if (selectedSessionCourse) {
-                await academicService.updateSessionCourse(selectedSessionCourse.id, submitData);
-                toast.success("Session Course updated successfully");
-            } else {
-                await academicService.createSessionCourse(submitData);
-                toast.success("Session Course created successfully");
-            }
-            fetchData();
+            toast.success("Session courses saved successfully");
+
             setIsFormModalOpen(false);
-        } catch (error) {
+            fetchData();
+        } catch (error: any) {
+            console.error("Error submitting form:", error);
             const message = error instanceof AcademicApiError
                 ? error.message
                 : "Failed to save session course";
@@ -213,6 +162,21 @@ export default function SessionCourseManagementPage() {
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const filteredData = useMemo(() => {
+        return sessionCourses.filter(item => {
+            const sessionMatch = selectedSession === "all" || (typeof item.sessionId === 'object' ? item.sessionId.id === selectedSession : item.sessionId === selectedSession);
+            const deptMatch = selectedDepartment === "all" || (typeof item.departmentId === 'object' ? item.departmentId.id === selectedDepartment : item.departmentId === selectedDepartment);
+            const semesterMatch = selectedSemester === "all" || String(item.semester) === selectedSemester;
+            return sessionMatch && deptMatch && semesterMatch;
+        });
+    }, [sessionCourses, selectedSession, selectedDepartment, selectedSemester]);
+
+    const clearFilters = () => {
+        setSelectedSession("all");
+        setSelectedDepartment("all");
+        setSelectedSemester("all");
     };
 
     return (
@@ -226,16 +190,67 @@ export default function SessionCourseManagementPage() {
                     icon={BookCopy}
                 />
 
+                {/* Filters */}
+                <div className="bg-white p-4 rounded-lg border border-border flex flex-wrap gap-4 items-center">
+                    <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                        <Filter className="h-4 w-4" />
+                        Filters:
+                    </div>
+
+                    <Select value={selectedSession} onValueChange={setSelectedSession}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Filter by Session" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Sessions</SelectItem>
+                            {sessions.map(session => (
+                                <SelectItem key={session.id} value={session.id}>{session.name} ({session.year})</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Filter by Department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Departments</SelectItem>
+                            {departments.map(dept => (
+                                <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={selectedSemester} onValueChange={setSelectedSemester}>
+                        <SelectTrigger className="w-[150px]">
+                            <SelectValue placeholder="Filter by Semester" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Semesters</SelectItem>
+                            {Array.from({ length: 12 }, (_, i) => i + 1).map(sem => (
+                                <SelectItem key={sem} value={String(sem)}>Semester {sem}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    {(selectedSession !== "all" || selectedDepartment !== "all" || selectedSemester !== "all") && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground">
+                            <X className="h-4 w-4 mr-2" />
+                            Clear Filters
+                        </Button>
+                    )}
+                </div>
+
                 {isLoading ? (
                     <div className="flex items-center justify-center py-12">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]"></div>
                     </div>
                 ) : (
                     <DataTable
-                        data={sessionCourses}
+                        data={filteredData}
                         columns={columns}
                         searchKey="semester"
-                        searchPlaceholder="Search by semester..."
+                        searchPlaceholder="Search..."
                         onEdit={handleEdit}
                         onDelete={handleDeleteClick}
                     />
@@ -250,19 +265,14 @@ export default function SessionCourseManagementPage() {
                     isDeleting={isDeleting}
                 />
 
-                <GenericFormModal
+                <SessionCourseForm
                     isOpen={isFormModalOpen}
                     onClose={() => setIsFormModalOpen(false)}
                     onSubmit={handleFormSubmit}
-                    title={selectedSessionCourse ? "Edit Assignment" : "Assign Course"}
-                    description={selectedSessionCourse ? "Update course assignment" : "Assign a course to a session"}
-                    fields={formFields}
-                    initialData={selectedSessionCourse ? {
-                        sessionId: getId(selectedSessionCourse.sessionId),
-                        courseId: getId(selectedSessionCourse.courseId),
-                        departmentId: getId(selectedSessionCourse.departmentId),
-                        semester: String(selectedSessionCourse.semester),
-                    } : { semester: "1" }}
+                    initialData={selectedSessionCourse}
+                    sessions={sessions}
+                    courses={courses}
+                    departments={departments}
                     isSubmitting={isSubmitting}
                 />
             </div>
