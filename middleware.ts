@@ -22,25 +22,26 @@ export async function middleware(request: NextRequest) {
         const role = payload.role as string;
 
         let dashboardRole = role;
+        let targetPath = `/dashboard/${role}`;
+
         if (['super_admin', 'moderator', 'admin'].includes(role)) {
             dashboardRole = 'admin';
+            targetPath = '/dashboard/admin';
+        } else if (['program_controller', 'admission', 'finance', 'library', 'transport', 'hr', 'it', 'maintenance'].includes(role)) {
+            targetPath = `/dashboard/staff/${role.replace(/_/g, '-')}`;
         }
 
         if (isPublicPath) {
-            return NextResponse.redirect(new URL(`/dashboard/${dashboardRole}`, request.url));
+            return NextResponse.redirect(new URL(targetPath, request.url));
         }
 
         if (path.startsWith('/dashboard')) {
-            if (path.startsWith(`/dashboard/${dashboardRole}`)) {
+            if (path.startsWith(targetPath)) {
                 return NextResponse.next();
             }
 
-            if (path.startsWith('/dashboard/')) {
-                return NextResponse.redirect(new URL(`/dashboard/${dashboardRole}`, request.url));
-            }
-
-            if (path === '/dashboard') {
-                return NextResponse.redirect(new URL(`/dashboard/${dashboardRole}`, request.url));
+            if (path === '/dashboard' || path.startsWith('/dashboard/')) {
+                return NextResponse.redirect(new URL(targetPath, request.url));
             }
         }
 
