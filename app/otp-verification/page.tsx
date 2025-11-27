@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -62,6 +63,10 @@ function OTPVerificationContent() {
       toast.error(error.response?.data?.message || "Failed to resend OTP");
     }
   };
+
+  if (!email || !role) {
+    return null;
+  }
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center justify-center p-4 bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
