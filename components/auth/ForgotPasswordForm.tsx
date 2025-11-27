@@ -1,11 +1,13 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
 import { authService, UserRole } from "@/services/auth.service";
+import { toast } from "sonner";
 
 interface ForgotPasswordFormProps {
     role: UserRole;
@@ -16,13 +18,21 @@ export function ForgotPasswordForm({ role }: ForgotPasswordFormProps) {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
 
+    const router = useRouter();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setMessage("");
         try {
             await authService.forgotPassword(email, role);
-            setMessage("If an account exists with this email, you will receive a password reset link.");
+            toast.success("OTP sent successfully");
+
+            const params = new URLSearchParams();
+            params.set("email", email);
+            params.set("role", role);
+
+            router.push(`/otp-verification?${params.toString()}`);
         } catch (error: any) {
             console.error(error);
             setMessage(error.response?.data?.message || "Failed to send reset link. Please try again.");

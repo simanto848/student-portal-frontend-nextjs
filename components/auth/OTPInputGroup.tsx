@@ -35,14 +35,14 @@ export function OTPInputGroup({ length = 6, value, onChange }: OTPInputGroupProp
         <fieldset className="relative flex gap-3">
             {inputs.map((_, i) => (
                 <input
-                key={i}
-                ref={(el) => { if (el) refs.current[i] = el; }}
-                className="flex h-14 w-12 text-center text-lg font-bold appearance-none rounded-lg border border-border-light bg-white dark:border-border-dark dark:bg-background-dark focus:border-accent focus:ring-2 focus:ring-accent/50 dark:focus:border-accent"
-                inputMode="numeric"
-                maxLength={1}
-                value={value[i] || ""}
-                onChange={(e) => handleInput(i, e.target.value.slice(-1))}
-                onKeyDown={(e) => handleKey(i, e)}
+                    key={i}
+                    ref={(el) => { if (el) refs.current[i] = el; }}
+                    className="flex h-14 w-12 text-center text-lg font-bold appearance-none rounded-lg border border-border-light bg-white dark:border-border-dark dark:bg-background-dark focus:border-accent focus:ring-2 focus:ring-accent/50 dark:focus:border-accent"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={value[i] === " " ? "" : (value[i] ?? "")}
+                    onChange={(e) => handleInput(i, e.target.value.slice(-1))}
+                    onKeyDown={(e) => handleKey(i, e)}
                 />
             ))}
         </fieldset>

@@ -48,6 +48,14 @@ class AuthService {
         await api.post('/user/auth/forgot-password', { email, role });
     }
 
+    async verifyResetOTP(email: string, otp: string, role: UserRole): Promise<void> {
+        await api.post('/user/auth/verify-reset-otp', { email, otp, role });
+    }
+
+    async resetPassword(email: string, otp: string, newPassword: string, role: UserRole): Promise<void> {
+        await api.post('/user/auth/reset-password', { email, otp, newPassword, role });
+    }
+
     async refreshToken(token: string): Promise<any> {
         const response = await api.post('/user/auth/refresh-token', { refreshToken: token });
         return response.data.data;
