@@ -93,7 +93,16 @@ export function Sidebar({ className, onClose }: SidebarProps) {
         },
       ],
     },
-    { href: "/dashboard/admin/users", label: "User Management", icon: Users },
+    {
+      label: "User Management",
+      icon: Users,
+      children: [
+        { href: "/dashboard/admin/users/admins", label: "Admins" },
+        { href: "/dashboard/admin/users/staff", label: "Staff" },
+        { href: "/dashboard/admin/users/faculty", label: "Faculty" },
+        { href: "/dashboard/admin/users/students", label: "Students" },
+      ],
+    },
     {
       href: "/dashboard/admin/reports",
       label: "System Reports",
