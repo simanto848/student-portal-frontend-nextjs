@@ -1,5 +1,14 @@
 import { api, handleApiError } from "@/services/academic/axios-instance";
 
+export interface AdminAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  isPrimary?: boolean;
+}
+
 export interface AdminProfilePayload {
   firstName: string;
   lastName: string;
@@ -7,6 +16,7 @@ export interface AdminProfilePayload {
   phoneNumber?: string;
   dateOfBirth?: string; // ISO date
   gender?: string; // Male/Female/Other
+  addresses?: AdminAddress[];
 }
 
 export interface AdminProfile extends AdminProfilePayload {
@@ -23,6 +33,14 @@ const normalize = (p: any): AdminProfile => ({
   dateOfBirth: p?.dateOfBirth,
   gender: p?.gender,
   avatar: p?.avatar,
+  addresses: Array.isArray(p?.addresses) ? p.addresses.map((a: any) => ({
+    street: a?.street || "",
+    city: a?.city || "",
+    state: a?.state || "",
+    zipCode: a?.zipCode || "",
+    country: a?.country || "",
+    isPrimary: a?.isPrimary || false,
+  })) : [],
 });
 
 export const adminProfileService = {

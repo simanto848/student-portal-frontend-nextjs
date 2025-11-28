@@ -36,6 +36,15 @@ interface ProfileForm {
   gender: string;
 }
 
+interface AddressForm {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  isPrimary: boolean;
+}
+
 const initialBasic: BasicForm = {
   fullName: "",
   email: "",
@@ -60,12 +69,15 @@ const initialProfile: ProfileForm = {
 
 export default function CreateAdminPage() {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [useAdvanced, setUseAdvanced] = useState(false);
   const [useProfile, setUseProfile] = useState(false);
   const [basic, setBasic] = useState<BasicForm>(initialBasic);
   const [advanced, setAdvanced] = useState<AdvancedForm>(initialAdvanced);
   const [profile, setProfile] = useState<ProfileForm>(initialProfile);
+  const [addresses, setAddresses] = useState<AddressForm[]>([]);
+  const [addressDraft, setAddressDraft] = useState<AddressForm>({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false });
+  const [useAddressStep, setUseAddressStep] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const generateRegistrationNumber = () => {
@@ -94,22 +106,42 @@ export default function CreateAdminPage() {
         setStep(2);
       } else if (useProfile) {
         setStep(3);
+      } else if (useAddressStep) {
+        setStep(4);
       } else {
-        setStep(4); // Review
+        setStep(5); // Review
       }
     } else if (step === 2) {
       if (useProfile) {
         setStep(3);
+      } else if (useAddressStep) {
+        setStep(4);
       } else {
-        setStep(4); // Review
+        setStep(5); // Review
       }
     } else if (step === 3) {
-      setStep(4); // Review
+      if (useAddressStep) {
+        setStep(4);
+      } else {
+        setStep(5); // Review
+      }
+    } else if (step === 4) {
+      setStep(5); // Review
     }
   };
 
   const prevStep = () => {
-    if (step === 4) {
+    if (step === 5) {
+      if (useAddressStep) {
+        setStep(4);
+      } else if (useProfile) {
+        setStep(3);
+      } else if (useAdvanced) {
+        setStep(2);
+      } else {
+        setStep(1);
+      }
+    } else if (step === 4) {
       if (useProfile) {
         setStep(3);
       } else if (useAdvanced) {
@@ -140,20 +172,32 @@ export default function CreateAdminPage() {
     setProfile(prev => ({ ...prev, [key]: value }));
   };
 
+  const clearAddressDraft = () => setAddressDraft({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false });
+  const addAddress = () => {
+    if (!addressDraft.street && !addressDraft.city && !addressDraft.country) {
+      toast.error("Provide at least street/city/country");
+      return;
+    }
+    setAddresses(prev => {
+      let next = [...prev];
+      if (addressDraft.isPrimary) {
+        next = next.map(a => ({ ...a, isPrimary: false }));
+      }
+      next.push(addressDraft);
+      return next;
+    });
+    clearAddressDraft();
+  };
+  const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_, i) => i !== idx));
+  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a,i) => ({ ...a, isPrimary: i === idx })));
+
   const addIp = () => {
     const ip = advanced.ipInput.trim();
     if (!ip) return;
-    if (advanced.registeredIps.includes(ip)) {
-      toast.error("IP already added");
-      return;
-    }
-    updateAdvanced("registeredIps", [...advanced.registeredIps, ip]);
-    updateAdvanced("ipInput", "");
+    if (advanced.registeredIps.includes(ip)) { toast.error("IP already added"); return; }
+    setAdvanced(prev => ({ ...prev, registeredIps: [...prev.registeredIps, ip], ipInput: "" }));
   };
-
-  const removeIp = (ip: string) => {
-    updateAdvanced("registeredIps", advanced.registeredIps.filter(i => i !== ip));
-  };
+  const removeIp = (ip: string) => setAdvanced(prev => ({ ...prev, registeredIps: prev.registeredIps.filter(i => i !== ip) }));
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -180,6 +224,7 @@ export default function CreateAdminPage() {
           if (profile.phoneNumber) profilePayload.phoneNumber = profile.phoneNumber.trim();
           if (profile.dateOfBirth) profilePayload.dateOfBirth = profile.dateOfBirth;
           if (profile.gender) profilePayload.gender = profile.gender;
+          if (useAddressStep && addresses.length) profilePayload.addresses = addresses.map(a => ({ ...a }));
 
           await adminProfileService.create(created.id, profilePayload);
         } catch (profileError: any) {
@@ -202,7 +247,8 @@ export default function CreateAdminPage() {
       { id: 1, label: "Basic" },
       ...(useAdvanced ? [{ id: 2, label: "Advanced" }] : []),
       ...(useProfile ? [{ id: 3, label: "Profile" }] : []),
-      { id: 4, label: "Review" },
+      ...(useAddressStep ? [{ id: 4, label: "Addresses" }] : []),
+      { id: 5, label: "Review" },
     ];
     return (
       <div className="flex items-center gap-3 flex-wrap">
@@ -266,6 +312,22 @@ export default function CreateAdminPage() {
                 >
                   <User className="h-4 w-4 mr-1" />
                   {useProfile ? "Profile On" : "Profile Off"}
+                </Button>
+                <Button
+                  type="button"
+                  variant={useAddressStep ? "default" : "outline"}
+                  onClick={() => {
+                    // If toggling off address while on step 4, adjust
+                    if (useAddressStep && step === 4) {
+                      if (useProfile) setStep(3);
+                      else if (useAdvanced) setStep(2);
+                      else setStep(1);
+                    }
+                    setUseAddressStep(v => !v);
+                  }}
+                  className={useAddressStep ? "bg-[#588157] text-white" : "border-[#a3b18a] text-[#344e41]"}
+                >
+                  Addresses {useAddressStep ? "On" : "Off"}
                 </Button>
               </div>
             </div>
@@ -431,7 +493,60 @@ export default function CreateAdminPage() {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 4 && useAddressStep && (
+              <div className="space-y-6">
+                <div className="grid gap-5 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#344e41]">Street</label>
+                    <Input value={addressDraft.street} onChange={e => setAddressDraft(d => ({ ...d, street: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#344e41]">City</label>
+                    <Input value={addressDraft.city} onChange={e => setAddressDraft(d => ({ ...d, city: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#344e41]">State</label>
+                    <Input value={addressDraft.state} onChange={e => setAddressDraft(d => ({ ...d, state: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#344e41]">Zip Code</label>
+                    <Input value={addressDraft.zipCode} onChange={e => setAddressDraft(d => ({ ...d, zipCode: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#344e41]">Country</label>
+                    <Input value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
+                  </div>
+                  <div className="space-y-2 flex items-end">
+                    <Button type="button" variant="outline" onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))} className={`border-[#a3b18a] ${addressDraft.isPrimary? 'bg-[#588157] text-white':'text-[#344e41]'}`}>{addressDraft.isPrimary? 'Primary':'Set Primary'}</Button>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button type="button" onClick={addAddress} className="bg-[#588157] hover:bg-[#3a5a40] text-white">Add Address</Button>
+                  <Button type="button" variant="outline" onClick={clearAddressDraft} className="border-[#a3b18a] text-[#344e41]">Clear</Button>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-[#344e41]">Added Addresses</p>
+                  {addresses.length === 0 && <p className="text-xs text-[#344e41]/60">No addresses yet.</p>}
+                  <div className="space-y-2">
+                    {addresses.map((a,i) => (
+                      <div key={i} className="flex items-center justify-between bg-white/60 border border-[#a3b18a]/40 rounded p-3">
+                        <div className="text-sm text-[#344e41]">
+                          <p className="font-medium">{a.street || '(No street)'}{a.city? ', '+a.city:''}{a.state? ', '+a.state:''}</p>
+                          <p className="text-xs text-[#344e41]/70">{a.country || 'No country'}{a.zipCode? ' - '+a.zipCode:''}</p>
+                          {a.isPrimary && <Badge className="mt-1 bg-[#588157] text-white">Primary</Badge>}
+                        </div>
+                        <div className="flex gap-2">
+                          {!a.isPrimary && <Button size="sm" variant="outline" onClick={() => makePrimary(i)} className="border-[#a3b18a] text-[#344e41]">Make Primary</Button>}
+                          <Button size="sm" variant="outline" onClick={() => removeAddress(i)} className="border-red-300 text-red-600 hover:bg-red-500/10">Remove</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 5 && (
               <div className="space-y-6">
                 <div className="grid gap-4 md:grid-cols-2">
                   <SummaryItem label="Full Name" value={basic.fullName} />
@@ -469,6 +584,19 @@ export default function CreateAdminPage() {
                     </div>
                   </div>
                 )}
+                {useAddressStep && addresses.length > 0 && (
+                  <div className="border-t border-[#a3b18a]/30 pt-4">
+                    <p className="text-sm font-semibold text-[#344e41] mb-3">Addresses</p>
+                    <div className="space-y-2">
+                      {addresses.map((a,i) => (
+                        <div key={i} className="text-sm text-[#344e41] flex items-center justify-between">
+                          <span>{a.street || '(No street)'}{a.city? ', '+a.city:''}{a.state? ', '+a.state:''}{a.country? ', '+a.country:''}{a.zipCode? ' - '+a.zipCode:''}</span>
+                          {a.isPrimary && <Badge className="bg-[#588157] text-white">Primary</Badge>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="bg-[#dad7cd]/60 rounded-lg p-4 text-sm text-[#344e41]/80 flex items-start gap-2">
                   <Settings2 className="h-4 w-4 mt-0.5" />
                   <p>On creation a temporary password will be emailed automatically. Ensure the email address is correct before submitting.</p>
@@ -483,13 +611,13 @@ export default function CreateAdminPage() {
                     <ChevronLeft className="h-4 w-4 mr-1" /> Back
                   </Button>
                 )}
-                {step < 4 && (
+                {step < 5 && (
                   <Button type="button" onClick={nextStep} className="bg-[#588157] hover:bg-[#3a5a40] text-white">
                     Next <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 )}
               </div>
-              {step === 4 && (
+              {step === 5 && (
                 <Button
                   type="button"
                   onClick={handleSubmit}

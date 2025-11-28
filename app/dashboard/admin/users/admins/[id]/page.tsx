@@ -256,6 +256,25 @@ export default function AdminDetailsPage() {
                                             </div>
                                         )}
 
+                                        {/* Addresses */}
+                                        {profile.addresses && profile.addresses.length > 0 && (
+                                            <div className="space-y-3 pt-3 border-t border-[#a3b18a]/20">
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-[#344e41]/70">Addresses</p>
+                                                <div className="space-y-2">
+                                                    {profile.addresses.map((addr, idx) => (
+                                                        <div key={idx} className="p-3 rounded-lg bg-white/70 border border-[#a3b18a]/30">
+                                                            <p className="text-sm font-medium text-[#344e41]">
+                                                                {[addr.street, addr.city, addr.state].filter(Boolean).join(', ') || '(No street)'}
+                                                            </p>
+                                                            <p className="text-xs text-[#344e41]/70">{[addr.country, addr.zipCode].filter(Boolean).join(' - ') || '(No country)'}
+                                                                {addr.isPrimary && <span className="ml-2 inline-block px-2 py-0.5 text-[10px] rounded bg-[#588157] text-white">PRIMARY</span>}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* System Information */}
                                         <div className="space-y-3 pt-3 border-t border-[#a3b18a]/20">
                                             <p className="text-xs font-semibold uppercase tracking-wide text-[#344e41]/70">System Information</p>
@@ -304,7 +323,7 @@ export default function AdminDetailsPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-[#a3b18a]/30">
+                    <Card className="border-[#a3b18a]/30 h-80">
                         <CardContent className="p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <p className="text-sm text-[#344e41]/60">Last Login</p>
@@ -372,20 +391,27 @@ export default function AdminDetailsPage() {
 
                     <Card className="border-[#a3b18a]/30">
                         <CardContent className="p-6 space-y-4">
-                            <p className="text-lg font-semibold text-[#344e41]">Quick Actions</p>
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="p-2 rounded-lg bg-[#588157]/10">
+                                    <Shield className="h-4 w-4 text-[#588157]" />
+                                </div>
+                                <p className="text-sm font-semibold text-[#344e41]">Quick Actions</p>
+                            </div>
                             <div className="grid gap-3">
                                 <Button
                                     variant="outline"
-                                    className="border-[#a3b18a] text-[#344e41]"
+                                    className="border-[#a3b18a] text-[#344e41] hover:bg-[#588157] hover:text-white transition-colors justify-start"
                                     onClick={() => router.push(`/dashboard/admin/users/admins/${admin.id}/edit`)}
                                 >
+                                    <UserIcon className="h-4 w-4 mr-2" />
                                     Edit Details
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    className="border-[#a3b18a] text-[#344e41]"
+                                    className="border-[#a3b18a] text-[#344e41] hover:bg-[#588157] hover:text-white transition-colors justify-start"
                                     onClick={() => router.push("/dashboard/admin/users/admins")}
                                 >
+                                    <ArrowLeft className="h-4 w-4 mr-2" />
                                     Back to List
                                 </Button>
                             </div>
@@ -399,13 +425,13 @@ export default function AdminDetailsPage() {
 
 function InfoRow({ icon: Icon, label, value }: { icon: typeof Mail; label: string; value: string }) {
     return (
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-[#dad7cd]/60">
-            <div className="p-2 rounded-md bg-white">
-                <Icon className="h-4 w-4 text-[#344e41]" />
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-br from-[#dad7cd]/60 to-[#a3b18a]/20 border border-[#a3b18a]/20 hover:shadow-sm transition-shadow">
+            <div className="p-2 rounded-lg bg-white shadow-sm">
+                <Icon className="h-4 w-4 text-[#588157]" />
             </div>
-            <div>
-                <p className="text-xs uppercase text-[#344e41]/60">{label}</p>
-                <p className="text-sm font-medium text-[#344e41]">{value}</p>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs uppercase tracking-wide text-[#344e41]/60 mb-0.5">{label}</p>
+                <p className="text-sm font-medium text-[#344e41] truncate">{value}</p>
             </div>
         </div>
     );
@@ -442,4 +468,3 @@ function ProfileField({
         </div>
     );
 }
-
