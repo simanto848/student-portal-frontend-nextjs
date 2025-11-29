@@ -39,6 +39,8 @@ export default function AdminManagementPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [filterRole, setFilterRole] = useState<AdminRole | "all">("all");
+    const [showDeleted, setShowDeleted] = useState(false);
+    const [deletedAdmins, setDeletedAdmins] = useState<Admin[]>([]);
 
     const columns: Column<Admin>[] = useMemo(() => [
         {
@@ -125,8 +127,40 @@ export default function AdminManagementPage() {
 
     useEffect(() => {
         fetchData();
+        if (showDeleted) fetchDeleted();
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filterRole]);
+    }, [filterRole, showDeleted]);
+
+    const fetchDeleted = async () => {
+        try {
+            const list = await adminService.getDeleted();
+            setDeletedAdmins(list);
+        } catch (e: any) {
+            toast.error(e?.message || "Failed to load deleted admins");
+        }
+    };
+
+    const handleRestore = async (id: string) => {
+        try {
+            await adminService.restore(id);
+            toast.success("Admin restored");
+            fetchDeleted();
+            fetchData();
+        } catch (e: any) {
+            toast.error(e?.message || "Restore failed");
+        }
+    };
+
+    const handlePermanentDelete = async (id: string, name: string) => {
+        if (!confirm(`Permanently delete ${name}? This cannot be undone.`)) return;
+        try {
+            await adminService.deletePermanently(id);
+            toast.success("Admin permanently deleted");
+            fetchDeleted();
+        } catch (e: any) {
+            toast.error(e?.message || "Permanent delete failed");
+        }
+    };
 
     const handleCreate = () => {
         router.push("/dashboard/admin/users/admins/create");
@@ -199,35 +233,101 @@ export default function AdminManagementPage() {
                         ))}
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={fetchData} disabled={isRefreshing} className="border-[#a3b18a] text-[#344e41]">
-                            <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-                            Refresh
-                        </Button>
-                        <Button variant="outline" onClick={() => router.push("/dashboard/admin/users/admins/deleted")}
-                            className="border-[#a3b18a] text-[#344e41]">
+                        <Button
+                            variant={showDeleted ? "default" : "outline"}
+                            onClick={() => setShowDeleted((v) => !v)}
+                            className={showDeleted ? "bg-[#588157] text-white" : "border-[#a3b18a] text-[#344e41]"}
+                        >
                             <UserCog className="h-4 w-4 mr-2" />
-                            Deleted Admins
+                            {showDeleted ? "Showing Deleted" : "Show Deleted"}
                         </Button>
+                        {!showDeleted && (
+                            <Button variant="outline" onClick={fetchData} disabled={isRefreshing} className="border-[#a3b18a] text-[#344e41]">
+                                <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+                                Refresh
+                            </Button>
+                        )}
                     </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-4 shadow-sm border border-[#a3b18a]/30">
-                    {isLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]"></div>
-                        </div>
-                    ) : (
-                        <DataTable
-                            data={filteredAdmins}
-                            columns={columns}
-                            searchKey="fullName"
-                            searchPlaceholder="Search admin by name..."
-                            onView={(item) => router.push(`/dashboard/admin/users/admins/${item.id}`)}
-                            onEdit={handleEdit}
-                            onDelete={handleDelete}
-                        />
-                    )}
-                </div>
+                {!showDeleted ? (
+                    <div className="bg-white rounded-lg p-4 shadow-sm border border-[#a3b18a]/30">
+                        {isLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]"></div>
+                            </div>
+                        ) : (
+                            <DataTable
+                                data={filteredAdmins}
+                                columns={columns}
+                                searchKey="fullName"
+                                searchPlaceholder="Search admin by name..."
+                                onView={(item) => router.push(`/dashboard/admin/users/admins/${item.id}`)}
+                                onEdit={handleEdit}
+                                onDelete={handleDelete}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <Card className="border-[#a3b18a]/30">
+                        <CardContent className="p-6">
+                            <h2 className="text-lg font-semibold text-[#344e41] mb-4">
+                                Deleted Admins
+                            </h2>
+                            {deletedAdmins.length === 0 ? (
+                                <p className="text-sm text-[#344e41]/60">
+                                    No deleted admins.
+                                </p>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-[#dad7cd]/40">
+                                            <tr>
+                                                <th className="text-left p-4 text-sm font-semibold text-[#344e41]">Name</th>
+                                                <th className="text-left p-4 text-sm font-semibold text-[#344e41]">Email</th>
+                                                <th className="text-left p-4 text-sm font-semibold text-[#344e41]">Role</th>
+                                                <th className="text-right p-4 text-sm font-semibold text-[#344e41]">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {deletedAdmins.map((admin) => (
+                                                <tr key={admin.id} className="border-b border-[#a3b18a]/20 hover:bg-[#dad7cd]/20 transition-colors">
+                                                    <td className="p-4">
+                                                        <p className="font-medium text-[#344e41]">{admin.fullName}</p>
+                                                    </td>
+                                                    <td className="p-4 text-sm text-[#344e41]/80">{admin.email}</td>
+                                                    <td className="p-4">
+                                                        {roleBadge(admin.role)}
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleRestore(admin.id)}
+                                                                className="border-[#588157] text-[#588157]"
+                                                            >
+                                                                Restore
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handlePermanentDelete(admin.id, admin.fullName)}
+                                                                className="border-red-500 text-red-600"
+                                                            >
+                                                                Delete Permanently
+                                                            </Button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 <DeleteModal
                     isOpen={isDeleteOpen}
