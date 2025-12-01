@@ -58,8 +58,13 @@ const normalizeBook = (data: unknown): Book => {
     pages: (d.pages as number) || 0,
     price: (d.price as number) || 0,
     status: (d.status as BookStatus) || "active",
-    libraryId: (d.libraryId as string) || "",
-    library: d.library as Library | undefined,
+
+    libraryId: typeof d.libraryId === 'object' && d.libraryId !== null
+      ? ((d.libraryId as any)._id || (d.libraryId as any).id)
+      : (d.libraryId as string) || "",
+    library: typeof d.libraryId === 'object' && d.libraryId !== null
+      ? (d.libraryId as Library)
+      : (d.library as Library | undefined),
     createdAt: (d.createdAt as string) || "",
     updatedAt: (d.updatedAt as string) || "",
   };
@@ -79,14 +84,17 @@ export const bookService = {
   }> => {
     try {
       const res = await libraryApi.get("/library/books", { params });
-      const data = res.data as LibraryApiResponse<Book[]>;
-      const books = extractLibraryArrayData<Book>(res).map(normalizeBook);
+      // The API returns { data: { books: [...] } }
+      const apiData = res.data as any;
+      const rawBooks = apiData.data?.books || [];
+      const books = Array.isArray(rawBooks) ? rawBooks.map(normalizeBook) : [];
+
       return {
         books,
-        pagination: data.data?.pagination,
+        pagination: apiData.data?.pagination,
       };
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -98,7 +106,7 @@ export const bookService = {
       const res = await libraryApi.get("/library/books/available", { params });
       return extractLibraryArrayData<Book>(res).map(normalizeBook);
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -107,7 +115,7 @@ export const bookService = {
       const res = await libraryApi.get(`/library/books/${id}`);
       return normalizeBook(extractLibraryItemData(res));
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -116,7 +124,7 @@ export const bookService = {
       const res = await libraryApi.post("/library/books", payload);
       return normalizeBook(extractLibraryItemData(res));
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -125,7 +133,7 @@ export const bookService = {
       const res = await libraryApi.patch(`/library/books/${id}`, payload);
       return normalizeBook(extractLibraryItemData(res));
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -136,7 +144,7 @@ export const bookService = {
         res.data.data || res.data || { message: "Book deleted successfully" }
       );
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -145,7 +153,7 @@ export const bookService = {
       const res = await libraryApi.post(`/library/books/${id}/restore`);
       return normalizeBook(extractLibraryItemData(res));
     } catch (error: unknown) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 };
