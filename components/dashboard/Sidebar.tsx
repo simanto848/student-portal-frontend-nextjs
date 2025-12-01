@@ -108,6 +108,31 @@ export function Sidebar({ className, onClose }: SidebarProps) {
       label: "System Reports",
       icon: FileText,
     },
+    ...((user?.role !== "moderator")
+      ? [
+        {
+          label: "Library Management",
+          icon: BookOpen,
+          children: [
+            { href: "/dashboard/admin/library", label: "Overview" },
+            {
+              href: "/dashboard/admin/library/libraries",
+              label: "Libraries",
+            },
+            { href: "/dashboard/admin/library/books", label: "Books" },
+            { href: "/dashboard/admin/library/copies", label: "Book Copies" },
+            {
+              href: "/dashboard/admin/library/borrowings",
+              label: "Borrowings",
+            },
+            {
+              href: "/dashboard/admin/library/reservations",
+              label: "Reservations",
+            },
+          ],
+        },
+      ]
+      : []),
   ];
 
   const teacherLinks: NavItem[] = [
