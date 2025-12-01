@@ -47,6 +47,8 @@ export interface BookCopy {
   book?: Book;
   libraryId: string;
   library?: Library;
+  acquisitionDate?: string;
+  notes?: string;
   createdAt?: string;
   updatedAt?: string;
 }

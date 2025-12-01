@@ -14,6 +14,8 @@ export interface BookCopyCreatePayload {
   status?: BookCopyStatus;
   bookId: string;
   libraryId: string;
+  notes?: string;
+  acquisitionDate?: Date;
 }
 
 export interface BookCopyUpdatePayload {
@@ -23,20 +25,43 @@ export interface BookCopyUpdatePayload {
   status?: BookCopyStatus;
   bookId?: string;
   libraryId?: string;
+  notes?: string;
+  acquisitionDate?: Date;
 }
 
 const normalizeBookCopy = (data: unknown): BookCopy => {
   const d = data as Record<string, unknown>;
+
+  // Handle populated bookId
+  let bookId = (d.bookId as string) || "";
+  let book = d.book as Book | undefined;
+  if (d.bookId && typeof d.bookId === 'object') {
+    const bookObj = d.bookId as any;
+    bookId = bookObj._id || bookObj.id;
+    book = bookObj as Book;
+  }
+
+  // Handle populated libraryId
+  let libraryId = (d.libraryId as string) || "";
+  let library = d.library as Library | undefined;
+  if (d.libraryId && typeof d.libraryId === 'object') {
+    const libObj = d.libraryId as any;
+    libraryId = libObj._id || libObj.id;
+    library = libObj as Library;
+  }
+
   return {
     id: (d.id as string) || (d._id as string) || "",
     copyNumber: (d.copyNumber as string) || "",
     location: (d.location as string) || "",
     condition: (d.condition as string) || "",
     status: (d.status as BookCopyStatus) || "available",
-    bookId: (d.bookId as string) || "",
-    book: d.book as Book | undefined,
-    libraryId: (d.libraryId as string) || "",
-    library: d.library as Library | undefined,
+    bookId,
+    book,
+    libraryId,
+    library,
+    acquisitionDate: (d.acquisitionDate as string) || "",
+    notes: (d.notes as string) || "",
     createdAt: (d.createdAt as string) || "",
     updatedAt: (d.updatedAt as string) || "",
   };
@@ -56,15 +81,17 @@ export const bookCopyService = {
   }> => {
     try {
       const res = await libraryApi.get("/library/copies", { params });
-      const data = res.data as LibraryApiResponse<BookCopy[]>;
-      const bookCopies =
-        extractLibraryArrayData<BookCopy>(res).map(normalizeBookCopy);
+      const data = res.data as any;
+      const rawCopies = data.data?.copies || [];
+      const bookCopies = Array.isArray(rawCopies)
+        ? rawCopies.map(normalizeBookCopy)
+        : [];
       return {
         bookCopies,
         pagination: data.data?.pagination,
       };
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -79,7 +106,7 @@ export const bookCopyService = {
       );
       return extractLibraryArrayData<BookCopy>(res).map(normalizeBookCopy);
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -88,7 +115,7 @@ export const bookCopyService = {
       const res = await libraryApi.get(`/library/copies/${id}`);
       return normalizeBookCopy(extractLibraryItemData(res));
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -97,7 +124,7 @@ export const bookCopyService = {
       const res = await libraryApi.post("/library/copies", payload);
       return normalizeBookCopy(extractLibraryItemData(res));
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -109,7 +136,7 @@ export const bookCopyService = {
       const res = await libraryApi.patch(`/library/copies/${id}`, payload);
       return normalizeBookCopy(extractLibraryItemData(res));
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -121,7 +148,7 @@ export const bookCopyService = {
         res.data || { message: "Book copy deleted successfully" }
       );
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 
@@ -130,7 +157,7 @@ export const bookCopyService = {
       const res = await libraryApi.post(`/library/copies/${id}/restore`);
       return normalizeBookCopy(extractLibraryItemData(res));
     } catch (error) {
-      handleLibraryApiError(error);
+      return handleLibraryApiError(error);
     }
   },
 };
