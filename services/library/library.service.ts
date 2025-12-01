@@ -70,9 +70,14 @@ export const libraryService = {
   }> => {
     try {
       const res = await libraryApi.get("/library/libraries", { params });
-      const data = res.data as LibraryApiResponse<Library[]>;
-      const libraries =
-        extractLibraryArrayData<Library>(res).map(normalizeLibrary);
+      const data = res.data as any;
+
+      // Handle the specific response structure where libraries are in data.libraries
+      const rawLibraries = data.data?.libraries || [];
+      const libraries = Array.isArray(rawLibraries)
+        ? rawLibraries.map(normalizeLibrary)
+        : [];
+
       return {
         libraries,
         pagination: data.data?.pagination,
