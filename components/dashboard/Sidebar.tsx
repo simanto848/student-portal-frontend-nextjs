@@ -160,11 +160,41 @@ export function Sidebar({ className, onClose }: SidebarProps) {
     },
   ];
 
+  // Librarian staff role
+  const librarianLinks: NavItem[] = [
+    {
+      href: "/dashboard/staff/librarian",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Library Catalog",
+      icon: BookOpen,
+      children: [
+        { href: "/dashboard/staff/librarian/libraries", label: "Libraries" },
+        { href: "/dashboard/staff/librarian/books", label: "Books" },
+        { href: "/dashboard/staff/librarian/copies", label: "Book Copies" },
+      ],
+    },
+    {
+      label: "Transactions",
+      icon: Users,
+      children: [
+        { href: "/dashboard/staff/librarian/borrowings", label: "Borrowings" },
+        {
+          href: "/dashboard/staff/librarian/reservations",
+          label: "Reservations",
+        },
+      ],
+    },
+  ];
+
   const roleLinks = {
     admin: adminLinks,
     teacher: teacherLinks,
     student: studentLinks,
     program_controller: programControllerLinks,
+    library: librarianLinks, // Add this
     staff: [],
   };
 

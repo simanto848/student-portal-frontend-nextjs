@@ -63,7 +63,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("refreshToken", data.refreshToken);
 
       // Set cookie for middleware
-      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure`;
+      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${
+        7 * 24 * 60 * 60
+      }; SameSite=Lax; Secure`;
 
       // Get the actual user role from response
       const userRole = data.user?.role || role;
@@ -82,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           admission: "/dashboard/staff/admission",
           exam: "/dashboard/staff/exam",
           finance: "/dashboard/staff/finance",
-          library: "/dashboard/staff/library",
+          library: "/dashboard/staff/librarian",
           transport: "/dashboard/staff/transport",
           hr: "/dashboard/staff/hr",
           it: "/dashboard/staff/it",
