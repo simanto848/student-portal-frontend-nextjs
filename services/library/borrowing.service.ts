@@ -4,7 +4,7 @@ import {
   extractLibraryArrayData,
   extractLibraryItemData,
 } from "./axios-instance";
-import { Borrowing, BorrowingStatus, BookCopy, Library } from "./types";
+import { Borrowing, BorrowingStatus, BookCopy, Library, Book } from "./types";
 
 export interface BorrowingUpdatePayload {
   status?: BorrowingStatus;
@@ -16,14 +16,49 @@ export interface BorrowingUpdatePayload {
 
 const normalizeBorrowing = (data: unknown): Borrowing => {
   const d = data as Record<string, unknown>;
+
+  // Handle populated copyId
+  let copyId = (d.copyId as string) || "";
+  let copy = d.copy as BookCopy | undefined;
+
+  if (d.copyId && typeof d.copyId === 'object') {
+    const copyObj = d.copyId as any;
+    copyId = copyObj._id || copyObj.id;
+
+    // Handle nested book in copy
+    let book = copyObj.bookId as Book | undefined;
+    if (copyObj.bookId && typeof copyObj.bookId === 'object') {
+      const bookObj = copyObj.bookId as any;
+      book = {
+        ...bookObj,
+        id: bookObj._id || bookObj.id
+      };
+    }
+
+    copy = {
+      ...copyObj,
+      id: copyObj._id || copyObj.id,
+      book
+    } as BookCopy;
+  }
+
+  // Handle populated libraryId
+  let libraryId = (d.libraryId as string) || "";
+  let library = d.library as Library | undefined;
+  if (d.libraryId && typeof d.libraryId === 'object') {
+    const libObj = d.libraryId as any;
+    libraryId = libObj._id || libObj.id;
+    library = libObj as Library;
+  }
+
   return {
     id: (d.id as string) || (d._id as string) || "",
     userType: (d.userType as Borrowing["userType"]) || "student",
     borrowerId: (d.borrowerId as string) || "",
-    copyId: (d.copyId as string) || "",
-    copy: d.copy as BookCopy | undefined,
-    libraryId: (d.libraryId as string) || "",
-    library: d.library as Library | undefined,
+    copyId,
+    copy,
+    libraryId,
+    library,
     borrowDate: (d.borrowDate as string) || "",
     dueDate: (d.dueDate as string) || "",
     returnDate: (d.returnDate as string) || "",
@@ -32,6 +67,7 @@ const normalizeBorrowing = (data: unknown): Borrowing => {
     finePaid: (d.finePaid as boolean) || false,
     processedById: (d.processedById as string) || "",
     notes: (d.notes as string) || "",
+    borrower: d.borrower as Borrowing["borrower"],
     createdAt: d.createdAt as string,
     updatedAt: d.updatedAt as string,
   };
@@ -50,9 +86,17 @@ export const borrowingService = {
   }> => {
     try {
       const res = await libraryApi.get("/library/borrowings/all", { params });
-      const borrowings =
-        extractLibraryArrayData<Borrowing>(res).map(normalizeBorrowing);
-      return { borrowings };
+      const data = res.data as any;
+      const rawBorrowings = data.data?.borrowings || [];
+
+      const borrowings = Array.isArray(rawBorrowings)
+        ? rawBorrowings.map(normalizeBorrowing)
+        : [];
+
+      return {
+        borrowings,
+        pagination: data.data?.pagination
+      };
     } catch (error) {
       handleLibraryApiError(error);
       throw error as Error;

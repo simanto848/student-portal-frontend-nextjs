@@ -69,6 +69,15 @@ export interface Borrowing {
   finePaid: boolean;
   processedById?: string;
   notes?: string;
+  borrower?: {
+    id: string;
+    fullName: string;
+    email?: string;
+    departmentId?: string;
+    departmentName?: string;
+    registrationNumber?: string;
+    error?: string;
+  };
   createdAt?: string;
   updatedAt?: string;
 }
