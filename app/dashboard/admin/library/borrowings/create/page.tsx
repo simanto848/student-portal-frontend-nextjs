@@ -174,7 +174,8 @@ export default function IssueBookPage() {
     setSubmitting(true);
     try {
       const created = await borrowingService.borrow({
-        userId: selectedUserId,
+        userType,
+        borrowerId: selectedUserId,
         copyId: selectedCopyId,
         libraryId: selectedLibraryId,
         dueDate: dueDate || undefined,

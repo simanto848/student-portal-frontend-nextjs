@@ -17,7 +17,6 @@ export interface BorrowingUpdatePayload {
 const normalizeBorrowing = (data: unknown): Borrowing => {
   const d = data as Record<string, unknown>;
 
-  // Handle populated copyId
   let copyId = (d.copyId as string) || "";
   let copy = d.copy as BookCopy | undefined;
 
@@ -25,7 +24,7 @@ const normalizeBorrowing = (data: unknown): Borrowing => {
     const copyObj = d.copyId as any;
     copyId = copyObj._id || copyObj.id;
 
-    // Handle nested book in copy
+    // nested book in copy
     let book = copyObj.bookId as Book | undefined;
     if (copyObj.bookId && typeof copyObj.bookId === 'object') {
       const bookObj = copyObj.bookId as any;
@@ -42,7 +41,7 @@ const normalizeBorrowing = (data: unknown): Borrowing => {
     } as BookCopy;
   }
 
-  // Handle populated libraryId
+  // populated libraryId
   let libraryId = (d.libraryId as string) || "";
   let library = d.library as Library | undefined;
   if (d.libraryId && typeof d.libraryId === 'object') {
@@ -133,7 +132,8 @@ export const borrowingService = {
   },
 
   borrow: async (payload: {
-    userId: string;
+    userType: string;
+    borrowerId: string;
     copyId: string;
     libraryId: string;
     dueDate?: string;
