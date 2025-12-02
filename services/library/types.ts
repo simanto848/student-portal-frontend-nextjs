@@ -101,6 +101,15 @@ export interface Reservation {
   canCancel?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  user?: {
+    id: string;
+    fullName: string;
+    email?: string;
+    departmentId?: string;
+    departmentName?: string;
+    registrationNumber?: string;
+    error?: string;
+  };
 }
 
 export type LibraryStatus = "active" | "inactive" | "maintenance";

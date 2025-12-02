@@ -32,26 +32,32 @@ export interface BookCopyUpdatePayload {
 const normalizeBookCopy = (data: unknown): BookCopy => {
   const d = data as Record<string, unknown>;
 
+  const getId = (obj: any): string => {
+    if (!obj) return "";
+    if (typeof obj === 'string') return obj;
+    if (obj._id) return String(obj._id);
+    if (obj.id) return String(obj.id);
+    return String(obj);
+  };
+
   // Handle populated bookId
-  let bookId = (d.bookId as string) || "";
+  let bookId = getId(d.bookId);
   let book = d.book as Book | undefined;
   if (d.bookId && typeof d.bookId === 'object') {
     const bookObj = d.bookId as any;
-    bookId = bookObj._id || bookObj.id;
     book = bookObj as Book;
   }
 
   // Handle populated libraryId
-  let libraryId = (d.libraryId as string) || "";
+  let libraryId = getId(d.libraryId);
   let library = d.library as Library | undefined;
   if (d.libraryId && typeof d.libraryId === 'object') {
     const libObj = d.libraryId as any;
-    libraryId = libObj._id || libObj.id;
     library = libObj as Library;
   }
 
   return {
-    id: (d.id as string) || (d._id as string) || "",
+    id: getId(d.id || d._id),
     copyNumber: (d.copyNumber as string) || "",
     location: (d.location as string) || "",
     condition: (d.condition as string) || "",
@@ -104,7 +110,11 @@ export const bookCopyService = {
         `/library/copies/book/${bookId}/available`,
         { params }
       );
-      return extractLibraryArrayData<BookCopy>(res).map(normalizeBookCopy);
+      const data = res.data as any;
+      const rawCopies = data.data?.copies || [];
+      return Array.isArray(rawCopies)
+        ? rawCopies.map(normalizeBookCopy)
+        : [];
     } catch (error) {
       return handleLibraryApiError(error);
     }
