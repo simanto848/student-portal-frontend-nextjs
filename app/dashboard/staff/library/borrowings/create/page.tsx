@@ -22,6 +22,11 @@ import { libraryService } from "@/services/library/library.service";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Loader2, Calendar, BookOpen, User } from "lucide-react";
 
+import { studentService } from "@/services/user/student.service";
+import { teacherService } from "@/services/user/teacher.service";
+import { staffService } from "@/services/user/staff.service";
+import { adminService } from "@/services/user/admin.service";
+
 export default function IssueBookPage() {
   const router = useRouter();
   const [payload, setPayload] = useState({
@@ -35,8 +40,46 @@ export default function IssueBookPage() {
 
   const [copies, setCopies] = useState<{ label: string; value: string; libraryId?: string }[]>([]);
   const [libraries, setLibraries] = useState<{ label: string; value: string }[]>([]);
+  const [borrowers, setBorrowers] = useState<{ label: string; value: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (payload.userType) {
+      fetchBorrowers(payload.userType);
+    }
+  }, [payload.userType]);
+
+  const fetchBorrowers = async (type: string) => {
+    try {
+      let data: any[] = [];
+      switch (type) {
+        case 'student':
+          const sRes = await studentService.getAll({ limit: 100 });
+          data = sRes.students || [];
+          break;
+        case 'teacher':
+          const tRes = await teacherService.getAll({ limit: 100 });
+          data = tRes.teachers || [];
+          break;
+        case 'staff':
+          const stRes = await staffService.getAll({ limit: 100 });
+          data = stRes.staff || [];
+          break;
+        case 'admin':
+          const aRes = await adminService.getAll({ limit: 100 });
+          data = aRes.admins || [];
+          break;
+      }
+      setBorrowers(data?.map(u => ({
+        label: `${u.fullName} (${u.email || u.username})`,
+        value: u.id
+      })) || []);
+    } catch (error) {
+      console.error("Failed to fetch borrowers", error);
+      toast.error("Failed to load borrower list");
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -148,7 +191,7 @@ export default function IssueBookPage() {
                       <Select
                         value={payload.userType}
                         onValueChange={(val) =>
-                          setPayload({ ...payload, userType: val as any })
+                          setPayload({ ...payload, userType: val as any, borrowerId: "" })
                         }
                       >
                         <SelectTrigger>
@@ -164,16 +207,15 @@ export default function IssueBookPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Borrower ID / Registration No.</Label>
-                      <Input
+                      <Label>Borrower</Label>
+                      <SearchableSelect
+                        options={borrowers}
                         value={payload.borrowerId}
-                        onChange={(e) =>
-                          setPayload({ ...payload, borrowerId: e.target.value })
-                        }
-                        placeholder="Enter ID..."
-                        required
+                        onChange={(val) => setPayload({ ...payload, borrowerId: val })}
+                        placeholder="Select borrower..."
+                        disabled={!payload.userType}
                       />
-                      <p className="text-xs text-gray-500">Enter the unique ID of the student or staff member.</p>
+                      <p className="text-xs text-gray-500">Search by name or email.</p>
                     </div>
                   </div>
                 </div>
