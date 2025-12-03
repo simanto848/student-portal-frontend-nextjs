@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           admission: "/dashboard/staff/admission",
           exam: "/dashboard/staff/exam",
           finance: "/dashboard/staff/finance",
-          library: "/dashboard/staff/librarian",
+          library: "/dashboard/staff/library",
           transport: "/dashboard/staff/transport",
           hr: "/dashboard/staff/hr",
           it: "/dashboard/staff/it",

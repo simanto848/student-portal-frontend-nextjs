@@ -37,7 +37,12 @@ interface NavItem {
   children?: { href: string; label: string }[];
 }
 
-export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: SidebarProps) {
+export function Sidebar({
+  className,
+  onClose,
+  isCollapsed,
+  toggleCollapse,
+}: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
@@ -109,30 +114,30 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
       label: "System Reports",
       icon: FileText,
     },
-    ...((user?.role !== "moderator")
+    ...(user?.role !== "moderator"
       ? [
-        {
-          label: "Library Management",
-          icon: BookOpen,
-          children: [
-            { href: "/dashboard/admin/library", label: "Overview" },
-            {
-              href: "/dashboard/admin/library/libraries",
-              label: "Libraries",
-            },
-            { href: "/dashboard/admin/library/books", label: "Books" },
-            { href: "/dashboard/admin/library/copies", label: "Book Copies" },
-            {
-              href: "/dashboard/admin/library/borrowings",
-              label: "Borrowings",
-            },
-            {
-              href: "/dashboard/admin/library/reservations",
-              label: "Reservations",
-            },
-          ],
-        },
-      ]
+          {
+            label: "Library Management",
+            icon: BookOpen,
+            children: [
+              { href: "/dashboard/admin/library", label: "Overview" },
+              {
+                href: "/dashboard/admin/library/libraries",
+                label: "Libraries",
+              },
+              { href: "/dashboard/admin/library/books", label: "Books" },
+              { href: "/dashboard/admin/library/copies", label: "Book Copies" },
+              {
+                href: "/dashboard/admin/library/borrowings",
+                label: "Borrowings",
+              },
+              {
+                href: "/dashboard/admin/library/reservations",
+                label: "Reservations",
+              },
+            ],
+          },
+        ]
       : []),
   ];
 
@@ -189,7 +194,7 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
   // Librarian staff role
   const librarianLinks: NavItem[] = [
     {
-      href: "/dashboard/staff/librarian",
+      href: "/dashboard/staff/library",
       label: "Dashboard",
       icon: LayoutDashboard,
     },
@@ -197,18 +202,18 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
       label: "Library Catalog",
       icon: BookOpen,
       children: [
-        { href: "/dashboard/staff/librarian/libraries", label: "Libraries" },
-        { href: "/dashboard/staff/librarian/books", label: "Books" },
-        { href: "/dashboard/staff/librarian/copies", label: "Book Copies" },
+        { href: "/dashboard/staff/library/libraries", label: "Libraries" },
+        { href: "/dashboard/staff/library/books", label: "Books" },
+        { href: "/dashboard/staff/library/copies", label: "Book Copies" },
       ],
     },
     {
       label: "Transactions",
       icon: Users,
       children: [
-        { href: "/dashboard/staff/librarian/borrowings", label: "Borrowings" },
+        { href: "/dashboard/staff/library/borrowings", label: "Borrowings" },
         {
-          href: "/dashboard/staff/librarian/reservations",
+          href: "/dashboard/staff/library/reservations",
           label: "Reservations",
         },
       ],
@@ -264,17 +269,23 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
             )}
             title={isCollapsed ? item.label : undefined}
           >
-            <span className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
+            <span
+              className={cn(
+                "flex items-center gap-3",
+                isCollapsed && "justify-center"
+              )}
+            >
               <item.icon className="h-5 w-5" />
-              {!isCollapsed && <span className="font-medium">{item.label}</span>}
+              {!isCollapsed && (
+                <span className="font-medium">{item.label}</span>
+              )}
             </span>
-            {!isCollapsed && (
-              isExpanded ? (
+            {!isCollapsed &&
+              (isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
                 <ChevronRight className="h-4 w-4" />
-              )
-            )}
+              ))}
           </Button>
 
           {!isCollapsed && isExpanded && (
@@ -332,13 +343,20 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
       {/* Logo and Title with close button for mobile */}
       <div className="px-4 py-6 border-b border-white/10">
         <div className="flex items-center justify-between">
-          <div className={cn("flex items-center gap-3", isCollapsed && "justify-center w-full")}>
+          <div
+            className={cn(
+              "flex items-center gap-3",
+              isCollapsed && "justify-center w-full"
+            )}
+          >
             <div className="h-10 w-10 rounded-full bg-[#588157]/30 flex items-center justify-center flex-shrink-0">
               <GraduationCap className="h-6 w-6 text-[#a3b18a]" />
             </div>
             {!isCollapsed && (
               <div>
-                <h2 className="text-lg font-bold tracking-tight">Admin Portal</h2>
+                <h2 className="text-lg font-bold tracking-tight">
+                  Admin Portal
+                </h2>
                 <p className="text-xs text-[#a3b18a]">University Name</p>
               </div>
             )}
@@ -354,7 +372,12 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
           </Button>
         </div>
         {/* Desktop Collapse Toggle */}
-        <div className={cn("hidden lg:flex mt-2", isCollapsed ? "justify-center w-full" : "justify-end")}>
+        <div
+          className={cn(
+            "hidden lg:flex mt-2",
+            isCollapsed ? "justify-center w-full" : "justify-end"
+          )}
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -364,7 +387,11 @@ export function Sidebar({ className, onClose, isCollapsed, toggleCollapse }: Sid
             )}
             onClick={toggleCollapse}
           >
-            {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-4 w-4" />}
+            {isCollapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>
