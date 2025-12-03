@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus } from "lucide-react";
+import { Eye, Plus, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function ReservationsPage() {
@@ -206,8 +206,13 @@ export default function ReservationsPage() {
                           </TableCell>
                           <TableCell>{getStatusBadge(r.status)}</TableCell>
                           <TableCell className="text-right">
+                            <Link href={`/dashboard/staff/library/reservations/${r.id}/edit`}>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </Link>
                             <Link href={`/dashboard/staff/library/reservations/${r.id}`}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>

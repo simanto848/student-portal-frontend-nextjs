@@ -8,8 +8,14 @@ import {
 import { Reservation, ReservationStatus, Library, BookCopy, Book } from "./types";
 
 export interface ReservationUpdatePayload {
+  copyId?: string;
+  libraryId?: string;
+  userId?: string;
+  userType?: string;
   status?: ReservationStatus;
   notes?: string;
+  reservationDate?: string;
+  expiryDate?: string;
 }
 
 const normalizeReservation = (data: unknown): Reservation => {
