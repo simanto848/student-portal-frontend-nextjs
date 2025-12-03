@@ -7,8 +7,13 @@ import {
 import { Borrowing, BorrowingStatus, BookCopy, Library, Book } from "./types";
 
 export interface BorrowingUpdatePayload {
+  userType?: string;
+  borrowerId?: string;
+  copyId?: string;
+  libraryId?: string;
   status?: BorrowingStatus;
   returnDate?: string;
+  dueDate?: string;
   fineAmount?: number;
   finePaid?: boolean;
   notes?: string;
