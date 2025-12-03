@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { bookService } from "@/services/library/book.service";
-import type { Book } from "@/services/library";
+import { bookCopyService } from "@/services/library/bookCopy.service";
+import type { Book, BookCopy } from "@/services/library";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -23,17 +24,27 @@ import {
   DollarSign,
   Layers,
   CheckCircle,
-  XCircle,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Eye
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 export default function ViewBookPage() {
   const params = useParams();
   const id = params?.id as string;
   const [item, setItem] = useState<Book | null>(null);
+  const [copies, setCopies] = useState<BookCopy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
@@ -42,10 +53,14 @@ export default function ViewBookPage() {
     if (!id) return;
     (async () => {
       try {
-        const res = await bookService.getById(id);
-        setItem(res);
+        const [bookRes, copiesRes] = await Promise.all([
+          bookService.getById(id),
+          bookCopyService.getAll({ bookId: id, limit: 100 }),
+        ]);
+        setItem(bookRes);
+        setCopies(copiesRes.bookCopies);
       } catch {
-        toast.error("Failed to load book");
+        toast.error("Failed to load book details");
       } finally {
         setIsLoading(false);
       }
@@ -63,6 +78,23 @@ export default function ViewBookPage() {
       toast.error(error.message || "Failed to delete book");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const getCopyStatusColor = (status: string) => {
+    switch (status) {
+      case "available":
+        return "bg-green-100 text-green-700 hover:bg-green-100/80";
+      case "borrowed":
+        return "bg-blue-100 text-blue-700 hover:bg-blue-100/80";
+      case "maintenance":
+        return "bg-orange-100 text-orange-700 hover:bg-orange-100/80";
+      case "lost":
+        return "bg-red-100 text-red-700 hover:bg-red-100/80";
+      case "reserved":
+        return "bg-yellow-100 text-yellow-700 hover:bg-yellow-100/80";
+      default:
+        return "bg-gray-100 text-gray-700 hover:bg-gray-100/80";
     }
   };
 
@@ -221,6 +253,91 @@ export default function ViewBookPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Copies Section */}
+            <Card className="border-none shadow-sm">
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
+                  <Layers className="h-5 w-5 text-[#588157]" />
+                  Book Copies ({copies.length})
+                </CardTitle>
+                <Link href={`/dashboard/staff/library/copies/create?bookId=${id}`}>
+                  <Button size="sm" className="bg-[#344e41] hover:bg-[#2a3f34] gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Copy
+                  </Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                {copies.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                    No copies available for this book.
+                  </div>
+                ) : (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Copy Number</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Condition</TableHead>
+                          <TableHead>Location</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {copies.map((copy) => (
+                          <TableRow key={copy.id}>
+                            <TableCell className="font-medium">
+                              {copy.copyNumber}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="secondary"
+                                className={getCopyStatusColor(copy.status)}
+                              >
+                                {copy.status.charAt(0).toUpperCase() +
+                                  copy.status.slice(1)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{copy.condition || "N/A"}</TableCell>
+                            <TableCell>{copy.location || "N/A"}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end gap-2">
+                                <Link
+                                  href={`/dashboard/staff/library/copies/${copy.id}`}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="View Details"
+                                    className="h-8 w-8"
+                                  >
+                                    <Eye className="h-4 w-4 text-gray-500" />
+                                  </Button>
+                                </Link>
+                                <Link
+                                  href={`/dashboard/staff/library/copies/${copy.id}/edit`}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    title="Edit Copy"
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="h-4 w-4 text-gray-500" />
+                                  </Button>
+                                </Link>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Side Column */}
@@ -243,7 +360,7 @@ export default function ViewBookPage() {
                   </div>
                   <div className="pl-12">
                     <p className="text-2xl font-bold text-gray-900">
-                      {item.availableCopies !== undefined ? item.availableCopies : "N/A"}
+                      {copies.filter((c) => c.status === "available").length}
                     </p>
                     <p className="text-xs text-gray-500">Currently in library</p>
                   </div>
