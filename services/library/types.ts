@@ -35,6 +35,7 @@ export interface Book {
   library?: Library;
   createdAt?: string;
   updatedAt?: string;
+  availableCopies?: number;
 }
 
 export interface BookCopy {

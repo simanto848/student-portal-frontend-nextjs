@@ -124,9 +124,11 @@ export default function BooksPage() {
                           {book.status}
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight min-h-[3rem]">
-                        {book.title}
-                      </CardTitle>
+                      <Link href={`/dashboard/staff/library/books/${book.id}`} className="block">
+                        <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2 leading-tight min-h-[3rem] hover:text-[#344e41] transition-colors">
+                          {book.title}
+                        </CardTitle>
+                      </Link>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

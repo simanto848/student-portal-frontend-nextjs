@@ -62,7 +62,7 @@ export default function LibrariesPage() {
             <h1 className="text-3xl font-bold text-[#344e41]">Libraries</h1>
             <p className="text-gray-500 mt-1">Manage your library branches and locations</p>
           </div>
-          <Link href="/dashboard/staff/library/libraries/new">
+          <Link href="/dashboard/staff/library/libraries/create">
             <Button className="bg-[#344e41] hover:bg-[#588157] text-white gap-2">
               <Plus className="h-4 w-4" />
               Add New Library

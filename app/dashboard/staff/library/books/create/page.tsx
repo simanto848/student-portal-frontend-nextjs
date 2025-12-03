@@ -1,12 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { bookService } from "@/services/library/book.service";
-import type { BookCreatePayload, BookStatus } from "@/services/library";
+import { libraryService } from "@/services/library/library.service";
+import type { BookCreatePayload, BookStatus, Library } from "@/services/library";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { ArrowLeft, Save } from "lucide-react";
 
 export default function CreateBookPage() {
   const router = useRouter();
@@ -16,102 +30,226 @@ export default function CreateBookPage() {
     category: "",
     libraryId: "",
     status: "active",
+    isbn: "",
+    publisher: "",
+    publicationYear: undefined,
+    edition: "",
+    language: "English",
+    pages: undefined,
+    price: undefined,
+    description: "",
   });
   const [submitting, setSubmitting] = useState(false);
+  const [libraries, setLibraries] = useState<Library[]>([]);
+  const [isLoadingLibraries, setIsLoadingLibraries] = useState(true);
+
+  useEffect(() => {
+    const fetchLibraries = async () => {
+      try {
+        const res = await libraryService.getAll({ limit: 100, status: "active" });
+        setLibraries(res.libraries);
+      } catch {
+        toast.error("Failed to load libraries");
+      } finally {
+        setIsLoadingLibraries(false);
+      }
+    };
+    fetchLibraries();
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!payload.libraryId) {
+      toast.error("Please select a library");
+      return;
+    }
     setSubmitting(true);
     try {
       const created = await bookService.create(payload);
-      toast.success("Book created");
+      toast.success("Book created successfully");
       router.push(`/dashboard/staff/library/books/${created.id}`);
-    } catch {
-      toast.error("Failed to create book");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create book");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const libraryOptions = libraries.map((lib) => ({
+    label: `${lib.name} (${lib.code})`,
+    value: lib.id,
+  }));
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Create Book</h1>
-        <Card className="bg-white border-none shadow-sm">
+      <div className="space-y-6 max-w-4xl mx-auto pb-10">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            className="h-10 w-10 rounded-full hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-[#344e41]">Add New Book</h1>
+            <p className="text-gray-500 text-sm">Enter the details of the new book</p>
+          </div>
+        </div>
+
+        <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle>Book Details</CardTitle>
+            <CardTitle className="text-lg text-gray-800">Book Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm mb-1">Title</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
+            <form onSubmit={onSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="title"
+                    placeholder="e.g. The Great Gatsby"
                     value={payload.title}
-                    onChange={(e) =>
-                      setPayload({ ...payload, title: e.target.value })
-                    }
+                    onChange={(e) => setPayload({ ...payload, title: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">Author</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
+                <div className="space-y-2">
+                  <Label htmlFor="author">Author <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="author"
+                    placeholder="e.g. F. Scott Fitzgerald"
                     value={payload.author}
-                    onChange={(e) =>
-                      setPayload({ ...payload, author: e.target.value })
-                    }
+                    onChange={(e) => setPayload({ ...payload, author: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">Category</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="category"
+                    placeholder="e.g. Fiction, Science, History"
                     value={payload.category}
-                    onChange={(e) =>
-                      setPayload({ ...payload, category: e.target.value })
-                    }
+                    onChange={(e) => setPayload({ ...payload, category: e.target.value })}
                     required
                   />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">Library ID</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
+                <div className="space-y-2">
+                  <Label htmlFor="library">Library Branch <span className="text-red-500">*</span></Label>
+                  <SearchableSelect
+                    options={libraryOptions}
                     value={payload.libraryId}
-                    onChange={(e) =>
-                      setPayload({ ...payload, libraryId: e.target.value })
-                    }
-                    required
+                    onChange={(value) => setPayload({ ...payload, libraryId: value })}
+                    placeholder="Select a library..."
+                    disabled={isLoadingLibraries}
                   />
                 </div>
-                <div>
-                  <label className="block text-sm mb-1">Status</label>
-                  <select
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.status ?? "active"}
-                    onChange={(e) =>
-                      setPayload({
-                        ...payload,
-                        status: e.target.value as BookStatus,
-                      })
-                    }
+                <div className="space-y-2">
+                  <Label htmlFor="isbn">ISBN</Label>
+                  <Input
+                    id="isbn"
+                    placeholder="e.g. 978-3-16-148410-0"
+                    value={payload.isbn}
+                    onChange={(e) => setPayload({ ...payload, isbn: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publisher">Publisher</Label>
+                  <Input
+                    id="publisher"
+                    placeholder="e.g. Penguin Books"
+                    value={payload.publisher}
+                    onChange={(e) => setPayload({ ...payload, publisher: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publicationYear">Publication Year</Label>
+                  <Input
+                    id="publicationYear"
+                    type="number"
+                    placeholder="e.g. 1925"
+                    value={payload.publicationYear || ""}
+                    onChange={(e) => setPayload({ ...payload, publicationYear: e.target.value ? parseInt(e.target.value) : undefined })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edition">Edition</Label>
+                  <Input
+                    id="edition"
+                    placeholder="e.g. 1st Edition"
+                    value={payload.edition}
+                    onChange={(e) => setPayload({ ...payload, edition: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="language">Language</Label>
+                  <Input
+                    id="language"
+                    placeholder="e.g. English"
+                    value={payload.language}
+                    onChange={(e) => setPayload({ ...payload, language: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pages">Pages</Label>
+                  <Input
+                    id="pages"
+                    type="number"
+                    placeholder="e.g. 218"
+                    value={payload.pages || ""}
+                    onChange={(e) => setPayload({ ...payload, pages: e.target.value ? parseInt(e.target.value) : undefined })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price (TK)</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    placeholder="e.g. 500"
+                    value={payload.price || ""}
+                    onChange={(e) => setPayload({ ...payload, price: e.target.value ? parseFloat(e.target.value) : undefined })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={payload.status}
+                    onValueChange={(value: BookStatus) => setPayload({ ...payload, status: value })}
                   >
-                    <option value="active">active</option>
-                    <option value="inactive">inactive</option>
-                    <option value="archived">archived</option>
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-              <button
-                disabled={submitting}
-                className="px-4 py-2 rounded bg-[#344e41] text-white"
-              >
-                {submitting ? "Creating..." : "Create"}
-              </button>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Enter book description..."
+                  className="min-h-[120px]"
+                  value={payload.description}
+                  onChange={(e) => setPayload({ ...payload, description: e.target.value })}
+                />
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-[#344e41] hover:bg-[#2a3f34] text-white gap-2 min-w-[150px]"
+                >
+                  <Save className="h-4 w-4" />
+                  {submitting ? "Creating..." : "Create Book"}
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
