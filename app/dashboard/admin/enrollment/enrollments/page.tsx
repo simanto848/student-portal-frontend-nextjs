@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { enrollmentService, Enrollment } from "@/services/enrollment/enrollment.service";
-import { Loader2, Plus, Search, Filter, Trash2 } from "lucide-react";
+import { Loader2, Plus, Search, Filter, Trash2, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -65,7 +65,7 @@ export default function EnrollmentsPage() {
                         <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">Enrollments</h1>
                         <p className="text-muted-foreground">Manage student enrollments</p>
                     </div>
-                    <Button className="bg-[#3e6253] hover:bg-[#2c463b]">
+                    <Button className="bg-[#3e6253] hover:bg-[#2c463b]" onClick={() => router.push("/dashboard/admin/enrollment/enrollments/create")}>
                         <Plus className="mr-2 h-4 w-4" />
                         Enroll Student
                     </Button>
@@ -129,15 +129,21 @@ export default function EnrollmentsPage() {
                                                 <TableCell>{enrollment.semester}</TableCell>
                                                 <TableCell>
                                                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${enrollment.status === 'enrolled' ? 'bg-green-100 text-green-800' :
-                                                            enrollment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                                                                enrollment.status === 'dropped' ? 'bg-yellow-100 text-yellow-800' :
-                                                                    'bg-red-100 text-red-800'
+                                                        enrollment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                                            enrollment.status === 'dropped' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-red-100 text-red-800'
                                                         }`}>
                                                         {enrollment.status.charAt(0).toUpperCase() + enrollment.status.slice(1)}
                                                     </span>
                                                 </TableCell>
                                                 <TableCell>{format(new Date(enrollment.enrollmentDate), "MMM d, yyyy")}</TableCell>
                                                 <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/enrollment/enrollments/${enrollment.id}`)}>
+                                                        <Eye className="h-4 w-4 text-gray-500" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/enrollment/enrollments/${enrollment.id}/edit`)}>
+                                                        <Edit className="h-4 w-4 text-blue-500" />
+                                                    </Button>
                                                     <Button variant="ghost" size="icon" onClick={() => handleDelete(enrollment.id)}>
                                                         <Trash2 className="h-4 w-4 text-red-500" />
                                                     </Button>

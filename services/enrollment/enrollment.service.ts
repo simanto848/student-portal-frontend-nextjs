@@ -21,10 +21,20 @@ export interface Enrollment {
 export interface CreateEnrollmentDto {
     studentId: string;
     batchId: string;
-    courseId: string;
+    sessionId: string;
     semester: number;
-    academicYear: string;
-    status?: string;
+}
+
+export interface BatchSemesterCourse {
+    courseId: string;
+    sessionCourseId: string;
+    semester: number;
+    instructorId?: string;
+    instructorAssigned: boolean;
+    assignmentId?: string;
+    // Populated fields
+    course?: any;
+    instructor?: any;
 }
 
 export interface BulkEnrollDto {
@@ -35,7 +45,16 @@ export interface BulkEnrollDto {
 }
 
 export const enrollmentService = {
-    enrollStudent: async (data: CreateEnrollmentDto): Promise<Enrollment> => {
+    getBatchSemesterCourses: async (batchId: string, semester: number): Promise<BatchSemesterCourse[]> => {
+        try {
+            const response = await api.get(`/enrollment/enrollments/batch/${batchId}/semester/${semester}/courses`);
+            return response.data.data || [];
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    enrollStudent: async (data: CreateEnrollmentDto): Promise<any> => {
         try {
             const response = await api.post('/enrollment/enrollments', data);
             return response.data.data;
