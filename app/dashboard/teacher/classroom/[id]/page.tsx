@@ -14,7 +14,10 @@ import { Workspace, Assignment, Material, StreamItem } from "@/services/classroo
 import { CreateAssignmentDialog } from "@/components/classroom/CreateAssignmentDialog";
 import { CreateMaterialDialog } from "@/components/classroom/CreateMaterialDialog";
 import { GradingView } from "@/components/classroom/GradingView";
-import { Loader2, MessageSquare, FileText, BookOpen, Users, ArrowLeft, Settings, Edit, Trash2 } from "lucide-react";
+import { AttendanceView } from "@/components/classroom/AttendanceView";
+import { AssessmentView } from "@/components/classroom/AssessmentView";
+import { CourseGradeView } from "@/components/classroom/CourseGradeView";
+import { Loader2, MessageSquare, FileText, BookOpen, Users, ArrowLeft, Settings, Edit, Trash2, ClipboardCheck, Calendar, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -111,10 +114,12 @@ export default function TeacherClassroomDetailPage() {
                 </div>
 
                 <Tabs defaultValue="stream" className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 lg:w-[400px]">
+                    <TabsList className="grid w-full grid-cols-6 lg:w-[600px]">
                         <TabsTrigger value="stream">Stream</TabsTrigger>
                         <TabsTrigger value="classwork">Classwork</TabsTrigger>
                         <TabsTrigger value="people">People</TabsTrigger>
+                        <TabsTrigger value="attendance">Attendance</TabsTrigger>
+                        <TabsTrigger value="assessments">Assessments</TabsTrigger>
                         <TabsTrigger value="grades">Grades</TabsTrigger>
                     </TabsList>
 
@@ -330,52 +335,78 @@ export default function TeacherClassroomDetailPage() {
                         </div>
                     </TabsContent>
 
-                    <TabsContent value="grades" className="mt-6">
-                        <div className="grid gap-6 md:grid-cols-[300px_1fr]">
-                            <Card className="h-fit">
-                                <CardHeader>
-                                    <CardTitle className="text-lg">Assignments</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0">
-                                    <div className="flex flex-col">
-                                        {assignments.map((assignment) => (
-                                            <button
-                                                key={assignment.id}
-                                                onClick={() => setSelectedAssignmentId(assignment.id)}
-                                                className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${selectedAssignmentId === assignment.id
-                                                        ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
-                                                        : "text-gray-600 border-l-4 border-transparent"
-                                                    }`}
-                                            >
-                                                {assignment.title}
-                                            </button>
-                                        ))}
-                                        {assignments.length === 0 && (
-                                            <div className="p-6 text-center text-muted-foreground text-sm">
-                                                No assignments created yet
-                                            </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
+                    <TabsContent value="attendance" className="mt-6">
+                        <AttendanceView courseId={workspace.courseId} batchId={workspace.batchId} />
+                    </TabsContent>
 
-                            <div className="space-y-6">
-                                {selectedAssignmentId ? (
-                                    <GradingView assignmentId={selectedAssignmentId} />
-                                ) : (
-                                    <Card>
-                                        <CardContent className="p-12 text-center text-muted-foreground">
-                                            <FileText className="mx-auto h-12 w-12 opacity-20 mb-4" />
-                                            <h3 className="text-lg font-medium text-[#1a3d32] mb-2">Select an Assignment</h3>
-                                            <p>Choose an assignment from the list to view submissions and grades</p>
+                    <TabsContent value="assessments" className="mt-6">
+                        <AssessmentView courseId={workspace.courseId} batchId={workspace.batchId} />
+                    </TabsContent>
+
+                    <TabsContent value="grades" className="mt-6">
+                        <Tabs defaultValue="assignments" className="w-full">
+                            <TabsList className="w-full grid grid-cols-2">
+                                <TabsTrigger value="assignments">Assignment Grading</TabsTrigger>
+                                <TabsTrigger value="course-grades">Final Course Grades</TabsTrigger>
+                            </TabsList>
+
+                            <TabsContent value="assignments" className="mt-6">
+                                <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+                                    <Card className="h-fit">
+                                        <CardHeader>
+                                            <CardTitle className="text-lg">Assignments</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="p-0">
+                                            <div className="flex flex-col">
+                                                {assignments.map((assignment) => (
+                                                    <button
+                                                        key={assignment.id}
+                                                        onClick={() => setSelectedAssignmentId(assignment.id)}
+                                                        className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${selectedAssignmentId === assignment.id
+                                                            ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
+                                                            : "text-gray-600 border-l-4 border-transparent"
+                                                            }`}
+                                                    >
+                                                        {assignment.title}
+                                                    </button>
+                                                ))}
+                                                {assignments.length === 0 && (
+                                                    <div className="p-6 text-center text-muted-foreground text-sm">
+                                                        No assignments created yet
+                                                    </div>
+                                                )}
+                                            </div>
                                         </CardContent>
                                     </Card>
-                                )}
-                            </div>
-                        </div>
+
+                                    <div className="space-y-6">
+                                        {selectedAssignmentId ? (
+                                            <GradingView assignmentId={selectedAssignmentId} />
+                                        ) : (
+                                            <Card>
+                                                <CardContent className="p-12 text-center text-muted-foreground">
+                                                    <FileText className="mx-auto h-12 w-12 opacity-20 mb-4" />
+                                                    <h3 className="text-lg font-medium text-[#1a3d32] mb-2">Select an Assignment</h3>
+                                                    <p>Choose an assignment from the list to view submissions and grades</p>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                    </div>
+                                </div>
+                            </TabsContent>
+
+                            <TabsContent value="course-grades" className="mt-6">
+                                <CourseGradeView
+                                    courseId={workspace.courseId}
+                                    batchId={workspace.batchId}
+                                    semester={1} // TODO: Fetch semester from batch or workspace
+                                />
+                            </TabsContent>
+                        </Tabs>
                     </TabsContent>
                 </Tabs>
             </div>
         </DashboardLayout>
     );
 }
+

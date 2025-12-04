@@ -12,6 +12,9 @@ import { assignmentService } from "@/services/classroom/assignment.service";
 import { materialService } from "@/services/classroom/material.service";
 import { Workspace, Assignment, Material, StreamItem } from "@/services/classroom/types";
 import { SubmissionView } from "@/components/classroom/SubmissionView";
+import { StudentAttendanceView } from "@/components/classroom/StudentAttendanceView";
+import { StudentAssessmentView } from "@/components/classroom/StudentAssessmentView";
+import { StudentGradeView } from "@/components/classroom/StudentGradeView";
 import { Loader2, MessageSquare, FileText, BookOpen, Users, ArrowLeft, Link as LinkIcon, File } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -89,10 +92,13 @@ export default function StudentClassroomDetailPage() {
                 </div>
 
                 <Tabs defaultValue="stream" className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+                    <TabsList className="grid w-full grid-cols-6 lg:w-[600px]">
                         <TabsTrigger value="stream">Stream</TabsTrigger>
                         <TabsTrigger value="classwork">Classwork</TabsTrigger>
                         <TabsTrigger value="people">People</TabsTrigger>
+                        <TabsTrigger value="attendance">Attendance</TabsTrigger>
+                        <TabsTrigger value="assessments">Assessments</TabsTrigger>
+                        <TabsTrigger value="grades">Grades</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="stream" className="mt-6">
@@ -289,6 +295,30 @@ export default function StudentClassroomDetailPage() {
                                 </CardContent>
                             </Card>
                         </div>
+                    </TabsContent>
+
+                    <TabsContent value="attendance" className="mt-6">
+                        <StudentAttendanceView
+                            courseId={workspace.courseId}
+                            batchId={workspace.batchId}
+                            studentId={user?.id || ""}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="assessments" className="mt-6">
+                        <StudentAssessmentView
+                            courseId={workspace.courseId}
+                            batchId={workspace.batchId}
+                            studentId={user?.id || ""}
+                        />
+                    </TabsContent>
+
+                    <TabsContent value="grades" className="mt-6">
+                        <StudentGradeView
+                            courseId={workspace.courseId}
+                            batchId={workspace.batchId}
+                            studentId={user?.id || ""}
+                        />
                     </TabsContent>
                 </Tabs>
             </div>
