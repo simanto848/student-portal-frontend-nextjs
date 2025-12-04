@@ -6,8 +6,8 @@ export interface Enrollment {
     batchId: string;
     courseId: string;
     semester: number;
-    academicYear: string;
-    status: 'enrolled' | 'completed' | 'dropped' | 'failed';
+    academicYear?: string;
+    status: 'active' | 'enrolled' | 'completed' | 'dropped' | 'failed';
     enrollmentDate: string;
     completionDate?: string;
     gradeId?: string;
@@ -16,6 +16,8 @@ export interface Enrollment {
     student?: any;
     batch?: any;
     course?: any;
+    session?: any;
+    instructor?: any;
 }
 
 export interface CreateEnrollmentDto {
