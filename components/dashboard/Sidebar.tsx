@@ -100,6 +100,17 @@ export function Sidebar({
       ],
     },
     {
+      label: "Workspaces Management",
+      icon: Building2,
+      children: [
+        { href: "/dashboard/admin/classroom", label: "Classrooms" },
+        { href: "/dashboard/admin/classroom/assignments", label: "Assignments" },
+        { href: "/dashboard/admin/classroom/materials", label: "Materials" },
+        { href: "/dashboard/admin/classroom/submissions", label: "Submissions" },
+        { href: "/dashboard/admin/classroom/rubrics", label: "Rubrics" },
+      ],
+    },
+    {
       label: "User Management",
       icon: Users,
       children: [
@@ -109,36 +120,36 @@ export function Sidebar({
         { href: "/dashboard/admin/users/students", label: "Students" },
       ],
     },
+    ...(user?.role !== "moderator"
+      ? [
+        {
+          label: "Library Management",
+          icon: BookOpen,
+          children: [
+            { href: "/dashboard/admin/library", label: "Overview" },
+            {
+              href: "/dashboard/admin/library/libraries",
+              label: "Libraries",
+            },
+            { href: "/dashboard/admin/library/books", label: "Books" },
+            { href: "/dashboard/admin/library/copies", label: "Book Copies" },
+            {
+              href: "/dashboard/admin/library/borrowings",
+              label: "Borrowings",
+            },
+            {
+              href: "/dashboard/admin/library/reservations",
+              label: "Reservations",
+            },
+          ],
+        },
+      ]
+      : []),
     {
       href: "/dashboard/admin/reports",
       label: "System Reports",
       icon: FileText,
     },
-    ...(user?.role !== "moderator"
-      ? [
-          {
-            label: "Library Management",
-            icon: BookOpen,
-            children: [
-              { href: "/dashboard/admin/library", label: "Overview" },
-              {
-                href: "/dashboard/admin/library/libraries",
-                label: "Libraries",
-              },
-              { href: "/dashboard/admin/library/books", label: "Books" },
-              { href: "/dashboard/admin/library/copies", label: "Book Copies" },
-              {
-                href: "/dashboard/admin/library/borrowings",
-                label: "Borrowings",
-              },
-              {
-                href: "/dashboard/admin/library/reservations",
-                label: "Reservations",
-              },
-            ],
-          },
-        ]
-      : []),
   ];
 
   const teacherLinks: NavItem[] = [

@@ -47,6 +47,12 @@ export default function StudentDashboard() {
                     <div className="flex gap-3">
                         <Button className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]">Register for Classes</Button>
                         <Button variant="outline" className="bg-[#dcdcd5] text-[#1a3d32] border-none hover:bg-[#cfcfc8]">Pay Tuition</Button>
+                        <Button
+                            className="bg-[#1a3d32] text-white hover:bg-[#142e26]"
+                            onClick={() => window.location.href = '/dashboard/student/classroom'}
+                        >
+                            My Classrooms
+                        </Button>
                     </div>
                 </div>
 

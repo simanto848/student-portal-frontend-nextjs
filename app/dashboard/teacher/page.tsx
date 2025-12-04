@@ -39,6 +39,12 @@ export default function TeacherDashboard() {
                     <div className="flex gap-3">
                         <Button variant="outline" className="bg-white text-[#1a3d32] border-gray-200">Take Attendance</Button>
                         <Button className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]">Create Announcement</Button>
+                        <Button
+                            className="bg-[#1a3d32] text-white hover:bg-[#142e26]"
+                            onClick={() => window.location.href = '/dashboard/teacher/classroom'}
+                        >
+                            Go to Classroom
+                        </Button>
                     </div>
                 </div>
 

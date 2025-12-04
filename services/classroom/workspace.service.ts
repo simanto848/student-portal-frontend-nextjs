@@ -20,6 +20,7 @@ export const workspaceService = {
      * Roles: super_admin, admin, program_controller, teacher, student
      */
     listMine: async (): Promise<Workspace[]> => {
+        console.log('workspaceService.listMine called');
         try {
             const response = await classroomApi.get('/workspaces');
             return extractClassroomArrayData<Workspace>(response);

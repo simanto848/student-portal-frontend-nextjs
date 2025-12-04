@@ -41,7 +41,7 @@ const normalizeBookCopy = (data: unknown): BookCopy => {
   };
 
   // Handle populated bookId
-  let bookId = getId(d.bookId);
+  const bookId = getId(d.bookId);
   let book = d.book as Book | undefined;
   if (d.bookId && typeof d.bookId === 'object') {
     const bookObj = d.bookId as any;
@@ -49,7 +49,7 @@ const normalizeBookCopy = (data: unknown): BookCopy => {
   }
 
   // Handle populated libraryId
-  let libraryId = getId(d.libraryId);
+  const libraryId = getId(d.libraryId);
   let library = d.library as Library | undefined;
   if (d.libraryId && typeof d.libraryId === 'object') {
     const libObj = d.libraryId as any;

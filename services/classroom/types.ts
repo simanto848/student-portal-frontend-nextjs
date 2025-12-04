@@ -20,9 +20,9 @@ export interface Workspace {
 
 export interface CreateWorkspaceDto {
     courseId: string;
-    departmentId: string;
+    departmentId?: string;
     batchId: string;
-    title: string;
+    title?: string;
     teacherIds?: string[];
 }
 
@@ -254,14 +254,19 @@ export interface StreamItem {
     // Populated fields
     assignment?: Assignment;
     material?: Material;
+    // UI helper fields
+    title?: string;
+    actorName?: string;
+    action?: string;
+    entityTitle?: string;
 }
 
 // User Role Types for Access Control
-export type ClassroomUserRole = 
-    | 'super_admin' 
-    | 'admin' 
-    | 'program_controller' 
-    | 'teacher' 
+export type ClassroomUserRole =
+    | 'super_admin'
+    | 'admin'
+    | 'program_controller'
+    | 'teacher'
     | 'student';
 
 // Permission Matrix

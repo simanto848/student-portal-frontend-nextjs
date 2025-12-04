@@ -6,25 +6,29 @@ import { cn } from "@/lib/utils";
 const Tabs = React.forwardRef<
     HTMLDivElement,
     React.HTMLAttributes<HTMLDivElement> & {
-        value: string;
-        onValueChange: (value: string) => void;
+        value?: string;
+        onValueChange?: (value: string) => void;
         defaultValue?: string;
     }
->(({ className, value, onValueChange, defaultValue, children, ...props }, ref) => {
-    // Simple state management for tabs if not controlled (though we use controlled in our pages)
-    // For this implementation, we'll assume controlled usage as per our pages
+>(({ className, value: controlledValue, onValueChange, defaultValue, children, ...props }, ref) => {
+    const [internalValue, setInternalValue] = React.useState(defaultValue || "");
+
+    const isControlled = controlledValue !== undefined;
+    const value = isControlled ? controlledValue : internalValue;
+
+    const handleValueChange = (newValue: string) => {
+        if (!isControlled) {
+            setInternalValue(newValue);
+        }
+        onValueChange?.(newValue);
+    };
+
     return (
-        <div ref={ref} className={cn("w-full", className)} {...props}>
-            {/* Pass value and onValueChange to children via context or cloning if needed, 
-          but for simplicity in this specific usage pattern, we'll rely on the structure 
-          Tabs -> TabsList -> TabsTrigger to just work with the props passed to TabsList/Trigger 
-          Wait, Radix primitives usually use Context. 
-          Let's make a simple Context-based implementation.
-      */}
-            <TabsContext.Provider value={{ value: value || defaultValue || "", onValueChange }}>
+        <TabsContext.Provider value={{ value: value || "", onValueChange: handleValueChange }}>
+            <div ref={ref} className={cn("w-full", className)} {...props}>
                 {children}
-            </TabsContext.Provider>
-        </div>
+            </div>
+        </TabsContext.Provider>
     );
 });
 Tabs.displayName = "Tabs";

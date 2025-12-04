@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
-  "https://student-portal-gateway-detpel38n.vercel.app/api";
+  "http://localhost:8000/api";
 
 export const libraryApi = axios.create({
   baseURL: API_URL,
