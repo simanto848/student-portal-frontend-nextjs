@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ChevronLeft,
   X,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,23 @@ export function Sidebar({
         {
           href: "/dashboard/admin/academic/ip-management",
           label: "IP Management",
+        },
+      ],
+    },
+    {
+      label: "Enrollment Management",
+      icon: ClipboardList,
+      children: [
+        { href: "/dashboard/admin/enrollment", label: "Overview" },
+        { href: "/dashboard/admin/enrollment/enrollments", label: "Enrollments" },
+        { href: "/dashboard/admin/enrollment/instructors", label: "Instructors" },
+        {
+          href: "/dashboard/admin/enrollment/assessments/types",
+          label: "Assessment Types",
+        },
+        {
+          href: "/dashboard/admin/enrollment/grades/workflow",
+          label: "Grade Workflow",
         },
       ],
     },

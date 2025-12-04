@@ -5,8 +5,10 @@ export interface BatchCourseInstructor {
     batchId: string;
     courseId: string;
     instructorId: string;
-    status: 'active' | 'inactive';
-    assignedAt: string;
+    sessionId: string;
+    semester: number;
+    status: 'active' | 'completed' | 'reassigned';
+    assignedDate: string;
     assignedBy?: string;
     batch?: any;
     course?: any;
@@ -17,7 +19,9 @@ export interface AssignInstructorDto {
     batchId: string;
     courseId: string;
     instructorId: string;
-    status?: 'active' | 'inactive';
+    sessionId: string;
+    semester: number;
+    status?: 'active' | 'completed' | 'reassigned';
 }
 
 export const batchCourseInstructorService = {
@@ -48,7 +52,7 @@ export const batchCourseInstructorService = {
         }
     },
 
-    getCourseInstructors: async (params?: { courseId?: string, batchId?: string }): Promise<BatchCourseInstructor[]> => {
+    getCourseInstructors: async (params?: { courseId?: string, batchId?: string, semester?: number }): Promise<BatchCourseInstructor[]> => {
         try {
             const response = await api.get('/enrollment/batch-course-instructors/course/instructors', { params });
             return response.data.data;

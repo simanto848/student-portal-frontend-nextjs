@@ -9,31 +9,48 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { batchCourseInstructorService, BatchCourseInstructor } from "@/services/enrollment/batchCourseInstructor.service";
-import { Loader2, Plus, Search, Filter, Trash2, Edit } from "lucide-react";
+import { teacherService } from "@/services/teacher.service";
+import { courseService } from "@/services/academic/course.service";
+import { batchService } from "@/services/academic/batch.service";
+import { Loader2, Plus, Search, Filter, Trash2, Edit, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 export default function InstructorsPage() {
     const router = useRouter();
     const [assignments, setAssignments] = useState<BatchCourseInstructor[]>([]);
+    const [teachers, setTeachers] = useState<any[]>([]);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [batches, setBatches] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
 
     useEffect(() => {
-        fetchAssignments();
+        fetchData();
     }, [statusFilter]);
 
-    const fetchAssignments = async () => {
+    const fetchData = async () => {
         setIsLoading(true);
         try {
             const params: any = {};
             if (statusFilter !== "all") params.status = statusFilter;
 
-            const data = await batchCourseInstructorService.listAssignments(params);
-            setAssignments(data.assignments || []);
+            const [assignmentsData, teachersData, coursesData, batchesData] = await Promise.all([
+                batchCourseInstructorService.listAssignments(params),
+                teacherService.getAllTeachers(),
+                courseService.getAllCourses(),
+                batchService.getAllBatches()
+            ]);
+
+            // Handle response structure where data might be nested
+            setAssignments(Array.isArray(assignmentsData) ? assignmentsData : assignmentsData.assignments || []);
+            setTeachers(teachersData || []);
+            setCourses(coursesData || []);
+            setBatches(batchesData || []);
         } catch (error) {
-            toast.error("Failed to fetch instructor assignments");
+            console.error("Fetch error:", error);
+            toast.error("Failed to fetch data");
         } finally {
             setIsLoading(false);
         }
@@ -44,17 +61,42 @@ export default function InstructorsPage() {
         try {
             await batchCourseInstructorService.deleteAssignment(id);
             toast.success("Instructor removed");
-            fetchAssignments();
+            fetchData();
         } catch (error) {
             toast.error("Failed to remove instructor");
         }
     };
 
-    const filteredAssignments = assignments.filter(assignment =>
-        assignment.instructor?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        assignment.course?.name?.toLowerCase().includes(search.toLowerCase()) ||
-        assignment.batch?.name?.toLowerCase().includes(search.toLowerCase())
-    );
+    const getTeacherName = (id: string) => {
+        const teacher = teachers.find(t => t.id === id);
+        return teacher ? teacher.fullName : "Unknown Instructor";
+    };
+
+    const getTeacherEmail = (id: string) => {
+        const teacher = teachers.find(t => t.id === id);
+        return teacher ? teacher.email : "";
+    };
+
+    const getCourseName = (id: string) => {
+        const course = courses.find(c => c.id === id);
+        return course ? `${course.name} (${course.code})` : "Unknown Course";
+    };
+
+    const getBatchName = (id: string) => {
+        const batch = batches.find(b => b.id === id);
+        return batch ? batch.name : "Unknown Batch";
+    };
+
+    const filteredAssignments = assignments.filter(assignment => {
+        const teacherName = getTeacherName(assignment.instructorId).toLowerCase();
+        const courseName = getCourseName(assignment.courseId).toLowerCase();
+        const batchName = getBatchName(assignment.batchId).toLowerCase();
+        const searchLower = search.toLowerCase();
+
+        return teacherName.includes(searchLower) ||
+            courseName.includes(searchLower) ||
+            batchName.includes(searchLower);
+    });
 
     return (
         <DashboardLayout>
@@ -64,7 +106,7 @@ export default function InstructorsPage() {
                         <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">Instructors</h1>
                         <p className="text-muted-foreground">Manage course instructor assignments</p>
                     </div>
-                    <Button className="bg-[#3e6253] hover:bg-[#2c463b]">
+                    <Button className="bg-[#3e6253] hover:bg-[#2c463b]" onClick={() => router.push("/dashboard/admin/enrollment/instructors/create")}>
                         <Plus className="mr-2 h-4 w-4" />
                         Assign Instructor
                     </Button>
@@ -90,7 +132,8 @@ export default function InstructorsPage() {
                                 <SelectContent>
                                     <SelectItem value="all">All Status</SelectItem>
                                     <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                    <SelectItem value="completed">Completed</SelectItem>
+                                    <SelectItem value="reassigned">Reassigned</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -107,6 +150,7 @@ export default function InstructorsPage() {
                                         <TableHead>Instructor</TableHead>
                                         <TableHead>Course</TableHead>
                                         <TableHead>Batch</TableHead>
+                                        <TableHead>Semester</TableHead>
                                         <TableHead>Status</TableHead>
                                         <TableHead>Assigned Date</TableHead>
                                         <TableHead className="text-right">Actions</TableHead>
@@ -117,19 +161,29 @@ export default function InstructorsPage() {
                                         filteredAssignments.map((assignment) => (
                                             <TableRow key={assignment.id}>
                                                 <TableCell className="font-medium">
-                                                    <div>{assignment.instructor?.fullName}</div>
-                                                    <div className="text-xs text-muted-foreground">{assignment.instructor?.email}</div>
+                                                    <div>{getTeacherName(assignment.instructorId)}</div>
+                                                    <div className="text-xs text-muted-foreground">{getTeacherEmail(assignment.instructorId)}</div>
                                                 </TableCell>
-                                                <TableCell>{assignment.course?.name} ({assignment.course?.code})</TableCell>
-                                                <TableCell>{assignment.batch?.name}</TableCell>
+                                                <TableCell>{getCourseName(assignment.courseId)}</TableCell>
+                                                <TableCell>{getBatchName(assignment.batchId)}</TableCell>
+                                                <TableCell>Semester {assignment.semester}</TableCell>
                                                 <TableCell>
-                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${assignment.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${assignment.status === 'active' ? 'bg-green-100 text-green-800' :
+                                                        assignment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                                            assignment.status === 'reassigned' ? 'bg-yellow-100 text-yellow-800' :
+                                                                'bg-gray-100 text-gray-800'
                                                         }`}>
                                                         {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
                                                     </span>
                                                 </TableCell>
-                                                <TableCell>{format(new Date(assignment.assignedAt), "MMM d, yyyy")}</TableCell>
+                                                <TableCell>{assignment.assignedDate ? format(new Date(assignment.assignedDate), "MMM d, yyyy") : "-"}</TableCell>
                                                 <TableCell className="text-right">
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/enrollment/instructors/${assignment.id}`)}>
+                                                        <Eye className="h-4 w-4 text-gray-500" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/enrollment/instructors/${assignment.id}/edit`)}>
+                                                        <Edit className="h-4 w-4 text-blue-500" />
+                                                    </Button>
                                                     <Button variant="ghost" size="icon" onClick={() => handleDelete(assignment.id)}>
                                                         <Trash2 className="h-4 w-4 text-red-500" />
                                                     </Button>
@@ -138,7 +192,7 @@ export default function InstructorsPage() {
                                         ))
                                     ) : (
                                         <TableRow>
-                                            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                                            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                                                 No instructor assignments found
                                             </TableCell>
                                         </TableRow>
