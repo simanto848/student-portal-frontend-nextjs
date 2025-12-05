@@ -148,6 +148,15 @@ export const courseGradeService = {
     },
 
     // Workflow Operations
+    getWorkflow: async (params?: any): Promise<ResultWorkflow[]> => {
+        try {
+            const response = await api.get('/enrollment/grades/workflow', { params });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
     submitToCommittee: async (id: string): Promise<any> => {
         try {
             const response = await api.post('/enrollment/grades/workflow/submit', { gradeId: id });
