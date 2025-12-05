@@ -28,6 +28,16 @@ export interface GradeStats {
     gradeDistribution: Record<string, number>;
 }
 
+export interface ResultWorkflow {
+    id: string;
+    gradeId: string;
+    status: string;
+    actionBy: string;
+    actionAt: string;
+    comments?: string;
+    grade?: CourseGrade;
+}
+
 export const courseGradeService = {
     // Grade Operations
     calculate: async (data: Partial<CourseGrade>): Promise<CourseGrade> => {
