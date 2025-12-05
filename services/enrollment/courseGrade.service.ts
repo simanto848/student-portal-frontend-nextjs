@@ -3,33 +3,34 @@ import { api, handleApiError } from "../academic/axios-instance";
 export interface CourseGrade {
     id: string;
     studentId: string;
+    enrollmentId: string;
     courseId: string;
     batchId: string;
     semester: number;
-    academicYear: string;
+    totalMarksObtained: number;
     totalMarks: number;
-    grade: string;
-    gradePoint: number;
-    status: 'draft' | 'submitted' | 'approved' | 'published' | 'returned';
+    grade?: string;
+    gradePoint?: number;
     remarks?: string;
-    calculatedAt: string;
+    status: 'pending' | 'calculated' | 'finalized' | 'published';
+    workflowStatus?: 'draft' | 'submitted' | 'approved' | 'returned' | 'return_requested' | 'return_approved';
+    isPublished: boolean;
     student?: any;
     course?: any;
     batch?: any;
+    enrollment?: any;
 }
 
-export interface ResultWorkflow {
-    id: string;
-    gradeId: string;
-    status: 'pending' | 'approved' | 'rejected' | 'returned';
-    comments?: string;
-    actionBy: string;
-    actionAt: string;
-    actionRole: string;
+export interface GradeStats {
+    average: number;
+    highest: number;
+    lowest: number;
+    gradeDistribution: Record<string, number>;
 }
 
 export const courseGradeService = {
-    calculateGrade: async (data: { studentId: string, courseId: string, batchId: string }): Promise<CourseGrade> => {
+    // Grade Operations
+    calculate: async (data: Partial<CourseGrade>): Promise<CourseGrade> => {
         try {
             const response = await api.post('/enrollment/grades', data);
             return response.data.data;
@@ -47,7 +48,7 @@ export const courseGradeService = {
         }
     },
 
-    updateGrade: async (id: string, data: Partial<CourseGrade>): Promise<CourseGrade> => {
+    update: async (id: string, data: Partial<CourseGrade>): Promise<CourseGrade> => {
         try {
             const response = await api.put(`/enrollment/grades/${id}`, data);
             return response.data.data;
@@ -56,7 +57,7 @@ export const courseGradeService = {
         }
     },
 
-    publishGrade: async (id: string): Promise<CourseGrade> => {
+    publish: async (id: string): Promise<CourseGrade> => {
         try {
             const response = await api.post(`/enrollment/grades/${id}/publish`);
             return response.data.data;
@@ -65,7 +66,7 @@ export const courseGradeService = {
         }
     },
 
-    unpublishGrade: async (id: string): Promise<CourseGrade> => {
+    unpublish: async (id: string): Promise<CourseGrade> => {
         try {
             const response = await api.post(`/enrollment/grades/${id}/unpublish`);
             return response.data.data;
@@ -74,7 +75,15 @@ export const courseGradeService = {
         }
     },
 
-    listGrades: async (params?: any): Promise<{ grades: CourseGrade[], pagination: any }> => {
+    delete: async (id: string): Promise<void> => {
+        try {
+            await api.delete(`/enrollment/grades/${id}`);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    list: async (params?: any): Promise<{ grades: CourseGrade[], pagination: any }> => {
         try {
             const response = await api.get('/enrollment/grades', { params });
             return response.data.data;
@@ -83,7 +92,7 @@ export const courseGradeService = {
         }
     },
 
-    getGrade: async (id: string): Promise<CourseGrade> => {
+    getById: async (id: string): Promise<CourseGrade> => {
         try {
             const response = await api.get(`/enrollment/grades/${id}`);
             return response.data.data;
@@ -92,7 +101,7 @@ export const courseGradeService = {
         }
     },
 
-    getStudentSemesterGrades: async (studentId: string, semester: number): Promise<CourseGrade[]> => {
+    getStudentSemesterGrades: async (studentId: string, semester: string): Promise<CourseGrade[]> => {
         try {
             const response = await api.get(`/enrollment/grades/student/${studentId}/semester/${semester}`);
             return response.data.data;
@@ -101,7 +110,7 @@ export const courseGradeService = {
         }
     },
 
-    calculateSemesterGPA: async (studentId: string, semester: number): Promise<any> => {
+    calculateSemesterGPA: async (studentId: string, semester: string): Promise<{ gpa: number }> => {
         try {
             const response = await api.get(`/enrollment/grades/student/${studentId}/semester/${semester}/gpa`);
             return response.data.data;
@@ -110,7 +119,7 @@ export const courseGradeService = {
         }
     },
 
-    calculateCGPA: async (studentId: string): Promise<any> => {
+    calculateCGPA: async (studentId: string): Promise<{ cgpa: number }> => {
         try {
             const response = await api.get(`/enrollment/grades/student/${studentId}/cgpa`);
             return response.data.data;
@@ -119,55 +128,46 @@ export const courseGradeService = {
         }
     },
 
-    // Workflow
-    getWorkflow: async (params?: any): Promise<ResultWorkflow[]> => {
+    getStats: async (): Promise<GradeStats> => {
         try {
-            const response = await api.get('/enrollment/grades/workflow', { params });
+            const response = await api.get('/enrollment/grades/stats/course');
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
         }
     },
 
-    submitToCommittee: async (data: { gradeIds: string[], comments?: string }): Promise<any> => {
+    // Workflow Operations
+    submitToCommittee: async (id: string): Promise<any> => {
         try {
-            const response = await api.post('/enrollment/grades/workflow/submit', data);
+            const response = await api.post('/enrollment/grades/workflow/submit', { gradeId: id });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
         }
     },
 
-    approveByCommittee: async (id: string, data: { comments?: string }): Promise<any> => {
+    approveByCommittee: async (id: string): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/approve`, data);
+            const response = await api.post(`/enrollment/grades/workflow/${id}/approve`);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
         }
     },
 
-    returnToTeacher: async (id: string, data: { comments: string }): Promise<any> => {
+    returnToTeacher: async (id: string, message: string): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/return`, data);
+            const response = await api.post(`/enrollment/grades/workflow/${id}/return`, { message });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
         }
     },
 
-    publishResult: async (id: string): Promise<any> => {
+    requestReturn: async (id: string, reason: string): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/publish`);
-            return response.data.data;
-        } catch (error) {
-            return handleApiError(error);
-        }
-    },
-
-    requestReturn: async (id: string, data: { reason: string }): Promise<any> => {
-        try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/request-return`, data);
+            const response = await api.post(`/enrollment/grades/workflow/${id}/request-return`, { reason });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -177,15 +177,6 @@ export const courseGradeService = {
     approveReturnRequest: async (id: string): Promise<any> => {
         try {
             const response = await api.post(`/enrollment/grades/workflow/${id}/approve-return`);
-            return response.data.data;
-        } catch (error) {
-            return handleApiError(error);
-        }
-    },
-
-    getCourseGradeStats: async (params?: any): Promise<any> => {
-        try {
-            const response = await api.get('/enrollment/grades/stats/course', { params });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);

@@ -115,6 +115,10 @@ export function Sidebar({
           href: "/dashboard/admin/enrollment/grades/workflow",
           label: "Grade Workflow",
         },
+        {
+          href: "/dashboard/admin/enrollment/attendance",
+          label: "Attendance",
+        },
       ],
     },
     {
