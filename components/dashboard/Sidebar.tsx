@@ -19,6 +19,8 @@ import {
   ChevronLeft,
   X,
   ClipboardList,
+  MessageSquare,
+  CheckSquare,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -177,8 +179,11 @@ export function Sidebar({
   const teacherLinks: NavItem[] = [
     { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/teacher/courses", label: "My Courses", icon: BookOpen },
+    { href: "/dashboard/teacher/classroom", label: "Classroom", icon: Building2 },
+    { href: "/dashboard/teacher/attendance", label: "Attendance", icon: CheckSquare },
+    { href: "/dashboard/teacher/grading", label: "Grading", icon: ClipboardList },
+    { href: "/dashboard/teacher/communication", label: "Communication", icon: MessageSquare },
     { href: "/dashboard/teacher/schedule", label: "Schedule", icon: Calendar },
-    { href: "/dashboard/teacher/grading", label: "Grading", icon: FileText },
   ];
 
   const studentLinks: NavItem[] = [

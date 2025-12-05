@@ -1,31 +1,76 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ScheduleList } from "@/components/dashboard/widgets/ScheduleList";
 import { CourseCard } from "@/components/dashboard/widgets/CourseCard";
 import { ActionList } from "@/components/dashboard/widgets/ActionList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Bell, User } from "lucide-react"; // Header icons if needed, but we use shared Header
+// import { Search, Bell, User } from "lucide-react"; 
+import { useAuth } from "@/contexts/AuthContext";
+import { scheduleService } from "@/services/academic/schedule.service";
+import { batchCourseInstructorService } from "@/services/enrollment/batchCourseInstructor.service";
+import { CourseSchedule } from "@/services/academic/types";
+import { BatchCourseInstructor } from "@/services/enrollment/batchCourseInstructor.service";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 export default function TeacherDashboard() {
-    const scheduleItems = [
-        { id: "1", title: "Intro to Physics", time: "10:00 AM - 11:30 AM", location: "Room 301", type: "lecture" as const },
-        { id: "2", title: "Advanced Chemistry", time: "1:00 PM - 2:30 PM", location: "Lab 4B", type: "lab" as const },
-        { id: "3", title: "Faculty Meeting", time: "3:00 PM - 3:45 PM", location: "Conference Hall", type: "meeting" as const },
-    ];
+    const { user } = useAuth();
+    const router = useRouter();
+    const [schedules, setSchedules] = useState<CourseSchedule[]>([]);
+    const [courses, setCourses] = useState<BatchCourseInstructor[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const courses = [
-        { title: "Chemistry 204", studentCount: 32, progress: { current: 15, total: 25, label: "Grading Progress" } },
-        { title: "Biology 101", studentCount: 28, progress: { current: 20, total: 20, label: "Grading Progress" } },
-        { title: "Intro to Physics", studentCount: 45, progress: { current: 12, total: 30, label: "Grading Progress" } },
-        { title: "Literature Seminar", studentCount: 18, progress: { current: 5, total: 15, label: "Grading Progress" } },
-    ];
+    useEffect(() => {
+        if (user?.id) {
+            fetchDashboardData();
+        }
+    }, [user?.id]);
+
+    const fetchDashboardData = async () => {
+        setLoading(true);
+        try {
+            const [scheduleData, coursesData] = await Promise.all([
+                scheduleService.getScheduleByTeacher(user!.id),
+                batchCourseInstructorService.getInstructorCourses(user!.id)
+            ]);
+            setSchedules(scheduleData);
+            setCourses(coursesData);
+        } catch (error) {
+            console.error("Dashboard fetch error:", error);
+            toast.error("Failed to load dashboard data");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Filter schedule for today
+    const today = format(new Date(), 'EEEE'); // e.g., "Monday"
+    const todaySchedules = schedules
+        .filter(s => s.daysOfWeek.includes(today as any))
+        .map(s => ({
+            id: s.id,
+            title: (s.sessionCourse as any)?.course?.name || "Untitled Course",
+            time: `${s.startTime} - ${s.endTime}`,
+            location: (s.classroom as any)?.roomNumber ? `Room ${(s.classroom as any).roomNumber}` : "TBD",
+            type: (s.classType.toLowerCase()) as "lecture" | "lab" | "meeting" // map type
+        }));
+
+    // Map courses to widgets
+    const courseWidgets = courses.map(c => ({
+        title: c.course?.name || "Unknown Course",
+        code: c.course?.code,
+        studentCount: c.batch?.currentStudents || 0,
+        // Mock progress for now as per plan
+        progress: { current: 0, total: c.batch?.currentStudents || 0, label: "Grading Progress" }
+    }));
 
     const actionItems = [
-        { id: "1", type: "grade" as const, title: "Grade 3 new assignments in 'Biology 101'", subtitle: "Biology 101", actionLabel: "View Submissions" },
-        { id: "2", type: "message" as const, title: "New message from John Doe", subtitle: "Reply Now", actionLabel: "Reply Now" },
-        { id: "3", type: "form" as const, title: "Field trip form due Friday", subtitle: "Complete Form", actionLabel: "Complete Form" },
+        { id: "1", type: "form" as const, title: "Mark Attendance", subtitle: "For today's classes", actionLabel: "Go to Attendance", onClick: () => router.push('/dashboard/teacher/attendance') },
+        // Add more dynamic actions later
     ];
 
     return (
@@ -34,14 +79,25 @@ export default function TeacherDashboard() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">Teacher Dashboard</h1>
-                        <p className="text-muted-foreground">Welcome back, Professor Smith! Here&apos;s a look at your day.</p>
+                        <p className="text-muted-foreground">Welcome back, {user?.fullName}! Here&apos;s a look at your day.</p>
                     </div>
                     <div className="flex gap-3">
-                        <Button variant="outline" className="bg-white text-[#1a3d32] border-gray-200">Take Attendance</Button>
-                        <Button className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]">Create Announcement</Button>
+                        <Button
+                            variant="outline"
+                            className="bg-white text-[#1a3d32] border-gray-200"
+                            onClick={() => router.push('/dashboard/teacher/attendance')}
+                        >
+                            Take Attendance
+                        </Button>
+                        <Button
+                            className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]"
+                            onClick={() => router.push('/dashboard/teacher/communication')}
+                        >
+                            Communication
+                        </Button>
                         <Button
                             className="bg-[#1a3d32] text-white hover:bg-[#142e26]"
-                            onClick={() => window.location.href = '/dashboard/teacher/classroom'}
+                            onClick={() => router.push('/dashboard/teacher/classroom')}
                         >
                             Go to Classroom
                         </Button>
@@ -53,16 +109,20 @@ export default function TeacherDashboard() {
                     <div className="md:col-span-4 space-y-6">
                         <Card className="border-none shadow-sm">
                             <CardHeader>
-                                <CardTitle className="text-lg font-bold text-[#1a3d32]">Today&apos;s Schedule</CardTitle>
+                                <CardTitle className="text-lg font-bold text-[#1a3d32]">Today&apos;s Schedule ({today})</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <ScheduleList items={scheduleItems} />
+                                {todaySchedules.length > 0 ? (
+                                    <ScheduleList items={todaySchedules} />
+                                ) : (
+                                    <p className="text-muted-foreground text-sm">No classes scheduled for today.</p>
+                                )}
                             </CardContent>
                         </Card>
 
                         <Card className="border-none shadow-sm">
                             <CardHeader>
-                                <CardTitle className="text-lg font-bold text-[#1a3d32]">Action Required</CardTitle>
+                                <CardTitle className="text-lg font-bold text-[#1a3d32]">Quick Actions</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <ActionList items={actionItems} />
@@ -77,11 +137,19 @@ export default function TeacherDashboard() {
                                 <CardTitle className="text-lg font-bold text-[#1a3d32]">My Courses</CardTitle>
                             </CardHeader>
                             <CardContent className="px-0">
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    {courses.map((course) => (
-                                        <CourseCard key={course.title} {...course} />
-                                    ))}
-                                </div>
+                                {loading ? (
+                                    <p>Loading courses...</p>
+                                ) : (
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        {courseWidgets.length > 0 ? (
+                                            courseWidgets.map((course, idx) => (
+                                                <CourseCard key={idx} {...course} />
+                                            ))
+                                        ) : (
+                                            <p className="text-muted-foreground">No courses assigned yet.</p>
+                                        )}
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

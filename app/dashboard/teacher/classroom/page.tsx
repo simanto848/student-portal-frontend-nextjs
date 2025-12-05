@@ -1,86 +1,89 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import { workspaceService } from "@/services/classroom/workspace.service";
 import { Workspace } from "@/services/classroom/types";
 import { toast } from "sonner";
-import { Loader2, BookOpen, Users, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BookOpen, Users } from "lucide-react";
 
-export default function TeacherClassroomPage() {
+export default function ClassroomsPage() {
+    const { user } = useAuth();
+    const router = useRouter();
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchWorkspaces();
-    }, []);
+        if (user?.id) {
+            fetchWorkspaces();
+        }
+    }, [user?.id]);
 
     const fetchWorkspaces = async () => {
+        setLoading(true);
         try {
             const data = await workspaceService.listMine();
             setWorkspaces(data);
         } catch (error) {
-            toast.error("Failed to load workspaces");
+            console.error("Fetch workspaces error:", error);
+            toast.error("Failed to load classrooms");
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
-
-    if (isLoading) {
-        return (
-            <DashboardLayout>
-                <div className="flex h-[50vh] items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
-                </div>
-            </DashboardLayout>
-        );
-    }
 
     return (
         <DashboardLayout>
             <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">My Classrooms</h1>
-                        <p className="text-muted-foreground">Access your courses and manage materials.</p>
-                    </div>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">My Classrooms</h1>
+                    <p className="text-muted-foreground">Access your active course workspaces</p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {workspaces.map((ws) => (
-                        <Card key={ws.id} className="border-none shadow-sm hover:shadow-md transition-shadow group cursor-pointer" onClick={() => window.location.href = `/dashboard/teacher/classroom/${ws.id}`}>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-lg font-bold text-[#1a3d32] group-hover:text-[#3e6253] transition-colors">
-                                    {ws.title || "Untitled Workspace"}
-                                </CardTitle>
-                                <CardDescription>
-                                    {ws.courseId} • {ws.batchId}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center gap-4 text-sm text-gray-500">
-                                    <div className="flex items-center gap-1">
-                                        <Users className="h-4 w-4" />
-                                        <span>{ws.studentIds?.length || 0} Students</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="pt-0">
-                                <Button className="w-full bg-[#3e6253] text-white hover:bg-[#2c4a3e]">
-                                    Enter Classroom
-                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                </Button>
-                            </CardFooter>
-                        </Card>
-                    ))}
-                    {workspaces.length === 0 && (
-                        <div className="col-span-full text-center py-12 text-gray-500">
-                            No classrooms assigned to you yet.
-                        </div>
-                    )}
-                </div>
+                {loading ? (
+                    <div className="text-center py-10">Loading classrooms...</div>
+                ) : (
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        {workspaces.length > 0 ? (
+                            workspaces.map((workspace) => (
+                                <Card key={workspace.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow">
+                                    <CardHeader className="bg-[#f8f9fa] border-b pb-4">
+                                        <CardTitle className="text-xl font-bold text-[#1a3d32] line-clamp-2">
+                                            {workspace.title}
+                                        </CardTitle>
+                                        <p className="text-sm text-muted-foreground">{workspace.description}</p>
+                                    </CardHeader>
+                                    <CardContent className="pt-6 flex-1 space-y-4">
+                                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                                            <BookOpen className="h-4 w-4" />
+                                            <span>Assignments: {workspace.stats?.assignmentsCount || 0}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-600 text-sm">
+                                            <Users className="h-4 w-4" />
+                                            <span>Students: {workspace.stats?.studentsCount || 0}</span>
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="pt-4 border-t bg-gray-50/50">
+                                        <Button
+                                            className="w-full bg-[#1a3d32] hover:bg-[#142e26] text-white"
+                                            onClick={() => router.push(`/dashboard/teacher/classroom/${workspace.id}`)} // Updated link
+                                        >
+                                            Enter Classroom
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-10 text-muted-foreground">
+                                No active classrooms found. Classrooms are created automatically for your courses.
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
         </DashboardLayout>
     );
