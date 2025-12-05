@@ -84,7 +84,14 @@ export default function EditStudentPage() {
                     bloodGroup: profile.bloodGroup as any,
                     father: profile.father,
                     mother: profile.mother,
-                    permanentAddress: profile.permanentAddress,
+                    permanentAddress: profile.permanentAddress || {},
+                    mailingAddress: profile.mailingAddress || {},
+                    religion: profile.religion as any,
+                    nationality: profile.nationality,
+                    nidOrPassportNo: profile.nidOrPassportNo,
+                    maritalStatus: profile.maritalStatus as any,
+                    guardian: profile.guardian || {},
+                    emergencyContact: profile.emergencyContact || {},
                 });
             }
 
@@ -118,15 +125,9 @@ export default function EditStudentPage() {
             await studentService.update(id, formData);
 
             // Update Profile
-            if (hasProfile) {
-                await studentProfileService.update(id, profileData);
-            } else {
-                // Create profile if it didn't exist but we have data? 
-                // For now assume update only updates existing or creates if we want. 
-                // Let's use upsert logic if available or just create.
-                // The service has create and update.
-                await studentProfileService.create(id, profileData);
-            }
+            // Update Profile
+            // Use upsert to handle both create and update scenarios
+            await studentProfileService.upsert(id, profileData);
 
             toast.success("Student updated successfully");
             router.push(`/dashboard/admin/users/students/${id}`);
@@ -246,6 +247,69 @@ export default function EditStudentPage() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-[#344e41]">Mother's Name</label>
                                     <Input value={profileData.mother?.name || ""} onChange={e => handleNestedProfileChange("mother", "name", e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[#344e41]">Religion</label>
+                                    <Select value={profileData.religion || ""} onValueChange={v => handleProfileChange("religion", v)}>
+                                        <SelectTrigger><SelectValue placeholder="Select Religion" /></SelectTrigger>
+                                        <SelectContent>
+                                            {["Islam", "Hinduism", "Christianity", "Buddhism", "Other"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[#344e41]">Marital Status</label>
+                                    <Select value={profileData.maritalStatus || ""} onValueChange={v => handleProfileChange("maritalStatus", v)}>
+                                        <SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger>
+                                        <SelectContent>
+                                            {["Single", "Married", "Divorced", "Widowed"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[#344e41]">Nationality</label>
+                                    <Input value={profileData.nationality || ""} onChange={e => handleProfileChange("nationality", e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-[#344e41]">NID / Passport</label>
+                                    <Input value={profileData.nidOrPassportNo || ""} onChange={e => handleProfileChange("nidOrPassportNo", e.target.value)} />
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div className="border-t border-[#a3b18a]/20 pt-6">
+                            <h3 className="text-lg font-semibold text-[#344e41] mb-4">Address Information</h3>
+                            <div className="grid gap-6 md:grid-cols-2">
+                                <div className="space-y-4">
+                                    <h4 className="text-md font-medium text-[#344e41]">Permanent Address</h4>
+                                    <Input placeholder="Street" value={profileData.permanentAddress?.street || ""} onChange={e => handleNestedProfileChange("permanentAddress", "street", e.target.value)} />
+                                    <Input placeholder="City" value={profileData.permanentAddress?.city || ""} onChange={e => handleNestedProfileChange("permanentAddress", "city", e.target.value)} />
+                                    <Input placeholder="Country" value={profileData.permanentAddress?.country || ""} onChange={e => handleNestedProfileChange("permanentAddress", "country", e.target.value)} />
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-md font-medium text-[#344e41]">Mailing Address</h4>
+                                    <Input placeholder="Street" value={profileData.mailingAddress?.street || ""} onChange={e => handleNestedProfileChange("mailingAddress", "street", e.target.value)} />
+                                    <Input placeholder="City" value={profileData.mailingAddress?.city || ""} onChange={e => handleNestedProfileChange("mailingAddress", "city", e.target.value)} />
+                                    <Input placeholder="Country" value={profileData.mailingAddress?.country || ""} onChange={e => handleNestedProfileChange("mailingAddress", "country", e.target.value)} />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-[#a3b18a]/20 pt-6">
+                            <h3 className="text-lg font-semibold text-[#344e41] mb-4">Guardian & Emergency Contact</h3>
+                            <div className="grid gap-6 md:grid-cols-2">
+                                <div className="space-y-4">
+                                    <h4 className="text-md font-medium text-[#344e41]">Guardian</h4>
+                                    <Input placeholder="Name" value={profileData.guardian?.name || ""} onChange={e => handleNestedProfileChange("guardian", "name", e.target.value)} />
+                                    <Input placeholder="Cell" value={profileData.guardian?.cell || ""} onChange={e => handleNestedProfileChange("guardian", "cell", e.target.value)} />
+                                    <Input placeholder="Occupation" value={profileData.guardian?.occupation || ""} onChange={e => handleNestedProfileChange("guardian", "occupation", e.target.value)} />
+                                </div>
+                                <div className="space-y-4">
+                                    <h4 className="text-md font-medium text-[#344e41]">Emergency Contact</h4>
+                                    <Input placeholder="Name" value={profileData.emergencyContact?.name || ""} onChange={e => handleNestedProfileChange("emergencyContact", "name", e.target.value)} />
+                                    <Input placeholder="Cell" value={profileData.emergencyContact?.cell || ""} onChange={e => handleNestedProfileChange("emergencyContact", "cell", e.target.value)} />
+                                    <Input placeholder="Relation" value={profileData.emergencyContact?.relation || ""} onChange={e => handleNestedProfileChange("emergencyContact", "relation", e.target.value)} />
                                 </div>
                             </div>
                         </div>

@@ -318,10 +318,10 @@ export default function StudentsPage() {
                                                         {student.registrationNumber}
                                                     </td>
                                                     <td className="p-4 text-sm text-[#344e41]/80">
-                                                        {student.department?.name || student.departmentId}
+                                                        {departments.find(d => (d.id || d._id) === student.departmentId)?.name || student.department?.name || student.departmentId}
                                                     </td>
                                                     <td className="p-4 text-sm text-[#344e41]/80">
-                                                        {student.batch?.name || student.batchId}
+                                                        {batches.find(b => (b.id || b._id) === student.batchId)?.name || student.batch?.name || student.batchId}
                                                     </td>
                                                     <td className="p-4">
                                                         <Badge

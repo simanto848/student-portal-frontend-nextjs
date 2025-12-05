@@ -135,4 +135,17 @@ export const studentProfileService = {
             return handleApiError(e);
         }
     },
+
+    upsert: async (
+        studentId: string,
+        payload: StudentProfilePayload
+    ): Promise<StudentProfile> => {
+        try {
+            const res = await api.put(`/user/students/profiles/${studentId}`, payload);
+            const data = res.data?.data || res.data;
+            return normalize(data);
+        } catch (e) {
+            return handleApiError(e);
+        }
+    },
 };

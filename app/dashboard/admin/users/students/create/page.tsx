@@ -49,10 +49,16 @@ export default function CreateStudentPage() {
             dateOfBirth: "",
             bloodGroup: "",
             nationality: "Bangladeshi",
-            religion: "",
+
             father: { name: "", cell: "" },
             mother: { name: "", cell: "" },
             permanentAddress: { street: "", city: "", country: "Bangladesh" },
+            mailingAddress: { street: "", city: "", country: "Bangladesh" },
+            religion: "",
+            maritalStatus: "",
+            nidOrPassportNo: "",
+            guardian: { name: "", cell: "", occupation: "" },
+            emergencyContact: { name: "", cell: "", relation: "" },
         }
     });
 
@@ -251,6 +257,68 @@ export default function CreateStudentPage() {
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-[#344e41]">Mother's Name</label>
                                         <Input value={formData.studentProfile.mother.name} onChange={e => handleNestedProfileChange("mother", "name", e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-[#344e41]">Religion</label>
+                                        <Select value={formData.studentProfile.religion} onValueChange={v => handleProfileChange("religion", v)}>
+                                            <SelectTrigger><SelectValue placeholder="Select Religion" /></SelectTrigger>
+                                            <SelectContent>
+                                                {["Islam", "Hinduism", "Christianity", "Buddhism", "Other"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-[#344e41]">Marital Status</label>
+                                        <Select value={formData.studentProfile.maritalStatus} onValueChange={v => handleProfileChange("maritalStatus", v)}>
+                                            <SelectTrigger><SelectValue placeholder="Select Status" /></SelectTrigger>
+                                            <SelectContent>
+                                                {["Single", "Married", "Divorced", "Widowed"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-[#344e41]">Nationality</label>
+                                        <Input value={formData.studentProfile.nationality} onChange={e => handleProfileChange("nationality", e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-[#344e41]">NID / Passport</label>
+                                        <Input value={formData.studentProfile.nidOrPassportNo} onChange={e => handleProfileChange("nidOrPassportNo", e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-[#a3b18a]/20 pt-6">
+                                    <h3 className="text-lg font-semibold text-[#344e41] mb-4">Address Information</h3>
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="space-y-4">
+                                            <h4 className="text-md font-medium text-[#344e41]">Permanent Address</h4>
+                                            <Input placeholder="Street" value={formData.studentProfile.permanentAddress?.street} onChange={e => handleNestedProfileChange("permanentAddress", "street", e.target.value)} />
+                                            <Input placeholder="City" value={formData.studentProfile.permanentAddress?.city} onChange={e => handleNestedProfileChange("permanentAddress", "city", e.target.value)} />
+                                            <Input placeholder="Country" value={formData.studentProfile.permanentAddress?.country} onChange={e => handleNestedProfileChange("permanentAddress", "country", e.target.value)} />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h4 className="text-md font-medium text-[#344e41]">Mailing Address</h4>
+                                            <Input placeholder="Street" value={formData.studentProfile.mailingAddress?.street} onChange={e => handleNestedProfileChange("mailingAddress", "street", e.target.value)} />
+                                            <Input placeholder="City" value={formData.studentProfile.mailingAddress?.city} onChange={e => handleNestedProfileChange("mailingAddress", "city", e.target.value)} />
+                                            <Input placeholder="Country" value={formData.studentProfile.mailingAddress?.country} onChange={e => handleNestedProfileChange("mailingAddress", "country", e.target.value)} />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-[#a3b18a]/20 pt-6">
+                                    <h3 className="text-lg font-semibold text-[#344e41] mb-4">Guardian & Emergency Contact</h3>
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="space-y-4">
+                                            <h4 className="text-md font-medium text-[#344e41]">Guardian</h4>
+                                            <Input placeholder="Name" value={formData.studentProfile.guardian?.name} onChange={e => handleNestedProfileChange("guardian", "name", e.target.value)} />
+                                            <Input placeholder="Cell" value={formData.studentProfile.guardian?.cell} onChange={e => handleNestedProfileChange("guardian", "cell", e.target.value)} />
+                                            <Input placeholder="Occupation" value={formData.studentProfile.guardian?.occupation} onChange={e => handleNestedProfileChange("guardian", "occupation", e.target.value)} />
+                                        </div>
+                                        <div className="space-y-4">
+                                            <h4 className="text-md font-medium text-[#344e41]">Emergency Contact</h4>
+                                            <Input placeholder="Name" value={formData.studentProfile.emergencyContact?.name} onChange={e => handleNestedProfileChange("emergencyContact", "name", e.target.value)} />
+                                            <Input placeholder="Cell" value={formData.studentProfile.emergencyContact?.cell} onChange={e => handleNestedProfileChange("emergencyContact", "cell", e.target.value)} />
+                                            <Input placeholder="Relation" value={formData.studentProfile.emergencyContact?.relation} onChange={e => handleNestedProfileChange("emergencyContact", "relation", e.target.value)} />
+                                        </div>
                                     </div>
                                 </div>
 
