@@ -85,5 +85,14 @@ export const batchCourseInstructorService = {
         } catch (error) {
             return handleApiError(error);
         }
+    },
+
+    bulkAssign: async (assignments: AssignInstructorDto[]): Promise<{ results: any[], errors: any[] }> => {
+        try {
+            const response = await api.post('/enrollment/batch-course-instructors/bulk', { assignments });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
     }
 };
