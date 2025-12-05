@@ -38,8 +38,8 @@ export default function EditEnrollmentPage() {
             const data = await enrollmentService.getEnrollment(id);
             setEnrollment(data);
             setSemester(data.semester);
-            setAcademicYear(data.academicYear);
-            setStatus(data.status);
+            setAcademicYear(data.academicYear || "");
+            setStatus(data.status || "");
         } catch (error) {
             toast.error("Failed to fetch enrollment details");
             router.push("/dashboard/admin/enrollment/enrollments");
