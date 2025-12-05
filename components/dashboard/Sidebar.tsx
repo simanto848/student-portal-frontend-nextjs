@@ -108,8 +108,8 @@ export function Sidebar({
         { href: "/dashboard/admin/enrollment/enrollments", label: "Enrollments" },
         { href: "/dashboard/admin/enrollment/instructors", label: "Instructors" },
         {
-          href: "/dashboard/admin/enrollment/assessments/types",
-          label: "Assessment Types",
+          href: "/dashboard/admin/enrollment/assessments",
+          label: "Assessments",
         },
         {
           href: "/dashboard/admin/enrollment/grades/workflow",

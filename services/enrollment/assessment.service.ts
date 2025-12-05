@@ -3,7 +3,8 @@ import { api, handleApiError } from "../academic/axios-instance";
 export interface AssessmentType {
     id: string;
     name: string;
-    weightage: number;
+    code: string;
+    weightPercentage: number;
     description?: string;
     isActive: boolean;
 }
@@ -17,11 +18,13 @@ export interface Assessment {
     typeId: string;
     totalMarks: number;
     passingMarks: number;
-    weightage: number;
+    weightPercentage: number;
     dueDate?: string;
     status: 'draft' | 'published' | 'closed' | 'graded';
     createdBy: string;
     type?: AssessmentType;
+    course?: any;
+    batch?: any;
 }
 
 export interface AssessmentSubmission {
