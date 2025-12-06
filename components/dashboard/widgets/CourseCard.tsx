@@ -4,6 +4,8 @@ import { Progress } from "@/components/ui/progress";
 
 interface CourseCardProps {
     title: string;
+    code?: string;
+    batchName?: string;
     studentCount: number;
     progress: {
         current: number;
@@ -13,13 +15,25 @@ interface CourseCardProps {
     variant?: "teacher" | "student"; // Teacher sees grading progress, Student sees grade
 }
 
-export function CourseCard({ title, studentCount, progress, variant = "teacher" }: CourseCardProps) {
+export function CourseCard({ title, code, batchName, studentCount, progress, variant = "teacher" }: CourseCardProps) {
     const percentage = (progress.current / progress.total) * 100;
 
     return (
         <Card className="bg-[#e4e4dc] border-none shadow-sm"> {/* Beige background */}
             <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-bold text-[#1a3d32]">{title}</CardTitle>
+                <div className="flex justify-between items-start gap-2">
+                    <div className="space-y-1">
+                        <CardTitle className="text-lg font-bold text-[#1a3d32] line-clamp-2">{title}</CardTitle>
+                        {batchName && (
+                            <p className="text-xs font-medium text-emerald-700">{batchName}</p>
+                        )}
+                    </div>
+                    {code && (
+                        <span className="text-xs font-mono bg-[#1a3d32]/10 text-[#1a3d32] px-2 py-1 rounded shrink-0">
+                            {code}
+                        </span>
+                    )}
+                </div>
                 <p className="text-sm text-gray-600">{studentCount} Students</p>
             </CardHeader>
             <CardContent className="pb-2">
