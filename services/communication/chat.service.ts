@@ -31,7 +31,16 @@ export interface Message {
 export const chatService = {
     getOrCreateCourseChatGroup: async (data: { batchId: string, courseId: string, sessionId: string, instructorId: string }): Promise<ChatGroup> => {
         try {
-            const response = await api.post('/communication/groups/course', data);
+            const response = await api.post('/communication/chats/groups/course', data);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    getOrCreateBatchChatGroup: async (data: { batchId: string, counselorId: string }): Promise<ChatGroup> => {
+        try {
+            const response = await api.post('/communication/chats/groups/batch', data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -40,7 +49,7 @@ export const chatService = {
 
     getMessages: async (chatGroupId: string, limit = 50, skip = 0): Promise<Message[]> => {
         try {
-            const response = await api.get(`/communication/${chatGroupId}/messages`, { params: { limit, skip } });
+            const response = await api.get(`/communication/chats/${chatGroupId}/messages`, { params: { limit, skip } });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -49,7 +58,7 @@ export const chatService = {
 
     sendMessage: async (data: { chatGroupId: string, chatGroupType: string, content: string }): Promise<Message> => {
         try {
-            const response = await api.post('/communication/send', data);
+            const response = await api.post('/communication/chats/send', data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);

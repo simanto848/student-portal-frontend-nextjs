@@ -2,9 +2,9 @@ import { api, handleApiError, extractArrayData, extractItemData } from './axios-
 import { Batch } from './types';
 
 export const batchService = {
-    getAllBatches: async (): Promise<Batch[]> => {
+    getAllBatches: async (filters?: Record<string, any>): Promise<Batch[]> => {
         try {
-            const response = await api.get('/academic/batches');
+            const response = await api.get('/academic/batches', { params: filters });
             return extractArrayData<Batch>(response);
         } catch (error) {
             return handleApiError(error);
