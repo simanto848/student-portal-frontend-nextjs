@@ -26,6 +26,8 @@ export interface Message {
         fullName: string;
         avatar?: string;
     };
+    isPinned?: boolean;
+    pinnedBy?: string;
 }
 
 export const chatService = {
@@ -47,9 +49,18 @@ export const chatService = {
         }
     },
 
-    getMessages: async (chatGroupId: string, limit = 50, skip = 0): Promise<Message[]> => {
+    getMessages: async (chatGroupId: string, limit = 50, skip = 0, search = "", filter = ""): Promise<Message[]> => {
         try {
-            const response = await api.get(`/communication/chats/${chatGroupId}/messages`, { params: { limit, skip } });
+            const response = await api.get(`/communication/chats/${chatGroupId}/messages`, { params: { limit, skip, search, filter } });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    async getChatGroupDetails(chatGroupId: string): Promise<any> {
+        try {
+            const response = await api.get(`/communication/chats/groups/${chatGroupId}`);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -59,6 +70,32 @@ export const chatService = {
     sendMessage: async (data: { chatGroupId: string, chatGroupType: string, content: string }): Promise<Message> => {
         try {
             const response = await api.post('/communication/chats/send', data);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    editMessage: async (messageId: string, content: string): Promise<Message> => {
+        try {
+            const response = await api.put(`/communication/chats/messages/${messageId}`, { content });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    deleteMessage: async (messageId: string): Promise<void> => {
+        try {
+            await api.delete(`/communication/chats/messages/${messageId}`);
+        } catch (error) {
+            handleApiError(error);
+        }
+    },
+
+    pinMessage: async (messageId: string): Promise<Message> => {
+        try {
+            const response = await api.patch(`/communication/chats/messages/${messageId}/pin`);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);

@@ -76,7 +76,7 @@ export default function CommunicationPage() {
                 instructorId: user!.id
             });
 
-            router.push(`/dashboard/teacher/communication/chat/${chatGroup.id}`);
+            router.push(`/dashboard/teacher/communication/chat/${chatGroup.id}?type=CourseChatGroup`);
         } catch (error) {
             console.error("Enter chat error:", error);
             toast.error("Failed to enter chat. Check console for details.");
@@ -92,7 +92,7 @@ export default function CommunicationPage() {
                 batchId: batch.id,
                 counselorId: user!.id
             });
-            router.push(`/dashboard/teacher/communication/chat/${chatGroup.id}`);
+            router.push(`/dashboard/teacher/communication/chat/${chatGroup.id}?type=BatchChatGroup`);
         } catch (error) {
             console.error("Enter chat error:", error);
             toast.error("Failed to enter chat");
@@ -120,8 +120,8 @@ export default function CommunicationPage() {
                     <button
                         onClick={() => setActiveTab("courses")}
                         className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "courses"
-                                ? "border-[#1a3d32] text-[#1a3d32]"
-                                : "border-transparent text-muted-foreground hover:text-slate-700"
+                            ? "border-[#1a3d32] text-[#1a3d32]"
+                            : "border-transparent text-muted-foreground hover:text-slate-700"
                             }`}
                     >
                         My Courses
@@ -129,8 +129,8 @@ export default function CommunicationPage() {
                     <button
                         onClick={() => setActiveTab("batches")}
                         className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "batches"
-                                ? "border-[#1a3d32] text-[#1a3d32]"
-                                : "border-transparent text-muted-foreground hover:text-slate-700"
+                            ? "border-[#1a3d32] text-[#1a3d32]"
+                            : "border-transparent text-muted-foreground hover:text-slate-700"
                             }`}
                     >
                         My Batches (Counseling)
