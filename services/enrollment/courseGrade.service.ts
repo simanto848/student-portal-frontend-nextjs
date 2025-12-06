@@ -166,18 +166,18 @@ export const courseGradeService = {
         }
     },
 
-    approveByCommittee: async (id: string): Promise<any> => {
+    approveByCommittee: async (id: string, data: { comment?: string, otp: string }): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/approve`);
+            const response = await api.post(`/enrollment/grades/workflow/${id}/approve`, data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
         }
     },
 
-    returnToTeacher: async (id: string, message: string): Promise<any> => {
+    returnToTeacher: async (id: string, data: { comment: string, otp: string }): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/return`, { message });
+            const response = await api.post(`/enrollment/grades/workflow/${id}/return`, data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);

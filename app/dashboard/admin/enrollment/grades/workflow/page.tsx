@@ -34,8 +34,11 @@ export default function GradeWorkflowPage() {
 
     const handleApprove = async (id: string) => {
         if (!confirm("Are you sure you want to approve this grade?")) return;
+        const otp = prompt("Enter your 6-digit OTP to confirm approval:");
+        if (!otp) return;
+
         try {
-            await courseGradeService.approveByCommittee(id, { comments: "Approved by Admin" });
+            await courseGradeService.approveByCommittee(id, { comment: "Approved by Admin", otp });
             toast.success("Grade approved");
             fetchWorkflow();
         } catch (error) {
@@ -47,8 +50,11 @@ export default function GradeWorkflowPage() {
         const reason = prompt("Enter reason for returning:");
         if (!reason) return;
 
+        const otp = prompt("Enter your 6-digit OTP to confirm return:");
+        if (!otp) return;
+
         try {
-            await courseGradeService.returnToTeacher(id, { comments: reason });
+            await courseGradeService.returnToTeacher(id, { comment: reason, otp });
             toast.success("Grade returned to teacher");
             fetchWorkflow();
         } catch (error) {
