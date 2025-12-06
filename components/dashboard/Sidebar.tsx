@@ -21,6 +21,7 @@ import {
   ClipboardList,
   MessageSquare,
   CheckSquare,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -107,8 +108,14 @@ export function Sidebar({
       icon: ClipboardList,
       children: [
         { href: "/dashboard/admin/enrollment", label: "Overview" },
-        { href: "/dashboard/admin/enrollment/enrollments", label: "Enrollments" },
-        { href: "/dashboard/admin/enrollment/instructors", label: "Instructors" },
+        {
+          href: "/dashboard/admin/enrollment/enrollments",
+          label: "Enrollments",
+        },
+        {
+          href: "/dashboard/admin/enrollment/instructors",
+          label: "Instructors",
+        },
         {
           href: "/dashboard/admin/enrollment/assessments",
           label: "Assessments",
@@ -128,9 +135,15 @@ export function Sidebar({
       icon: Building2,
       children: [
         { href: "/dashboard/admin/classroom", label: "Classrooms" },
-        { href: "/dashboard/admin/classroom/assignments", label: "Assignments" },
+        {
+          href: "/dashboard/admin/classroom/assignments",
+          label: "Assignments",
+        },
         { href: "/dashboard/admin/classroom/materials", label: "Materials" },
-        { href: "/dashboard/admin/classroom/submissions", label: "Submissions" },
+        {
+          href: "/dashboard/admin/classroom/submissions",
+          label: "Submissions",
+        },
         { href: "/dashboard/admin/classroom/rubrics", label: "Rubrics" },
       ],
     },
@@ -146,28 +159,28 @@ export function Sidebar({
     },
     ...(user?.role !== "moderator"
       ? [
-        {
-          label: "Library Management",
-          icon: BookOpen,
-          children: [
-            { href: "/dashboard/admin/library", label: "Overview" },
-            {
-              href: "/dashboard/admin/library/libraries",
-              label: "Libraries",
-            },
-            { href: "/dashboard/admin/library/books", label: "Books" },
-            { href: "/dashboard/admin/library/copies", label: "Book Copies" },
-            {
-              href: "/dashboard/admin/library/borrowings",
-              label: "Borrowings",
-            },
-            {
-              href: "/dashboard/admin/library/reservations",
-              label: "Reservations",
-            },
-          ],
-        },
-      ]
+          {
+            label: "Library Management",
+            icon: BookOpen,
+            children: [
+              { href: "/dashboard/admin/library", label: "Overview" },
+              {
+                href: "/dashboard/admin/library/libraries",
+                label: "Libraries",
+              },
+              { href: "/dashboard/admin/library/books", label: "Books" },
+              { href: "/dashboard/admin/library/copies", label: "Book Copies" },
+              {
+                href: "/dashboard/admin/library/borrowings",
+                label: "Borrowings",
+              },
+              {
+                href: "/dashboard/admin/library/reservations",
+                label: "Reservations",
+              },
+            ],
+          },
+        ]
       : []),
     {
       href: "/dashboard/admin/reports",
@@ -179,10 +192,31 @@ export function Sidebar({
   const teacherLinks: NavItem[] = [
     { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/teacher/courses", label: "My Courses", icon: BookOpen },
-    { href: "/dashboard/teacher/classroom", label: "Classroom", icon: Building2 },
-    { href: "/dashboard/teacher/attendance", label: "Attendance", icon: CheckSquare },
-    { href: "/dashboard/teacher/grading", label: "Grading", icon: ClipboardList },
-    { href: "/dashboard/teacher/communication", label: "Communication", icon: MessageSquare },
+    {
+      href: "/dashboard/teacher/classroom",
+      label: "Classroom",
+      icon: Building2,
+    },
+    {
+      href: "/dashboard/teacher/attendance",
+      label: "Attendance",
+      icon: CheckSquare,
+    },
+    {
+      href: "/dashboard/teacher/grading",
+      label: "Grading",
+      icon: ClipboardList,
+    },
+    {
+      href: "/dashboard/teacher/communication",
+      label: "Communication",
+      icon: MessageSquare,
+    },
+    {
+      href: "/dashboard/teacher/notifications",
+      label: "Notifications",
+      icon: Bell,
+    },
     { href: "/dashboard/teacher/schedule", label: "Schedule", icon: Calendar },
   ];
 
@@ -387,7 +421,7 @@ export function Sidebar({
               isCollapsed && "justify-center w-full"
             )}
           >
-            <div className="h-10 w-10 rounded-full bg-[#588157]/30 flex items-center justify-center flex-shrink-0">
+            <div className="h-10 w-10 rounded-full bg-[#588157]/30 flex items-center justify-center shrink-0">
               <GraduationCap className="h-6 w-6 text-[#a3b18a]" />
             </div>
             {!isCollapsed && (
