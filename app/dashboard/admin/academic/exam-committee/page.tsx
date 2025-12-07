@@ -1,246 +1,288 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { PageHeader } from "@/components/dashboard/shared/PageHeader";
-import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
-import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
-import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
-import { academicService, ExamCommittee, Department, AcademicApiError } from "@/services/academic.service";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Users2 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Trash2, Eye, Pencil } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
-// Helper to get name from object or string
-const getName = (item: any): string => {
-    if (!item) return "N/A";
-    if (typeof item === 'string') return item;
-    if (typeof item === 'object' && item.name) return item.name;
-    return "N/A";
-};
+import { AddMemberModal } from './components/add-member-modal';
+import { EditMemberModal } from './components/edit-member-modal';
+import { ViewMemberModal } from './components/view-member-modal';
+import { examCommitteeService } from '@/services/academic/exam-committee.service';
+import { departmentService } from '@/services/academic/department.service';
+import { batchService } from '@/services/academic/batch.service';
+import { ExamCommittee, Department, Batch } from '@/services/academic/types';
 
-// Helper to get ID from object or string
-const getId = (item: any): string => {
-    if (!item) return "";
-    if (typeof item === 'string') return item;
-    if (typeof item === 'object' && item.id) return item.id;
-    return "";
-};
+export default function ExamCommitteePage() {
+  const [members, setMembers] = useState<ExamCommittee[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function ExamCommitteeManagementPage() {
-    const [committees, setCommittees] = useState<ExamCommittee[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-    const [selectedCommittee, setSelectedCommittee] = useState<ExamCommittee | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedDept, setSelectedDept] = useState<string>('all');
+  const [selectedBatch, setSelectedBatch] = useState<string>('all');
 
-    const columns: Column<ExamCommittee>[] = [
-        {
-            header: "Department",
-            accessorKey: "departmentId",
-            cell: (item) => getName(item.departmentId)
-        },
-        {
-            header: "Teacher",
-            accessorKey: "teacherId",
-            cell: (item) => {
-                const teacher = item.teacher as any;
-                return teacher?.fullName || "N/A";
-            }
-        },
-        {
-            header: "Status",
-            accessorKey: "status",
-            cell: (item) => (
-                <Badge
-                    variant={item.status === "ACTIVE" ? "default" : "destructive"}
-                    className={item.status === "ACTIVE"
-                        ? "bg-green-100 text-green-800 hover:bg-green-200"
-                        : "bg-red-100 text-red-800 hover:bg-red-200"
-                    }
-                >
-                    {item.status}
-                </Badge>
-            ),
-        },
-    ];
+  // Modal states
+  const [selectedMember, setSelectedMember] = useState<ExamCommittee | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
-    const formFields: FormField[] = useMemo(() => [
-        {
-            name: "departmentId",
-            label: "Department",
-            type: "select",
-            required: true,
-            placeholder: "Select a department",
-            options: Array.isArray(departments)
-                ? departments
-                    .filter(d => d.status)
-                    .map(d => ({ label: `${d.name} (${d.shortName})`, value: d.id }))
-                : []
-        },
-        {
-            name: "teacherId",
-            label: "Teacher ID",
-            type: "text",
-            required: true,
-            placeholder: "Enter teacher ID"
-        },
-        {
-            name: "status",
-            label: "Status",
-            type: "select",
-            options: [
-                { label: "Active", value: "ACTIVE" },
-                { label: "Inactive", value: "INACTIVE" }
-            ]
-        },
-    ], [departments]);
+  useEffect(() => {
+    fetchInitialData();
+  }, []);
 
-    useEffect(() => {
-        fetchData();
-    }, []);
+  useEffect(() => {
+    fetchMembers();
+  }, [selectedDept, selectedBatch]);
 
-    const fetchData = async () => {
-        setIsLoading(true);
-        try {
-            const [committeesData, deptsData] = await Promise.all([
-                academicService.getAllExamCommittees(),
-                academicService.getAllDepartments()
-            ]);
-            setCommittees(Array.isArray(committeesData) ? committeesData : []);
-            setDepartments(Array.isArray(deptsData) ? deptsData : []);
-        } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to load data";
-            toast.error(message);
-            setCommittees([]);
-        } finally {
-            setIsLoading(false);
+  const fetchInitialData = async () => {
+    try {
+      const [deptRes, batchRes] = await Promise.all([
+        departmentService.getAllDepartments(),
+        batchService.getAllBatches(),
+      ]);
+      setDepartments(deptRes);
+      setBatches(batchRes);
+    } catch (error) {
+      console.error('Failed to load filter data', error);
+    }
+  };
+
+  const fetchMembers = async () => {
+    setLoading(true);
+    try {
+      const deptId = selectedDept === 'all' ? undefined : selectedDept;
+      const batchId = selectedBatch === 'all' ? undefined : selectedBatch;
+      const [committeeData, allTeachers] = await Promise.all([
+        examCommitteeService.getMembers(deptId, batchId),
+        import('@/services/teacher.service').then(m => m.teacherService.getAllTeachers())
+      ]);
+
+      const enrichedMembers = committeeData.map(member => {
+        const teacher = allTeachers.find((t: any) => (t.id || t._id) === member.teacherId);
+        let departmentObj = member.department;
+        if (!departmentObj && typeof member.departmentId === 'object' && member.departmentId !== null) {
+          departmentObj = member.departmentId as any;
         }
-    };
 
-    const handleCreate = () => {
-        setSelectedCommittee(null);
-        setIsFormModalOpen(true);
-    };
+        return {
+          ...member,
+          id: member.id || (member as any)._id,
+          department: departmentObj,
+          teacher: teacher ? { fullName: teacher.fullName, email: teacher.email, registrationNumber: teacher.registrationNumber } : { fullName: 'Unknown', email: '' }
+        };
+      });
+      setMembers(enrichedMembers);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to fetch committee members');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleEdit = (committee: ExamCommittee) => {
-        setSelectedCommittee(committee);
-        setIsFormModalOpen(true);
-    };
+  const handleDelete = async (id: string) => {
+    try {
+      await examCommitteeService.removeMember(id);
+      toast.success('Member removed successfully');
+      fetchMembers();
+    } catch (error) {
+      toast.error('Failed to remove member');
+    }
+  };
 
-    const handleDeleteClick = (committee: ExamCommittee) => {
-        setSelectedCommittee(committee);
-        setIsDeleteModalOpen(true);
-    };
+  return (
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Exam Committee</h2>
+            <p className="text-muted-foreground">
+              Manage exam committee members for departments and batches.
+            </p>
+          </div>
+          <AddMemberModal onSuccess={fetchMembers} />
+        </div>
 
-    const handleConfirmDelete = async () => {
-        if (!selectedCommittee) return;
-        setIsDeleting(true);
-        try {
-            await academicService.deleteExamCommittee(selectedCommittee.id);
-            toast.success("Exam Committee deleted successfully");
-            fetchData();
-            setIsDeleteModalOpen(false);
-        } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to delete exam committee";
-            toast.error(message);
-        } finally {
-            setIsDeleting(false);
-            setSelectedCommittee(null);
-        }
-    };
+        <Card>
+          <CardHeader>
+            <CardTitle>Committee Members</CardTitle>
+            <CardDescription>
+              List of all teachers assigned to exam committees.
+            </CardDescription>
+            <div className="flex gap-4 mt-4">
+              <Select value={selectedDept} onValueChange={setSelectedDept}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-    const handleFormSubmit = async (data: Record<string, string>) => {
-        setIsSubmitting(true);
-        try {
-            if (!data.departmentId || !data.teacherId) {
-                toast.error("Department and Teacher ID are required");
-                setIsSubmitting(false);
-                return;
-            }
-
-            const submitData = {
-                departmentId: data.departmentId,
-                teacherId: data.teacherId.trim(),
-                status: data.status as any,
-            };
-
-            if (selectedCommittee) {
-                await academicService.updateExamCommittee(selectedCommittee.id, submitData);
-                toast.success("Exam Committee updated successfully");
-            } else {
-                await academicService.createExamCommittee(submitData);
-                toast.success("Exam Committee created successfully");
-            }
-            fetchData();
-            setIsFormModalOpen(false);
-        } catch (error) {
-            const message = error instanceof AcademicApiError
-                ? error.message
-                : "Failed to save exam committee";
-            toast.error(message);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <PageHeader
-                    title="Exam Committee Management"
-                    subtitle="Manage department exam committees"
-                    actionLabel="Add New Committee"
-                    onAction={handleCreate}
-                    icon={Users2}
-                />
-
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]"></div>
-                    </div>
-                ) : (
-                    <DataTable
-                        data={committees}
-                        columns={columns}
-                        searchKey="status"
-                        searchPlaceholder="Search by status..."
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
-                )}
-
-                <DeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    title="Delete Exam Committee"
-                    description="Are you sure you want to delete this exam committee? This action cannot be undone."
-                    isDeleting={isDeleting}
-                />
-
-                <GenericFormModal
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSubmit={handleFormSubmit}
-                    title={selectedCommittee ? "Edit Committee" : "Add New Committee"}
-                    description={selectedCommittee ? "Update committee information" : "Create a new exam committee"}
-                    fields={formFields}
-                    initialData={selectedCommittee ? {
-                        departmentId: getId(selectedCommittee.departmentId),
-                        teacherId: selectedCommittee.teacherId,
-                        status: selectedCommittee.status,
-                    } : { status: "ACTIVE" }}
-                    isSubmitting={isSubmitting}
-                />
+              <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {batches.map((batch) => (
+                    <SelectItem key={batch.id} value={batch.id}>
+                      {batch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-        </DashboardLayout>
-    );
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Teacher</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Batch</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        Loading...
+                      </TableCell>
+                    </TableRow>
+                  ) : members.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        No members found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    members.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">
+                          {member.teacher?.fullName}
+                          <div className="text-xs text-muted-foreground">{member.teacher?.email}</div>
+                        </TableCell>
+                        <TableCell>{member.department?.name}</TableCell>
+                        <TableCell>
+                          {member.batch ? member.batch.name : <Badge variant="secondary">General</Badge>}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={member.status ? 'default' : 'secondary'}>
+                            {member.status ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setViewOpen(true);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedMember(member);
+                                setEditOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/90">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This action cannot be undone. This will remove the teacher from the exam committee.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleDelete(member.id)} className="bg-destructive hover:bg-destructive/90">
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        <ViewMemberModal
+          open={viewOpen}
+          onClose={() => setViewOpen(false)}
+          member={selectedMember}
+        />
+
+        <EditMemberModal
+          open={editOpen}
+          onClose={() => setEditOpen(false)}
+          member={selectedMember}
+          onSuccess={fetchMembers}
+        />
+      </div>
+    </DashboardLayout>
+  );
 }

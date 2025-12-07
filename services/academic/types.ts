@@ -133,8 +133,11 @@ export interface ExamCommittee {
         email: string;
         registrationNumber?: string;
     };
-    status: 'ACTIVE' | 'INACTIVE';
+    status: boolean;
+    batchId?: string;
+    batch?: Batch;
 }
+
 
 export interface CourseSchedule {
     id: string;

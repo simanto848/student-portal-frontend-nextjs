@@ -218,6 +218,15 @@ export function Sidebar({
       icon: Bell,
     },
     { href: "/dashboard/teacher/schedule", label: "Schedule", icon: Calendar },
+    ...(user?.isDepartmentHead
+      ? [
+          {
+            href: "/dashboard/teacher/exam-committee",
+            label: "Exam Committee",
+            icon: Users,
+          },
+        ]
+      : []),
   ];
 
   const studentLinks: NavItem[] = [
