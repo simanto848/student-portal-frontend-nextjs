@@ -27,7 +27,8 @@ import {
   FileCheck,
   Calendar,
   ArrowRight,
-  GraduationCap
+  GraduationCap,
+  Building2
 } from "lucide-react";
 
 export default function TeacherDashboard() {
@@ -37,6 +38,7 @@ export default function TeacherDashboard() {
   const [courses, setCourses] = useState<BatchCourseInstructor[]>([]);
   const [workflows, setWorkflows] = useState<ResultWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDeptHead, setIsDeptHead] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -47,11 +49,31 @@ export default function TeacherDashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [scheduleData, coursesData, workflowData] = await Promise.all([
+      const promises: Promise<any>[] = [
         scheduleService.getScheduleByTeacher(user!.id),
         batchCourseInstructorService.getInstructorCourses(user!.id),
         courseGradeService.getWorkflow({ mine: true }),
-      ]);
+      ];
+
+      // Check if department head
+      if (user?.departmentId) {
+        promises.push(
+          import("@/services/academic/department.service")
+            .then(m => m.departmentService.getDepartmentById(user!.departmentId))
+            .then(dept => {
+              if (dept.departmentHeadId === user!.id) {
+                setIsDeptHead(true);
+              }
+            })
+            .catch(err => console.error("Failed to check dept head status", err))
+        );
+      }
+
+      const results = await Promise.all(promises);
+      const scheduleData = results[0];
+      const coursesData = results[1];
+      const workflowData = results[2];
+
       setSchedules(scheduleData);
       setCourses(coursesData);
       setWorkflows(workflowData || []);
@@ -134,6 +156,15 @@ export default function TeacherDashboard() {
       onClick: () => router.push("/dashboard/teacher/courses"),
       icon: <BookOpen className="h-5 w-5 text-indigo-600" />
     },
+    ...(isDeptHead ? [{
+      id: "4",
+      type: "nav" as const,
+      title: "Department",
+      subtitle: "Manage Batches",
+      actionLabel: "View Batches",
+      onClick: () => router.push("/dashboard/teacher/department"),
+      icon: <Building2 className="h-5 w-5 text-orange-600" />
+    }] : []),
   ];
 
   return (

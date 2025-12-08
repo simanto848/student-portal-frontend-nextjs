@@ -8,6 +8,7 @@ import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, Batch, Program, Department, Session, AcademicApiError } from "@/services/academic.service";
+import { teacherService, Teacher } from "@/services/user/teacher.service";
 import { toast } from "sonner";
 import { Users, GraduationCap, Building2, Calendar } from "lucide-react";
 
@@ -15,6 +16,7 @@ const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === 'string') return item;
     if (typeof item === 'object' && item.name) return item.name;
+    if (typeof item === 'object' && item.fullName) return item.fullName;
     return "N/A";
 };
 
@@ -29,6 +31,7 @@ interface BatchWithDetails extends Batch {
     programName: string;
     departmentName: string;
     sessionName: string;
+    counselorName: string;
 }
 
 export default function BatchManagementPage() {
@@ -37,6 +40,7 @@ export default function BatchManagementPage() {
     const [programs, setPrograms] = useState<Program[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [sessions, setSessions] = useState<Session[]>([]);
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -57,13 +61,17 @@ export default function BatchManagementPage() {
             header: "Department",
             accessorKey: "departmentName",
         },
-        {
-            header: "Session",
-            accessorKey: "sessionName",
-        },
+        // {
+        //     header: "Session",
+        //     accessorKey: "sessionName",
+        // },
         {
             header: "Year",
             accessorKey: "year",
+        },
+        {
+            header: "Counselor",
+            accessorKey: "counselorName",
         },
         {
             header: "Current Semester",
@@ -120,6 +128,14 @@ export default function BatchManagementPage() {
             options: sessions.filter(s => s.status).map(s => ({ label: s.name, value: s.id })),
         },
         {
+            name: "counselorId",
+            label: "Counselor",
+            type: "searchable-select",
+            required: false,
+            placeholder: "Select a counselor",
+            options: teachers.map(t => ({ label: t.fullName, value: t.id })),
+        },
+        {
             name: "currentSemester",
             label: "Current Semester",
             type: "number",
@@ -155,7 +171,7 @@ export default function BatchManagementPage() {
                 { label: "Inactive", value: "false" },
             ],
         },
-    ], [programs, departments, sessions]);
+    ], [programs, departments, sessions, teachers]);
 
     useEffect(() => {
         fetchData();
@@ -164,16 +180,18 @@ export default function BatchManagementPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [batchesData, programsData, deptsData, sessionsData] = await Promise.all([
+            const [batchesData, programsData, deptsData, sessionsData, teachersData] = await Promise.all([
                 academicService.getAllBatches(),
                 academicService.getAllPrograms(),
                 academicService.getAllDepartments(),
                 academicService.getAllSessions(),
+                teacherService.getAll({ limit: 1000 }).then(res => res.teachers),
             ]);
             setBatches(Array.isArray(batchesData) ? batchesData : []);
             setPrograms(Array.isArray(programsData) ? programsData : []);
             setDepartments(Array.isArray(deptsData) ? deptsData : []);
             setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+            setTeachers(Array.isArray(teachersData) ? teachersData : []);
         } catch (error) {
             const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
             toast.error(message);
@@ -224,6 +242,7 @@ export default function BatchManagementPage() {
                 programId: data.programId,
                 departmentId: data.departmentId,
                 sessionId: data.sessionId,
+                counselorId: data.counselorId || undefined,
                 currentSemester: parseInt(data.currentSemester),
                 maxStudents: parseInt(data.maxStudents),
                 startDate: data.startDate || undefined,
@@ -270,6 +289,7 @@ export default function BatchManagementPage() {
                             programName: getName(b.programId),
                             departmentName: getName(b.departmentId),
                             sessionName: getName(b.sessionId),
+                            counselorName: b.counselor?.fullName || (typeof b.counselorId === 'string' ? teachers.find(t => t.id === b.counselorId)?.fullName : "Not Assigned") || "Not Assigned",
                         }))}
                         columns={columns}
                         searchKey="name"
@@ -302,6 +322,7 @@ export default function BatchManagementPage() {
                         programId: getId(selectedBatch.programId),
                         departmentId: getId(selectedBatch.departmentId),
                         sessionId: getId(selectedBatch.sessionId),
+                        counselorId: getId(selectedBatch.counselor),
                         currentSemester: selectedBatch.currentSemester.toString(),
                         maxStudents: selectedBatch.maxStudents.toString(),
                         startDate: selectedBatch.startDate ? new Date(selectedBatch.startDate).toISOString().split('T')[0] : "",

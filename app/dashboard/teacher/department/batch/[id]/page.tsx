@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 
-export default function BatchDetailsPage() {
+export default function TeacherBatchDetailsPage() {
     const params = useParams();
     const router = useRouter();
     const id = params?.id as string;
@@ -35,13 +35,14 @@ export default function BatchDetailsPage() {
 
     // Counselor Assignment State
     const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-    const [isDialogOpen, setIsDialogOpen] = useState(false); // For the command palette dropdown
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [selectedCounselor, setSelectedCounselor] = useState<Teacher | null>(null);
     const [assignedCounselor, setAssignedCounselor] = useState<Teacher | { fullName: string; email: string } | null>(null);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
     const [isAssigning, setIsAssigning] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         if (id) {
@@ -51,21 +52,23 @@ export default function BatchDetailsPage() {
 
     useEffect(() => {
         const fetchCounselor = async () => {
-            if (batch?.counselorId && typeof batch.counselorId === 'string' && !batch.counselor) {
+            if (batch?.counselor) {
+                setAssignedCounselor(batch.counselor);
+            }
+
+            if (batch?.counselorId) {
                 try {
                     const teacher = await teacherService.getById(batch.counselorId);
                     setAssignedCounselor(teacher);
                 } catch (error) {
                     console.error("Failed to fetch counselor details", error);
-                    setAssignedCounselor(null); // Ensure it's null if fetch fails
                 }
-            } else if (batch?.counselor) {
-                setAssignedCounselor(batch.counselor);
-            } else {
-                setAssignedCounselor(null); // No counselor assigned or counselor object is null
             }
         };
-        fetchCounselor();
+
+        if (batch) {
+            fetchCounselor();
+        }
     }, [batch]);
 
     useEffect(() => {
@@ -79,50 +82,42 @@ export default function BatchDetailsPage() {
         try {
             const data = await academicService.getBatchById(id);
             setBatch(data);
-            // setAssignedCounselor handled in effect
         } catch (error) {
             const message = error instanceof AcademicApiError ? error.message : "Failed to load batch details";
             toast.error(message);
-            router.push("/dashboard/admin/academic/batch");
+            router.push("/dashboard/teacher/department");
         } finally {
             setIsLoading(false);
         }
     };
 
     const fetchTeachers = async () => {
-        setIsLoadingTeachers(true);
+        setIsSearching(true);
         try {
-            const { teachers } = await teacherService.getAll({
-                search: searchQuery,
-                limit: 10
-            });
+            const query: any = { search: searchQuery, limit: 10 };
+            const { teachers } = await teacherService.getAll(query);
             setTeachers(teachers);
         } catch (error) {
             console.error("Failed to fetch teachers", error);
         } finally {
-            setIsLoadingTeachers(false);
+            setIsSearching(false);
         }
     };
 
     const handleAssignCounselor = async () => {
-        if (!processAssign()) return;
-    };
-
-    const processAssign = async () => {
         if (!selectedCounselor || !batch) return;
         try {
             await academicService.assignCounselor(batch.id, selectedCounselor.id);
             toast.success("Counselor assigned successfully");
-            setAssignedCounselor(selectedCounselor); // Update local state
+            setAssignedCounselor(selectedCounselor);
             setIsDialogOpen(false);
-            fetchBatch(); // Refresh full data just in case
-            setIsAssignDialogOpen(false);
+            fetchBatch(); setIsAssignDialogOpen(false);
             setSelectedCounselor(null);
         } catch (error) {
             const message = error instanceof AcademicApiError ? error.message : "Failed to assign counselor";
             toast.error(message);
         }
-    }
+    };
 
     if (isLoading) {
         return (
