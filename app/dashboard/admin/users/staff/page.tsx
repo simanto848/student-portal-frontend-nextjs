@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { staffService, Staff, StaffRole } from "@/services/user/staff.service";
 import { toast } from "sonner";
 import { Users, Search, Plus, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const roleLabel: Record<StaffRole, string> = {
   program_controller: "Program Controller",
@@ -214,9 +215,27 @@ export default function StaffPage() {
                           className="border-b border-[#a3b18a]/20 hover:bg-[#dad7cd]/20 transition-colors"
                         >
                           <td className="p-4">
-                            <p className="font-medium text-[#344e41]">
-                              {member.fullName}
-                            </p>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-[#dad7cd] overflow-hidden flex items-center justify-center border border-[#a3b18a]">
+                                {member.profile?.profilePicture ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={getImageUrl(member.profile.profilePicture)}
+                                    alt={member.fullName}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.parentElement!.innerText = member.fullName.charAt(0);
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-[#344e41] font-semibold">{member.fullName.charAt(0)}</span>
+                                )}
+                              </div>
+                              <p className="font-medium text-[#344e41]">
+                                {member.fullName}
+                              </p>
+                            </div>
                           </td>
                           <td className="p-4 text-sm text-[#344e41]/80">
                             {member.email}
@@ -224,9 +243,8 @@ export default function StaffPage() {
                           <td className="p-4">
                             {member.role && (
                               <Badge
-                                className={`${
-                                  roleColor[member.role]
-                                } text-white`}
+                                className={`${roleColor[member.role]
+                                  } text-white`}
                               >
                                 {roleLabel[member.role]}
                               </Badge>

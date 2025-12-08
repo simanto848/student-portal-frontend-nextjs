@@ -79,6 +79,7 @@ export default function CreateAdminPage() {
   const [addressDraft, setAddressDraft] = useState<AddressForm>({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false });
   const [useAddressStep, setUseAddressStep] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
   const generateRegistrationNumber = () => {
     const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -189,7 +190,7 @@ export default function CreateAdminPage() {
     clearAddressDraft();
   };
   const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_, i) => i !== idx));
-  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a,i) => ({ ...a, isPrimary: i === idx })));
+  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a, i) => ({ ...a, isPrimary: i === idx })));
 
   const addIp = () => {
     const ip = advanced.ipInput.trim();
@@ -212,26 +213,28 @@ export default function CreateAdminPage() {
         if (advanced.joiningDate) payload.joiningDate = advanced.joiningDate;
         if (advanced.registeredIps.length) payload.registeredIpAddress = advanced.registeredIps;
       }
-      const created = await adminService.create(payload);
 
       if (useProfile && profile.firstName && profile.lastName) {
-        try {
-          const profilePayload: any = {
-            firstName: profile.firstName.trim(),
-            lastName: profile.lastName.trim(),
-          };
-          if (profile.middleName) profilePayload.middleName = profile.middleName.trim();
-          if (profile.phoneNumber) profilePayload.phoneNumber = profile.phoneNumber.trim();
-          if (profile.dateOfBirth) profilePayload.dateOfBirth = profile.dateOfBirth;
-          if (profile.gender) profilePayload.gender = profile.gender;
-          if (useAddressStep && addresses.length) profilePayload.addresses = addresses.map(a => ({ ...a }));
-
-          await adminProfileService.create(created.id, profilePayload);
-        } catch (profileError: any) {
-          toast.warning(`Admin created but profile failed: ${profileError?.message || 'Unknown error'}`);
-        }
+        payload.profile = {
+          firstName: profile.firstName.trim(),
+          lastName: profile.lastName.trim(),
+        };
+        if (profile.middleName) payload.profile.middleName = profile.middleName.trim();
+        if (profile.phoneNumber) payload.profile.phoneNumber = profile.phoneNumber.trim();
+        if (profile.dateOfBirth) payload.profile.dateOfBirth = profile.dateOfBirth;
+        if (profile.gender) payload.profile.gender = profile.gender;
+        if (useAddressStep && addresses.length) payload.profile.addresses = addresses.map(a => ({ ...a }));
       }
 
+      let dataToSend: any = payload;
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(payload));
+        formData.append('profilePicture', profilePicture);
+        dataToSend = formData;
+      }
+
+      const created = await adminService.create(dataToSend);
       toast.success("Admin created successfully");
       router.push(`/dashboard/admin/users/admins/${created.id}`);
     } catch (error: any) {
@@ -485,9 +488,21 @@ export default function CreateAdminPage() {
                       <SelectContent>
                         <SelectItem value="Male">Male</SelectItem>
                         <SelectItem value="Female">Female</SelectItem>
-                        <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-[#344e41] flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setProfilePicture(file || null);
+                      }}
+                      className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                    />
+                    {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
                   </div>
                 </div>
               </div>
@@ -517,7 +532,7 @@ export default function CreateAdminPage() {
                     <Input value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
                   </div>
                   <div className="space-y-2 flex items-end">
-                    <Button type="button" variant="outline" onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))} className={`border-[#a3b18a] ${addressDraft.isPrimary? 'bg-[#588157] text-white':'text-[#344e41]'}`}>{addressDraft.isPrimary? 'Primary':'Set Primary'}</Button>
+                    <Button type="button" variant="outline" onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))} className={`border-[#a3b18a] ${addressDraft.isPrimary ? 'bg-[#588157] text-white' : 'text-[#344e41]'}`}>{addressDraft.isPrimary ? 'Primary' : 'Set Primary'}</Button>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -528,11 +543,11 @@ export default function CreateAdminPage() {
                   <p className="text-sm font-medium text-[#344e41]">Added Addresses</p>
                   {addresses.length === 0 && <p className="text-xs text-[#344e41]/60">No addresses yet.</p>}
                   <div className="space-y-2">
-                    {addresses.map((a,i) => (
+                    {addresses.map((a, i) => (
                       <div key={i} className="flex items-center justify-between bg-white/60 border border-[#a3b18a]/40 rounded p-3">
                         <div className="text-sm text-[#344e41]">
-                          <p className="font-medium">{a.street || '(No street)'}{a.city? ', '+a.city:''}{a.state? ', '+a.state:''}</p>
-                          <p className="text-xs text-[#344e41]/70">{a.country || 'No country'}{a.zipCode? ' - '+a.zipCode:''}</p>
+                          <p className="font-medium">{a.street || '(No street)'}{a.city ? ', ' + a.city : ''}{a.state ? ', ' + a.state : ''}</p>
+                          <p className="text-xs text-[#344e41]/70">{a.country || 'No country'}{a.zipCode ? ' - ' + a.zipCode : ''}</p>
                           {a.isPrimary && <Badge className="mt-1 bg-[#588157] text-white">Primary</Badge>}
                         </div>
                         <div className="flex gap-2">
@@ -588,9 +603,9 @@ export default function CreateAdminPage() {
                   <div className="border-t border-[#a3b18a]/30 pt-4">
                     <p className="text-sm font-semibold text-[#344e41] mb-3">Addresses</p>
                     <div className="space-y-2">
-                      {addresses.map((a,i) => (
+                      {addresses.map((a, i) => (
                         <div key={i} className="text-sm text-[#344e41] flex items-center justify-between">
-                          <span>{a.street || '(No street)'}{a.city? ', '+a.city:''}{a.state? ', '+a.state:''}{a.country? ', '+a.country:''}{a.zipCode? ' - '+a.zipCode:''}</span>
+                          <span>{a.street || '(No street)'}{a.city ? ', ' + a.city : ''}{a.state ? ', ' + a.state : ''}{a.country ? ', ' + a.country : ''}{a.zipCode ? ' - ' + a.zipCode : ''}</span>
                           {a.isPrimary && <Badge className="bg-[#588157] text-white">Primary</Badge>}
                         </div>
                       ))}

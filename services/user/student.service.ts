@@ -10,6 +10,15 @@ export type EnrollmentStatus =
     | "transferred_out"
     | "transferred_in";
 
+export interface Profile {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+    fatherName?: string;
+    motherName?: string;
+}
+
 export interface Student {
     id: string;
     email: string;
@@ -19,22 +28,19 @@ export interface Student {
     programId: string;
     batchId: string;
     sessionId: string;
+    // populated fields
+    department?: any;
+    program?: any;
+    batch?: any;
+    session?: any;
     enrollmentStatus: EnrollmentStatus;
     currentSemester: number;
     admissionDate: string;
     expectedGraduationDate?: string;
     actualGraduationDate?: string;
-    profile?: any; // We'll define StudentProfile in its own service
-    lastLoginAt?: string;
-    lastLoginIp?: string;
+    profile?: Profile;
     createdAt?: string;
     updatedAt?: string;
-
-    // Populated fields (optional)
-    department?: any;
-    program?: any;
-    batch?: any;
-    session?: any;
 }
 
 export interface StudentCreatePayload {
@@ -45,7 +51,7 @@ export interface StudentCreatePayload {
     batchId: string;
     sessionId: string;
     admissionDate?: string;
-    studentProfile?: any; // Initial profile data
+    studentProfile?: any;
 }
 
 export interface StudentUpdatePayload {
@@ -62,29 +68,32 @@ export interface StudentUpdatePayload {
     profile?: any;
 }
 
-const normalize = (s: any): Student => ({
-    id: s?.id || s?._id || "",
-    email: s?.email || "",
-    fullName: s?.fullName || "",
-    registrationNumber: s?.registrationNumber || "",
-    departmentId: s?.departmentId || "",
-    programId: s?.programId || "",
-    batchId: s?.batchId || "",
-    sessionId: s?.sessionId || "",
-    enrollmentStatus: s?.enrollmentStatus || "not_enrolled",
-    currentSemester: s?.currentSemester || 1,
-    admissionDate: s?.admissionDate || "",
-    expectedGraduationDate: s?.expectedGraduationDate,
-    actualGraduationDate: s?.actualGraduationDate,
-    profile: s?.profile,
-    lastLoginAt: s?.lastLoginAt,
-    lastLoginIp: s?.lastLoginIp,
-    createdAt: s?.createdAt,
-    updatedAt: s?.updatedAt,
+const normalize = (s: Record<string, unknown>): Student => ({
+    id: (s?.id as string) || (s?._id as string) || "",
+    email: (s?.email as string) || "",
+    fullName: (s?.fullName as string) || "",
+    registrationNumber: (s?.registrationNumber as string) || "",
+    departmentId: (s?.departmentId as string) || "",
+    programId: (s?.programId as string) || "",
+    batchId: (s?.batchId as string) || "",
+    sessionId: (s?.sessionId as string) || "",
     department: s?.department,
     program: s?.program,
     batch: s?.batch,
     session: s?.session,
+    currentSemester: (s?.currentSemester as number) || 1,
+    enrollmentStatus: (s?.enrollmentStatus as EnrollmentStatus) || "not_enrolled",
+    admissionDate: (s?.admissionDate as string) || "",
+    profile: s?.profile ? {
+        id: (s.profile as any)._id || (s.profile as any).id,
+        firstName: (s.profile as any).firstName,
+        lastName: (s.profile as any).lastName,
+        profilePicture: (s.profile as any).profilePicture,
+        fatherName: (s.profile as any).fatherName,
+        motherName: (s.profile as any).motherName,
+    } : undefined,
+    createdAt: s?.createdAt as string | undefined,
+    updatedAt: s?.updatedAt as string | undefined,
 });
 
 export const studentService = {
@@ -125,9 +134,11 @@ export const studentService = {
         }
     },
 
-    create: async (payload: StudentCreatePayload): Promise<Student> => {
+    create: async (payload: StudentCreatePayload | FormData): Promise<Student> => {
         try {
-            const res = await api.post("/user/students", payload);
+            const isFormData = payload instanceof FormData;
+            const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+            const res = await api.post("/user/students", payload, { headers });
             const data = res.data?.data || res.data;
             return normalize(data);
         } catch (e) {
@@ -135,9 +146,11 @@ export const studentService = {
         }
     },
 
-    update: async (id: string, payload: StudentUpdatePayload): Promise<Student> => {
+    update: async (id: string, payload: StudentUpdatePayload | FormData): Promise<Student> => {
         try {
-            const res = await api.patch(`/user/students/${id}`, payload);
+            const isFormData = payload instanceof FormData;
+            const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+            const res = await api.patch(`/user/students/${id}`, payload, { headers });
             const data = res.data?.data || res.data;
             return normalize(data);
         } catch (e) {

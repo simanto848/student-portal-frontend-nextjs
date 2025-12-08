@@ -26,6 +26,7 @@ export default function CreateStudentPage() {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [step, setStep] = useState(1);
+    const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
     // Data for dropdowns
     const [departments, setDepartments] = useState<any[]>([]);
@@ -116,7 +117,15 @@ export default function CreateStudentPage() {
 
         setIsSubmitting(true);
         try {
-            const created = await studentService.create(formData);
+            let dataToSend: StudentCreatePayload | FormData = formData;
+            if (profilePicture) {
+                const fd = new FormData();
+                fd.append('data', JSON.stringify(formData));
+                fd.append('profilePicture', profilePicture);
+                dataToSend = fd;
+            }
+
+            const created = await studentService.create(dataToSend);
             toast.success("Student created successfully");
             router.push(`/dashboard/admin/users/students/${created.id}`);
         } catch (error) {
@@ -283,6 +292,19 @@ export default function CreateStudentPage() {
                                     <div className="space-y-2">
                                         <label className="text-sm font-semibold text-[#344e41]">NID / Passport</label>
                                         <Input value={formData.studentProfile.nidOrPassportNo} onChange={e => handleProfileChange("nidOrPassportNo", e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <label className="text-sm font-semibold text-[#344e41] flex items-center gap-2">Profile Picture <Users className="h-4 w-4" /></label>
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                setProfilePicture(file || null);
+                                            }}
+                                            className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                                        />
+                                        {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
                                     </div>
                                 </div>
 

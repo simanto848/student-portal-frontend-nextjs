@@ -144,7 +144,7 @@ export default function CreateFacultyPage() {
     clearAddressDraft();
   };
   const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_, i) => i !== idx));
-  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a,i) => ({ ...a, isPrimary: i === idx })));
+  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a, i) => ({ ...a, isPrimary: i === idx })));
 
   const canProceedBasic = () => {
     return (
@@ -186,6 +186,8 @@ export default function CreateFacultyPage() {
     } else if (step === 2) setStep(1);
   };
 
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -200,7 +202,16 @@ export default function CreateFacultyPage() {
         registeredIpAddress: useAdvanced && advanced.registeredIps.length ? advanced.registeredIps : undefined,
       } as any;
 
-      const created = await teacherService.create(payload);
+      let dataToSend: TeacherCreatePayload | FormData = payload;
+
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(payload));
+        formData.append('profilePicture', profilePicture);
+        dataToSend = formData;
+      }
+
+      const created = await teacherService.create(dataToSend);
 
       if (useProfile && profile.firstName && profile.lastName) {
         try {
@@ -428,6 +439,19 @@ export default function CreateFacultyPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-[#344e41] flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setProfilePicture(file || null);
+                      }}
+                      className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                    />
+                    {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
+                  </div>
                 </div>
               </div>
             )}
@@ -494,7 +518,7 @@ export default function CreateFacultyPage() {
                       </div>
                       <div className="flex justify-between py-2 border-b border-[#a3b18a]/20">
                         <span className="font-medium text-[#344e41]/70">Department:</span>
-                        <span className="font-semibold">{departments.find(d => (d.id||d._id) === basic.departmentId)?.name || basic.departmentId}</span>
+                        <span className="font-semibold">{departments.find(d => (d.id || d._id) === basic.departmentId)?.name || basic.departmentId}</span>
                       </div>
                       {basic.designation && (
                         <div className="flex justify-between py-2 border-b border-[#a3b18a]/20">
@@ -585,9 +609,9 @@ export default function CreateFacultyPage() {
                         <p className="text-sm font-bold uppercase tracking-wide text-[#344e41]">Addresses</p>
                       </div>
                       <div className="p-5 bg-gradient-to-br from-white to-[#dad7cd]/20 rounded-lg border-2 border-[#a3b18a]/30 shadow-sm space-y-3 text-sm text-[#344e41]">
-                        {addresses.map((a,i) => (
+                        {addresses.map((a, i) => (
                           <div key={i} className="flex items-start justify-between p-3 bg-white rounded border border-[#a3b18a]/20">
-                            <p className="flex-1">{[a.street,a.city,a.state,a.country,a.zipCode].filter(Boolean).join(', ')}</p>
+                            <p className="flex-1">{[a.street, a.city, a.state, a.country, a.zipCode].filter(Boolean).join(', ')}</p>
                             {a.isPrimary && <Badge className="bg-[#588157] text-white ml-2">PRIMARY</Badge>}
                           </div>
                         ))}
@@ -596,19 +620,19 @@ export default function CreateFacultyPage() {
                   )}
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t-2 border-[#a3b18a]/30">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={prevStep} 
-                    className="border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]" 
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={prevStep}
+                    className="border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
                     disabled={false}
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" />Back
                   </Button>
-                  <Button 
-                    type="button" 
-                    onClick={handleSubmit} 
-                    disabled={isSubmitting} 
+                  <Button
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
                     className="bg-[#588157] hover:bg-[#3a5a40] text-white shadow-lg hover:shadow-xl transition-all px-8"
                   >
                     {isSubmitting ? (

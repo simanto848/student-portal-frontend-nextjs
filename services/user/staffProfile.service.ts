@@ -22,6 +22,7 @@ export interface StaffProfilePayload {
 export interface StaffProfile extends StaffProfilePayload {
   id: string;
   avatar?: string;
+  profilePicture?: string;
 }
 
 const normalize = (p: Record<string, unknown>): StaffProfile => ({
@@ -33,6 +34,7 @@ const normalize = (p: Record<string, unknown>): StaffProfile => ({
   dateOfBirth: p?.dateOfBirth as string | undefined,
   gender: p?.gender as string | undefined,
   avatar: p?.avatar as string | undefined,
+  profilePicture: p?.profilePicture as string | undefined,
   addresses: Array.isArray(p?.addresses)
     ? p.addresses.map((a: Record<string, unknown>) => ({
       street: (a?.street as string) || "",

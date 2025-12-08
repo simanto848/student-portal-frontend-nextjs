@@ -41,6 +41,7 @@ export default function EditAdminPage() {
     const [showAddressSection, setShowAddressSection] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
     useEffect(() => {
         if (!id) return;
@@ -95,7 +96,7 @@ export default function EditAdminPage() {
     };
 
     const togglePrimary = (idx: number) => {
-        setAddresses(prev => prev.map((a,i) => ({ ...a, isPrimary: i === idx })));
+        setAddresses(prev => prev.map((a, i) => ({ ...a, isPrimary: i === idx })));
     };
     const addAddress = () => {
         if (!addressDraft.street && !addressDraft.city && !addressDraft.country) {
@@ -111,37 +112,43 @@ export default function EditAdminPage() {
         });
         setAddressDraft({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false });
     };
-    const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_,i) => i !== idx));
+    const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_, i) => i !== idx));
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
         if (!admin) return;
         setIsSaving(true);
         try {
-            await adminService.update(admin.id, {
+            let updatePayload: any = {
                 fullName: form.fullName.trim(),
                 role: form.role,
                 joiningDate: form.joiningDate || undefined,
                 registrationNumber: form.registrationNumber.trim(),
-            });
+            };
 
             if (showProfileSection && profileForm.firstName && profileForm.lastName) {
-                const profilePayload: any = {
+                updatePayload.profile = {
                     firstName: profileForm.firstName.trim(),
                     lastName: profileForm.lastName.trim(),
                 };
-                if (profileForm.middleName) profilePayload.middleName = profileForm.middleName.trim();
-                if (profileForm.phoneNumber) profilePayload.phoneNumber = profileForm.phoneNumber.trim();
-                if (profileForm.dateOfBirth) profilePayload.dateOfBirth = profileForm.dateOfBirth;
-                if (profileForm.gender) profilePayload.gender = profileForm.gender;
-                if (showAddressSection && addresses.length > 0) profilePayload.addresses = addresses.map(a => ({ ...a }));
-                try {
-                    await adminProfileService.upsert(admin.id, profilePayload);
-                } catch (err: any) {
-                    toast.warning(`Profile save failed: ${err?.message || 'Unknown error'}`);
-                }
+                if (profileForm.middleName) updatePayload.profile.middleName = profileForm.middleName.trim();
+                if (profileForm.phoneNumber) updatePayload.profile.phoneNumber = profileForm.phoneNumber.trim();
+                if (profileForm.dateOfBirth) updatePayload.profile.dateOfBirth = profileForm.dateOfBirth;
+                if (profileForm.gender) updatePayload.profile.gender = profileForm.gender;
+                if (showAddressSection && addresses.length > 0) updatePayload.profile.addresses = addresses.map(a => ({ ...a }));
             }
 
+            // Handle profile picture
+            let dataToSend: any = updatePayload;
+
+            if (profilePicture) {
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(updatePayload));
+                formData.append('profilePicture', profilePicture);
+                dataToSend = formData;
+            }
+
+            await adminService.update(admin.id, dataToSend);
             toast.success("Admin updated successfully");
             router.push(`/dashboard/admin/users/admins/${admin.id}`);
         } catch (error) {
@@ -229,7 +236,7 @@ export default function EditAdminPage() {
                                 <User className="h-5 w-5 text-[#344e41]" />
                                 <h3 className="text-lg font-semibold text-[#344e41]">Profile Information</h3>
                                 {profile && (
-                                  <Badge className="ml-2 bg-[#588157] text-white">Existing: {profile.firstName} {profile.lastName}</Badge>
+                                    <Badge className="ml-2 bg-[#588157] text-white">Existing: {profile.firstName} {profile.lastName}</Badge>
                                 )}
                             </div>
                             <div className="flex gap-2">
@@ -312,6 +319,19 @@ export default function EditAdminPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-sm font-medium text-[#344e41] flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                                    <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            setProfilePicture(file || null);
+                                        }}
+                                        className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                                    />
+                                    {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
+                                </div>
                             </div>
                         )}
 
@@ -339,7 +359,7 @@ export default function EditAdminPage() {
                                         <Input value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
                                     </div>
                                     <div className="space-y-2 flex items-end">
-                                        <Button type="button" variant="outline" onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))} className={`border-[#a3b18a] ${addressDraft.isPrimary? 'bg-[#588157] text-white':'text-[#344e41]'}`}>{addressDraft.isPrimary? 'Primary':'Set Primary'}</Button>
+                                        <Button type="button" variant="outline" onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))} className={`border-[#a3b18a] ${addressDraft.isPrimary ? 'bg-[#588157] text-white' : 'text-[#344e41]'}`}>{addressDraft.isPrimary ? 'Primary' : 'Set Primary'}</Button>
                                     </div>
                                 </div>
                                 <div className="flex gap-3">
@@ -350,11 +370,11 @@ export default function EditAdminPage() {
                                     <p className="text-sm font-medium text-[#344e41]">Addresses</p>
                                     {addresses.length === 0 && <p className="text-xs text-[#344e41]/60">No addresses yet.</p>}
                                     <div className="space-y-2">
-                                        {addresses.map((a,i) => (
+                                        {addresses.map((a, i) => (
                                             <div key={i} className="flex items-center justify-between bg-white/60 border border-[#a3b18a]/40 rounded p-3">
                                                 <div className="text-sm text-[#344e41]">
-                                                    <p className="font-medium">{a.street || '(No street)'}{a.city? ', '+a.city:''}{a.state? ', '+a.state:''}</p>
-                                                    <p className="text-xs text-[#344e41]/70">{a.country || 'No country'}{a.zipCode? ' - '+a.zipCode:''}</p>
+                                                    <p className="font-medium">{a.street || '(No street)'}{a.city ? ', ' + a.city : ''}{a.state ? ', ' + a.state : ''}</p>
+                                                    <p className="text-xs text-[#344e41]/70">{a.country || 'No country'}{a.zipCode ? ' - ' + a.zipCode : ''}</p>
                                                     {a.isPrimary && <Badge className="mt-1 bg-[#588157] text-white">Primary</Badge>}
                                                 </div>
                                                 <div className="flex gap-2">

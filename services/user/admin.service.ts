@@ -2,27 +2,28 @@ import { api, handleApiError } from "../academic/axios-instance";
 
 export type AdminRole = "super_admin" | "admin" | "moderator";
 
-export interface AdminProfileSummary {
-    id?: string;
-    firstName?: string;
-    lastName?: string;
+export interface Profile {
+    id: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
     phoneNumber?: string;
-    avatar?: string;
+    middleName?: string;
 }
 
 export interface Admin {
     id: string;
-    fullName: string;
     email: string;
-    role: AdminRole;
+    fullName: string;
     registrationNumber: string;
-    joiningDate?: string;
-    registeredIpAddress?: string[];
+    role: AdminRole;
+    profile?: Profile;
     lastLoginAt?: string;
     lastLoginIp?: string;
+    joiningDate?: string;
+    registeredIpAddress?: string[];
     createdAt?: string;
     updatedAt?: string;
-    profile?: AdminProfileSummary;
 }
 
 export interface AdminListParams {
@@ -47,10 +48,24 @@ export interface AdminStatistics {
     byRole: Record<AdminRole, number>;
 }
 
-const normalizeAdmin = (admin: any): Admin => ({
-    ...admin,
-    id: admin?.id || admin?._id,
-    registeredIpAddress: admin?.registeredIpAddress || [],
+const normalize = (a: Record<string, unknown>): Admin => ({
+    id: (a?.id as string) || (a?._id as string) || "",
+    email: (a?.email as string) || "",
+    fullName: (a?.fullName as string) || "",
+    registrationNumber: (a?.registrationNumber as string) || "",
+    role: (a?.role as AdminRole) || "moderator",
+    profile: a?.profile ? {
+        id: (a.profile as any)._id || (a.profile as any).id,
+        firstName: (a.profile as any).firstName,
+        lastName: (a.profile as any).lastName,
+        profilePicture: (a.profile as any).profilePicture,
+    } : undefined,
+    lastLoginAt: a?.lastLoginAt as string | undefined,
+    lastLoginIp: a?.lastLoginIp as string | undefined,
+    joiningDate: a?.joiningDate as string | undefined,
+    registeredIpAddress: (a?.registeredIpAddress as string[]) || [],
+    createdAt: a?.createdAt as string | undefined,
+    updatedAt: a?.updatedAt as string | undefined,
 });
 
 const extractAdmins = (payload: any): AdminListResponse => {
@@ -58,19 +73,19 @@ const extractAdmins = (payload: any): AdminListResponse => {
 
     if (payload.admins) {
         return {
-            admins: Array.isArray(payload.admins) ? payload.admins.map(normalizeAdmin) : [],
+            admins: Array.isArray(payload.admins) ? payload.admins.map(normalize) : [],
             pagination: payload.pagination,
         };
     }
 
     if (Array.isArray(payload)) {
-        return { admins: payload.map(normalizeAdmin) };
+        return { admins: payload.map(normalize) };
     }
 
     return { admins: [] };
 };
 
-const extractAdmin = (payload: any): Admin => normalizeAdmin(payload || {});
+const extractAdmin = (payload: any): Admin => normalize(payload || {});
 
 export const adminService = {
     getAll: async (params: AdminListParams = {}): Promise<AdminListResponse> => {
@@ -93,9 +108,11 @@ export const adminService = {
         }
     },
 
-    create: async (payload: Partial<Admin>): Promise<Admin> => {
+    create: async (payload: Partial<Admin> | FormData): Promise<Admin> => {
         try {
-            const response = await api.post("/user/admins", payload);
+            const isFormData = payload instanceof FormData;
+            const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+            const response = await api.post("/user/admins", payload, { headers });
             const data = response.data?.data || response.data;
             return extractAdmin(data);
         } catch (error) {
@@ -103,9 +120,11 @@ export const adminService = {
         }
     },
 
-    update: async (id: string, payload: Partial<Admin>): Promise<Admin> => {
+    update: async (id: string, payload: Partial<Admin> | FormData): Promise<Admin> => {
         try {
-            const response = await api.patch(`/user/admins/${id}`, payload);
+            const isFormData = payload instanceof FormData;
+            const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+            const response = await api.patch(`/user/admins/${id}`, payload, { headers });
             const data = response.data?.data || response.data;
             return extractAdmin(data);
         } catch (error) {

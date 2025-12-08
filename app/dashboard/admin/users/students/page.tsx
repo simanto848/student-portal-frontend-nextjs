@@ -20,7 +20,8 @@ import { departmentService } from "@/services/academic/department.service";
 import { programService } from "@/services/academic/program.service";
 import { batchService } from "@/services/academic/batch.service";
 import { toast } from "sonner";
-import { Users, Search, Plus, Eye, Edit, Trash2, Loader2, Filter } from "lucide-react";
+import { Users, Search, Plus, Eye, Edit, Trash2, Loader2, Filter, User as UserIcon } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const statusColors: Record<EnrollmentStatus, string> = {
     not_enrolled: "bg-gray-500",
@@ -307,11 +308,31 @@ export default function StudentsPage() {
                                                     className="border-b border-[#a3b18a]/20 hover:bg-[#dad7cd]/20 transition-colors"
                                                 >
                                                     <td className="p-4">
-                                                        <div>
-                                                            <p className="font-medium text-[#344e41]">
-                                                                {student.fullName}
-                                                            </p>
-                                                            <p className="text-xs text-[#344e41]/60">{student.email}</p>
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-10 w-10 rounded-full bg-[#dad7cd]/50 overflow-hidden flex-shrink-0 border border-[#a3b18a]/30">
+                                                                {student.profile?.profilePicture ? (
+                                                                    <img
+                                                                        src={getImageUrl(student.profile.profilePicture)}
+                                                                        alt={student.fullName}
+                                                                        className="h-full w-full object-cover"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = '';
+                                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                                                        }}
+                                                                    />
+                                                                ) : (
+                                                                    <div className="h-full w-full flex items-center justify-center">
+                                                                        <span className="text-[#344e41] font-semibold">{student.fullName.charAt(0)}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-medium text-[#344e41]">
+                                                                    {student.fullName}
+                                                                </p>
+                                                                <p className="text-xs text-[#344e41]/60">{student.email}</p>
+                                                            </div>
                                                         </div>
                                                     </td>
                                                     <td className="p-4 text-sm text-[#344e41]/80 font-mono">

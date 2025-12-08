@@ -35,6 +35,7 @@ import {
     Home,
     Contact
 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 export default function StudentDetailsPage() {
     const params = useParams();
@@ -124,13 +125,28 @@ export default function StudentDetailsPage() {
                     >
                         <ArrowLeft className="w-5 h-5 text-[#344e41]" />
                     </button>
-                    <PageHeader
-                        title={student.fullName}
-                        subtitle={student.registrationNumber}
-                        icon={Users}
-                        actionLabel="Edit"
-                        onAction={() => router.push(`/dashboard/admin/users/students/${id}/edit`)}
-                    />
+                    <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-full bg-[#dad7cd]/50 overflow-hidden flex-shrink-0 border-2 border-[#a3b18a]/30">
+                            {student.profile?.profilePicture ? (
+                                <img
+                                    src={getImageUrl(student.profile.profilePicture)}
+                                    alt={student.fullName}
+                                    className="h-full w-full object-cover"
+                                />
+                            ) : (
+                                <div className="h-full w-full flex items-center justify-center">
+                                    <User className="h-8 w-8 text-[#588157]" />
+                                </div>
+                            )}
+                        </div>
+                        <PageHeader
+                            title={student.fullName}
+                            subtitle={student.registrationNumber}
+                            icon={undefined}
+                            actionLabel="Edit"
+                            onAction={() => router.push(`/dashboard/admin/users/students/${id}/edit`)}
+                        />
+                    </div>
                     <Button
                         variant="outline"
                         size="sm"

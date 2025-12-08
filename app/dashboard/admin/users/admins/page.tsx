@@ -11,7 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { adminService, Admin, AdminRole, AdminStatistics } from "@/services/user/admin.service";
 import { toast } from "sonner";
-import { Shield, ShieldCheck, UserPlus, RefreshCcw, UserCog } from "lucide-react";
+import { Shield, ShieldCheck, UserPlus, RefreshCcw, UserCog, User as UserIcon } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const roleBadge = (role: AdminRole) => {
     const map: Record<AdminRole, { label: string; className: string; Icon: typeof Shield }> = {
@@ -47,9 +48,29 @@ export default function AdminManagementPage() {
             header: "Name",
             accessorKey: "fullName",
             cell: (admin) => (
-                <div>
-                    <p className="font-medium text-[#344e41]">{admin.fullName}</p>
-                    <p className="text-xs text-[#344e41]/60">{admin.registrationNumber}</p>
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-[#dad7cd]/50 overflow-hidden flex-shrink-0 border border-[#a3b18a]/30">
+                        {admin.profile?.profilePicture ? (
+                            <img
+                                src={getImageUrl(admin.profile.profilePicture)}
+                                alt={admin.fullName}
+                                className="h-full w-full object-cover"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '';
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                    (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                }}
+                            />
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center">
+                                <span className="text-[#344e41] font-semibold">{admin.fullName.charAt(0)}</span>
+                            </div>
+                        )}
+                    </div>
+                    <div>
+                        <p className="font-medium text-[#344e41]">{admin.fullName}</p>
+                        <p className="text-xs text-[#344e41]/60">{admin.registrationNumber}</p>
+                    </div>
                 </div>
             ),
         },

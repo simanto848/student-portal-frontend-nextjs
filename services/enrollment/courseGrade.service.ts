@@ -166,7 +166,7 @@ export const courseGradeService = {
         }
     },
 
-    approveByCommittee: async (id: string, data: { comment?: string, otp: string }): Promise<any> => {
+    approveByCommittee: async (id: string, data: { comment?: string, otp: string } | any = {}): Promise<any> => {
         try {
             const response = await api.post(`/enrollment/grades/workflow/${id}/approve`, data);
             return response.data.data;
@@ -175,7 +175,7 @@ export const courseGradeService = {
         }
     },
 
-    returnToTeacher: async (id: string, data: { comment: string, otp: string }): Promise<any> => {
+    returnToTeacher: async (id: string, data: { comment: string, otp: string } | any): Promise<any> => {
         try {
             const response = await api.post(`/enrollment/grades/workflow/${id}/return`, data);
             return response.data.data;

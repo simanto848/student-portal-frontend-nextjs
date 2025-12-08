@@ -13,6 +13,7 @@ import { teacherProfileService, TeacherProfile } from "@/services/user/teacherPr
 import { departmentService } from "@/services/academic/department.service";
 import { toast } from "sonner";
 import { ArrowLeft, GraduationCap, Mail, Phone, Calendar, MapPin, Network, User as UserIcon, Trash2 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const designationLabel: Record<TeacherDesignation, string> = {
   professor: "Professor",
@@ -55,7 +56,7 @@ export default function TeacherDetailsPage() {
       try {
         const d = await departmentService.getAllDepartments();
         setDepartments(Array.isArray(d) ? d : []);
-      } catch {}
+      } catch { }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load teacher");
       router.push("/dashboard/admin/users/faculty");
@@ -70,7 +71,7 @@ export default function TeacherDetailsPage() {
       setTeacher(updated);
       setIpInput("");
       toast.success("IP added");
-    } catch (e:any) { toast.error(e?.message || "Failed to add IP"); } finally { setIsIpUpdating(false); }
+    } catch (e: any) { toast.error(e?.message || "Failed to add IP"); } finally { setIsIpUpdating(false); }
   };
   const removeIp = async (ip: string) => {
     if (!teacher) return;
@@ -79,7 +80,7 @@ export default function TeacherDetailsPage() {
       const updated = await teacherService.removeRegisteredIp(teacher.id, ip);
       setTeacher(updated);
       toast.success("IP removed");
-    } catch (e:any) { toast.error(e?.message || "Failed to remove IP"); } finally { setIsIpUpdating(false); }
+    } catch (e: any) { toast.error(e?.message || "Failed to remove IP"); } finally { setIsIpUpdating(false); }
   };
 
   const handleDeleteTeacher = async () => {
@@ -87,7 +88,7 @@ export default function TeacherDetailsPage() {
     if (!confirm(`Delete ${teacher.fullName}?`)) return;
     setIsDeleting(true);
     try { await teacherService.delete(teacher.id); toast.success("Teacher deleted"); router.push("/dashboard/admin/users/faculty"); }
-    catch (e:any){ toast.error(e?.message || "Failed to delete teacher"); }
+    catch (e: any) { toast.error(e?.message || "Failed to delete teacher"); }
     finally { setIsDeleting(false); }
   };
 
@@ -102,7 +103,7 @@ export default function TeacherDetailsPage() {
   }
 
   if (!teacher) return null;
-  const departmentName = departments.find(d => (d.id||d._id) === teacher.departmentId)?.name || teacher.department?.name || teacher.departmentId;
+  const departmentName = departments.find(d => (d.id || d._id) === teacher.departmentId)?.name || teacher.department?.name || teacher.departmentId;
 
   return (
     <DashboardLayout>
@@ -138,9 +139,18 @@ export default function TeacherDetailsPage() {
               {profile && (
                 <div className="bg-gradient-to-br from-[#dad7cd]/60 to-[#a3b18a]/20 rounded-lg p-5 space-y-4 border border-[#a3b18a]/20">
                   <div className="flex items-center justify-between pb-3 border-b border-[#a3b18a]/30">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-[#588157]/20">
-                        <UserIcon className="h-5 w-5 text-[#588157]" />
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-full bg-[#588157]/20 border-2 border-[#588157] overflow-hidden flex items-center justify-center flex-shrink-0">
+                        {profile?.profilePicture ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={getImageUrl(profile.profilePicture)}
+                            alt="Profile"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <UserIcon className="h-8 w-8 text-[#588157]" />
+                        )}
                       </div>
                       <div>
                         <p className="text-base font-semibold text-[#344e41]">Profile Information</p>

@@ -26,6 +26,7 @@ import {
   User as UserIcon,
   Trash2,
 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const roleLabel: Record<StaffRole, string> = {
   program_controller: "Program Controller",
@@ -69,7 +70,7 @@ export default function StaffDetailsPage() {
       try {
         const d = await departmentService.getAllDepartments();
         setDepartments(Array.isArray(d) ? d : []);
-      } catch {}
+      } catch { }
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to load staff"
@@ -224,9 +225,18 @@ export default function StaffDetailsPage() {
               {profile && (
                 <div className="bg-gradient-to-br from-[#dad7cd]/60 to-[#a3b18a]/20 rounded-lg p-5 space-y-4 border border-[#a3b18a]/20">
                   <div className="flex items-center justify-between pb-3 border-b border-[#a3b18a]/30">
-                    <div className="flex items-center gap-2">
-                      <div className="p-2 rounded-lg bg-[#588157]/20">
-                        <UserIcon className="h-5 w-5 text-[#588157]" />
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 rounded-full bg-[#588157]/20 border-2 border-[#588157] overflow-hidden flex items-center justify-center flex-shrink-0">
+                        {profile?.profilePicture ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={getImageUrl(profile.profilePicture)}
+                            alt="Profile"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <UserIcon className="h-8 w-8 text-[#588157]" />
+                        )}
                       </div>
                       <div>
                         <p className="text-base font-semibold text-[#344e41]">
@@ -257,9 +267,8 @@ export default function StaffDetailsPage() {
                       )}
                       <ProfileField
                         label="Full Name"
-                        value={`${profile.firstName} ${
-                          profile.middleName ? profile.middleName + " " : ""
-                        }${profile.lastName}`}
+                        value={`${profile.firstName} ${profile.middleName ? profile.middleName + " " : ""
+                          }${profile.lastName}`}
                         highlighted
                       />
                     </div>
@@ -279,7 +288,7 @@ export default function StaffDetailsPage() {
                             value={`${Math.floor(
                               (Date.now() -
                                 new Date(profile.dateOfBirth).getTime()) /
-                                (365.25 * 24 * 60 * 60 * 1000)
+                              (365.25 * 24 * 60 * 60 * 1000)
                             )} years`}
                           />
                         )}
@@ -388,7 +397,7 @@ export default function StaffDetailsPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {staff.registeredIpAddress &&
-                staff.registeredIpAddress.length > 0 ? (
+                  staff.registeredIpAddress.length > 0 ? (
                   staff.registeredIpAddress.map((ip) => (
                     <Badge
                       key={ip}
@@ -453,9 +462,8 @@ function ProfileField({
 }) {
   return (
     <div
-      className={`text-sm ${
-        highlighted ? "font-semibold text-[#344e41]" : "text-[#344e41]/80"
-      } ${mono ? "font-mono" : ""} flex items-center gap-2`}
+      className={`text-sm ${highlighted ? "font-semibold text-[#344e41]" : "text-[#344e41]/80"
+        } ${mono ? "font-mono" : ""} flex items-center gap-2`}
     >
       {Icon && <Icon className="h-4 w-4 text-[#344e41]/60" />}
       <span className="text-[#344e41]/60 font-medium mr-1">{label}:</span>

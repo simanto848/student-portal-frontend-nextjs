@@ -22,6 +22,7 @@ export interface TeacherProfilePayload {
 export interface TeacherProfile extends TeacherProfilePayload {
   id: string;
   avatar?: string;
+  profilePicture?: string;
 }
 
 const normalize = (p: any): TeacherProfile => ({
@@ -33,6 +34,7 @@ const normalize = (p: any): TeacherProfile => ({
   dateOfBirth: p?.dateOfBirth,
   gender: p?.gender,
   avatar: p?.avatar,
+  profilePicture: p?.profilePicture,
   addresses: Array.isArray(p?.addresses) ? p.addresses.map((a: any) => ({
     street: a?.street || "",
     city: a?.city || "",
@@ -54,7 +56,7 @@ export const teacherProfileService = {
       return handleApiError(e);
     }
   },
-  
+
   create: async (teacherId: string, payload: TeacherProfilePayload): Promise<TeacherProfile> => {
     try {
       const res = await api.post(`/user/teachers/${teacherId}/profile`, payload);
@@ -64,7 +66,7 @@ export const teacherProfileService = {
       return handleApiError(e);
     }
   },
-  
+
   update: async (teacherId: string, payload: Partial<TeacherProfilePayload>): Promise<TeacherProfile> => {
     try {
       const res = await api.patch(`/user/teachers/${teacherId}/profile`, payload);
@@ -74,7 +76,7 @@ export const teacherProfileService = {
       return handleApiError(e);
     }
   },
-  
+
   upsert: async (teacherId: string, payload: TeacherProfilePayload): Promise<TeacherProfile> => {
     try {
       const res = await api.put(`/user/teachers/${teacherId}/profile`, payload);

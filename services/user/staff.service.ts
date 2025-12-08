@@ -12,6 +12,7 @@ interface Profile {
   id: string;
   firstName: string;
   lastName: string;
+  profilePicture?: string;
 }
 
 export interface Staff {
@@ -58,7 +59,12 @@ const normalize = (s: Record<string, unknown>): Staff => ({
   joiningDate: s?.joiningDate as string | undefined,
   registeredIpAddress: (s?.registeredIpAddress as string[]) || [],
   role: (s?.role as StaffRole) || "it",
-  profile: s?.profile as Profile | undefined,
+  profile: s?.profile ? {
+    id: (s.profile as any)._id || (s.profile as any).id,
+    firstName: (s.profile as any).firstName,
+    lastName: (s.profile as any).lastName,
+    profilePicture: (s.profile as any).profilePicture,
+  } : undefined,
   lastLoginAt: s?.lastLoginAt as string | undefined,
   lastLoginIp: s?.lastLoginIp as string | undefined,
   createdAt: s?.createdAt as string | undefined,
@@ -98,9 +104,11 @@ export const staffService = {
     }
   },
 
-  create: async (payload: StaffCreatePayload): Promise<Staff> => {
+  create: async (payload: StaffCreatePayload | FormData): Promise<Staff> => {
     try {
-      const res = await api.post("/user/staffs", payload);
+      const isFormData = payload instanceof FormData;
+      const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+      const res = await api.post("/user/staffs", payload, { headers });
       const data = res.data?.data || res.data;
       return normalize(data);
     } catch (e) {
@@ -108,9 +116,11 @@ export const staffService = {
     }
   },
 
-  update: async (id: string, payload: StaffUpdatePayload): Promise<Staff> => {
+  update: async (id: string, payload: StaffUpdatePayload | FormData): Promise<Staff> => {
     try {
-      const res = await api.patch(`/user/staffs/${id}`, payload);
+      const isFormData = payload instanceof FormData;
+      const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+      const res = await api.patch(`/user/staffs/${id}`, payload, { headers });
       const data = res.data?.data || res.data;
       return normalize(data);
     } catch (e) {

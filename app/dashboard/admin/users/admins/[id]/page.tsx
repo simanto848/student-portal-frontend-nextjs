@@ -13,6 +13,7 @@ import { adminService, Admin, AdminRole } from "@/services/user/admin.service";
 import { adminProfileService, AdminProfile } from "@/services/user/adminProfile.service";
 import { toast } from "sonner";
 import { ArrowLeft, Shield, Mail, Phone, Calendar, RefreshCcw, MapPin, Trash2, User as UserIcon } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const roleLabel: Record<AdminRole, string> = {
     super_admin: "Super Admin",
@@ -131,10 +132,25 @@ export default function AdminDetailsPage() {
                     >
                         <ArrowLeft className="w-5 h-5 text-[#344e41]" />
                     </button>
+
+                    <div className="h-12 w-12 rounded-full bg-[#dad7cd]/50 overflow-hidden flex-shrink-0 border border-[#a3b18a]/30">
+                        {admin?.profile?.profilePicture ? (
+                            <img
+                                src={getImageUrl(admin.profile.profilePicture)}
+                                alt={admin.fullName}
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <div className="h-full w-full flex items-center justify-center">
+                                <Shield className="h-6 w-6 text-[#588157]" />
+                            </div>
+                        )}
+                    </div>
+
                     <PageHeader
                         title={admin.fullName}
                         subtitle="Administrator profile overview"
-                        icon={Shield}
+                        icon={undefined}
                         actionLabel="Edit"
                         onAction={() => router.push(`/dashboard/admin/users/admins/${admin.id}/edit`)}
                     />

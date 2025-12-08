@@ -37,6 +37,7 @@ export default function EditFacultyPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
   useEffect(() => { if (id) fetchAll(); }, [id]);
 
@@ -54,7 +55,7 @@ export default function EditFacultyPage() {
       const t = await teacherService.getById(id);
       setTeacher(t);
       setBasic({ fullName: t.fullName, departmentId: t.departmentId, designation: t.designation || "", phone: t.phone || "" });
-      setAdvanced({ joiningDate: t.joiningDate?.substring(0,10) || "", registeredIps: t.registeredIpAddress || [], ipInput: "" });
+      setAdvanced({ joiningDate: t.joiningDate?.substring(0, 10) || "", registeredIps: t.registeredIpAddress || [], ipInput: "" });
       try {
         const p = await teacherProfileService.get(id);
         if (p) {
@@ -64,14 +65,14 @@ export default function EditFacultyPage() {
             lastName: p.lastName,
             middleName: p.middleName || "",
             phoneNumber: p.phoneNumber || "",
-            dateOfBirth: p.dateOfBirth ? p.dateOfBirth.substring(0,10) : "",
+            dateOfBirth: p.dateOfBirth ? p.dateOfBirth.substring(0, 10) : "",
             gender: p.gender || "",
           });
           setAddresses(p.addresses || []);
         }
-      } catch {}
-      try { const d = await departmentService.getAllDepartments(); setDepartments(Array.isArray(d) ? d : []); } catch {}
-    } catch (e:any) { toast.error(e?.message || "Failed to load teacher"); router.push("/dashboard/admin/users/faculty"); }
+      } catch { }
+      try { const d = await departmentService.getAllDepartments(); setDepartments(Array.isArray(d) ? d : []); } catch { }
+    } catch (e: any) { toast.error(e?.message || "Failed to load teacher"); router.push("/dashboard/admin/users/faculty"); }
     finally { setIsLoading(false); }
   };
 
@@ -98,7 +99,7 @@ export default function EditFacultyPage() {
     clearAddressDraft();
   };
   const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_, i) => i !== idx));
-  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a,i) => ({ ...a, isPrimary: i === idx })));
+  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a, i) => ({ ...a, isPrimary: i === idx })));
 
   const nextStep = () => {
     if (step === 1) setStep(useAdvanced ? 2 : (useProfile ? 3 : (useAddressStep ? 4 : 5)));
@@ -125,7 +126,15 @@ export default function EditFacultyPage() {
         joiningDate: useAdvanced && advanced.joiningDate ? advanced.joiningDate : undefined,
         registeredIpAddress: useAdvanced ? advanced.registeredIps : undefined,
       } as any;
-      const updatedTeacher = await teacherService.update(teacher.id, payload);
+      let dataToSend: TeacherUpdatePayload | FormData = payload;
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(payload));
+        formData.append('profilePicture', profilePicture);
+        dataToSend = formData;
+      }
+
+      const updatedTeacher = await teacherService.update(teacher.id, dataToSend);
 
       if (useProfile && profileForm.firstName && profileForm.lastName) {
         const profilePayload: TeacherProfilePayload = {
@@ -140,12 +149,12 @@ export default function EditFacultyPage() {
         try {
           if (profile) await teacherProfileService.upsert(teacher.id, profilePayload);
           else await teacherProfileService.create(teacher.id, profilePayload);
-        } catch (e:any) { toast.warning(e?.message || "Profile update failed"); }
+        } catch (e: any) { toast.warning(e?.message || "Profile update failed"); }
       }
 
       toast.success("Teacher updated successfully");
       router.push(`/dashboard/admin/users/faculty/${updatedTeacher.id}`);
-    } catch (e:any) { toast.error(e?.message || "Failed to update teacher"); }
+    } catch (e: any) { toast.error(e?.message || "Failed to update teacher"); }
     finally { setIsSubmitting(false); }
   };
 
@@ -310,6 +319,19 @@ export default function EditFacultyPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-[#344e41] flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setProfilePicture(file || null);
+                      }}
+                      className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                    />
+                    {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
+                  </div>
                 </div>
               </div>
             )}
@@ -372,7 +394,7 @@ export default function EditFacultyPage() {
                       </div>
                       <div className="flex justify-between py-2 border-b border-[#a3b18a]/20">
                         <span className="font-medium text-[#344e41]/70">Department:</span>
-                        <span className="font-semibold">{departments.find(d => (d.id||d._id) === basic.departmentId)?.name || basic.departmentId}</span>
+                        <span className="font-semibold">{departments.find(d => (d.id || d._id) === basic.departmentId)?.name || basic.departmentId}</span>
                       </div>
                       {basic.designation && (
                         <div className="flex justify-between py-2 border-b border-[#a3b18a]/20">
@@ -459,9 +481,9 @@ export default function EditFacultyPage() {
                         <p className="text-sm font-bold uppercase tracking-wide text-[#344e41]">Addresses</p>
                       </div>
                       <div className="p-5 bg-gradient-to-br from-white to-[#dad7cd]/20 rounded-lg border-2 border-[#a3b18a]/30 shadow-sm space-y-3 text-sm text-[#344e41]">
-                        {addresses.map((a,i) => (
+                        {addresses.map((a, i) => (
                           <div key={i} className="flex items-start justify-between p-3 bg-white rounded border border-[#a3b18a]/20">
-                            <p className="flex-1">{[a.street,a.city,a.state,a.country,a.zipCode].filter(Boolean).join(', ')}</p>
+                            <p className="flex-1">{[a.street, a.city, a.state, a.country, a.zipCode].filter(Boolean).join(', ')}</p>
                             {a.isPrimary && <Badge className="bg-[#588157] text-white ml-2">PRIMARY</Badge>}
                           </div>
                         ))}

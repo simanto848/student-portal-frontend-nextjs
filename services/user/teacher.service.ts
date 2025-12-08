@@ -81,9 +81,11 @@ export const teacherService = {
     }
   },
 
-  create: async (payload: TeacherCreatePayload): Promise<Teacher> => {
+  create: async (payload: TeacherCreatePayload | FormData): Promise<Teacher> => {
     try {
-      const res = await api.post("/user/teachers", payload);
+      const isFormData = payload instanceof FormData;
+      const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+      const res = await api.post("/user/teachers", payload, { headers });
       const data = res.data?.data || res.data;
       return normalize(data);
     } catch (e) {
@@ -91,9 +93,11 @@ export const teacherService = {
     }
   },
 
-  update: async (id: string, payload: TeacherUpdatePayload): Promise<Teacher> => {
+  update: async (id: string, payload: TeacherUpdatePayload | FormData): Promise<Teacher> => {
     try {
-      const res = await api.patch(`/user/teachers/${id}`, payload);
+      const isFormData = payload instanceof FormData;
+      const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
+      const res = await api.patch(`/user/teachers/${id}`, payload, { headers });
       const data = res.data?.data || res.data;
       return normalize(data);
     } catch (e) {
@@ -144,7 +148,7 @@ export const teacherService = {
     try {
       const res = await api.get('/user/teachers/deleted');
       const data = res.data?.data || res.data;
-      return Array.isArray(data) ? data.map(normalize) : (Array.isArray(data.teachers)? data.teachers.map(normalize): []);
+      return Array.isArray(data) ? data.map(normalize) : (Array.isArray(data.teachers) ? data.teachers.map(normalize) : []);
     } catch (e) {
       return handleApiError(e);
     }

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { teacherService, Teacher, TeacherDesignation } from "@/services/user/teacher.service";
 import { toast } from "sonner";
 import { GraduationCap, Search, Plus, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 const designationLabel: Record<TeacherDesignation, string> = {
   professor: "Professor",
@@ -203,9 +204,27 @@ export default function TeachersPage() {
                           className="border-b border-[#a3b18a]/20 hover:bg-[#dad7cd]/20 transition-colors"
                         >
                           <td className="p-4">
-                            <p className="font-medium text-[#344e41]">
-                              {teacher.fullName}
-                            </p>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-[#dad7cd] overflow-hidden flex items-center justify-center border border-[#a3b18a]">
+                                {teacher.profile?.profilePicture ? (
+                                  // eslint-disable-next-line @next/next/no-img-element
+                                  <img
+                                    src={getImageUrl(teacher.profile.profilePicture)}
+                                    alt={teacher.fullName}
+                                    className="h-full w-full object-cover"
+                                    onError={(e) => {
+                                      e.currentTarget.style.display = 'none';
+                                      e.currentTarget.parentElement!.innerText = teacher.fullName.charAt(0);
+                                    }}
+                                  />
+                                ) : (
+                                  <span className="text-[#344e41] font-semibold">{teacher.fullName.charAt(0)}</span>
+                                )}
+                              </div>
+                              <p className="font-medium text-[#344e41]">
+                                {teacher.fullName}
+                              </p>
+                            </div>
                           </td>
                           <td className="p-4 text-sm text-[#344e41]/80">
                             {teacher.email}
@@ -213,9 +232,8 @@ export default function TeachersPage() {
                           <td className="p-4">
                             {teacher.designation && (
                               <Badge
-                                className={`${
-                                  designationColor[teacher.designation]
-                                } text-white`}
+                                className={`${designationColor[teacher.designation]
+                                  } text-white`}
                               >
                                 {designationLabel[teacher.designation]}
                               </Badge>

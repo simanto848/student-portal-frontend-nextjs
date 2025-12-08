@@ -113,6 +113,7 @@ export default function CreateStaffPage() {
     isPrimary: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
   const [departments, setDepartments] = useState<
     Array<{ id?: string; _id?: string; name: string }>
   >([]);
@@ -268,7 +269,15 @@ export default function CreateStaffPage() {
             : undefined,
       };
 
-      const created = await staffService.create(payload);
+      let dataToSend: StaffCreatePayload | FormData = payload;
+      if (profilePicture) {
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(payload));
+        formData.append('profilePicture', profilePicture);
+        dataToSend = formData;
+      }
+
+      const created = await staffService.create(dataToSend);
 
       if (useProfile && profile.firstName && profile.lastName) {
         try {
@@ -324,13 +333,12 @@ export default function CreateStaffPage() {
           return (
             <div key={s.id} className="flex items-center gap-2">
               <div
-                className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 ${
-                  active
-                    ? "bg-[#588157] text-white border-[#588157] shadow-md scale-105"
-                    : completed
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 ${active
+                  ? "bg-[#588157] text-white border-[#588157] shadow-md scale-105"
+                  : completed
                     ? "bg-[#a3b18a] text-white border-[#a3b18a]"
                     : "bg-white text-[#344e41] border-[#a3b18a]/50"
-                }`}
+                  }`}
               >
                 {completed ? (
                   <CheckCircle2 className="h-4 w-4" />
@@ -381,11 +389,10 @@ export default function CreateStaffPage() {
                     if (useAdvanced && step === 2) setStep(1);
                     setUseAdvanced((v) => !v);
                   }}
-                  className={`transition-all ${
-                    useAdvanced
-                      ? "bg-[#588157] hover:bg-[#3a5a40] text-white shadow-md"
-                      : "border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
-                  }`}
+                  className={`transition-all ${useAdvanced
+                    ? "bg-[#588157] hover:bg-[#3a5a40] text-white shadow-md"
+                    : "border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
+                    }`}
                   size="sm"
                 >
                   <Network className="h-4 w-4 mr-1" />
@@ -398,11 +405,10 @@ export default function CreateStaffPage() {
                     if (useProfile && step === 3) setStep(useAdvanced ? 2 : 1);
                     setUseProfile((v) => !v);
                   }}
-                  className={`transition-all ${
-                    useProfile
-                      ? "bg-[#588157] hover:bg-[#3a5a40] text-white shadow-md"
-                      : "border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
-                  }`}
+                  className={`transition-all ${useProfile
+                    ? "bg-[#588157] hover:bg-[#3a5a40] text-white shadow-md"
+                    : "border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
+                    }`}
                   size="sm"
                 >
                   <User className="h-4 w-4 mr-1" />
@@ -416,11 +422,10 @@ export default function CreateStaffPage() {
                       setStep(useProfile ? 3 : useAdvanced ? 2 : 1);
                     setUseAddressStep((v) => !v);
                   }}
-                  className={`transition-all ${
-                    useAddressStep
-                      ? "bg-[#588157] hover:bg-[#3a5a40] text-white shadow-md"
-                      : "border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
-                  }`}
+                  className={`transition-all ${useAddressStep
+                    ? "bg-[#588157] hover:bg-[#3a5a40] text-white shadow-md"
+                    : "border-2 border-[#a3b18a] text-[#344e41] hover:bg-[#dad7cd]"
+                    }`}
                   size="sm"
                 >
                   <MapPin className="h-4 w-4 mr-1" />
@@ -657,10 +662,22 @@ export default function CreateStaffPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Male">Male</SelectItem>
-                        <SelectItem value="Female">Female</SelectItem>
                         <SelectItem value="Other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-medium text-[#344e41] flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setProfilePicture(file || null);
+                      }}
+                      className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                    />
+                    {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
                   </div>
                 </div>
               </div>
