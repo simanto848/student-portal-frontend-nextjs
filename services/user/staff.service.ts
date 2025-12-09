@@ -106,9 +106,7 @@ export const staffService = {
 
   create: async (payload: StaffCreatePayload | FormData): Promise<Staff> => {
     try {
-      const isFormData = payload instanceof FormData;
-      const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
-      const res = await api.post("/user/staffs", payload, { headers });
+      const res = await api.post("/user/staffs", payload);
       const data = res.data?.data || res.data;
       return normalize(data);
     } catch (e) {
@@ -118,9 +116,7 @@ export const staffService = {
 
   update: async (id: string, payload: StaffUpdatePayload | FormData): Promise<Staff> => {
     try {
-      const isFormData = payload instanceof FormData;
-      const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
-      const res = await api.patch(`/user/staffs/${id}`, payload, { headers });
+      const res = await api.patch(`/user/staffs/${id}`, payload);
       const data = res.data?.data || res.data;
       return normalize(data);
     } catch (e) {

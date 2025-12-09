@@ -110,9 +110,7 @@ export const adminService = {
 
     create: async (payload: Partial<Admin> | FormData): Promise<Admin> => {
         try {
-            const isFormData = payload instanceof FormData;
-            const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
-            const response = await api.post("/user/admins", payload, { headers });
+            const response = await api.post("/user/admins", payload);
             const data = response.data?.data || response.data;
             return extractAdmin(data);
         } catch (error) {
@@ -122,9 +120,7 @@ export const adminService = {
 
     update: async (id: string, payload: Partial<Admin> | FormData): Promise<Admin> => {
         try {
-            const isFormData = payload instanceof FormData;
-            const headers = isFormData ? { "Content-Type": "multipart/form-data" } : undefined;
-            const response = await api.patch(`/user/admins/${id}`, payload, { headers });
+            const response = await api.patch(`/user/admins/${id}`, payload);
             const data = response.data?.data || response.data;
             return extractAdmin(data);
         } catch (error) {
