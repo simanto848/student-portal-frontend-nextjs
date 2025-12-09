@@ -38,29 +38,23 @@ export function CRManagementDialog({ open, onOpenChange, batch, onSuccess }: CRM
         if (!batch) return;
         setLoading(true);
         try {
-            // This endpoint might need to be adjusted based on backend.
-            // Using listEnrollments with filters for now as a proxy to find students in batch.
-            // Ideally we want all students currently enrolled in this batch's current semester.
-            // However, listEnrollments might be paginated or broad.
-            // Let's assume we filter by batchId.
-
-            // NOTE: Backend controller for enrollment supports filters. 
-            // We need to pass batchId and maybe status='enrolled'
             const data = await enrollmentService.listEnrollments({
                 batchId: batch.id,
                 semester: batch.currentSemester,
-                status: 'enrolled',
-                limit: 100 // Reasonable limit for a batch
+                status: 'active',
+                limit: 1000
             });
-            // data might be { data: [], total: ... } or just [] depending on service wrapper
-            // enrollmentService.listEnrollments usually returns ApiResponse which is handled by service wrapper?
-            // Let's check service wrapper in next step if needed. 
-            // Assuming it returns array or pagination object.
 
-            // Based on enrollmentService.js in backend, it returns `enrollments`. 
-            // Frontend service usually unpacks data.
+            const enrollments = (data as any).enrollments || [];
 
-            setStudents((data as any).data || data);
+            const uniqueStudentsMap = new Map();
+            enrollments.forEach((enrollment: any) => {
+                if (enrollment.studentId && !uniqueStudentsMap.has(enrollment.studentId)) {
+                    uniqueStudentsMap.set(enrollment.studentId, enrollment);
+                }
+            });
+
+            setStudents(Array.from(uniqueStudentsMap.values()));
         } catch (error) {
             console.error("Fetch students error:", error);
             toast.error("Failed to load students");

@@ -25,8 +25,8 @@ export default function ChatPage() {
                     const details = await chatService.getChatGroupDetails(chatGroupId);
                     if (details.courseName) {
                         setHeaderInfo({
-                            title: `${details.courseName} (${details.courseCode})`,
-                            subtitle: details.batchName
+                            title: `${details.courseName} (${details.courseCode}) - ${details.batchName}`,
+                            subtitle: "Course Discussion"
                         });
                     } else if (details.batchName) {
                         setHeaderInfo({

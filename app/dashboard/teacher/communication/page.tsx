@@ -147,8 +147,8 @@ export default function CommunicationPage() {
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {courses.length > 0 ? (
                                     courses.map((course) => (
-                                        <Card key={course.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow">
-                                            <CardHeader className="bg-[#f8f9fa] border-b pb-4">
+                                        <Card key={course.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow p-0">
+                                            <CardHeader className="bg-[#f8f9fa] border-b py-4">
                                                 <div className="flex justify-between items-start">
                                                     <div>
                                                         <CardTitle className="text-lg font-bold text-[#1a3d32] line-clamp-1">
@@ -165,7 +165,7 @@ export default function CommunicationPage() {
                                                     <span>{course.batch?.currentStudents || "Unknown"} Students</span>
                                                 </div>
                                                 <Button
-                                                    className="w-full bg-[#1a3d32] hover:bg-[#142e26] text-white"
+                                                    className="w-full bg-[#1a3d32] hover:bg-[#142e26] text-white mb-4"
                                                     onClick={() => handleEnterCourseChat(course)}
                                                     disabled={enteringChat === course.id}
                                                 >

@@ -13,8 +13,8 @@ interface BatchCommunicationCardProps {
 
 export function BatchCommunicationCard({ batch, onOpenChat, onManageCR, enteringChat }: BatchCommunicationCardProps) {
     return (
-        <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="bg-[#f0f4f8] border-b pb-4">
+        <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow p-0">
+            <CardHeader className="bg-[#f0f4f8] border-b py-4">
                 <div className="flex justify-between items-start">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -31,7 +31,7 @@ export function BatchCommunicationCard({ batch, onOpenChat, onManageCR, entering
                     </Badge>
                 </div>
             </CardHeader>
-            <CardContent className="pt-6 flex-1 flex flex-col gap-4">
+            <CardContent className="pt-4 flex-1 flex flex-col gap-4">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 text-gray-600 text-sm">
                         <Users className="h-4 w-4" />
@@ -53,7 +53,7 @@ export function BatchCommunicationCard({ batch, onOpenChat, onManageCR, entering
                 <div className="mt-auto grid grid-cols-2 gap-3">
                     <Button
                         variant="outline"
-                        className="w-full border-slate-200"
+                        className="w-full border-slate-200 mb-4"
                         onClick={() => onManageCR(batch)}
                     >
                         Manage CR
