@@ -142,9 +142,7 @@ export interface ExamCommittee {
 export interface CourseSchedule {
     id: string;
     batchId: string | Batch;
-    batch?: Batch;
     sessionCourseId: string | SessionCourse;
-    sessionCourse?: SessionCourse;
     teacherId?: string | {
         _id: string;
         fullName: string;
