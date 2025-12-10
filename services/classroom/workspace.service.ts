@@ -78,4 +78,32 @@ export const workspaceService = {
             return handleClassroomApiError(error);
         }
     },
+
+
+    /**
+     * List courses available for classroom creation
+     * Roles: teacher
+     */
+    listPending: async (): Promise<any[]> => {
+        try {
+            const response = await classroomApi.get('/workspaces/pending');
+            // Using extractClassroomArrayData might expect standard response format
+            return extractClassroomArrayData<any>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
+
+    /**
+     * Archive a workspace
+     * Roles: teacher
+     */
+    archive: async (id: string): Promise<Workspace> => {
+        try {
+            const response = await classroomApi.post(`/workspaces/${id}/archive`);
+            return extractClassroomItemData<Workspace>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
 };

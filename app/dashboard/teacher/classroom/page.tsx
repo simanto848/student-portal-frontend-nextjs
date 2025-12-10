@@ -6,28 +6,45 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { workspaceService } from "@/services/classroom/workspace.service";
-import { Workspace } from "@/services/classroom/types";
+import { Workspace, PendingWorkspace } from "@/services/classroom/types";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { BookOpen, Users } from "lucide-react";
+import { BookOpen, Users, PlusCircle, Archive } from "lucide-react";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function ClassroomsPage() {
     const { user } = useAuth();
     const router = useRouter();
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+    const [pendingWorkspaces, setPendingWorkspaces] = useState<PendingWorkspace[]>([]);
     const [loading, setLoading] = useState(true);
+    const [creatingId, setCreatingId] = useState<string | null>(null);
 
     useEffect(() => {
         if (user?.id) {
-            fetchWorkspaces();
+            fetchData();
         }
     }, [user?.id]);
 
-    const fetchWorkspaces = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await workspaceService.listMine();
-            setWorkspaces(data);
+            const [active, pending] = await Promise.all([
+                workspaceService.listMine(),
+                workspaceService.listPending()
+            ]);
+            setWorkspaces(active);
+            setPendingWorkspaces(pending || []);
         } catch (error) {
             console.error("Fetch workspaces error:", error);
             toast.error("Failed to load classrooms");
@@ -36,53 +53,157 @@ export default function ClassroomsPage() {
         }
     };
 
+    const handleCreateClassroom = async (pending: PendingWorkspace) => {
+        setCreatingId(pending.batchId); // Use batchId as temp loader key
+        try {
+            const newWs = await workspaceService.create({
+                courseId: pending.courseId,
+                batchId: pending.batchId,
+                title: `${pending.courseCode} - ${pending.batchName}`
+            });
+            toast.success("Classroom created successfully");
+            router.push(`/dashboard/teacher/classroom/${newWs.id}`);
+        } catch (error) {
+            toast.error("Failed to create classroom");
+        } finally {
+            setCreatingId(null);
+        }
+    };
+
+    const handleArchiveClassroom = async (id: string) => {
+        try {
+            await workspaceService.archive(id);
+            toast.success("Classroom archived");
+            fetchData(); // Refresh list
+        } catch (error) {
+            toast.error("Failed to archive classroom");
+        }
+    };
+
     return (
         <DashboardLayout>
-            <div className="space-y-6">
+            <div className="space-y-8 pb-10">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">My Classrooms</h1>
-                    <p className="text-muted-foreground">Access your active course workspaces</p>
+                    <p className="text-muted-foreground">Manage your active and pending course workspaces</p>
                 </div>
 
                 {loading ? (
                     <div className="text-center py-10">Loading classrooms...</div>
                 ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {workspaces.length > 0 ? (
-                            workspaces.map((workspace) => (
-                                <Card key={workspace.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow">
-                                    <CardHeader className="bg-[#f8f9fa] border-b pb-4">
-                                        <CardTitle className="text-xl font-bold text-[#1a3d32] line-clamp-2">
-                                            {workspace.title}
-                                        </CardTitle>
-                                        <p className="text-sm text-muted-foreground">{workspace.description}</p>
-                                    </CardHeader>
-                                    <CardContent className="pt-6 flex-1 space-y-4">
-                                        <div className="flex items-center gap-2 text-gray-600 text-sm">
-                                            <BookOpen className="h-4 w-4" />
-                                            <span>Assignments: {workspace.stats?.assignmentsCount || 0}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 text-gray-600 text-sm">
-                                            <Users className="h-4 w-4" />
-                                            <span>Students: {workspace.stats?.studentsCount || 0}</span>
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter className="pt-4 border-t bg-gray-50/50">
-                                        <Button
-                                            className="w-full bg-[#1a3d32] hover:bg-[#142e26] text-white"
-                                            onClick={() => router.push(`/dashboard/teacher/classroom/${workspace.id}`)} // Updated link
-                                        >
-                                            Enter Classroom
-                                        </Button>
-                                    </CardFooter>
-                                </Card>
-                            ))
-                        ) : (
-                            <div className="col-span-full text-center py-10 text-muted-foreground">
-                                No active classrooms found. Classrooms are created automatically for your courses.
-                            </div>
+                    <>
+                        {/* Pending Section */}
+                        {pendingWorkspaces.length > 0 && (
+                            <section>
+                                <h2 className="text-xl font-semibold mb-4 text-[#1a3d32] border-b pb-2">Pending Creations</h2>
+                                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                    {pendingWorkspaces.map((p, idx) => (
+                                        <Card key={`${p.courseId}-${p.batchId}`} className="border-dashed border-2 border-emerald-200 bg-emerald-50/30">
+                                            <CardHeader>
+                                                <CardTitle className="text-lg font-bold text-[#1a3d32]">
+                                                    {p.courseName}
+                                                </CardTitle>
+                                                <p className="text-sm font-medium text-emerald-700">{p.courseCode}</p>
+                                                <p className="text-sm text-muted-foreground">{p.batchName} • Semester {p.semester}</p>
+                                            </CardHeader>
+                                            <CardFooter>
+                                                <Button
+                                                    onClick={() => handleCreateClassroom(p)}
+                                                    disabled={creatingId === p.batchId}
+                                                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                                                >
+                                                    {creatingId === p.batchId ? "Creating..." : (
+                                                        <>
+                                                            <PlusCircle className="mr-2 h-4 w-4" /> Create Classroom
+                                                        </>
+                                                    )}
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </section>
                         )}
-                    </div>
+
+                        {/* Active Section */}
+                        <section>
+                            <div className="flex items-center justify-between mb-4 border-b pb-2">
+                                <h2 className="text-xl font-semibold text-[#1a3d32]">Active Classrooms</h2>
+                                <span className="text-sm text-muted-foreground">{workspaces.length} active</span>
+                            </div>
+
+                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                {workspaces.length > 0 ? (
+                                    workspaces.map((workspace) => (
+                                        <Card key={workspace.id} className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow group relative">
+                                            <CardHeader className="bg-[#f8f9fa] border-b pb-4">
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <div>
+                                                        <CardTitle className="text-xl font-bold text-[#1a3d32] line-clamp-2">
+                                                            {workspace.courseName || workspace.title}
+                                                        </CardTitle>
+                                                        {workspace.courseCode && (
+                                                            <p className="text-sm font-medium text-emerald-700 mt-1">{workspace.courseCode}</p>
+                                                        )}
+                                                        {workspace.batchName && (
+                                                            <p className="text-sm text-muted-foreground mt-1">
+                                                                {workspace.batchName} {workspace.semester ? `• Semester ${workspace.semester}` : ''}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-red-600">
+                                                                <Archive className="h-4 w-4" />
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>Archive Classroom?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    This will move the classroom to the archive. Students will no longer be able to submit assignments.
+                                                                    You can view archived classrooms in the archive tab (coming soon).
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleArchiveClassroom(workspace.id)} className="bg-red-600 hover:bg-red-700">
+                                                                    Archive
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </CardHeader>
+                                            <CardContent className="pt-6 flex-1 space-y-4">
+                                                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                                                    <BookOpen className="h-4 w-4" />
+                                                    <span>Active</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-gray-600 text-sm">
+                                                    <Users className="h-4 w-4" />
+                                                    <span>{workspace.totalBatchStudents || 0} Students</span>
+                                                </div>
+                                            </CardContent>
+                                            <CardFooter className="pt-4 border-t bg-gray-50/50">
+                                                <Button
+                                                    className="w-full bg-[#1a3d32] hover:bg-[#142e26] text-white"
+                                                    onClick={() => router.push(`/dashboard/teacher/classroom/${workspace.id}`)}
+                                                >
+                                                    Enter Classroom
+                                                </Button>
+                                            </CardFooter>
+                                        </Card>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full text-center py-10 text-muted-foreground">
+                                        No active classrooms found. {pendingWorkspaces.length > 0 ? "Create one from the pending list above." : "You have no assigned courses yet."}
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    </>
                 )}
             </div>
         </DashboardLayout>

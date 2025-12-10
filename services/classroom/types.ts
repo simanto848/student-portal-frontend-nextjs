@@ -16,6 +16,25 @@ export interface Workspace {
     settings: WorkspaceSettings;
     createdAt: string;
     updatedAt: string;
+    status: 'active' | 'archived'; // Update Workspace interface strictly
+
+    // Enriched fields
+    courseName?: string;
+    courseCode?: string;
+    batchName?: string;
+    semester?: number;
+    studentCount?: number; // Enrolled in workspace (joined)
+    totalBatchStudents?: number; // Total students in the batch (potential)
+}
+
+export interface PendingWorkspace {
+    courseId: string;
+    batchId: string;
+    courseName: string;
+    courseCode: string;
+    batchName: string;
+    programId: string;
+    semester: number;
 }
 
 export interface CreateWorkspaceDto {
