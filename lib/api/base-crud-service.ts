@@ -25,7 +25,10 @@ export class BaseCrudService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> 
   constructor(
     baseURL: string,
     protected readonly resourcePath: string,
-    withCredentials: boolean = true
+    withCredentials: boolean = true,
+    protected readonly options?: {
+      resourceKey?: string; // Override the resource key if different from path
+    }
   ) {
     super(baseURL, withCredentials);
   }
@@ -43,8 +46,10 @@ export class BaseCrudService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> 
         return { data: data as T[] };
       }
       
-      // Check for various data structures
-      const items = data.data || data[this.getResourceName()] || [];
+      // Try to extract items from common response structures
+      const resourceKey = this.options?.resourceKey || this.getResourceName();
+      const items = data.data || data[resourceKey] || [];
+      
       return {
         data: Array.isArray(items) ? items : [],
         pagination: data.pagination,
@@ -127,7 +132,8 @@ export class BaseCrudService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> 
         return data;
       }
       
-      const items = data.data || data[this.getResourceName()] || [];
+      const resourceKey = this.options?.resourceKey || this.getResourceName();
+      const items = data.data || data[resourceKey] || [];
       return Array.isArray(items) ? items : [];
     } catch (error) {
       return this.handleError(error);

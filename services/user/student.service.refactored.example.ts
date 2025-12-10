@@ -86,7 +86,12 @@ class StudentService extends BaseCrudService<
   StudentUpdateDTO
 > {
   constructor() {
-    super(API_CONFIG.BASE_URL, API_ENDPOINTS.USERS.STUDENTS);
+    super(
+      API_CONFIG.BASE_URL, 
+      API_ENDPOINTS.USERS.STUDENTS,
+      true,
+      { resourceKey: 'students' } // Optional: specify if API uses different key
+    );
   }
 
   /**
@@ -178,24 +183,15 @@ class StudentService extends BaseCrudService<
     return data.map((student) => this.normalize(student));
   }
 
-  /**
-   * Override deleteItem to maintain compatibility with existing code
-   */
-  async delete(id: string): Promise<{ message: string }> {
-    return this.deleteItem(id);
-  }
-
-  /**
-   * Override deleteItemPermanently to maintain compatibility
-   */
-  async deletePermanently(id: string): Promise<{ message: string }> {
-    return this.deleteItemPermanently(id);
-  }
-
   // Custom methods specific to students can be added here
-  // Example:
+  // Example of a custom method:
   // async getStudentsByBatch(batchId: string): Promise<Student[]> {
-  //   return this.getList(`${this.resourcePath}/batch/${batchId}`);
+  //   try {
+  //     const response = await this.api.get(`${this.resourcePath}/batch/${batchId}`);
+  //     return this.extractArrayData<Student>(response).map(s => this.normalize(s));
+  //   } catch (error) {
+  //     return this.handleError(error);
+  //   }
   // }
 }
 

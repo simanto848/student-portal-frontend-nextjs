@@ -13,10 +13,21 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Validate phone number
+ * Note: This is a basic validation. For production use, consider using
+ * a library like libphonenumber-js for international phone number validation
  */
 export function isValidPhone(phone: string): boolean {
-  const phoneRegex = /^\+?[\d\s-()]+$/;
-  return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 10;
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Check if it has at least 10 digits (minimum for most phone numbers)
+  if (cleaned.length < 10 || cleaned.length > 15) {
+    return false;
+  }
+  
+  // Basic format validation for common patterns
+  const phoneRegex = /^[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,9}$/;
+  return phoneRegex.test(phone);
 }
 
 /**
