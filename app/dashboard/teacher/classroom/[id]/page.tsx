@@ -27,7 +27,6 @@ import { studentService, Student } from "@/services/user/student.service";
 import { CreateAssignmentDialog } from "@/components/classroom/CreateAssignmentDialog";
 import { CreateMaterialDialog } from "@/components/classroom/CreateMaterialDialog";
 import { GradingView } from "@/components/classroom/GradingView";
-import { AttendanceView } from "@/components/classroom/AttendanceView";
 import { AssessmentView } from "@/components/classroom/AssessmentView";
 import { CourseGradeView } from "@/components/classroom/CourseGradeView";
 import { courseService } from "@/services/academic/course.service";
@@ -193,7 +192,6 @@ export default function TeacherClassroomDetailPage() {
             <TabsTrigger value="stream">Stream</TabsTrigger>
             <TabsTrigger value="classwork">Classwork</TabsTrigger>
             <TabsTrigger value="people">People</TabsTrigger>
-            <TabsTrigger value="attendance">Attendance</TabsTrigger>
             <TabsTrigger value="assessments">Assessments</TabsTrigger>
             <TabsTrigger value="grades">Grades</TabsTrigger>
           </TabsList>
@@ -511,13 +509,6 @@ export default function TeacherClassroomDetailPage() {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="attendance" className="mt-6">
-            <AttendanceView
-              courseId={workspace.courseId}
-              batchId={workspace.batchId}
-            />
           </TabsContent>
 
           <TabsContent value="assessments" className="mt-6">
