@@ -187,7 +187,7 @@ export default function AISchedulerPage() {
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <h4 className="font-medium text-lg text-indigo-600 hover:text-indigo-800">
-                                                    <a href={`/dashboard/admin/academic/ai-scheduler/proposals/${proposal.id}`}>
+                                                    <a href={`/dashboard/admin/academic/schedule/ai-scheduler/proposals/${proposal.id}`}>
                                                         Proposal #{proposal.id.substring(0, 8)}
                                                     </a>
                                                 </h4>
@@ -210,7 +210,7 @@ export default function AISchedulerPage() {
                                             {proposal.status === 'pending' && (
                                                 <div className="mt-4 flex space-x-3">
                                                     <a
-                                                        href={`/dashboard/admin/academic/ai-scheduler/proposals/${proposal.id}`}
+                                                        href={`/dashboard/admin/academic/schedule/ai-scheduler/proposals/${proposal.id}`}
                                                         className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 text-gray-700"
                                                     >
                                                         View Details

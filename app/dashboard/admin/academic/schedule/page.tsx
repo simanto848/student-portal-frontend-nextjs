@@ -10,7 +10,7 @@ import { GenericFormModal, FormField } from "@/components/dashboard/shared/Gener
 import { academicService, CourseSchedule, Batch, SessionCourse, Classroom, AcademicApiError } from "@/services/academic.service";
 import { teacherService, Teacher } from "@/services/teacher.service";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Sparkles } from "lucide-react";
 
 const getName = (item: any): string => {
     if (!item) return "N/A";
@@ -298,6 +298,15 @@ export default function ScheduleManagementPage() {
                     actionLabel="Add Schedule"
                     onAction={handleCreate}
                     icon={CalendarClock}
+                    extraActions={
+                        <button
+                            onClick={() => router.push('/dashboard/admin/academic/schedule/ai-scheduler')}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                        >
+                            <Sparkles className="w-4 h-4" />
+                            AI Scheduler
+                        </button>
+                    }
                 />
 
                 {isLoading ? (
