@@ -20,7 +20,7 @@ import {
 } from "@/services/academic.service";
 import { teacherService, Teacher } from "@/services/teacher.service";
 import { toast } from "sonner";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Sparkles } from "lucide-react";
 
 const getName = (
   item: { name?: string } | string | null | undefined
@@ -362,6 +362,15 @@ export default function ProgramControllerSchedulePage() {
           actionLabel="Add Schedule"
           onAction={handleCreate}
           icon={CalendarClock}
+          extraActions={
+            <button
+              onClick={() => router.push('/dashboard/staff/program-controller/schedules/ai-scheduler')}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Scheduler
+            </button>
+          }
         />
 
         {isLoading ? (
