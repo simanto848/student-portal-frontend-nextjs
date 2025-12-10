@@ -87,13 +87,33 @@ export default function TeacherDashboard() {
   const today = format(new Date(), "EEEE");
   const todaySchedules = schedules
     .filter((s) => s.daysOfWeek.includes(today as any))
-    .map((s) => ({
-      id: s.id,
-      title: (s.sessionCourse as any)?.course?.name || "Untitled Course",
-      time: `${s.startTime} - ${s.endTime}`,
-      location: (s.classroom as any)?.roomNumber ? `Room ${(s.classroom as any).roomNumber}` : "TBD",
-      type: s.classType.toLowerCase() as "lecture" | "lab" | "meeting",
-    }));
+    .map((s) => {
+      // Safe extraction of course name
+      const courseName = (typeof s.sessionCourseId === 'object' && s.sessionCourseId !== null)
+        ? ((s.sessionCourseId as any).course?.name || (s.sessionCourseId as any).courseId?.name || "Untitled Course")
+        : "Untitled Course";
+
+      // Safe extraction of location
+      let location = "TBD";
+      if (typeof s.classroom === 'object' && s.classroom !== null) {
+        const room = (s.classroom as any).roomNumber;
+        const building = (s.classroom as any).buildingName;
+        if (room && building) location = `${building}, Room ${room}`;
+        else if (room) location = `Room ${room}`;
+        else if (building) location = building;
+      }
+
+      // Normalize type
+      const type = (s.classType || 'lecture').toLowerCase() as "lecture" | "lab" | "meeting";
+
+      return {
+        id: s.id,
+        title: courseName,
+        time: `${s.startTime} - ${s.endTime}`,
+        location: location,
+        type: type,
+      };
+    });
 
   const pendingWorkflows = workflows.filter((w) => ["draft", "submitted", "returned"].includes(w.status)).slice(0, 4);
 

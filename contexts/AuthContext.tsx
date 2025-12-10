@@ -54,7 +54,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       const data: LoginResponse = await authService.login(credentials, role);
-      setUser(data.user);
+      // Ensure role is set immediately in state, falling back to the requested role if not in response
+      setUser({ ...data.user, role: data.user?.role || role });
       setIsAuthenticated(true);
 
       // Store session data
@@ -63,9 +64,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("refreshToken", data.refreshToken);
 
       // Set cookie for middleware
-      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${
-        7 * 24 * 60 * 60
-      }; SameSite=Lax; Secure`;
+      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60
+        }; SameSite=Lax; Secure`;
 
       // Get the actual user role from response
       const userRole = data.user?.role || role;

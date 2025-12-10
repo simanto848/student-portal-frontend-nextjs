@@ -159,28 +159,28 @@ export function Sidebar({
     },
     ...(user?.role !== "moderator"
       ? [
-          {
-            label: "Library Management",
-            icon: BookOpen,
-            children: [
-              { href: "/dashboard/admin/library", label: "Overview" },
-              {
-                href: "/dashboard/admin/library/libraries",
-                label: "Libraries",
-              },
-              { href: "/dashboard/admin/library/books", label: "Books" },
-              { href: "/dashboard/admin/library/copies", label: "Book Copies" },
-              {
-                href: "/dashboard/admin/library/borrowings",
-                label: "Borrowings",
-              },
-              {
-                href: "/dashboard/admin/library/reservations",
-                label: "Reservations",
-              },
-            ],
-          },
-        ]
+        {
+          label: "Library Management",
+          icon: BookOpen,
+          children: [
+            { href: "/dashboard/admin/library", label: "Overview" },
+            {
+              href: "/dashboard/admin/library/libraries",
+              label: "Libraries",
+            },
+            { href: "/dashboard/admin/library/books", label: "Books" },
+            { href: "/dashboard/admin/library/copies", label: "Book Copies" },
+            {
+              href: "/dashboard/admin/library/borrowings",
+              label: "Borrowings",
+            },
+            {
+              href: "/dashboard/admin/library/reservations",
+              label: "Reservations",
+            },
+          ],
+        },
+      ]
       : []),
     {
       href: "/dashboard/admin/reports",
@@ -220,12 +220,12 @@ export function Sidebar({
     { href: "/dashboard/teacher/schedule", label: "Schedule", icon: Calendar },
     ...(user?.isDepartmentHead
       ? [
-          {
-            href: "/dashboard/teacher/exam-committee",
-            label: "Exam Committee",
-            icon: Users,
-          },
-        ]
+        {
+          href: "/dashboard/teacher/exam-committee",
+          label: "Exam Committee",
+          icon: Users,
+        },
+      ]
       : []),
   ];
 
@@ -436,7 +436,10 @@ export function Sidebar({
             {!isCollapsed && (
               <div>
                 <h2 className="text-lg font-bold tracking-tight">
-                  Admin Portal
+                  {role === 'admin' ? 'Admin Portal' :
+                    role === 'teacher' ? 'Teacher Panel' :
+                      role === 'student' ? 'Student Dashboard' :
+                        'Staff Panel'}
                 </h2>
                 <p className="text-xs text-[#a3b18a]">University Name</p>
               </div>
