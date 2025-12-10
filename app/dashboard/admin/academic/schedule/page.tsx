@@ -9,7 +9,7 @@ import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { GenericFormModal, FormField } from "@/components/dashboard/shared/GenericFormModal";
 import { academicService, CourseSchedule, Batch, SessionCourse, Classroom, AcademicApiError } from "@/services/academic.service";
 import { teacherService, Teacher } from "@/services/teacher.service";
-import { toast } from "sonner";
+import { notifySuccess, notifyError } from "@/components/toast";
 import { CalendarClock } from "lucide-react";
 
 const getName = (item: any): string => {
@@ -213,9 +213,8 @@ export default function ScheduleManagementPage() {
             setClassrooms(Array.isArray(classroomsData) ? classroomsData : []);
             setTeachers(Array.isArray(teachersData) ? teachersData : []);
         } catch (error) {
-            const message = error instanceof AcademicApiError ? error.message : "Failed to load data";
-            toast.error(message);
-            setSchedules([]);
+            console.error(error);
+            notifyError("Failed to load schedule data");
         } finally {
             setIsLoading(false);
         }
@@ -240,13 +239,14 @@ export default function ScheduleManagementPage() {
         if (!selectedSchedule) return;
         setIsDeleting(true);
         try {
-            await academicService.deleteSchedule(selectedSchedule.id);
-            toast.success("Schedule deleted successfully");
+            await academicService.deleteSchedule(selectedSchedule.id!);
+            notifySuccess("Schedule deleted successfully");
             fetchData();
             setIsDeleteModalOpen(false);
-        } catch (error) {
-            const message = error instanceof AcademicApiError ? error.message : "Failed to delete schedule";
-            toast.error(message);
+            setSelectedSchedule(null);
+        } catch (error: any) {
+            const message = error?.response?.data?.message || error.message || "Failed to delete schedule";
+            notifyError(message);
         } finally {
             setIsDeleting(false);
             setSelectedSchedule(null);
@@ -272,17 +272,18 @@ export default function ScheduleManagementPage() {
             };
 
             if (selectedSchedule) {
-                await academicService.updateSchedule(selectedSchedule.id, submitData);
-                toast.success("Schedule updated successfully");
+                await academicService.updateSchedule(selectedSchedule.id!, submitData);
+                notifySuccess("Schedule updated successfully");
             } else {
                 await academicService.createSchedule(submitData);
-                toast.success("Schedule created successfully");
+                notifySuccess("Schedule created successfully");
             }
             fetchData();
             setIsFormModalOpen(false);
-        } catch (error) {
-            const message = error instanceof AcademicApiError ? error.message : "Failed to save schedule";
-            toast.error(message);
+            setSelectedSchedule(null);
+        } catch (error: any) {
+            const message = error?.response?.data?.message || error.message || "Failed to save schedule";
+            notifyError(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -307,7 +308,7 @@ export default function ScheduleManagementPage() {
                     <DataTable
                         data={schedules.map(s => {
                             const course = typeof s.sessionCourseId === 'object' && s.sessionCourseId ? (s.sessionCourseId as any).courseId : null;
-                            const courseName = typeof course === 'object' ? course.name : 'N/A';
+                            const courseName = course && typeof course === 'object' ? course.name : 'N/A';
                             const room = typeof s.classroomId === 'object' ? s.classroomId : null;
 
                             const teacher = teachers.find(t => t.id === s.teacherId);

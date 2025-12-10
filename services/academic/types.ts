@@ -219,3 +219,13 @@ export interface CourseSyllabus {
     approvedAt?: string;
     publishedAt?: string;
 }
+
+export interface ScheduleProposal {
+    id: string;
+    sessionId: string;
+    generatedBy: string;
+    status: 'pending' | 'approved' | 'rejected';
+    scheduleData: any[]; // JSON array
+    metadata?: any;
+    createdAt: string;
+}

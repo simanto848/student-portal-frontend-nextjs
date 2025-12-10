@@ -1,5 +1,5 @@
 import { api, handleApiError, extractArrayData, extractItemData } from './axios-instance';
-import { CourseSchedule } from './types';
+import { CourseSchedule, ScheduleProposal } from './types';
 
 export const scheduleService = {
     getAllSchedules: async (): Promise<CourseSchedule[]> => {
@@ -57,4 +57,40 @@ export const scheduleService = {
             return handleApiError(error);
         }
     },
+    // AI Scheduler Methods
+    generateSchedule: async (sessionId: string, departmentId?: string): Promise<any> => {
+        try {
+            const payload: any = { sessionId };
+            if (departmentId) payload.departmentId = departmentId;
+
+            const response = await api.post('/academic/ai-schedules/generate', payload);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    getProposals: async (sessionId: string): Promise<any[]> => {
+        try {
+            const response = await api.get('/academic/ai-schedules/proposals', { params: { sessionId } });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    getProposalById: async (id: string): Promise<ScheduleProposal> => {
+        try {
+            const response = await api.get(`/academic/ai-schedules/proposals/${id}`);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+    applyProposal: async (proposalId: string): Promise<any> => {
+        try {
+            const response = await api.post(`/academic/ai-schedules/proposals/${proposalId}/apply`);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    }
 };
