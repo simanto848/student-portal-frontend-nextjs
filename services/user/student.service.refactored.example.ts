@@ -178,6 +178,20 @@ class StudentService extends BaseCrudService<
     return data.map((student) => this.normalize(student));
   }
 
+  /**
+   * Override deleteItem to maintain compatibility with existing code
+   */
+  async delete(id: string): Promise<{ message: string }> {
+    return this.deleteItem(id);
+  }
+
+  /**
+   * Override deleteItemPermanently to maintain compatibility
+   */
+  async deletePermanently(id: string): Promise<{ message: string }> {
+    return this.deleteItemPermanently(id);
+  }
+
   // Custom methods specific to students can be added here
   // Example:
   // async getStudentsByBatch(batchId: string): Promise<Student[]> {

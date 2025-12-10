@@ -102,10 +102,10 @@ Extends `BaseApiClient` to provide standard CRUD operations:
 - `getById()` - Get single item
 - `create()` - Create new item
 - `update()` - Update existing item
-- `delete()` - Soft delete item
+- `deleteItem()` - Soft delete item (also aliased as `delete()` for compatibility)
 - `restore()` - Restore deleted item
 - `getDeleted()` - List deleted items
-- `deletePermanently()` - Hard delete item
+- `deleteItemPermanently()` - Hard delete item (also aliased as `deletePermanently()`)
 
 ### Custom Hooks
 

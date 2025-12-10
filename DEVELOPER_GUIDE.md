@@ -75,10 +75,10 @@ This automatically provides:
 - `getById(id)` - Get single item
 - `create(data)` - Create new item
 - `update(id, data)` - Update item
-- `delete(id)` - Soft delete
+- `deleteItem(id)` - Soft delete (also available as `delete()`)
 - `restore(id)` - Restore deleted item
 - `getDeleted()` - List deleted items
-- `deletePermanently(id)` - Hard delete
+- `deleteItemPermanently(id)` - Hard delete (also available as `deletePermanently()`)
 
 ### For Complex Services
 

@@ -92,8 +92,9 @@ export class BaseCrudService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> 
 
   /**
    * Delete item (soft delete)
+   * Note: Uses deleteItem internally to avoid conflicts with BaseApiClient.delete
    */
-  async delete(id: string): Promise<{ message: string }> {
+  async deleteItem(id: string): Promise<{ message: string }> {
     try {
       const response = await this.api.delete(`${this.resourcePath}/${id}`);
       return response.data?.data || response.data || { message: 'Deleted successfully' };
@@ -135,8 +136,9 @@ export class BaseCrudService<T, CreateDTO = Partial<T>, UpdateDTO = Partial<T>> 
 
   /**
    * Permanently delete item
+   * Note: Uses deleteItemPermanently to avoid conflicts with BaseApiClient.delete
    */
-  async deletePermanently(id: string): Promise<{ message: string }> {
+  async deleteItemPermanently(id: string): Promise<{ message: string }> {
     try {
       const response = await this.api.delete(`${this.resourcePath}/${id}/permanently`);
       return response.data?.data || response.data || { message: 'Deleted permanently' };

@@ -49,9 +49,9 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
   options: UseDebounceOptions = {}
 ): (...args: Parameters<T>) => void {
   const { delay = 500 } = options;
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>();
 
-  return useCallback(
+  const debouncedCallback = useCallback(
     (...args: Parameters<T>) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -63,4 +63,6 @@ export function useDebouncedCallback<T extends (...args: any[]) => any>(
     },
     [callback, delay]
   );
+
+  return debouncedCallback;
 }
