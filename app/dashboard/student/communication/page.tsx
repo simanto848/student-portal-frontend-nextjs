@@ -1,21 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   MessageSquare,
-  Send,
-  Bell,
-  Users,
   Search,
   Loader2,
+  BookOpen,
+  Users,
+  User,
+  GraduationCap,
 } from "lucide-react";
 import { chatService, Message } from "@/services/communication/chat.service";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChatInterface } from "@/components/dashboard/communication/ChatInterface";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { batchService } from "@/services/academic/batch.service";
+import { notifyError } from "@/components/toast";
 
 type ChatGroupListItem = {
   id: string;
@@ -25,31 +32,31 @@ type ChatGroupListItem = {
   courseCode?: string;
   courseName?: string;
   batchName?: string;
+  instructorName?: string;
   lastMessage?: Message | null;
   updatedAt?: string;
 };
 
 export default function StudentCommunicationPage() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [groups, setGroups] = useState<ChatGroupListItem[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<ChatGroupListItem | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("course");
+  const [canPin, setCanPin] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
-        setError(null);
         const data =
           (await chatService.listMyChatGroups()) as ChatGroupListItem[];
         setGroups(Array.isArray(data) ? data : []);
-        if (Array.isArray(data) && data.length > 0) {
-          setSelectedGroupId(data[0].id);
-        }
       } catch (e: any) {
-        setError(e?.message || "Failed to load channels.");
+        notifyError(e?.message || "Failed to load channels.");
       } finally {
         setLoading(false);
       }
@@ -59,224 +66,306 @@ export default function StudentCommunicationPage() {
   }, []);
 
   useEffect(() => {
-    const loadMessages = async () => {
-      if (!selectedGroupId) {
-        setMessages([]);
+    const checkPermissions = async () => {
+      if (!selectedGroup || !user) {
+        setCanPin(false);
         return;
       }
-      try {
-        const data = await chatService.getMessages(selectedGroupId, 30, 0);
-        // backend returns newest-first; show oldest-first in UI
-        setMessages([...(data || [])].reverse());
-      } catch (e: any) {
-        setError(e?.message || "Failed to load messages.");
+
+      if (selectedGroup.type === "BatchChatGroup") {
+        try {
+          const batch = await batchService.getBatchById(selectedGroup.batchId);
+          const crId =
+            typeof batch.classRepresentativeId === "object"
+              ? (batch.classRepresentativeId as any)._id ||
+                (batch.classRepresentativeId as any).id
+              : batch.classRepresentativeId;
+
+          const userId = user.id || user._id;
+          if (crId && userId && crId.toString() === userId.toString()) {
+            setCanPin(true);
+          } else {
+            setCanPin(false);
+          }
+        } catch (err) {
+          console.error("Failed to check CR permissions", err);
+          setCanPin(false);
+        }
+      } else {
+        setCanPin(false);
       }
     };
 
-    loadMessages();
-  }, [selectedGroupId]);
+    checkPermissions();
+  }, [selectedGroup, user]);
 
   const filteredGroups = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return groups;
-    return groups.filter((g) => JSON.stringify(g).toLowerCase().includes(q));
-  }, [groups, searchQuery]);
+    let filtered = groups;
 
-  const unreadCount = 0;
-  const selectedGroup = groups.find((g) => g.id === selectedGroupId) || null;
+    if (activeTab === "course") {
+      filtered = filtered.filter((g) => g.type === "CourseChatGroup");
+    } else {
+      filtered = filtered.filter((g) => g.type === "BatchChatGroup");
+    }
+
+    const q = searchQuery.trim().toLowerCase();
+    if (q) {
+      filtered = filtered.filter((g) =>
+        JSON.stringify(g).toLowerCase().includes(q)
+      );
+    }
+
+    return filtered;
+  }, [groups, searchQuery, activeTab]);
+
+  useEffect(() => {
+    if (!selectedGroup && filteredGroups.length > 0 && !loading) {
+      // setSelectedGroup(filteredGroups[0]); // Optional: Auto-select first group
+    }
+  }, [filteredGroups, selectedGroup, loading]);
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="rounded-3xl bg-linear-to-r from-[#0b3b2a] via-[#1f5a44] to-[#3e6253] text-white p-6 md:p-8 shadow-lg relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.08),_transparent_40%)]" />
-          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="space-y-2">
-              <p className="text-sm text-white/70 flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" /> Communication Center
-              </p>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Stay informed. Read course announcements.
-              </h1>
-              <p className="text-white/75 max-w-2xl">
-                This space is read-only for students: browse channels,
-                announcements, and recent messages.
-              </p>
-              <div className="flex gap-3 flex-wrap pt-1">
-                <Button
-                  size="sm"
-                  className="bg-white text-[#1a3d32] hover:bg-white/90 shadow-md"
-                >
-                  Mark all as read
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-white/40 text-white hover:bg-white/10"
-                >
-                  Notification settings
-                </Button>
+      <div className="flex h-[calc(100vh-100px)] -m-4 md:-m-8 overflow-hidden bg-gray-50/50">
+        {/* Sidebar - Group List */}
+        <div className="w-full md:w-[380px] flex flex-col border-r bg-white z-10">
+          {/* Header */}
+          <div className="p-4 border-b space-y-4">
+            <div className="flex items-center gap-2 text-[#1a3d32]">
+              <div className="p-2 bg-[#1a3d32]/10 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-[#1a3d32]" />
+              </div>
+              <div>
+                <h1 className="font-bold text-lg leading-none">Messages</h1>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your academic conversations
+                </p>
               </div>
             </div>
-            <div className="rounded-2xl bg-white/10 backdrop-blur p-4 min-w-[220px] shadow-lg">
-              <p className="text-xs uppercase tracking-wide text-white/80">
-                Unread
-              </p>
-              <div className="flex items-end gap-2 mt-2">
-                <span className="text-4xl font-bold">
-                  {unreadCount.toString().padStart(2, "0")}
-                </span>
-                <span className="text-sm text-white/70">messages</span>
-              </div>
-              <p className="text-[11px] text-white/70 mt-2">
-                Across all enrolled courses.
-              </p>
+
+            <div className="relative">
+              <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
+              <Input
+                placeholder="Search conversations..."
+                className="pl-9 bg-gray-50 border-gray-200 focus-visible:ring-[#1a3d32]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
+
+          {/* Tabs */}
+          <Tabs
+            defaultValue="course"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full flex-1 flex flex-col"
+          >
+            <div className="px-4 pt-2">
+              <TabsList className="w-full grid grid-cols-2 bg-gray-100/80 p-1">
+                <TabsTrigger
+                  value="course"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#1a3d32] data-[state=active]:shadow-sm"
+                >
+                  Course Groups
+                </TabsTrigger>
+                <TabsTrigger
+                  value="batch"
+                  className="data-[state=active]:bg-white data-[state=active]:text-[#1a3d32] data-[state=active]:shadow-sm"
+                >
+                  Batch Groups
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="course" className="flex-1 mt-0">
+              <GroupList
+                groups={filteredGroups}
+                selectedId={selectedGroup?.id}
+                onSelect={setSelectedGroup}
+                loading={loading}
+                type="course"
+              />
+            </TabsContent>
+
+            <TabsContent value="batch" className="flex-1 mt-0">
+              <GroupList
+                groups={filteredGroups}
+                selectedId={selectedGroup?.id}
+                onSelect={setSelectedGroup}
+                loading={loading}
+                type="batch"
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+        {/* Main Content - Chat Interface */}
+        <div className="flex-1 flex flex-col bg-gray-50/50 relative">
+          {selectedGroup ? (
+            <div className="absolute inset-0 flex flex-col">
+              {/* Chat Header */}
+              <div className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#1a3d32]/5 flex items-center justify-center text-[#1a3d32]">
+                    {selectedGroup.type === "CourseChatGroup" ? (
+                      <BookOpen className="h-5 w-5" />
+                    ) : (
+                      <Users className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-[#1a3d32] flex items-center gap-2">
+                      {selectedGroup.type === "CourseChatGroup"
+                        ? selectedGroup.courseName
+                        : selectedGroup.batchName}
+                      {selectedGroup.courseCode && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs font-normal text-[#1a3d32] border-[#1a3d32]/20"
+                        >
+                          {selectedGroup.courseCode}
+                        </Badge>
+                      )}
+                    </h2>
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      {selectedGroup.type === "CourseChatGroup" ? (
+                        <>
+                          <User className="h-3 w-3" />
+                          {selectedGroup.instructorName || "Instructor"}
+                        </>
+                      ) : (
+                        <>
+                          <GraduationCap className="h-3 w-3" />
+                          Official Batch Discussion
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
-            <CardHeader className="pb-2 flex items-center justify-between">
-              <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-                <Bell className="h-4 w-4 text-[#3e6253]" /> Channels
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="relative">
-                <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
-                <Input
-                  placeholder="Search channels"
-                  className="pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+              {/* Chat Area */}
+              <div className="flex-1 overflow-hidden">
+                <ChatInterface
+                  key={selectedGroup.id} // Force remount on group change
+                  chatGroupId={selectedGroup.id}
+                  chatGroupType={selectedGroup.type}
+                  canPin={canPin}
                 />
               </div>
-              {loading ? (
-                <div className="flex items-center justify-center py-10 text-muted-foreground">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                </div>
-              ) : (
-                filteredGroups.map((g) => {
-                  const title =
-                    g.type === "CourseChatGroup"
-                      ? `${g.courseCode || "COURSE"} • ${
-                          g.courseName || "Course"
-                        }`
-                      : `${g.batchName || "Batch"} • Counselor`;
-                  const last = g.lastMessage?.content || "No messages yet";
-                  const isSelected = g.id === selectedGroupId;
-
-                  return (
-                    <div
-                      key={g.id}
-                      className={`rounded-xl border p-3 transition-all duration-200 cursor-pointer ${
-                        isSelected
-                          ? "border-[#3e6253]/40 bg-[#3e6253]/5"
-                          : "border-gray-100 hover:bg-gray-50"
-                      }`}
-                      onClick={() => setSelectedGroupId(g.id)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-[#1a3d32]">
-                          {title}
-                        </p>
-                        {/* Read-only: unread tracking not implemented */}
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {last}
-                      </p>
-                    </div>
-                  );
-                })
-              )}
-
-              {!loading && filteredGroups.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No channels available.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-none shadow-sm lg:col-span-2 transition-all duration-300 hover:shadow-lg">
-            <CardHeader className="pb-2 flex items-center justify-between">
-              <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-                <Users className="h-4 w-4 text-[#3e6253]" /> Recent Messages
-              </CardTitle>
-              <Button variant="ghost" size="sm" className="text-[#3e6253]">
-                View all
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {selectedGroup ? (
-                <div className="text-xs text-muted-foreground">
-                  Channel:{" "}
-                  {selectedGroup.type === "CourseChatGroup"
-                    ? selectedGroup.courseCode || selectedGroup.courseId
-                    : selectedGroup.batchName || selectedGroup.batchId}
-                </div>
-              ) : (
-                <div className="text-xs text-muted-foreground">
-                  Select a channel to view messages.
-                </div>
-              )}
-
-              {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className="rounded-xl border border-gray-100 p-3 hover:bg-gray-50 transition-all duration-200"
-                >
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-[#1a3d32] font-semibold">
-                      {msg.sender?.fullName || msg.senderId}
-                      <Badge
-                        variant="outline"
-                        className="text-xs text-[#3e6253] border-[#3e6253]/40"
-                      >
-                        {msg.senderModel}
-                      </Badge>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {msg.createdAt
-                        ? new Date(msg.createdAt).toLocaleString()
-                        : ""}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">
-                    {msg.content}
-                  </p>
-                </div>
-              ))}
-
-              {selectedGroupId && messages.length === 0 && (
-                <p className="text-sm text-muted-foreground">
-                  No messages yet.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
+              <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <MessageSquare className="h-10 w-10 text-gray-300" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Select a conversation
+              </h3>
+              <p className="max-w-sm mt-2 text-sm">
+                Choose a course or batch group from the sidebar to start viewing
+                messages and announcements.
+              </p>
+            </div>
+          )}
         </div>
-
-        <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-              <Send className="h-4 w-4 text-[#3e6253]" /> Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground">
-            Students have read-only access here; outbound messaging may be
-            disabled by your institution. For urgent matters, contact your
-            instructor via official channels.
-          </CardContent>
-        </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+function GroupList({
+  groups,
+  selectedId,
+  onSelect,
+  loading,
+  type,
+}: {
+  groups: ChatGroupListItem[];
+  selectedId?: string;
+  onSelect: (g: ChatGroupListItem) => void;
+  loading: boolean;
+  type: "course" | "batch";
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (groups.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-muted-foreground">
+        <p className="text-sm">No {type} groups found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <ScrollArea className="h-full">
+      <div className="flex flex-col p-3 gap-2">
+        {groups.map((group) => {
+          const isSelected = group.id === selectedId;
+          return (
+            <button
+              key={group.id}
+              onClick={() => onSelect(group)}
+              className={cn(
+                "flex flex-col items-start text-left p-3 rounded-xl transition-all duration-200 border",
+                isSelected
+                  ? "bg-[#1a3d32]/5 border-[#1a3d32]/20 shadow-sm"
+                  : "bg-white border-transparent hover:bg-gray-50 hover:border-gray-100"
+              )}
+            >
+              <div className="w-full flex justify-between items-start mb-1">
+                <span
+                  className={cn(
+                    "font-semibold text-sm line-clamp-1",
+                    isSelected ? "text-[#1a3d32]" : "text-gray-900"
+                  )}
+                >
+                  {type === "course"
+                    ? group.courseName || "Unknown Course"
+                    : group.batchName || "Unknown Batch"}
+                </span>
+                {group.courseCode && (
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] px-1.5 h-5 shrink-0 ml-2 bg-gray-100 text-gray-600"
+                  >
+                    {group.courseCode}
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
+                {type === "course" ? (
+                  <>
+                    <User className="h-3 w-3" />
+                    <span className="line-clamp-1">
+                      {group.instructorName || "Instructor"}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <GraduationCap className="h-3 w-3" />
+                    <span>Batch Counselor</span>
+                  </>
+                )}
+              </div>
+
+              <div className="w-full text-xs text-gray-500 line-clamp-1 pl-2 border-l-2 border-gray-200">
+                {group.lastMessage?.content || (
+                  <span className="italic opacity-70">No messages yet</span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }

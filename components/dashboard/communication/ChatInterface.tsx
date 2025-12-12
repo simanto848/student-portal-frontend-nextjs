@@ -27,9 +27,10 @@ interface ChatInterfaceProps {
     chatGroupId: string;
     chatGroupType?: 'BatchChatGroup' | 'CourseChatGroup' | 'group' | 'direct';
     initialMessages?: Message[];
+    canPin?: boolean;
 }
 
-export function ChatInterface({ chatGroupId, chatGroupType = 'group', initialMessages = [] }: ChatInterfaceProps) {
+export function ChatInterface({ chatGroupId, chatGroupType = 'group', initialMessages = [], canPin = true }: ChatInterfaceProps) {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [newMessage, setNewMessage] = useState("");
@@ -327,9 +328,11 @@ export function ChatInterface({ chatGroupId, chatGroupType = 'group', initialMes
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align={isMe ? "end" : "start"}>
-                                                    <DropdownMenuItem onClick={() => handlePinMessage(msg.id)}>
-                                                        <Pin className="h-4 w-4 mr-2" /> {msg.isPinned ? "Unpin" : "Pin"}
-                                                    </DropdownMenuItem>
+                                                    {canPin && (
+                                                        <DropdownMenuItem onClick={() => handlePinMessage(msg.id)}>
+                                                            <Pin className="h-4 w-4 mr-2" /> {msg.isPinned ? "Unpin" : "Pin"}
+                                                        </DropdownMenuItem>
+                                                    )}
                                                     {isMe && (
                                                         <>
                                                             <DropdownMenuItem onClick={() => startEditing(msg)}>
