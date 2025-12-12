@@ -25,31 +25,31 @@ const normalizeBorrowing = (data: unknown): Borrowing => {
   let copyId = (d.copyId as string) || "";
   let copy = d.copy as BookCopy | undefined;
 
-  if (d.copyId && typeof d.copyId === 'object') {
+  if (d.copyId && typeof d.copyId === "object") {
     const copyObj = d.copyId as any;
     copyId = copyObj._id || copyObj.id;
 
     // nested book in copy
     let book = copyObj.bookId as Book | undefined;
-    if (copyObj.bookId && typeof copyObj.bookId === 'object') {
+    if (copyObj.bookId && typeof copyObj.bookId === "object") {
       const bookObj = copyObj.bookId as any;
       book = {
         ...bookObj,
-        id: bookObj._id || bookObj.id
+        id: bookObj._id || bookObj.id,
       };
     }
 
     copy = {
       ...copyObj,
       id: copyObj._id || copyObj.id,
-      book
+      book,
     } as BookCopy;
   }
 
   // populated libraryId
   let libraryId = (d.libraryId as string) || "";
   let library = d.library as Library | undefined;
-  if (d.libraryId && typeof d.libraryId === 'object') {
+  if (d.libraryId && typeof d.libraryId === "object") {
     const libObj = d.libraryId as any;
     libraryId = libObj._id || libObj.id;
     library = libObj as Library;
@@ -78,6 +78,52 @@ const normalizeBorrowing = (data: unknown): Borrowing => {
 };
 
 export const borrowingService = {
+  getMyBorrowedBooks: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<Borrowing[]> => {
+    try {
+      const res = await libraryApi.get("/library/borrowings/my-borrowed", {
+        params,
+      });
+      const data = res.data as any;
+      const raw = data.data?.borrowings ?? data.data ?? [];
+      return Array.isArray(raw) ? raw.map(normalizeBorrowing) : [];
+    } catch (error) {
+      handleLibraryApiError(error);
+      throw error as Error;
+    }
+  },
+
+  getMyOverdueBooks: async (): Promise<Borrowing[]> => {
+    try {
+      const res = await libraryApi.get("/library/borrowings/my-overdue");
+      const data = res.data as any;
+      const raw = data.data?.borrowings ?? data.data ?? [];
+      return Array.isArray(raw) ? raw.map(normalizeBorrowing) : [];
+    } catch (error) {
+      handleLibraryApiError(error);
+      throw error as Error;
+    }
+  },
+
+  getMyBorrowingHistory: async (params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<Borrowing[]> => {
+    try {
+      const res = await libraryApi.get("/library/borrowings/my-history", {
+        params,
+      });
+      const data = res.data as any;
+      const raw = data.data?.borrowings ?? data.data ?? [];
+      return Array.isArray(raw) ? raw.map(normalizeBorrowing) : [];
+    } catch (error) {
+      handleLibraryApiError(error);
+      throw error as Error;
+    }
+  },
+
   getAll: async (params?: {
     page?: number;
     limit?: number;
@@ -99,7 +145,7 @@ export const borrowingService = {
 
       return {
         borrowings,
-        pagination: data.data?.pagination
+        pagination: data.data?.pagination,
       };
     } catch (error) {
       handleLibraryApiError(error);

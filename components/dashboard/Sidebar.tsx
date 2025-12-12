@@ -232,7 +232,10 @@ export function Sidebar({
   const studentLinks: NavItem[] = [
     { href: "/dashboard/student", label: "Dashboard", icon: LayoutDashboard },
     { href: "/dashboard/student/classes", label: "My Classes", icon: BookOpen },
+    { href: "/dashboard/student/attendances", label: "Attendances", icon: CheckSquare },
     { href: "/dashboard/student/grades", label: "Grades", icon: FileText },
+    { href: "/dashboard/student/classroom", label: "Classroom", icon: Building2 },
+    { href: "/dashboard/student/communication", label: "Communication", icon: MessageSquare },
     { href: "/dashboard/student/library", label: "Library", icon: Library },
     { href: "/dashboard/student/payments", label: "Payments", icon: Building2 },
   ];
@@ -306,7 +309,7 @@ export function Sidebar({
     teacher: teacherLinks,
     student: studentLinks,
     program_controller: programControllerLinks,
-    library: librarianLinks, // Add this
+    library: librarianLinks,
     staff: [],
   };
 
@@ -317,12 +320,10 @@ export function Sidebar({
     children?.some((child) => pathname === child.href) || false;
 
   const handleLinkClick = () => {
-    // Close sidebar on mobile when a link is clicked
     if (onClose) onClose();
   };
 
   const renderNavItem = (item: NavItem) => {
-    // If item has children, render as expandable section
     if (item.children) {
       const sectionId = item.label.toLowerCase().replace(/\s+/g, "-");
       const isExpanded =
@@ -335,7 +336,6 @@ export function Sidebar({
             onClick={() => {
               if (isCollapsed && toggleCollapse) {
                 toggleCollapse();
-                // Optionally expand this section when uncollapsing
                 if (!expandedSections.includes(sectionId)) {
                   toggleSection(sectionId);
                 }
@@ -396,7 +396,6 @@ export function Sidebar({
       );
     }
 
-    // Regular nav item
     return (
       <Link key={item.href} href={item.href!} onClick={handleLinkClick}>
         <Button
@@ -421,7 +420,6 @@ export function Sidebar({
     <div
       className={cn("h-full bg-[#344e41] text-white flex flex-col", className)}
     >
-      {/* Logo and Title with close button for mobile */}
       <div className="px-4 py-6 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div
@@ -445,7 +443,6 @@ export function Sidebar({
               </div>
             )}
           </div>
-          {/* Close button - only visible on mobile */}
           <Button
             variant="ghost"
             size="icon"
@@ -455,7 +452,6 @@ export function Sidebar({
             <X className="h-5 w-5" />
           </Button>
         </div>
-        {/* Desktop Collapse Toggle */}
         <div
           className={cn(
             "hidden lg:flex mt-2",
@@ -480,12 +476,10 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Navigation - Scrollable */}
       <div className="flex-1 overflow-y-auto py-4">
         <div className="px-3 space-y-2">{links.map(renderNavItem)}</div>
       </div>
 
-      {/* Settings and Logout at bottom */}
       <div className="px-3 py-4 border-t border-white/10">
         <div className="space-y-1">
           <Link href="/dashboard/settings" onClick={handleLinkClick}>
