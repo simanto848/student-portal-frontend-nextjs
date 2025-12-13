@@ -50,6 +50,11 @@ export async function proxy(request: NextRequest) {
     }
 
     if (path.startsWith("/dashboard")) {
+      // Allow settings page to be accessed by any authenticated role
+      if (path.startsWith("/dashboard/settings")) {
+        return NextResponse.next();
+      }
+
       if (path.startsWith(targetPath)) {
         return NextResponse.next();
       }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Card,
   CardContent,
@@ -65,12 +65,42 @@ export default function ExamCommitteePage() {
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
+  const refreshTimerRef = useRef<number | null>(null);
+
   useEffect(() => {
     fetchInitialData();
   }, []);
 
   useEffect(() => {
     fetchMembers();
+  }, [selectedDept, selectedBatch, selectedShift]);
+
+  useEffect(() => {
+    const refresh = () => {
+      fetchMembers({ silent: true });
+    };
+
+    // initial silent refresh to keep data moving
+    refresh();
+
+    refreshTimerRef.current = window.setInterval(refresh, 5000);
+
+    const onVisibility = () => {
+      if (!document.hidden) refresh();
+    };
+    const onFocus = () => refresh();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onFocus);
+
+    return () => {
+      if (refreshTimerRef.current)
+        window.clearInterval(refreshTimerRef.current);
+      refreshTimerRef.current = null;
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDept, selectedBatch, selectedShift]);
 
   const fetchInitialData = async () => {
@@ -86,8 +116,9 @@ export default function ExamCommitteePage() {
     }
   };
 
-  const fetchMembers = async () => {
-    setLoading(true);
+  const fetchMembers = async (opts?: { silent?: boolean }) => {
+    const silent = Boolean(opts?.silent);
+    if (!silent) setLoading(true);
     try {
       const deptId = selectedDept === "all" ? undefined : selectedDept;
       const batchId = selectedBatch === "all" ? undefined : selectedBatch;
@@ -131,9 +162,9 @@ export default function ExamCommitteePage() {
       setMembers(enrichedMembers);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to fetch committee members");
+      if (!silent) toast.error("Failed to fetch committee members");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 

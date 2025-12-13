@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (credentials: any, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,6 +51,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
+  const refreshUser = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) return;
+    const nextUser = await authService.getCurrentUser(token);
+    setUser(nextUser);
+    localStorage.setItem("user", JSON.stringify(nextUser));
+    setIsAuthenticated(true);
+  };
+
   const login = async (credentials: any, role: UserRole) => {
     setIsLoading(true);
     try {
@@ -64,8 +74,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem("refreshToken", data.refreshToken);
 
       // Set cookie for middleware
-      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${7 * 24 * 60 * 60
-        }; SameSite=Lax; Secure`;
+      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${
+        7 * 24 * 60 * 60
+      }; SameSite=Lax; Secure`;
 
       // Get the actual user role from response
       const userRole = data.user?.role || role;
@@ -128,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, isLoading, login, logout }}
+      value={{ user, isAuthenticated, isLoading, login, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

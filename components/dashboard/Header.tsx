@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/lib/utils";
+import Link from "next/link";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -87,11 +88,17 @@ export function Header({ onMenuClick }: HeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              Settings
+            {user?.role === "student" ? (
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link href="/dashboard/student/profile">Profile</Link>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem className="cursor-pointer">
+                Profile
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href="/dashboard/settings">Settings</Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
