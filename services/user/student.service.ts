@@ -86,13 +86,13 @@ const normalize = (s: Record<string, unknown>): Student => ({
   admissionDate: (s?.admissionDate as string) || "",
   profile: s?.profile
     ? {
-      id: (s.profile as any)._id || (s.profile as any).id,
-      firstName: (s.profile as any).firstName,
-      lastName: (s.profile as any).lastName,
-      profilePicture: (s.profile as any).profilePicture,
-      fatherName: (s.profile as any).fatherName,
-      motherName: (s.profile as any).motherName,
-    }
+        id: (s.profile as any)._id || (s.profile as any).id,
+        firstName: (s.profile as any).firstName,
+        lastName: (s.profile as any).lastName,
+        profilePicture: (s.profile as any).profilePicture,
+        fatherName: (s.profile as any).fatherName,
+        motherName: (s.profile as any).motherName,
+      }
     : undefined,
   createdAt: s?.createdAt as string | undefined,
   updatedAt: s?.updatedAt as string | undefined,
@@ -107,6 +107,7 @@ export const studentService = {
     programId?: string;
     batchId?: string;
     sessionId?: string;
+    shift?: "day" | "evening";
     enrollmentStatus?: string;
   }): Promise<{
     students: Student[];
@@ -118,8 +119,8 @@ export const studentService = {
       const students = Array.isArray(data.students)
         ? data.students.map(normalize)
         : Array.isArray(data)
-          ? data.map(normalize)
-          : [];
+        ? data.map(normalize)
+        : [];
       return { students, pagination: data.pagination };
     } catch (e) {
       return handleApiError(e);
@@ -187,8 +188,8 @@ export const studentService = {
       return Array.isArray(data)
         ? data.map(normalize)
         : Array.isArray(data.students)
-          ? data.students.map(normalize)
-          : [];
+        ? data.students.map(normalize)
+        : [];
     } catch (e) {
       return handleApiError(e);
     }

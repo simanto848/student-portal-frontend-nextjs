@@ -278,7 +278,13 @@ export default function CreateStudentPage() {
                     </label>
                     <SearchableSelect
                       options={batches.map((b) => ({
-                        label: b.name,
+                        label:
+                          b.code ||
+                          `${
+                            String(b.shift || "").toLowerCase() === "evening"
+                              ? "E"
+                              : "D"
+                          }-${b.name}`,
                         value: b.id || b._id,
                       }))}
                       value={formData.batchId}
@@ -292,63 +298,48 @@ export default function CreateStudentPage() {
                     <label className="text-sm font-semibold text-[#344e41]">
                       Session *
                     </label>
-                    <Select
+                    <SearchableSelect
+                      options={sessions.map((s) => ({
+                        label: s.name,
+                        value: s.id || s._id,
+                      }))}
                       value={formData.sessionId}
-                      onValueChange={(v) => handleChange("sessionId", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Session" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sessions.map((s) => (
-                          <SelectItem key={s.id || s._id} value={s.id || s._id}>
-                            {s.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(v) => handleChange("sessionId", v)}
+                      placeholder="Search and select session"
+                      disabled={isLoadingOptions}
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[#344e41]">
                       Program *
                     </label>
-                    <Select
+                    <SearchableSelect
+                      options={filteredPrograms.map((p) => ({
+                        label: p.name,
+                        value: p.id || p._id,
+                      }))}
                       value={formData.programId}
-                      onValueChange={(v) => handleChange("programId", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Program" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredPrograms.map((p) => (
-                          <SelectItem key={p.id || p._id} value={p.id || p._id}>
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(v) => handleChange("programId", v)}
+                      placeholder="Search and select program"
+                      disabled={isLoadingOptions}
+                    />
                   </div>
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-[#344e41]">
                       Department *
                     </label>
-                    <Select
+                    <SearchableSelect
+                      options={departments.map((d) => ({
+                        label: d.name,
+                        value: d.id || d._id,
+                      }))}
                       value={formData.departmentId}
-                      onValueChange={(v) => handleChange("departmentId", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.map((d) => (
-                          <SelectItem key={d.id || d._id} value={d.id || d._id}>
-                            {d.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={(v) => handleChange("departmentId", v)}
+                      placeholder="Search and select department"
+                      disabled={isLoadingOptions}
+                    />
                   </div>
 
                   <div className="space-y-2">
