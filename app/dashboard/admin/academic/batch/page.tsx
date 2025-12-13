@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -20,7 +21,7 @@ import {
 } from "@/services/academic.service";
 import { teacherService, Teacher } from "@/services/user/teacher.service";
 import { toast } from "sonner";
-import { Users, GraduationCap, Building2, Calendar } from "lucide-react";
+import { Users } from "lucide-react";
 
 const getName = (item: any): string => {
   if (!item) return "N/A";
@@ -286,9 +287,9 @@ export default function BatchManagementPage() {
   const handleFormSubmit = async (data: Record<string, string>) => {
     setIsSubmitting(true);
     try {
-      const submitData = {
+      const submitData: Partial<Batch> = {
         name: data.name,
-        shift: data.shift,
+        shift: data.shift === "evening" ? "evening" : "day",
         year: parseInt(data.year),
         programId: data.programId,
         departmentId: data.departmentId,

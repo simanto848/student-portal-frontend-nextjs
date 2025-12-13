@@ -51,7 +51,7 @@ export function CourseGradeView({
       setStudents(enrollmentsData.enrollments.map((e) => e.student));
 
       // Fetch existing grades
-      const gradesData = await courseGradeService.listGrades({
+      const gradesData = await courseGradeService.list({
         batchId,
         courseId,
       });
@@ -66,7 +66,7 @@ export function CourseGradeView({
   const handleCalculate = async (studentId: string) => {
     setIsCalculating(true);
     try {
-      await courseGradeService.calculateGrade({ studentId, courseId, batchId });
+      await courseGradeService.calculate({ studentId, courseId, batchId });
       toast.success("Grade calculated");
       fetchData();
     } catch (error) {
@@ -85,13 +85,15 @@ export function CourseGradeView({
       return;
     try {
       const gradeIds = grades
-        .filter((g) => g.status === "draft")
+        .filter((g) => g.workflowStatus === "draft")
         .map((g) => g.id);
       if (gradeIds.length === 0) {
         toast.error("No draft grades to submit");
         return;
       }
-      await courseGradeService.submitToCommittee({ gradeIds });
+      await Promise.all(
+        gradeIds.map((id) => courseGradeService.submitToCommittee(id))
+      );
       toast.success("Grades submitted to committee");
       fetchData();
     } catch (error) {
@@ -151,7 +153,9 @@ export function CourseGradeView({
                           {student.fullName}
                         </TableCell>
                         <TableCell>{student.registrationNumber}</TableCell>
-                        <TableCell>{grade?.totalMarks || "-"}</TableCell>
+                        <TableCell>
+                          {grade?.totalMarksObtained ?? "-"}
+                        </TableCell>
                         <TableCell className="font-bold">
                           {grade?.grade || "-"}
                         </TableCell>
@@ -162,15 +166,19 @@ export function CourseGradeView({
                               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                                 grade.status === "published"
                                   ? "bg-green-100 text-green-800"
-                                  : grade.status === "submitted"
+                                  : grade.workflowStatus === "submitted"
                                   ? "bg-blue-100 text-blue-800"
-                                  : grade.status === "returned"
+                                  : grade.workflowStatus === "returned"
                                   ? "bg-red-100 text-red-800"
                                   : "bg-gray-100 text-gray-800"
                               }`}
                             >
-                              {grade.status.charAt(0).toUpperCase() +
-                                grade.status.slice(1)}
+                              {String(grade.workflowStatus ?? grade.status)
+                                .charAt(0)
+                                .toUpperCase() +
+                                String(
+                                  grade.workflowStatus ?? grade.status
+                                ).slice(1)}
                             </span>
                           ) : (
                             <span className="text-muted-foreground text-xs">
@@ -188,8 +196,8 @@ export function CourseGradeView({
                             disabled={
                               isCalculating ||
                               (grade &&
-                                grade.status !== "draft" &&
-                                grade.status !== "returned")
+                                grade.workflowStatus !== "draft" &&
+                                grade.workflowStatus !== "returned")
                             }
                           >
                             <Calculator className="h-4 w-4 mr-2" />

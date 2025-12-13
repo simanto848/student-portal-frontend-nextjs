@@ -15,13 +15,11 @@ import {
   ArrowLeft,
   Users,
   GraduationCap,
-  Building2,
   Calendar,
   UserCheck,
   User,
   Edit2,
   Check,
-  ChevronsUpDown,
 } from "lucide-react";
 import {
   Dialog,
@@ -38,7 +36,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
 
 export default function BatchDetailsPage() {
   const params = useParams();
@@ -50,7 +47,6 @@ export default function BatchDetailsPage() {
 
   // Counselor Assignment State
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // For the command palette dropdown
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selectedCounselor, setSelectedCounselor] = useState<Teacher | null>(
     null
@@ -66,6 +62,7 @@ export default function BatchDetailsPage() {
     if (id) {
       fetchBatch();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {
@@ -95,6 +92,7 @@ export default function BatchDetailsPage() {
     if (isAssignDialogOpen) {
       fetchTeachers();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAssignDialogOpen, searchQuery]);
 
   const fetchBatch = async () => {
@@ -102,7 +100,6 @@ export default function BatchDetailsPage() {
     try {
       const data = await academicService.getBatchById(id);
       setBatch(data);
-      // setAssignedCounselor handled in effect
     } catch (error) {
       const message =
         error instanceof AcademicApiError
@@ -131,17 +128,13 @@ export default function BatchDetailsPage() {
   };
 
   const handleAssignCounselor = async () => {
-    if (!processAssign()) return;
-  };
-
-  const processAssign = async () => {
     if (!selectedCounselor || !batch) return;
+    setIsAssigning(true);
     try {
       await academicService.assignCounselor(batch.id, selectedCounselor.id);
       toast.success("Counselor assigned successfully");
-      setAssignedCounselor(selectedCounselor); // Update local state
-      setIsDialogOpen(false);
-      fetchBatch(); // Refresh full data just in case
+      setAssignedCounselor(selectedCounselor);
+      await fetchBatch();
       setIsAssignDialogOpen(false);
       setSelectedCounselor(null);
     } catch (error) {
@@ -150,6 +143,8 @@ export default function BatchDetailsPage() {
           ? error.message
           : "Failed to assign counselor";
       toast.error(message);
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -173,6 +168,7 @@ export default function BatchDetailsPage() {
       ? `${batch.shift === "evening" ? "E" : "D"}-${batch.name}`
       : batch.name);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getName = (item: any): string => {
     if (!item) return "N/A";
     if (typeof item === "string") return item;
@@ -434,7 +430,11 @@ export default function BatchDetailsPage() {
                   onValueChange={setSearchQuery}
                 />
                 <CommandList>
-                  <CommandEmpty>No teachers found.</CommandEmpty>
+                  <CommandEmpty>
+                    {isLoadingTeachers
+                      ? "Loading teachers..."
+                      : "No teachers found."}
+                  </CommandEmpty>
                   <CommandGroup>
                     {teachers.map((teacher) => (
                       <CommandItem
@@ -469,9 +469,9 @@ export default function BatchDetailsPage() {
               </Button>
               <Button
                 onClick={handleAssignCounselor}
-                disabled={!selectedCounselor}
+                disabled={!selectedCounselor || isAssigning}
               >
-                Assign Selected
+                {isAssigning ? "Assigning..." : "Assign Selected"}
               </Button>
             </DialogFooter>
           </DialogContent>

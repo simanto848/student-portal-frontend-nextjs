@@ -39,14 +39,11 @@ export default function StudentProfilePage() {
       setLoading(true);
       const studentId = user.id || user._id;
 
-      // Fetch student details and profile
-      const [student, profile] = await Promise.all([
-        studentService.getById(studentId),
-        studentService.getProfile(studentId).catch(() => null), // Profile might not exist
-      ]);
+      // Fetch student details (includes profile when available)
+      const student = await studentService.getById(studentId);
 
       setStudentData(student);
-      setProfileData(profile);
+      setProfileData((student as any)?.profile || null);
     } catch (err: any) {
       console.error("Failed to fetch profile", err);
       setError("Failed to load profile data.");
@@ -70,7 +67,7 @@ export default function StudentProfilePage() {
   }
 
   const student = studentData || user;
-  const profile = profileData;
+  const profile = profileData || (student as any)?.profile;
 
   // Extract program/batch info
   const program =
@@ -85,9 +82,9 @@ export default function StudentProfilePage() {
           <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="h-20 w-20 rounded-full bg-white/10 backdrop-blur flex items-center justify-center">
-                {student.profilePicture ? (
+                {profile?.profilePicture ? (
                   <img
-                    src={student.profilePicture}
+                    src={profile.profilePicture}
                     alt="Profile"
                     className="h-20 w-20 rounded-full object-cover"
                   />

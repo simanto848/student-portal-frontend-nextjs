@@ -35,16 +35,8 @@ export default function StudentEnrollmentsPage() {
     try {
       setLoading(true);
       const studentId = user.id || user._id;
-      const response = await enrollmentService.list({ studentId });
-
-      let enrollmentsList: any[] = [];
-      if (Array.isArray(response)) {
-        enrollmentsList = response;
-      } else if (response && Array.isArray((response as any).enrollments)) {
-        enrollmentsList = (response as any).enrollments;
-      } else if (response && Array.isArray((response as any).data)) {
-        enrollmentsList = (response as any).data;
-      }
+      const response = await enrollmentService.listEnrollments({ studentId });
+      const enrollmentsList = response?.enrollments || [];
 
       setEnrollments(enrollmentsList);
 
@@ -167,7 +159,7 @@ export default function StudentEnrollmentsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {groupedBySemester[sem]?.map((enrollment) => {
+                    {groupedBySemester[sem]?.map((enrollment: any) => {
                       const course =
                         typeof enrollment.courseId === "object"
                           ? enrollment.courseId

@@ -91,7 +91,7 @@ export default function CourseDetailsPage() {
       // Filter schedules for this specific course
       const courseSchedules = schedulesData.filter((s: CourseSchedule) => {
         const sessionCourse =
-          typeof s.sessionCourse === "object" ? s.sessionCourse : null;
+          typeof s.sessionCourseId === "object" ? s.sessionCourseId : null;
         const course =
           sessionCourse && typeof sessionCourse.course === "object"
             ? sessionCourse.course
