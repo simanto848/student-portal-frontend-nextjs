@@ -37,6 +37,7 @@ export default function CreateExamCommitteePage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [selectedDept, setSelectedDept] = useState("");
   const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [selectedShift, setSelectedShift] = useState<"day" | "evening">("day");
 
   const hasPermission = user?.role === "super_admin" || user?.role === "admin";
 
@@ -80,6 +81,7 @@ export default function CreateExamCommitteePage() {
       await examCommitteeService.addMember({
         departmentId: selectedDept,
         teacherId: selectedTeacher,
+        shift: selectedShift,
       });
 
       toast.success("Exam Committee member added successfully");
@@ -163,6 +165,24 @@ export default function CreateExamCommitteePage() {
                         {teacher.fullName} ({teacher.email})
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="shift">Shift</Label>
+                <Select
+                  value={selectedShift}
+                  onValueChange={(v) =>
+                    setSelectedShift(v as "day" | "evening")
+                  }
+                >
+                  <SelectTrigger id="shift">
+                    <SelectValue placeholder="Select a shift" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day">Day</SelectItem>
+                    <SelectItem value="evening">Evening</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

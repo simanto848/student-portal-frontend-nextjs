@@ -145,6 +145,7 @@ export interface ExamCommittee {
   departmentId: string | Department;
   department?: Department;
   teacherId: string;
+  shift: "day" | "evening";
   teacher?: {
     fullName: string;
     email: string;
