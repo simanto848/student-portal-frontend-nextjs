@@ -16,6 +16,7 @@ import {
   Users,
   User,
   GraduationCap,
+  ArrowLeft,
 } from "lucide-react";
 import { chatService, Message } from "@/services/communication/chat.service";
 import { ChatInterface } from "@/components/dashboard/communication/ChatInterface";
@@ -128,7 +129,12 @@ export default function StudentCommunicationPage() {
     <DashboardLayout>
       <div className="flex h-[calc(100vh-100px)] -m-4 md:-m-8 overflow-hidden bg-gray-50/50">
         {/* Sidebar - Group List */}
-        <div className="w-full md:w-[380px] flex flex-col border-r bg-white z-10">
+        <div
+          className={cn(
+            "w-full md:w-[380px] flex flex-col border-r bg-white z-10",
+            selectedGroup ? "hidden md:flex" : "flex"
+          )}
+        >
           {/* Header */}
           <div className="p-4 border-b space-y-4">
             <div className="flex items-center gap-2 text-[#1a3d32]">
