@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function ClassroomsPage() {
-    const { user } = useAuth();
+    const { isLoading: authLoading, isAuthenticated } = useAuth();
     const router = useRouter();
     const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
     const [pendingWorkspaces, setPendingWorkspaces] = useState<PendingWorkspace[]>([]);
@@ -31,10 +31,14 @@ export default function ClassroomsPage() {
     const [creatingId, setCreatingId] = useState<string | null>(null);
 
     useEffect(() => {
-        if (user?.id) {
-            fetchData();
+        if (authLoading) return;
+        if (!isAuthenticated) {
+            setLoading(false);
+            return;
         }
-    }, [user?.id]);
+
+        fetchData();
+    }, [authLoading, isAuthenticated]);
 
     const fetchData = async () => {
         setLoading(true);

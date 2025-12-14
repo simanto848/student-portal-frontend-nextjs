@@ -69,14 +69,20 @@ export default function TeacherDashboard() {
         );
       }
 
-      const results = await Promise.all(promises);
-      const scheduleData = results[0];
-      const coursesData = results[1];
-      const workflowData = results[2];
+      const results = await Promise.allSettled(promises);
 
-      setSchedules(scheduleData);
-      setCourses(coursesData);
-      setWorkflows(workflowData || []);
+      const scheduleResult = results[0];
+      const coursesResult = results[1];
+      const workflowResult = results[2];
+
+      if (scheduleResult.status === 'fulfilled') setSchedules(scheduleResult.value);
+      else console.error("Failed to fetch schedule", scheduleResult.reason);
+
+      if (coursesResult.status === 'fulfilled') setCourses(coursesResult.value);
+      else console.error("Failed to fetch courses", coursesResult.reason);
+
+      if (workflowResult.status === 'fulfilled') setWorkflows(workflowResult.value || []);
+      else console.error("Failed to fetch workflows", workflowResult.reason);
     } catch (error) {
       toast.error("Failed to load dashboard data");
     } finally {

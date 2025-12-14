@@ -1,5 +1,7 @@
 'use client';
 
+import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
+
 import { useState, useEffect } from 'react';
 import {
   Card,
@@ -30,6 +32,8 @@ import { examCommitteeService } from '@/services/academic/exam-committee.service
 import { departmentService } from '@/services/academic/department.service';
 import { batchService } from '@/services/academic/batch.service';
 import { ExamCommittee, Department, Batch } from '@/services/academic/types';
+
+import { teacherService } from '@/services/user/teacher.service';
 
 export default function ExamCommitteeTeacherPage() {
   const [members, setMembers] = useState<ExamCommittee[]>([]);
@@ -74,8 +78,9 @@ export default function ExamCommitteeTeacherPage() {
       if (deptId) {
         const [committeeData, allTeachers] = await Promise.all([
           examCommitteeService.getMembers(deptId, batchId),
-          import('@/services/teacher.service').then(m => m.teacherService.getAllTeachers())
+          teacherService.getAll().then(res => res.teachers)
         ]);
+
 
         const enrichedMembers = committeeData.map(member => {
           const teacher = allTeachers.find((t: any) => (t.id || t._id) === member.teacherId);
@@ -104,106 +109,108 @@ export default function ExamCommitteeTeacherPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Exam Committee</h2>
-          <p className="text-muted-foreground">
-            View exam committee members. Select a department to view.
-          </p>
-        </div>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Committee Members</CardTitle>
-          <CardDescription>
-            List of teachers in exam committees.
-          </CardDescription>
-          <div className="flex gap-4 mt-4">
-            <Select value={selectedDept} onValueChange={setSelectedDept}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select Department" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Select Department</SelectItem>
-                {departments.map((dept) => (
-                  <SelectItem key={dept.id} value={dept.id}>
-                    {dept.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by Batch" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Batches</SelectItem>
-                {batches.map((batch) => (
-                  <SelectItem key={batch.id} value={batch.id}>
-                    {batch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight text-[#1a3d32]">Exam Committee</h2>
+            <p className="text-muted-foreground">
+              View exam committee members. Select a department to view.
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Teacher</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Batch</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading && selectedDept !== 'all' ? (
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Committee Members</CardTitle>
+            <CardDescription>
+              List of teachers in exam committees.
+            </CardDescription>
+            <div className="flex gap-4 mt-4">
+              <Select value={selectedDept} onValueChange={setSelectedDept}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Select Department</SelectItem>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by Batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Batches</SelectItem>
+                  {batches.map((batch) => (
+                    <SelectItem key={batch.id} value={batch.id}>
+                      {batch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      Loading...
-                    </TableCell>
+                    <TableHead>Teacher</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Batch</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ) : selectedDept === 'all' ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                      Please select a department to view committees.
-                    </TableCell>
-                  </TableRow>
-                ) : members.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8">
-                      No members found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  members.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="font-medium">
-                        {member.teacher?.fullName}
-                        <div className="text-xs text-muted-foreground">{member.teacher?.email}</div>
-                      </TableCell>
-                      <TableCell>{member.department?.name}</TableCell>
-                      <TableCell>
-                        {member.batch ? member.batch.name : <Badge variant="secondary">General</Badge>}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={member.status ? 'default' : 'secondary'}>
-                          {member.status ? 'Active' : 'Inactive'}
-                        </Badge>
+                </TableHeader>
+                <TableBody>
+                  {loading && selectedDept !== 'all' ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        Loading...
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                  ) : selectedDept === 'all' ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                        Please select a department to view committees.
+                      </TableCell>
+                    </TableRow>
+                  ) : members.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        No members found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    members.map((member) => (
+                      <TableRow key={member.id}>
+                        <TableCell className="font-medium">
+                          {member.teacher?.fullName}
+                          <div className="text-xs text-muted-foreground">{member.teacher?.email}</div>
+                        </TableCell>
+                        <TableCell>{member.department?.name}</TableCell>
+                        <TableCell>
+                          {member.batch ? member.batch.name : <Badge variant="secondary">General</Badge>}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={member.status ? 'default' : 'secondary'}>
+                            {member.status ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
 }

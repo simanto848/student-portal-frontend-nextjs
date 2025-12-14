@@ -37,6 +37,7 @@ import {
   ArrowLeft,
   Clock,
 } from "lucide-react";
+import { CourseGradeView } from "@/components/classroom/CourseGradeView";
 
 export default function CourseDetailsPage() {
   const { id } = useParams();
@@ -352,29 +353,11 @@ export default function CourseDetailsPage() {
           </TabsContent>
 
           <TabsContent value="grades" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Grade Management</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-10 space-y-4">
-                <GraduationCap className="h-12 w-12 text-muted-foreground" />
-                <div className="text-center">
-                  <h3 className="font-semibold text-lg">Input Grades</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Manage student grades and assessments.
-                  </p>
-                </div>
-                <Button
-                  onClick={() =>
-                    router.push(
-                      `/dashboard/teacher/grading?courseId=${assignment.courseId}&batchId=${assignment.batchId}`
-                    )
-                  }
-                >
-                  Go to Gradebook
-                </Button>
-              </CardContent>
-            </Card>
+            <CourseGradeView
+              courseId={assignment.courseId}
+              batchId={assignment.batchId}
+              semester={assignment.semester}
+            />
           </TabsContent>
         </Tabs>
       </div>
