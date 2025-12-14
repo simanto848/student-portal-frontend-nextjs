@@ -7,11 +7,22 @@ export interface QuizOption {
     isCorrect?: boolean;
 }
 
+// TipTap content type
+export type TipTapContent = {
+    type: string;
+    content?: TipTapContent[];
+    attrs?: Record<string, unknown>;
+    marks?: { type: string; attrs?: Record<string, unknown> }[];
+    text?: string;
+};
+
 export interface Question {
     id: string;
     quizId: string;
     type: 'mcq_single' | 'mcq_multiple' | 'true_false' | 'short_answer' | 'long_answer';
-    text: string;
+    text: string;  // Plain text fallback / searchable text
+    content?: TipTapContent;  // TipTap JSON content
+    contentType?: 'plain' | 'tiptap';  // Content format indicator
     options: QuizOption[];
     correctAnswer?: string;
     points: number;
@@ -236,6 +247,30 @@ export const questionService = {
         try {
             const res = await classroomApi.post(`/questions/quiz/${quizId}/reorder`, { questionIds });
             return res.data.data || [];
+        } catch (e) {
+            return handleClassroomApiError(e);
+        }
+    },
+
+    // Upload image for question content (TipTap editor)
+    async uploadImage(file: File): Promise<string> {
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            const res = await classroomApi.post('/questions/images', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            // Return the full URL for the image
+            const imageUrl = res.data.data?.url;
+            // Prepend the API base URL if needed
+            if (imageUrl && !imageUrl.startsWith('http')) {
+                // Get the classroom service base URL - classroom runs on port 8011
+                const baseUrl = process.env.NEXT_PUBLIC_CLASSROOM_API_URL || 'http://localhost:8011';
+                return `${baseUrl}${imageUrl}`;
+            }
+            return imageUrl;
         } catch (e) {
             return handleClassroomApiError(e);
         }

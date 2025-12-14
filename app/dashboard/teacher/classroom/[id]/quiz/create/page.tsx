@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { quizService, questionService, Quiz, Question, QuizOption } from "@/services/classroom/quiz.service";
+import { RichTextEditor } from "@/components/ui/RichTextEditor";
+import { quizService, questionService, Quiz, Question, QuizOption, TipTapContent } from "@/services/classroom/quiz.service";
 import { toast } from "sonner";
 import {
     ArrowLeft,
@@ -96,6 +97,8 @@ export default function CreateQuizPage() {
             tempId: generateId(),
             type: type as Question["type"],
             text: "",
+            content: undefined,
+            contentType: "tiptap",
             points: 1,
             options: type === "true_false"
                 ? [{ id: generateId(), text: "True", isCorrect: false }, { id: generateId(), text: "False", isCorrect: false }]
@@ -108,6 +111,11 @@ export default function CreateQuizPage() {
         setQuestions([...questions, newQuestion]);
         setExpandedQuestion(newQuestion.tempId);
     };
+
+    // Image upload handler for RichTextEditor
+    const handleImageUpload = useCallback(async (file: File): Promise<string> => {
+        return await questionService.uploadImage(file);
+    }, []);
 
     const updateQuestion = (tempId: string, updates: Partial<QuestionDraft>) => {
         setQuestions(questions.map(q => q.tempId === tempId ? { ...q, ...updates } : q));
@@ -200,6 +208,8 @@ export default function CreateQuizPage() {
                     questions.map((q, index) => ({
                         type: q.type,
                         text: q.text,
+                        content: q.content,
+                        contentType: q.contentType || "tiptap",
                         options: q.options,
                         correctAnswer: q.correctAnswer,
                         points: q.points,
@@ -255,13 +265,29 @@ export default function CreateQuizPage() {
                     <CardContent className="border-t pt-4 space-y-4">
                         <div className="grid gap-4">
                             <div>
-                                <Label>Question Text *</Label>
-                                <Textarea
-                                    placeholder="Enter your question..."
-                                    value={question.text || ""}
-                                    onChange={(e) => updateQuestion(question.tempId, { text: e.target.value })}
+                                <Label className="mb-2 block">Question Content *</Label>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Use the toolbar to format text, add images, code blocks, and more.
+                                </p>
+                                <RichTextEditor
+                                    content={question.content || question.text || ""}
+                                    onChange={(content) => {
+                                        // Extract plain text for searchability
+                                        const extractText = (node: any): string => {
+                                            if (node.text) return node.text;
+                                            if (node.content) return node.content.map(extractText).join(" ");
+                                            return "";
+                                        };
+                                        const plainText = extractText(content);
+                                        updateQuestion(question.tempId, {
+                                            content: content as any,
+                                            text: plainText,
+                                            contentType: "tiptap"
+                                        });
+                                    }}
+                                    onImageUpload={handleImageUpload}
+                                    placeholder="Enter your question here... Use the toolbar to add formatting, images, code blocks, etc."
                                     className="mt-1.5"
-                                    rows={3}
                                 />
                             </div>
 
@@ -741,6 +767,113 @@ export default function CreateQuizPage() {
                                             <p><strong>Show Results:</strong> {showResultsAfterSubmit ? "Yes" : "No"}</p>
                                             <p><strong>Show Answers:</strong> {showCorrectAnswers ? "Yes" : "No"}</p>
                                             {passingScore > 0 && <p><strong>Passing Score:</strong> {passingScore}%</p>}
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Question Preview - Student View */}
+                                    <Card className="border-2 border-[#588157]/30">
+                                        <CardHeader className="pb-2 bg-gradient-to-r from-[#588157]/10 to-[#3a5a40]/10">
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-8 w-8 rounded-lg bg-[#588157] flex items-center justify-center">
+                                                    <FileText className="h-4 w-4 text-white" />
+                                                </div>
+                                                <div>
+                                                    <CardTitle className="text-base">Question Preview</CardTitle>
+                                                    <CardDescription className="text-xs">How students will see your questions</CardDescription>
+                                                </div>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent className="pt-4 space-y-6">
+                                            {questions.length === 0 ? (
+                                                <p className="text-center text-muted-foreground py-8">No questions added yet</p>
+                                            ) : (
+                                                questions.map((question, index) => (
+                                                    <div
+                                                        key={question.tempId}
+                                                        className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
+                                                    >
+                                                        <div className="flex items-start gap-4">
+                                                            {/* Question Number */}
+                                                            <div className="flex-shrink-0 h-8 w-8 rounded-full bg-[#588157] text-white flex items-center justify-center font-semibold text-sm">
+                                                                {index + 1}
+                                                            </div>
+
+                                                            <div className="flex-1 space-y-4">
+                                                                {/* Question Header */}
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                                                                        {QUESTION_TYPES.find(t => t.value === question.type)?.label || question.type}
+                                                                    </span>
+                                                                    <span className="text-xs font-medium text-[#588157]">
+                                                                        {question.points || 1} {(question.points || 1) === 1 ? "point" : "points"}
+                                                                    </span>
+                                                                </div>
+
+                                                                {/* Question Content */}
+                                                                <div className="prose prose-sm max-w-none">
+                                                                    {question.content ? (
+                                                                        <RichTextEditor
+                                                                            content={question.content}
+                                                                            editable={false}
+                                                                            className="border-0 shadow-none"
+                                                                        />
+                                                                    ) : (
+                                                                        <p className="text-gray-700">{question.text || "No question text"}</p>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Answer Options for MCQ/True-False */}
+                                                                {(question.type?.startsWith("mcq") || question.type === "true_false") && (
+                                                                    <div className="space-y-2 pl-2">
+                                                                        {question.options?.map((option, optIdx) => (
+                                                                            <label
+                                                                                key={option.id}
+                                                                                className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+                                                                            >
+                                                                                {question.type === "mcq_multiple" ? (
+                                                                                    <div className="h-5 w-5 rounded border-2 border-gray-300 flex items-center justify-center">
+                                                                                        {/* Checkbox style */}
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div className="h-5 w-5 rounded-full border-2 border-gray-300">
+                                                                                        {/* Radio style */}
+                                                                                    </div>
+                                                                                )}
+                                                                                <span className="text-sm text-gray-700">
+                                                                                    {option.text || `Option ${optIdx + 1}`}
+                                                                                </span>
+                                                                            </label>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Answer Input for Short/Long Answer */}
+                                                                {question.type === "short_answer" && (
+                                                                    <div className="pl-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            disabled
+                                                                            placeholder="Student enters short answer here..."
+                                                                            className="w-full p-3 border rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed"
+                                                                        />
+                                                                    </div>
+                                                                )}
+
+                                                                {question.type === "long_answer" && (
+                                                                    <div className="pl-2">
+                                                                        <textarea
+                                                                            disabled
+                                                                            placeholder="Student enters detailed answer here..."
+                                                                            rows={4}
+                                                                            className="w-full p-3 border rounded-lg bg-gray-50 text-gray-400 cursor-not-allowed resize-none"
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
                                         </CardContent>
                                     </Card>
                                 </div>

@@ -33,7 +33,6 @@ export default function StudentClassroomDetailPage() {
     const [stream, setStream] = useState<StreamItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Submission View State
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
 
     useEffect(() => {
@@ -96,9 +95,12 @@ export default function StudentClassroomDetailPage() {
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                         <div>
-                            <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">{workspace.title}</h1>
+                            <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">
+                                {(workspace as any).courseName || workspace.title}
+                            </h1>
                             <p className="text-muted-foreground">
-                                {workspace.courseId} • {workspace.batchId}
+                                {(workspace as any).courseCode || workspace.courseId} • Batch {(workspace as any).batchName || workspace.batchId}
+                                {(workspace as any).programId?.shortName && ` • ${(workspace as any).programId.shortName}`}
                             </p>
                         </div>
                     </div>
@@ -120,9 +122,11 @@ export default function StudentClassroomDetailPage() {
                             <div className="space-y-6">
                                 <Card className="bg-linear-to-r from-[#344e41] to-[#588157] text-white border-none">
                                     <CardHeader>
-                                        <CardTitle className="text-2xl">{workspace.title}</CardTitle>
+                                        <CardTitle className="text-2xl">
+                                            {(workspace as any).courseName || workspace.title}
+                                        </CardTitle>
                                         <CardDescription className="text-gray-100">
-                                            {workspace.courseId} • {workspace.batchId}
+                                            {(workspace as any).courseCode || workspace.courseId} • Batch {(workspace as any).batchName || workspace.batchId}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
@@ -276,18 +280,25 @@ export default function StudentClassroomDetailPage() {
                                 <CardHeader className="border-b">
                                     <div className="flex items-center justify-between">
                                         <CardTitle className="text-[#3e6253]">Teachers</CardTitle>
-                                        <Users className="h-5 w-5 text-[#3e6253]" />
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm text-muted-foreground">{workspace.teacherIds?.length || 0} teacher(s)</span>
+                                            <Users className="h-5 w-5 text-[#3e6253]" />
+                                        </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="pt-6">
                                     <div className="space-y-4">
-                                        {workspace.teacherIds?.length > 0 ? (
-                                            workspace.teacherIds.map((id) => (
-                                                <div key={id} className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-full bg-[#3e6253]/10 flex items-center justify-center text-[#3e6253]">
-                                                        {id.substring(0, 2).toUpperCase()}
+                                        {((workspace as any).teachers?.length > 0 || workspace.teacherIds?.length > 0) ? (
+                                            ((workspace as any).teachers || workspace.teacherIds?.map((id: string) => ({ id, fullName: "Unknown Teacher" }))).map((teacher: any, idx: number) => (
+                                                <div key={teacher.id || idx} className="flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-full bg-[#3e6253]/10 flex items-center justify-center text-[#3e6253] font-medium">
+                                                        {teacher.fullName?.substring(0, 2).toUpperCase() || `T${idx + 1}`}
                                                     </div>
-                                                    <span>{id}</span>
+                                                    <div>
+                                                        <p className="font-medium text-[#1a3d32]">{teacher.fullName || "Course Instructor"}</p>
+                                                        {teacher.email && <p className="text-xs text-muted-foreground">{teacher.email}</p>}
+                                                        {!teacher.email && <p className="text-xs text-muted-foreground">Course Instructor</p>}
+                                                    </div>
                                                 </div>
                                             ))
                                         ) : (
@@ -300,26 +311,28 @@ export default function StudentClassroomDetailPage() {
                             <Card>
                                 <CardHeader className="border-b">
                                     <div className="flex items-center justify-between">
-                                        <CardTitle className="text-[#3e6253]">Students</CardTitle>
+                                        <CardTitle className="text-[#3e6253]">Batch Students</CardTitle>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm text-muted-foreground">{workspace.studentIds?.length || 0} students</span>
+                                            <span className="text-sm text-muted-foreground">
+                                                {(workspace as any).totalBatchStudents || workspace.studentIds?.length || 0} students in Batch {(workspace as any).batchName || ""}
+                                            </span>
                                             <Users className="h-5 w-5 text-[#3e6253]" />
                                         </div>
                                     </div>
                                 </CardHeader>
                                 <CardContent className="pt-6">
-                                    <div className="space-y-4">
-                                        {workspace.studentIds?.length > 0 ? (
-                                            workspace.studentIds.map((id) => (
-                                                <div key={id} className="flex items-center gap-3 border-b pb-2 last:border-0">
-                                                    <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
-                                                        {id.substring(0, 2).toUpperCase()}
-                                                    </div>
-                                                    <span>{id}</span>
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-sm text-muted-foreground">No students enrolled</p>
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <Users className="mx-auto h-12 w-12 opacity-20 mb-4" />
+                                        <p className="font-medium text-[#1a3d32]">
+                                            {(workspace as any).totalBatchStudents || 0} Students in Batch {(workspace as any).batchName || ""}
+                                        </p>
+                                        <p className="text-sm mt-1">
+                                            All students enrolled in this batch have access to this classroom.
+                                        </p>
+                                        {(workspace as any).programId?.shortName && (
+                                            <p className="text-xs mt-2 text-gray-400">
+                                                Program: {(workspace as any).programId.shortName}
+                                            </p>
                                         )}
                                     </div>
                                 </CardContent>
