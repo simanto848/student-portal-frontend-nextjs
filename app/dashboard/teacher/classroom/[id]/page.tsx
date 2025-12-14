@@ -201,9 +201,10 @@ export default function TeacherClassroomDetailPage() {
         </div>
 
         <Tabs defaultValue="stream" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-6 lg:w-[700px]">
             <TabsTrigger value="stream">Stream</TabsTrigger>
             <TabsTrigger value="classwork">Classwork</TabsTrigger>
+            <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
             <TabsTrigger value="people">People</TabsTrigger>
             <TabsTrigger value="assessments">Assessments</TabsTrigger>
             <TabsTrigger value="grades">Grades</TabsTrigger>
@@ -556,6 +557,38 @@ export default function TeacherClassroomDetailPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="quizzes" className="mt-6">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-[#344e41]">Quizzes & Exams</h2>
+                  <p className="text-sm text-muted-foreground">Create and manage quizzes for your students</p>
+                </div>
+                <Button
+                  className="bg-[#588157] hover:bg-[#3a5a40] text-white gap-2"
+                  onClick={() => router.push(`/dashboard/teacher/classroom/${id}/quiz`)}
+                >
+                  Manage Quizzes
+                </Button>
+              </div>
+              <Card className="border-dashed">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium text-[#344e41] mb-2">Quiz Management</h3>
+                  <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
+                    Create MCQ, true/false, short answer, and essay questions. Set time limits and track student performance.
+                  </p>
+                  <Button
+                    className="bg-[#588157] hover:bg-[#3a5a40] text-white"
+                    onClick={() => router.push(`/dashboard/teacher/classroom/${id}/quiz`)}
+                  >
+                    Open Quiz Manager
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="assessments" className="mt-6">
             <AssessmentView
               courseId={workspace.courseId}
@@ -589,8 +622,8 @@ export default function TeacherClassroomDetailPage() {
                               setSelectedAssignmentId(assignment.id)
                             }
                             className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${selectedAssignmentId === assignment.id
-                                ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
-                                : "text-gray-600 border-l-4 border-transparent"
+                              ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
+                              : "text-gray-600 border-l-4 border-transparent"
                               }`}
                           >
                             {assignment.title}

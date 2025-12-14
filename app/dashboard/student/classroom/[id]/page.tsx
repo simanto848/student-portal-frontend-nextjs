@@ -105,9 +105,10 @@ export default function StudentClassroomDetailPage() {
                 </div>
 
                 <Tabs defaultValue="stream" className="w-full">
-                    <TabsList className="grid w-full grid-cols-6 lg:w-[600px]">
+                    <TabsList className="grid w-full grid-cols-7 lg:w-[700px]">
                         <TabsTrigger value="stream">Stream</TabsTrigger>
                         <TabsTrigger value="classwork">Classwork</TabsTrigger>
+                        <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
                         <TabsTrigger value="people">People</TabsTrigger>
                         <TabsTrigger value="attendance">Attendance</TabsTrigger>
                         <TabsTrigger value="assessments">Assessments</TabsTrigger>
@@ -332,6 +333,38 @@ export default function StudentClassroomDetailPage() {
                             batchId={workspace.batchId}
                             studentId={user?.id || ""}
                         />
+                    </TabsContent>
+
+                    <TabsContent value="quizzes" className="mt-6">
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-2xl font-bold text-[#344e41]">Quizzes & Exams</h2>
+                                    <p className="text-sm text-muted-foreground">Take quizzes and track your progress</p>
+                                </div>
+                                <Button
+                                    className="bg-[#588157] hover:bg-[#3a5a40] text-white"
+                                    onClick={() => router.push(`/dashboard/student/classroom/${id}/quiz`)}
+                                >
+                                    View All Quizzes
+                                </Button>
+                            </div>
+                            <Card className="border-dashed">
+                                <CardContent className="flex flex-col items-center justify-center py-12">
+                                    <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                                    <h3 className="text-lg font-medium text-[#344e41] mb-2">Quiz Center</h3>
+                                    <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
+                                        Take timed quizzes, view your results, and track your progress.
+                                    </p>
+                                    <Button
+                                        className="bg-[#588157] hover:bg-[#3a5a40] text-white"
+                                        onClick={() => router.push(`/dashboard/student/classroom/${id}/quiz`)}
+                                    >
+                                        Open Quiz Center
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="assessments" className="mt-6">
