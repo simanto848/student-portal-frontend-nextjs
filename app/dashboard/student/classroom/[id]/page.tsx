@@ -19,6 +19,7 @@ import { Loader2, MessageSquare, FileText, BookOpen, Users, ArrowLeft, Link as L
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
+import { downloadBlob } from "@/lib/download";
 
 export default function StudentClassroomDetailPage() {
     const params = useParams();
@@ -58,6 +59,18 @@ export default function StudentClassroomDetailPage() {
             router.push("/dashboard/student/classroom");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleDownloadMaterialAttachment = async (material: Material, index: number) => {
+        try {
+            const attachment = material.attachments?.[index];
+            if (!attachment) return;
+            const blob = await materialService.downloadAttachment(attachment);
+            downloadBlob(blob, attachment.name || 'material');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to download attachment';
+            toast.error(message);
         }
     };
 
@@ -104,7 +117,7 @@ export default function StudentClassroomDetailPage() {
                     <TabsContent value="stream" className="mt-6">
                         <div className="grid gap-6 md:grid-cols-[1fr_300px]">
                             <div className="space-y-6">
-                                <Card className="bg-gradient-to-r from-[#344e41] to-[#588157] text-white border-none">
+                                <Card className="bg-linear-to-r from-[#344e41] to-[#588157] text-white border-none">
                                     <CardHeader>
                                         <CardTitle className="text-2xl">{workspace.title}</CardTitle>
                                         <CardDescription className="text-gray-100">
@@ -225,11 +238,27 @@ export default function StudentClassroomDetailPage() {
                                                         <h4 className="font-medium text-[#1a3d32]">{material.title}</h4>
                                                         <p className="text-xs text-muted-foreground">Material</p>
                                                         {material.type === 'text' && <p className="text-sm text-gray-600 mt-2">{material.content}</p>}
-                                                        {(material.type === 'link' || material.type === 'file') && (
+                                                        {material.type === 'link' && material.content ? (
                                                             <a href={material.content} target="_blank" rel="noopener noreferrer" className="text-[#3e6253] hover:underline text-sm font-medium block mt-1">
                                                                 {material.content}
                                                             </a>
-                                                        )}
+                                                        ) : null}
+
+                                                        {material.type === 'file' && material.attachments?.length ? (
+                                                            <div className="mt-2 space-y-1">
+                                                                {material.attachments.map((att, idx) => (
+                                                                    <Button
+                                                                        key={att.id || `${material.id}-${idx}`}
+                                                                        variant="ghost"
+                                                                        className="h-auto p-0 justify-start text-[#3e6253] hover:underline"
+                                                                        onClick={() => handleDownloadMaterialAttachment(material, idx)}
+                                                                    >
+                                                                        <FileText className="mr-2 h-4 w-4" />
+                                                                        {att.name}
+                                                                    </Button>
+                                                                ))}
+                                                            </div>
+                                                        ) : null}
                                                     </div>
                                                 </CardContent>
                                             </Card>

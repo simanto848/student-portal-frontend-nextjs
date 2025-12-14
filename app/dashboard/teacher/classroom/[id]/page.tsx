@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { downloadBlob } from "@/lib/download";
 
 export default function TeacherClassroomDetailPage() {
   const params = useParams();
@@ -92,18 +93,18 @@ export default function TeacherClassroomDetailPage() {
           batchId ? batchService.getBatchById(batchId) : null,
           batchId
             ? studentService
-                .getAll({
-                  batchId,
-                  limit: 200,
-                })
-                .then((res) => res.students)
+              .getAll({
+                batchId,
+                limit: 200,
+              })
+              .then((res) => res.students)
             : [],
           ws?.teacherIds?.length
             ? Promise.all(
-                ws.teacherIds.map((teacherId) =>
-                  teacherService.getById(teacherId)
-                )
+              ws.teacherIds.map((teacherId) =>
+                teacherService.getById(teacherId)
               )
+            )
             : [],
         ]);
 
@@ -145,6 +146,18 @@ export default function TeacherClassroomDetailPage() {
       fetchData();
     } catch (error) {
       toast.error("Failed to delete material");
+    }
+  };
+
+  const handleDownloadMaterialAttachment = async (material: Material, index: number) => {
+    try {
+      const attachment = material.attachments?.[index];
+      if (!attachment) return;
+      const blob = await materialService.downloadAttachment(attachment);
+      downloadBlob(blob, attachment.name || 'material');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to download attachment';
+      toast.error(message);
     }
   };
 
@@ -369,6 +382,38 @@ export default function TeacherClassroomDetailPage() {
                         <p className="text-xs text-muted-foreground">
                           Material
                         </p>
+                        {material.type === 'text' && material.content ? (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {material.content}
+                          </p>
+                        ) : null}
+
+                        {material.type === 'link' && material.content ? (
+                          <a
+                            href={material.content}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm mt-2 block text-[#3e6253] hover:underline"
+                          >
+                            {material.content}
+                          </a>
+                        ) : null}
+
+                        {material.type === 'file' && material.attachments?.length ? (
+                          <div className="mt-2 space-y-1">
+                            {material.attachments.map((att, idx) => (
+                              <Button
+                                key={att.id || `${material.id}-${idx}`}
+                                variant="ghost"
+                                className="h-auto p-0 justify-start text-[#3e6253] hover:underline"
+                                onClick={() => handleDownloadMaterialAttachment(material, idx)}
+                              >
+                                <FileText className="mr-2 h-4 w-4" />
+                                {att.name}
+                              </Button>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                       <div className="flex items-center gap-2">
                         <CreateMaterialDialog
@@ -543,11 +588,10 @@ export default function TeacherClassroomDetailPage() {
                             onClick={() =>
                               setSelectedAssignmentId(assignment.id)
                             }
-                            className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${
-                              selectedAssignmentId === assignment.id
+                            className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${selectedAssignmentId === assignment.id
                                 ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
                                 : "text-gray-600 border-l-4 border-transparent"
-                            }`}
+                              }`}
                           >
                             {assignment.title}
                           </button>

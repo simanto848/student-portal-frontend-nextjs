@@ -1,5 +1,5 @@
 import { classroomApi, handleClassroomApiError, extractClassroomArrayData, extractClassroomItemData } from './axios-instance';
-import { Submission, SubmitAssignmentDto, GradeSubmissionDto, Feedback, CreateFeedbackDto } from './types';
+import { Submission, SubmitAssignmentDto, GradeSubmissionDto, Feedback, CreateFeedbackDto, SubmissionFile } from './types';
 
 export const submissionService = {
     /**
@@ -11,6 +11,36 @@ export const submissionService = {
         try {
             const response = await classroomApi.post(`/submissions/${assignmentId}`, data);
             return extractClassroomItemData<Submission>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
+
+    /**
+     * Submit or update using multipart form-data (files + textAnswer)
+     * Roles: student
+     */
+    submitWithFiles: async (assignmentId: string, data: FormData): Promise<Submission> => {
+        try {
+            const response = await classroomApi.post(`/submissions/${assignmentId}/upload`, data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return extractClassroomItemData<Submission>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
+
+    /**
+     * Get the current user's submission for an assignment
+     * Roles: super_admin, admin, program_controller, teacher, student
+     */
+    getMineByAssignment: async (assignmentId: string): Promise<Submission | null> => {
+        try {
+            const response = await classroomApi.get(`/submissions/${assignmentId}/mine`);
+            return extractClassroomItemData<Submission | null>(response);
         } catch (error) {
             return handleClassroomApiError(error);
         }
@@ -66,6 +96,24 @@ export const submissionService = {
         try {
             const response = await classroomApi.post(`/submissions/${id}/feedback`, data);
             return extractClassroomItemData<Feedback>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
+
+    /**
+     * Download a submitted file (authenticated)
+     */
+    downloadSubmittedFile: async (file: SubmissionFile): Promise<Blob> => {
+        if (!file.url) {
+            throw new Error('File download URL is missing');
+        }
+
+        try {
+            const response = await classroomApi.get(file.url, {
+                responseType: 'blob',
+            });
+            return response.data as Blob;
         } catch (error) {
             return handleClassroomApiError(error);
         }

@@ -77,10 +77,12 @@ export type MaterialType = 'file' | 'link' | 'text';
 export type MaterialVisibility = 'all' | 'teachers';
 
 export interface Attachment {
+    id?: string;
     name: string;
-    url: string;
+    url?: string;
     type: string;
     size?: number;
+    uploadedAt?: string;
 }
 
 export interface Material {
@@ -168,8 +170,9 @@ export interface UpdateAssignmentDto {
 export type SubmissionStatus = 'none' | 'draft' | 'submitted' | 'resubmitted' | 'graded';
 
 export interface SubmissionFile {
+    id?: string;
     name: string;
-    url: string;
+    url?: string;
     type: string;
     size?: number;
     uploadedAt?: string;

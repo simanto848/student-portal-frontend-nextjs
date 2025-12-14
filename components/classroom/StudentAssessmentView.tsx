@@ -26,6 +26,7 @@ import {
   Assessment,
   AssessmentSubmission,
 } from "@/services/enrollment/assessment.service";
+import { downloadBlob } from "@/lib/download";
 import { enrollmentService } from "@/services/enrollment/enrollment.service";
 import {
   Loader2,
@@ -58,7 +59,7 @@ export function StudentAssessmentView({
 
   // Submission Form State
   const [submissionContent, setSubmissionContent] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -78,8 +79,16 @@ export function StudentAssessmentView({
             limit: 1,
           }),
         ]);
-      setAssessments(assessmentsData.assessments || []);
-      setSubmissions(submissionsData.submissions || []);
+      setAssessments(
+        Array.isArray(assessmentsData)
+          ? assessmentsData
+          : assessmentsData.assessments || []
+      );
+      setSubmissions(
+        Array.isArray(submissionsData)
+          ? submissionsData
+          : submissionsData.submissions || []
+      );
       const firstEnrollment = enrollmentsData?.enrollments?.[0];
       setEnrollmentId(firstEnrollment?.id || null);
     } catch (error) {
@@ -98,10 +107,10 @@ export function StudentAssessmentView({
     setSelectedAssessment(assessment);
     if (submission) {
       setSubmissionContent(submission.content || "");
-      setFileUrl(submission.attachments?.[0] || "");
+      setSelectedFiles([]);
     } else {
       setSubmissionContent("");
-      setFileUrl("");
+      setSelectedFiles([]);
     }
   };
 
@@ -111,26 +120,28 @@ export function StudentAssessmentView({
       toast.error("Enrollment not found for this course");
       return;
     }
-    if (!submissionContent && !fileUrl) {
-      toast.error("Please provide content or a file URL");
+    if (!submissionContent && selectedFiles.length === 0) {
+      toast.error("Please provide content or attach a file");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await assessmentService.submit({
-        assessmentId: selectedAssessment.id,
-        enrollmentId,
-        content: submissionContent,
-        attachments: fileUrl
-          ? [
-              {
-                filename: fileUrl.split("/").pop() || "attachment",
-                url: fileUrl,
-              },
-            ]
-          : [],
-      });
+      const existingSubmission = getSubmission(selectedAssessment.id);
+
+      const formData = new FormData();
+      formData.append("assessmentId", selectedAssessment.id);
+      formData.append("enrollmentId", enrollmentId);
+      if (submissionContent) formData.append("content", submissionContent);
+      for (const file of selectedFiles) {
+        formData.append("files", file);
+      }
+
+      if (existingSubmission?.id && existingSubmission.status !== "graded") {
+        await assessmentService.updateSubmissionWithFiles(existingSubmission.id, formData);
+      } else {
+        await assessmentService.submitWithFiles(formData);
+      }
       toast.success("Assessment submitted successfully");
       setSelectedAssessment(null);
       fetchData();
@@ -138,6 +149,23 @@ export function StudentAssessmentView({
       toast.error("Failed to submit assessment");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDownloadAttachment = async (
+    attachment: NonNullable<AssessmentSubmission["attachments"]>[number]
+  ) => {
+    const url = attachment.url || attachment.fileUrl;
+    if (!url) {
+      toast.error("Attachment is missing a download URL");
+      return;
+    }
+    const filename = attachment.filename || attachment.fileName || "attachment";
+    try {
+      const blob = await assessmentService.downloadSubmissionAttachment(url);
+      downloadBlob(blob, filename);
+    } catch (error) {
+      toast.error("Failed to download attachment");
     }
   };
 
@@ -241,16 +269,53 @@ export function StudentAssessmentView({
               />
             </div>
             <div className="space-y-2">
-              <Label>Attachment URL (Optional)</Label>
+              <Label>Attachments (Optional)</Label>
               <Input
-                value={fileUrl}
-                onChange={(e) => setFileUrl(e.target.value)}
-                placeholder="https://..."
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setSelectedFiles(files);
+                }}
                 disabled={
                   getSubmission(selectedAssessment?.id!)?.status === "graded"
                 }
               />
+              {selectedFiles.length > 0 ? (
+                <div className="text-xs text-muted-foreground">
+                  {selectedFiles.map((f) => f.name).join(", ")}
+                </div>
+              ) : null}
             </div>
+
+            {getSubmission(selectedAssessment?.id!)?.attachments &&
+              (getSubmission(selectedAssessment?.id!)?.attachments?.length || 0) >
+              0 ? (
+              <div className="space-y-2">
+                <Label>Submitted Attachments</Label>
+                <div className="space-y-2">
+                  {getSubmission(selectedAssessment?.id!)?.attachments?.map(
+                    (att, idx) => (
+                      <div
+                        key={att.id || idx}
+                        className="flex items-center justify-between gap-2"
+                      >
+                        <div className="text-sm truncate">
+                          {att.filename || att.fileName || "attachment"}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDownloadAttachment(att)}
+                        >
+                          Download
+                        </Button>
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            ) : null}
 
             {getSubmission(selectedAssessment?.id!)?.status === "graded" && (
               <div className="bg-green-50 p-4 rounded-md">

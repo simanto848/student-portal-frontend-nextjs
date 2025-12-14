@@ -6,20 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { assignmentService } from "@/services/classroom/assignment.service";
 import { submissionService } from "@/services/classroom/submission.service";
 import { Assignment, Submission, SubmitAssignmentDto } from "@/services/classroom/types";
-import { Loader2, Upload, FileText, CheckCircle, Clock, AlertCircle } from "lucide-react";
+import { Loader2, FileText, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { downloadBlob } from "@/lib/download";
 
 interface SubmissionViewProps {
     assignmentId: string;
     studentId: string; // To check if it's the current user's submission
 }
 
-export function SubmissionView({ assignmentId, studentId }: SubmissionViewProps) {
+export function SubmissionView({ assignmentId, studentId: _studentId }: SubmissionViewProps) {
     const [assignment, setAssignment] = useState<Assignment | null>(null);
     const [submission, setSubmission] = useState<Submission | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -27,9 +27,7 @@ export function SubmissionView({ assignmentId, studentId }: SubmissionViewProps)
 
     // Form State
     const [textAnswer, setTextAnswer] = useState("");
-    // File upload is mocked for now as we don't have a file upload service ready in this context
-    // In a real app, we'd upload to S3/Cloudinary and get a URL
-    const [fileUrl, setFileUrl] = useState("");
+    const [files, setFiles] = useState<File[]>([]);
 
     useEffect(() => {
         fetchData();
@@ -37,18 +35,12 @@ export function SubmissionView({ assignmentId, studentId }: SubmissionViewProps)
 
     const fetchData = async () => {
         try {
-            const [assignmentData, submissionsData] = await Promise.all([
+            const [assignmentData, mySubmission] = await Promise.all([
                 assignmentService.getById(assignmentId),
-                submissionService.listByAssignment(assignmentId) // This might return all for admin, but for student it should be restricted or we filter
+                submissionService.getMineByAssignment(assignmentId)
             ]);
 
             setAssignment(assignmentData);
-
-            // Find my submission
-            // Note: In a real student view, the API might return just MY submission or I filter by my ID
-            // Assuming listByAssignment returns array, we find ours. 
-            // If the API for students returns only their own, we take the first one.
-            const mySubmission = submissionsData.find((s: any) => s.studentId === studentId || s.studentId?._id === studentId);
 
             if (mySubmission) {
                 setSubmission(mySubmission);
@@ -62,25 +54,47 @@ export function SubmissionView({ assignmentId, studentId }: SubmissionViewProps)
     };
 
     const handleSubmit = async () => {
-        if (!textAnswer && !fileUrl) {
-            toast.error("Please provide a text answer or file URL");
+        if (!textAnswer && files.length === 0) {
+            toast.error("Please provide a text answer or add files");
             return;
         }
 
         setIsSubmitting(true);
         try {
-            const submitData: SubmitAssignmentDto = {
-                textAnswer,
-                files: fileUrl ? [{ name: "Submission File", url: fileUrl, type: "link" }] : []
-            };
+            const result = files.length > 0
+                ? await (() => {
+                    const formData = new FormData();
+                    formData.append('textAnswer', textAnswer);
+                    files.forEach((file) => {
+                        formData.append('files', file);
+                    });
+                    return submissionService.submitWithFiles(assignmentId, formData);
+                })()
+                : await (() => {
+                    const submitData: SubmitAssignmentDto = { textAnswer };
+                    return submissionService.submitOrUpdate(assignmentId, submitData);
+                })();
 
-            const result = await submissionService.submitOrUpdate(assignmentId, submitData);
             setSubmission(result);
+            setFiles([]);
             toast.success("Assignment submitted successfully");
-        } catch (error: any) {
-            toast.error(error.message || "Failed to submit assignment");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Failed to submit assignment";
+            toast.error(message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDownloadFile = async (index: number) => {
+        if (!submission?.files?.[index]) return;
+        try {
+            const file = submission.files[index];
+            const blob = await submissionService.downloadSubmittedFile(file);
+            downloadBlob(blob, file.name || 'submission');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Failed to download file';
+            toast.error(message);
         }
     };
 
@@ -144,11 +158,11 @@ export function SubmissionView({ assignmentId, studentId }: SubmissionViewProps)
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label>File URL (Optional)</Label>
+                                <Label>Files (Optional)</Label>
                                 <Input
-                                    value={fileUrl}
-                                    onChange={(e) => setFileUrl(e.target.value)}
-                                    placeholder="https://docs.google.com/..."
+                                    type="file"
+                                    multiple
+                                    onChange={(e) => setFiles(Array.from(e.target.files || []))}
                                 />
                             </div>
                         </>
@@ -161,12 +175,15 @@ export function SubmissionView({ assignmentId, studentId }: SubmissionViewProps)
                                 </div>
                             )}
                             {submission?.files?.map((file, i) => (
-                                <div key={i} className="flex items-center gap-2 text-sm text-blue-600">
-                                    <FileText className="h-4 w-4" />
-                                    <a href={file.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
-                                        {file.name || file.url}
-                                    </a>
-                                </div>
+                                <Button
+                                    key={i}
+                                    variant="ghost"
+                                    className="justify-start px-0 text-blue-600 hover:text-blue-700"
+                                    onClick={() => handleDownloadFile(i)}
+                                >
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    {file.name}
+                                </Button>
                             ))}
                         </div>
                     )}

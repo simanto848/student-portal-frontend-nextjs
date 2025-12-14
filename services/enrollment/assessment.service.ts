@@ -37,10 +37,22 @@ export interface AssessmentSubmission {
   submittedAt?: string;
   gradedBy?: string;
   gradedAt?: string;
-  attachments?: string[];
+  attachments?: AssessmentSubmissionAttachment[];
   content?: string;
   student?: any;
   assessment?: Assessment;
+}
+
+export interface AssessmentSubmissionAttachment {
+  id?: string;
+  filename?: string;
+  url?: string;
+  // backward-compatible keys
+  fileName?: string;
+  fileUrl?: string;
+  fileSize?: number;
+  mimeType?: string;
+  uploadedAt?: string;
 }
 
 export interface SubmissionAttachment {
@@ -212,6 +224,48 @@ export const assessmentService = {
         data
       );
       return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  submitWithFiles: async (formData: FormData): Promise<AssessmentSubmission> => {
+    try {
+      const response = await api.post(
+        "/enrollment/assessments/submissions/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  updateSubmissionWithFiles: async (
+    id: string,
+    formData: FormData
+  ): Promise<AssessmentSubmission> => {
+    try {
+      const response = await api.post(
+        `/enrollment/assessments/submissions/${id}/upload`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  downloadSubmissionAttachment: async (url: string): Promise<Blob> => {
+    try {
+      const response = await api.get(url, { responseType: "blob" });
+      return response.data;
     } catch (error) {
       return handleApiError(error);
     }

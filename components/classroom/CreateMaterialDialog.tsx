@@ -34,6 +34,7 @@ export function CreateMaterialDialog({ workspaceId, material, trigger, onSuccess
     const [title, setTitle] = useState("");
     const [type, setType] = useState<MaterialType>("text");
     const [content, setContent] = useState("");
+    const [files, setFiles] = useState<File[]>([]);
 
     useEffect(() => {
         if (open) {
@@ -51,12 +52,18 @@ export function CreateMaterialDialog({ workspaceId, material, trigger, onSuccess
         setTitle("");
         setType("text");
         setContent("");
+        setFiles([]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title) {
             toast.error("Title is required");
+            return;
+        }
+
+        if (!material && type === 'file' && files.length === 0) {
+            toast.error('Please select at least one file');
             return;
         }
 
@@ -71,19 +78,30 @@ export function CreateMaterialDialog({ workspaceId, material, trigger, onSuccess
                 await materialService.update(material.id, updateData);
                 toast.success("Material updated successfully");
             } else {
-                const createData: CreateMaterialDto = {
-                    workspaceId,
-                    title,
-                    type,
-                    content
-                };
-                await materialService.create(createData);
+                if (type === 'file') {
+                    const formData = new FormData();
+                    formData.append('workspaceId', workspaceId);
+                    formData.append('title', title);
+                    files.forEach((file) => {
+                        formData.append('files', file);
+                    });
+                    await materialService.upload(formData);
+                } else {
+                    const createData: CreateMaterialDto = {
+                        workspaceId,
+                        title,
+                        type,
+                        content
+                    };
+                    await materialService.create(createData);
+                }
                 toast.success("Material created successfully");
             }
             setOpen(false);
             if (onSuccess) onSuccess();
-        } catch (error: any) {
-            toast.error(error.message || "Failed to save material");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Failed to save material";
+            toast.error(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -126,20 +144,34 @@ export function CreateMaterialDialog({ workspaceId, material, trigger, onSuccess
                             <SelectContent>
                                 <SelectItem value="text">Text / Announcement</SelectItem>
                                 <SelectItem value="link">Link</SelectItem>
-                                <SelectItem value="file">File (Not implemented yet)</SelectItem>
+                                <SelectItem value="file">File</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="content">Content / URL</Label>
-                        <Textarea
-                            id="content"
-                            value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder={type === 'link' ? "https://example.com" : "Enter content here..."}
-                            rows={5}
-                        />
-                    </div>
+                    {type === 'file' ? (
+                        !material ? (
+                            <div className="space-y-2">
+                                <Label htmlFor="files">Files</Label>
+                                <Input
+                                    id="files"
+                                    type="file"
+                                    multiple
+                                    onChange={(e) => setFiles(Array.from(e.target.files || []))}
+                                />
+                            </div>
+                        ) : null
+                    ) : (
+                        <div className="space-y-2">
+                            <Label htmlFor="content">Content / URL</Label>
+                            <Textarea
+                                id="content"
+                                value={content}
+                                onChange={(e) => setContent(e.target.value)}
+                                placeholder={type === 'link' ? "https://example.com" : "Enter content here..."}
+                                rows={5}
+                            />
+                        </div>
+                    )}
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                             Cancel
