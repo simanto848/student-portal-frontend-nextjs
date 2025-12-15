@@ -33,6 +33,8 @@ export default function QuizResultsPage() {
     const [quiz, setQuiz] = useState<any>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [resultsHidden, setResultsHidden] = useState(false);
+    const [hiddenMessage, setHiddenMessage] = useState("");
 
     useEffect(() => {
         if (!attemptId) {
@@ -47,6 +49,8 @@ export default function QuizResultsPage() {
                 setAttempt(result.attempt);
                 setQuiz(result.quiz);
                 setQuestions(result.questions || []);
+                setResultsHidden(result.resultsHidden || false);
+                setHiddenMessage(result.message || "");
             } catch (error: any) {
                 toast.error(error?.message || "Failed to load results");
                 router.back();
@@ -100,28 +104,41 @@ export default function QuizResultsPage() {
 
                 {/* Score Card */}
                 <Card className="overflow-hidden">
-                    <div className={cn("bg-gradient-to-br p-8 text-white text-center", getScoreBg())}>
-                        <Trophy className="h-16 w-16 mx-auto mb-4 opacity-90" />
-                        {attempt.percentage !== null ? (
-                            <>
-                                <p className="text-6xl font-bold mb-2">{attempt.percentage}%</p>
-                                <p className="text-xl opacity-90">
-                                    {attempt.score} / {attempt.maxScore} points
-                                </p>
-                            </>
-                        ) : (
-                            <p className="text-2xl">Pending Grade</p>
-                        )}
-
-                        {attempt.isPassed !== null && (
-                            <Badge className={cn(
-                                "mt-4 text-sm px-4 py-1",
-                                attempt.isPassed ? "bg-white/20 text-white" : "bg-red-900/30 text-white"
-                            )}>
-                                {attempt.isPassed ? "PASSED" : "NOT PASSED"}
+                    {resultsHidden ? (
+                        <div className="bg-gradient-to-br from-gray-500 to-gray-600 p-8 text-white text-center">
+                            <FileText className="h-16 w-16 mx-auto mb-4 opacity-90" />
+                            <p className="text-2xl font-bold mb-2">Quiz Submitted</p>
+                            <p className="text-lg opacity-90">
+                                {hiddenMessage || "Results for this quiz are not available for viewing."}
+                            </p>
+                            <Badge className="mt-4 text-sm px-4 py-1 bg-white/20 text-white">
+                                {attempt.status === "graded" ? "Graded" : "Submitted"}
                             </Badge>
-                        )}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className={cn("bg-gradient-to-br p-8 text-white text-center", getScoreBg())}>
+                            <Trophy className="h-16 w-16 mx-auto mb-4 opacity-90" />
+                            {attempt.percentage !== null && attempt.percentage !== undefined ? (
+                                <>
+                                    <p className="text-6xl font-bold mb-2">{attempt.percentage}%</p>
+                                    <p className="text-xl opacity-90">
+                                        {attempt.score} / {attempt.maxScore} points
+                                    </p>
+                                </>
+                            ) : (
+                                <p className="text-2xl">Pending Grade</p>
+                            )}
+
+                            {attempt.isPassed !== null && attempt.isPassed !== undefined && (
+                                <Badge className={cn(
+                                    "mt-4 text-sm px-4 py-1",
+                                    attempt.isPassed ? "bg-white/20 text-white" : "bg-red-900/30 text-white"
+                                )}>
+                                    {attempt.isPassed ? "PASSED" : "NOT PASSED"}
+                                </Badge>
+                            )}
+                        </div>
+                    )}
                     <CardContent className="pt-6">
                         <div className="grid grid-cols-3 gap-4 text-center">
                             <div>
@@ -158,116 +175,118 @@ export default function QuizResultsPage() {
                 </Card>
 
                 {/* Question Review */}
-                {quiz?.allowReviewAfterSubmit && questions.length > 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-[#344e41]">Review Answers</h2>
+                {
+                    quiz?.allowReviewAfterSubmit && questions.length > 0 && (
+                        <div className="space-y-4">
+                            <h2 className="text-lg font-semibold text-[#344e41]">Review Answers</h2>
 
-                        {questions.map((question, index) => {
-                            const answer = attempt.answers.find(a => a.questionId === question.id);
-                            const isCorrect = answer?.isCorrect;
-                            const pointsAwarded = answer?.pointsAwarded ?? 0;
+                            {questions.map((question, index) => {
+                                const answer = attempt.answers.find(a => a.questionId === question.id);
+                                const isCorrect = answer?.isCorrect;
+                                const pointsAwarded = answer?.pointsAwarded ?? 0;
 
-                            return (
-                                <Card key={question.id} className={cn(
-                                    "overflow-hidden border-l-4",
-                                    isCorrect === true ? "border-l-green-500" :
-                                        isCorrect === false ? "border-l-red-500" :
-                                            "border-l-gray-300"
-                                )}>
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-start justify-between">
-                                            <CardTitle className="text-base font-medium text-[#344e41]">
-                                                {index + 1}. {question.text}
-                                            </CardTitle>
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                {isCorrect === true && <CheckCircle2 className="h-5 w-5 text-green-500" />}
-                                                {isCorrect === false && <XCircle className="h-5 w-5 text-red-500" />}
-                                                {isCorrect === null && <AlertCircle className="h-5 w-5 text-amber-500" />}
-                                                <Badge variant="outline">
-                                                    {pointsAwarded}/{question.points} pts
-                                                </Badge>
+                                return (
+                                    <Card key={question.id} className={cn(
+                                        "overflow-hidden border-l-4",
+                                        isCorrect === true ? "border-l-green-500" :
+                                            isCorrect === false ? "border-l-red-500" :
+                                                "border-l-gray-300"
+                                    )}>
+                                        <CardHeader className="pb-2">
+                                            <div className="flex items-start justify-between">
+                                                <CardTitle className="text-base font-medium text-[#344e41]">
+                                                    {index + 1}. {question.text}
+                                                </CardTitle>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {isCorrect === true && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                                                    {isCorrect === false && <XCircle className="h-5 w-5 text-red-500" />}
+                                                    {isCorrect === null && <AlertCircle className="h-5 w-5 text-amber-500" />}
+                                                    <Badge variant="outline">
+                                                        {pointsAwarded}/{question.points} pts
+                                                    </Badge>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </CardHeader>
-                                    <CardContent className="space-y-3">
-                                        {/* MCQ Options */}
-                                        {(question.type.startsWith("mcq") || question.type === "true_false") && (
-                                            <div className="space-y-2">
-                                                {question.options?.map((option) => {
-                                                    const wasSelected = answer?.selectedOptions?.includes(option.id);
-                                                    const isCorrectOption = quiz?.showCorrectAnswers && option.isCorrect;
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            {/* MCQ Options */}
+                                            {(question.type.startsWith("mcq") || question.type === "true_false") && (
+                                                <div className="space-y-2">
+                                                    {question.options?.map((option) => {
+                                                        const wasSelected = answer?.selectedOptions?.includes(option.id);
+                                                        const isCorrectOption = quiz?.showCorrectAnswers && option.isCorrect;
 
-                                                    return (
-                                                        <div
-                                                            key={option.id}
-                                                            className={cn(
-                                                                "p-3 rounded-lg border flex items-center gap-2",
-                                                                wasSelected && isCorrectOption ? "bg-green-50 border-green-300" :
-                                                                    wasSelected && !isCorrectOption ? "bg-red-50 border-red-300" :
-                                                                        isCorrectOption ? "bg-green-50 border-green-300" :
-                                                                            "bg-gray-50 border-gray-200"
-                                                            )}
-                                                        >
-                                                            {wasSelected ? (
-                                                                isCorrectOption ? (
+                                                        return (
+                                                            <div
+                                                                key={option.id}
+                                                                className={cn(
+                                                                    "p-3 rounded-lg border flex items-center gap-2",
+                                                                    wasSelected && isCorrectOption ? "bg-green-50 border-green-300" :
+                                                                        wasSelected && !isCorrectOption ? "bg-red-50 border-red-300" :
+                                                                            isCorrectOption ? "bg-green-50 border-green-300" :
+                                                                                "bg-gray-50 border-gray-200"
+                                                                )}
+                                                            >
+                                                                {wasSelected ? (
+                                                                    isCorrectOption ? (
+                                                                        <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
+                                                                    ) : (
+                                                                        <XCircle className="h-5 w-5 text-red-500 shrink-0" />
+                                                                    )
+                                                                ) : isCorrectOption ? (
                                                                     <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
                                                                 ) : (
-                                                                    <XCircle className="h-5 w-5 text-red-500 shrink-0" />
-                                                                )
-                                                            ) : isCorrectOption ? (
-                                                                <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                                                            ) : (
-                                                                <div className="h-5 w-5 rounded-full border-2 border-gray-300 shrink-0" />
-                                                            )}
-                                                            <span className={cn(
-                                                                "text-sm",
-                                                                wasSelected && "font-medium"
-                                                            )}>{option.text}</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-
-                                        {/* Written Answer */}
-                                        {(question.type === "short_answer" || question.type === "long_answer") && (
-                                            <div className="space-y-2">
-                                                <div className="p-3 bg-gray-50 rounded-lg">
-                                                    <p className="text-sm text-muted-foreground mb-1">Your answer:</p>
-                                                    <p className="text-sm">{answer?.writtenAnswer || <em className="text-gray-400">No answer provided</em>}</p>
+                                                                    <div className="h-5 w-5 rounded-full border-2 border-gray-300 shrink-0" />
+                                                                )}
+                                                                <span className={cn(
+                                                                    "text-sm",
+                                                                    wasSelected && "font-medium"
+                                                                )}>{option.text}</span>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                                {quiz?.showCorrectAnswers && question.correctAnswer && (
-                                                    <div className="p-3 bg-green-50 rounded-lg">
-                                                        <p className="text-sm text-muted-foreground mb-1">Expected answer:</p>
-                                                        <p className="text-sm text-green-700">{question.correctAnswer}</p>
+                                            )}
+
+                                            {/* Written Answer */}
+                                            {(question.type === "short_answer" || question.type === "long_answer") && (
+                                                <div className="space-y-2">
+                                                    <div className="p-3 bg-gray-50 rounded-lg">
+                                                        <p className="text-sm text-muted-foreground mb-1">Your answer:</p>
+                                                        <p className="text-sm">{answer?.writtenAnswer || <em className="text-gray-400">No answer provided</em>}</p>
                                                     </div>
-                                                )}
-                                            </div>
-                                        )}
+                                                    {quiz?.showCorrectAnswers && question.correctAnswer && (
+                                                        <div className="p-3 bg-green-50 rounded-lg">
+                                                            <p className="text-sm text-muted-foreground mb-1">Expected answer:</p>
+                                                            <p className="text-sm text-green-700">{question.correctAnswer}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
 
-                                        {/* Feedback */}
-                                        {answer?.feedback && (
-                                            <div className="p-3 bg-blue-50 rounded-lg">
-                                                <p className="text-sm text-blue-700">
-                                                    <strong>Feedback:</strong> {answer.feedback}
-                                                </p>
-                                            </div>
-                                        )}
+                                            {/* Feedback */}
+                                            {answer?.feedback && (
+                                                <div className="p-3 bg-blue-50 rounded-lg">
+                                                    <p className="text-sm text-blue-700">
+                                                        <strong>Feedback:</strong> {answer.feedback}
+                                                    </p>
+                                                </div>
+                                            )}
 
-                                        {/* Explanation */}
-                                        {quiz?.showCorrectAnswers && question.explanation && (
-                                            <div className="p-3 bg-amber-50 rounded-lg">
-                                                <p className="text-sm text-amber-700">
-                                                    <strong>Explanation:</strong> {question.explanation}
-                                                </p>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
-                    </div>
-                )}
+                                            {/* Explanation */}
+                                            {quiz?.showCorrectAnswers && question.explanation && (
+                                                <div className="p-3 bg-amber-50 rounded-lg">
+                                                    <p className="text-sm text-amber-700">
+                                                        <strong>Explanation:</strong> {question.explanation}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                );
+                            })}
+                        </div>
+                    )
+                }
 
                 {/* Actions */}
                 <div className="flex justify-center gap-4">
@@ -278,7 +297,7 @@ export default function QuizResultsPage() {
                         </Button>
                     </Link>
                 </div>
-            </div>
-        </DashboardLayout>
+            </div >
+        </DashboardLayout >
     );
 }

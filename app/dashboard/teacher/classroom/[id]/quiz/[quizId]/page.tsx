@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
 import { quizService, questionService, Quiz, Question, QuizAttempt } from "@/services/classroom/quiz.service";
+import { workspaceService } from "@/services/classroom/workspace.service";
+import { studentService, Student } from "@/services/user/student.service";
 import { toast } from "sonner";
 import {
     ArrowLeft,
@@ -31,6 +32,7 @@ import {
     TrendingUp,
     AlertTriangle,
     FileText,
+    UserX,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -68,6 +70,7 @@ export default function TeacherQuizDetailPage() {
     const [quiz, setQuiz] = useState<Quiz | null>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [submissions, setSubmissions] = useState<QuizAttempt[]>([]);
+    const [batchStudents, setBatchStudents] = useState<Student[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("overview");
 
@@ -78,14 +81,24 @@ export default function TeacherQuizDetailPage() {
     const fetchData = async () => {
         try {
             setIsLoading(true);
-            const [quizData, questionData, submissionData] = await Promise.all([
+            const [quizData, questionData, submissionData, workspace] = await Promise.all([
                 quizService.getById(quizId),
                 questionService.listByQuiz(quizId),
                 quizService.getSubmissions(quizId),
+                workspaceService.getById(workspaceId),
             ]);
             setQuiz(quizData);
             setQuestions(questionData);
             setSubmissions(submissionData);
+
+            if (workspace.batchId) {
+                try {
+                    const { students } = await studentService.getAll({ batchId: workspace.batchId, limit: 500 });
+                    setBatchStudents(students);
+                } catch (e) {
+                    console.error("Failed to fetch batch students:", e);
+                }
+            }
         } catch (error: any) {
             toast.error(error?.message || "Failed to load quiz");
         } finally {
@@ -169,7 +182,7 @@ export default function TeacherQuizDetailPage() {
                 </nav>
 
                 {/* Header Card */}
-                <Card className="overflow-hidden border-0 shadow-lg">
+                <Card className="overflow-hidden border-0 shadow-lg pt-0">
                     <div className={cn("bg-gradient-to-r p-6 text-white", status.gradient)}>
                         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                             <div className="flex items-start gap-4">
@@ -560,78 +573,182 @@ export default function TeacherQuizDetailPage() {
                     </TabsContent>
 
                     <TabsContent value="submissions" className="space-y-4">
-                        {submissions.length === 0 ? (
-                            <Card className="border-dashed border-2 bg-gradient-to-br from-gray-50 to-white">
-                                <CardContent className="py-16 text-center">
-                                    <div className="h-16 w-16 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-4">
-                                        <Users className="h-8 w-8 text-violet-600" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-[#344e41] mb-2">No submissions yet</h3>
-                                    <p className="text-muted-foreground">Students haven&apos;t taken this quiz yet</p>
-                                </CardContent>
-                            </Card>
-                        ) : (
-                            <div className="space-y-3">
-                                {submissions.map((submission, index) => (
-                                    <Card key={submission.id} className="overflow-hidden hover:shadow-md transition-all group">
-                                        <CardContent className="py-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className={cn(
-                                                        "h-12 w-12 rounded-full flex items-center justify-center text-white font-bold",
-                                                        submission.percentage !== null && submission.percentage >= 80 ? "bg-emerald-500" :
-                                                            submission.percentage !== null && submission.percentage >= 60 ? "bg-amber-500" :
-                                                                submission.percentage !== null ? "bg-rose-500" : "bg-gray-400"
-                                                    )}>
-                                                        {submission.percentage !== null ? `${submission.percentage}%` : "?"}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-[#344e41]">
-                                                            Student #{submission.studentId.slice(-6)}
-                                                        </p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Attempt #{submission.attemptNumber} • {new Date(submission.submittedAt || submission.startedAt).toLocaleString()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    {submission.percentage !== null && (
-                                                        <div className="text-right hidden sm:block">
-                                                            <p className="text-sm text-muted-foreground">Score</p>
-                                                            <p className="font-semibold text-[#344e41]">
-                                                                {submission.score}/{submission.maxScore}
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                    <Badge
-                                                        variant="secondary"
-                                                        className={cn(
-                                                            "capitalize",
-                                                            submission.status === "graded" ? "bg-emerald-100 text-emerald-700" :
-                                                                submission.status === "submitted" ? "bg-orange-100 text-orange-700" :
-                                                                    "bg-gray-100 text-gray-700"
-                                                        )}
-                                                    >
-                                                        {submission.isAutoSubmitted && "Auto-"}
-                                                        {submission.status}
-                                                    </Badge>
-                                                    <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quizId}/grade/${submission.id}`}>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            className="gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                        >
-                                                            <Eye className="h-4 w-4" />
-                                                            {submission.status === "submitted" ? "Grade" : "View"}
-                                                        </Button>
-                                                    </Link>
-                                                </div>
+                        {(() => {
+                            // Create a merged list of all students with their quiz status
+                            const submissionMap = new Map<string, QuizAttempt>();
+                            submissions.forEach(sub => {
+                                // Keep the most recent/best submission per student
+                                const existing = submissionMap.get(sub.studentId);
+                                if (!existing || (sub.submittedAt && (!existing.submittedAt || sub.submittedAt > existing.submittedAt))) {
+                                    submissionMap.set(sub.studentId, sub);
+                                }
+                            });
+
+                            // Create merged student list
+                            interface StudentQuizStatus {
+                                studentId: string;
+                                fullName: string;
+                                registrationNumber: string;
+                                hasAttempted: boolean;
+                                submission?: QuizAttempt;
+                            }
+
+                            const allStudentsStatus: StudentQuizStatus[] = batchStudents.map(student => ({
+                                studentId: student.id,
+                                fullName: student.fullName,
+                                registrationNumber: student.registrationNumber,
+                                hasAttempted: submissionMap.has(student.id),
+                                submission: submissionMap.get(student.id),
+                            }));
+
+                            // Add any submissions from students not in batchStudents list
+                            submissions.forEach(sub => {
+                                if (!allStudentsStatus.find(s => s.studentId === sub.studentId)) {
+                                    allStudentsStatus.push({
+                                        studentId: sub.studentId,
+                                        fullName: `Student #${sub.studentId.slice(-6)}`,
+                                        registrationNumber: 'N/A',
+                                        hasAttempted: true,
+                                        submission: sub,
+                                    });
+                                }
+                            });
+
+                            // Sort: attempted students first, then non-attempted
+                            allStudentsStatus.sort((a, b) => {
+                                if (a.hasAttempted && !b.hasAttempted) return -1;
+                                if (!a.hasAttempted && b.hasAttempted) return 1;
+                                return a.fullName.localeCompare(b.fullName);
+                            });
+
+                            if (allStudentsStatus.length === 0) {
+                                return (
+                                    <Card className="border-dashed border-2 bg-gradient-to-br from-gray-50 to-white">
+                                        <CardContent className="py-16 text-center">
+                                            <div className="h-16 w-16 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-4">
+                                                <Users className="h-8 w-8 text-violet-600" />
                                             </div>
+                                            <h3 className="text-lg font-semibold text-[#344e41] mb-2">No students found</h3>
+                                            <p className="text-muted-foreground">No students are enrolled in this batch yet</p>
                                         </CardContent>
                                     </Card>
-                                ))}
-                            </div>
-                        )}
+                                );
+                            }
+
+                            const attemptedCount = allStudentsStatus.filter(s => s.hasAttempted).length;
+                            const notAttemptedCount = allStudentsStatus.filter(s => !s.hasAttempted).length;
+
+                            return (
+                                <>
+                                    {/* Summary */}
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                                        <span className="flex items-center gap-1.5">
+                                            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                            {attemptedCount} attempted
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <UserX className="h-4 w-4 text-gray-400" />
+                                            {notAttemptedCount} not attempted
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {allStudentsStatus.map((studentStatus) => (
+                                            <Card
+                                                key={studentStatus.studentId}
+                                                className={cn(
+                                                    "overflow-hidden transition-all group",
+                                                    studentStatus.hasAttempted ? "hover:shadow-md" : "opacity-75"
+                                                )}
+                                            >
+                                                <CardContent className="py-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-4">
+                                                            {studentStatus.hasAttempted ? (
+                                                                <div className={cn(
+                                                                    "h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-sm",
+                                                                    studentStatus.submission?.percentage !== null && studentStatus.submission?.percentage !== undefined && studentStatus.submission.percentage >= 80 ? "bg-emerald-500" :
+                                                                        studentStatus.submission?.percentage !== null && studentStatus.submission?.percentage !== undefined && studentStatus.submission.percentage >= 60 ? "bg-amber-500" :
+                                                                            studentStatus.submission?.percentage !== null && studentStatus.submission?.percentage !== undefined ? "bg-rose-500" : "bg-gray-400"
+                                                                )}>
+                                                                    {studentStatus.submission?.percentage !== null && studentStatus.submission?.percentage !== undefined
+                                                                        ? `${studentStatus.submission.percentage}%`
+                                                                        : "?"}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="h-12 w-12 rounded-full flex items-center justify-center bg-gray-200 text-gray-500 font-bold text-sm">
+                                                                    0%
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="font-semibold text-[#344e41]">
+                                                                    {studentStatus.fullName}
+                                                                </p>
+                                                                <p className="text-sm text-muted-foreground">
+                                                                    {studentStatus.registrationNumber}
+                                                                    {studentStatus.hasAttempted && studentStatus.submission && (
+                                                                        <span className="ml-2">
+                                                                            • Attempt #{studentStatus.submission.attemptNumber}
+                                                                            • {new Date(studentStatus.submission.submittedAt || studentStatus.submission.startedAt).toLocaleString()}
+                                                                        </span>
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            {studentStatus.hasAttempted && studentStatus.submission ? (
+                                                                <>
+                                                                    {studentStatus.submission.percentage !== null && (
+                                                                        <div className="text-right hidden sm:block">
+                                                                            <p className="text-sm text-muted-foreground">Score</p>
+                                                                            <p className="font-semibold text-[#344e41]">
+                                                                                {studentStatus.submission.score}/{studentStatus.submission.maxScore}
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className={cn(
+                                                                            "capitalize",
+                                                                            studentStatus.submission.status === "graded" ? "bg-emerald-100 text-emerald-700" :
+                                                                                studentStatus.submission.status === "submitted" ? "bg-orange-100 text-orange-700" :
+                                                                                    "bg-gray-100 text-gray-700"
+                                                                        )}
+                                                                    >
+                                                                        {studentStatus.submission.isAutoSubmitted && "Auto-"}
+                                                                        {studentStatus.submission.status}
+                                                                    </Badge>
+                                                                    <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quizId}/grade/${studentStatus.submission.id}`}>
+                                                                        <Button
+                                                                            variant="outline"
+                                                                            size="sm"
+                                                                            className="gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        >
+                                                                            <Eye className="h-4 w-4" />
+                                                                            {studentStatus.submission.status === "submitted" ? "Grade" : "View"}
+                                                                        </Button>
+                                                                    </Link>
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    <div className="text-right hidden sm:block">
+                                                                        <p className="text-sm text-muted-foreground">Score</p>
+                                                                        <p className="font-semibold text-gray-400">0/{quiz?.maxScore || 0}</p>
+                                                                    </div>
+                                                                    <Badge variant="secondary" className="bg-gray-100 text-gray-500">
+                                                                        Not Attempted
+                                                                    </Badge>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </TabsContent>
                 </Tabs>
             </div>

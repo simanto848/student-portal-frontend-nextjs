@@ -320,7 +320,7 @@ export const quizAttemptService = {
     },
 
     // Get results
-    async getResults(attemptId: string): Promise<{ attempt: QuizAttempt; quiz: Quiz; questions?: Question[] }> {
+    async getResults(attemptId: string): Promise<{ attempt: QuizAttempt; quiz: Quiz; questions?: Question[]; resultsHidden?: boolean; message?: string }> {
         try {
             const res = await classroomApi.get(`/quiz-attempts/${attemptId}/results`);
             return res.data.data;
