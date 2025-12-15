@@ -62,7 +62,7 @@ export function ChatInterface({
   // Action States
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(
-    null
+    null,
   );
 
   // Sidebar States
@@ -79,8 +79,8 @@ export function ChatInterface({
       setLoading(true);
       fetchMessages();
 
-      // Socket Connection
-      const socket = socketService.connect();
+      // Socket Connection - use 'chat' type for chat socket
+      const socket = socketService.connect("chat");
       socket.emit("join_chat", chatGroupId);
 
       socket.on("new_message", (message: Message) => {
@@ -106,8 +106,8 @@ export function ChatInterface({
             prev.map((m) =>
               m.id === updatedMessage.id
                 ? { ...m, ...updatedMessage, sender: m.sender }
-                : m
-            )
+                : m,
+            ),
           );
         }
       });
@@ -122,8 +122,8 @@ export function ChatInterface({
             prev.map((m) =>
               m.id === pinnedMessage.id
                 ? { ...m, isPinned: pinnedMessage.isPinned }
-                : m
-            )
+                : m,
+            ),
           );
           // Refresh pinned list if open
           if (isInfoOpen && infoTab === "pinned") fetchInfoMessages();
@@ -147,9 +147,9 @@ export function ChatInterface({
         "stop_typing",
         (typingUser: { id: string; fullName: string }) => {
           setTypingUsers((prev) =>
-            prev.filter((name) => name !== typingUser.fullName)
+            prev.filter((name) => name !== typingUser.fullName),
           );
-        }
+        },
       );
 
       return () => {
@@ -191,7 +191,7 @@ export function ChatInterface({
         chatGroupId,
         50,
         0,
-        searchQuery
+        searchQuery,
       );
       setMessages(data.reverse());
     } catch (error) {
@@ -210,7 +210,7 @@ export function ChatInterface({
           50,
           0,
           "",
-          "pinned"
+          "pinned",
         );
         setPinnedMessages(data);
       } else {
@@ -219,7 +219,7 @@ export function ChatInterface({
           50,
           0,
           "",
-          "media"
+          "media",
         );
         setMediaMessages(data);
       }
@@ -238,8 +238,8 @@ export function ChatInterface({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
 
-    if (socketService.getSocket()) {
-      socketService.getSocket()?.emit("typing", {
+    if (socketService.getSocket("chat")) {
+      socketService.getSocket("chat")?.emit("typing", {
         chatGroupId,
         user: {
           id: user?.id || user?._id,
@@ -250,7 +250,7 @@ export function ChatInterface({
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
 
       typingTimeoutRef.current = setTimeout(() => {
-        socketService.getSocket()?.emit("stop_typing", {
+        socketService.getSocket("chat")?.emit("stop_typing", {
           chatGroupId,
           user: {
             id: user?.id || user?._id,
@@ -268,7 +268,7 @@ export function ChatInterface({
     setSending(true);
     // Stop typing immediately when sending
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    socketService.getSocket()?.emit("stop_typing", {
+    socketService.getSocket("chat")?.emit("stop_typing", {
       chatGroupId,
       user: {
         id: user?.id || user?._id,
@@ -298,7 +298,9 @@ export function ChatInterface({
     } catch (error) {
       console.error("Send/Edit message error:", error);
       toast.error(
-        editingMessageId ? "Failed to update message" : "Failed to send message"
+        editingMessageId
+          ? "Failed to update message"
+          : "Failed to send message",
       );
     } finally {
       setSending(false);
@@ -445,7 +447,7 @@ export function ChatInterface({
                           <ImageIcon className="h-8 w-8 text-slate-300" />
                           {/* If we had real URLs, we'd use <img src={att} /> */}
                         </div>
-                      ))
+                      )),
                     )}
                   </div>
                 )}
