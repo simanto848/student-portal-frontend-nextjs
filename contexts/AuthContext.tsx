@@ -1,155 +1,245 @@
 "use client";
+
 import React, {
   createContext,
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
-import { authService, UserRole, LoginResponse } from "../services/auth.service";
 import { useRouter } from "next/navigation";
+import {
+  User,
+  UserRole,
+  LoginCredentials,
+  LoginResponse,
+  ADMIN_ROLES,
+  STAFF_ROLE_ROUTES,
+  getDashboardPath,
+} from "@/types/user";
+import { api } from "@/lib/api";
+import { AUTH_CONFIG } from "@/config/constants";
 
 interface AuthContextType {
-  user: any | null;
+  user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: any, role: UserRole) => Promise<void>;
+  login: (credentials: LoginCredentials, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  hasRole: (role: UserRole | UserRole[]) => boolean;
+  getDashboardRoute: () => string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+// Role-based login endpoints
+const getLoginEndpoint = (role: UserRole): string => {
+  const endpoints: Record<string, string> = {
+    student: "/user/auth/students/login",
+    teacher: "/user/auth/teachers/login",
+    staff: "/user/auth/staffs/login",
+    admin: "/user/auth/admins/login",
+  };
+
+  if (ADMIN_ROLES.includes(role)) {
+    return endpoints.admin;
+  }
+  if (STAFF_ROLE_ROUTES[role]) {
+    return endpoints.staff;
+  }
+
+  return endpoints[role] || endpoints.student;
+};
+
+const getRedirectPath = (role: UserRole, requestedRole?: UserRole): string => {
+  if (ADMIN_ROLES.includes(role)) {
+    return "/dashboard/admin";
+  }
+
+  if (requestedRole === "staff" && STAFF_ROLE_ROUTES[role]) {
+    return STAFF_ROLE_ROUTES[role];
+  }
+
+  return getDashboardPath(role);
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem("accessToken");
+      if (typeof window === "undefined") {
+        setIsLoading(false);
+        return;
+      }
+
+      const token = localStorage.getItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
 
       if (token) {
         try {
-          const user = await authService.getCurrentUser(token);
-          setUser(user);
-          setIsAuthenticated(true);
-          localStorage.setItem("user", JSON.stringify(user));
+          const response = await api.get("/user/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const userData = response.data?.data?.user;
+
+          if (userData) {
+            setUser(userData as User);
+            setIsAuthenticated(true);
+            localStorage.setItem(
+              AUTH_CONFIG.USER_STORAGE_KEY,
+              JSON.stringify(userData),
+            );
+          }
         } catch (error) {
           console.error("Session verification failed:", error);
-          localStorage.removeItem("user");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          setUser(null);
-          setIsAuthenticated(false);
+          clearAuthData();
         }
       }
+
       setIsLoading(false);
     };
 
     initAuth();
   }, []);
 
-  const refreshUser = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) return;
-    const nextUser = await authService.getCurrentUser(token);
-    setUser(nextUser);
-    localStorage.setItem("user", JSON.stringify(nextUser));
-    setIsAuthenticated(true);
-  };
+  const clearAuthData = useCallback(() => {
+    setUser(null);
+    setIsAuthenticated(false);
 
-  const login = async (credentials: any, role: UserRole) => {
-    setIsLoading(true);
-    try {
-      const data: LoginResponse = await authService.login(credentials, role);
-      // Ensure role is set immediately in state, falling back to the requested role if not in response
-      setUser({ ...data.user, role: data.user?.role || role });
-      setIsAuthenticated(true);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(AUTH_CONFIG.USER_STORAGE_KEY);
+      localStorage.removeItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
+      localStorage.removeItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
 
-      // Store session data
-      localStorage.setItem("user", JSON.stringify(data.user));
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-
-      // Set cookie for middleware
-      document.cookie = `accessToken=${data.accessToken}; path=/; max-age=${
-        7 * 24 * 60 * 60
-      }; SameSite=Lax; Secure`;
-
-      // Get the actual user role from response
-      const userRole = data.user?.role || role;
-
-      // Redirect based on role
-      let redirectPath = `/dashboard/${role}`;
-
-      // Handle admin roles
-      if (["super_admin", "moderator", "admin"].includes(userRole)) {
-        redirectPath = "/dashboard/admin";
-      }
-      // Handle staff roles - redirect to specific staff dashboard based on their role
-      else if (role === "staff") {
-        const staffRoleRoutes: Record<string, string> = {
-          program_controller: "/dashboard/staff/program-controller",
-          admission: "/dashboard/staff/admission",
-          exam: "/dashboard/staff/exam",
-          finance: "/dashboard/staff/finance",
-          library: "/dashboard/staff/library",
-          transport: "/dashboard/staff/transport",
-          hr: "/dashboard/staff/hr",
-          it: "/dashboard/staff/it",
-          hostel: "/dashboard/staff/hostel",
-          hostel_warden: "/dashboard/staff/hostel-warden",
-          hostel_supervisor: "/dashboard/staff/hostel-supervisor",
-          maintenance: "/dashboard/staff/maintenance",
-        };
-        redirectPath = staffRoleRoutes[userRole] || "/dashboard/staff";
-      }
-
-      router.push(redirectPath);
-    } catch (error) {
-      console.error("Login failed:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax; Secure`;
     }
-  };
+  }, []);
 
-  const logout = async () => {
-    setIsLoading(true);
+  const refreshUser = useCallback(async () => {
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
+    if (!token) return;
+
     try {
-      await authService.logout();
+      const response = await api.get("/user/auth/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const userData = response.data?.data?.user;
+
+      if (userData) {
+        setUser(userData as User);
+        setIsAuthenticated(true);
+        localStorage.setItem(
+          AUTH_CONFIG.USER_STORAGE_KEY,
+          JSON.stringify(userData),
+        );
+      }
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("Failed to refresh user:", error);
+    }
+  }, []);
+
+  const login = useCallback(
+    async (credentials: LoginCredentials, role: UserRole) => {
+      setIsLoading(true);
+
+      try {
+        const endpoint = getLoginEndpoint(role);
+        const response = await api.post(endpoint, credentials);
+        const data: LoginResponse = response.data?.data;
+
+        if (!data || !data.user || !data.accessToken) {
+          throw new Error("Invalid login response");
+        }
+
+        const userRole = data.user.role || role;
+
+        setUser(data.user);
+        setIsAuthenticated(true);
+
+        localStorage.setItem(
+          AUTH_CONFIG.USER_STORAGE_KEY,
+          JSON.stringify(data.user),
+        );
+        localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
+        localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
+
+        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+
+        const redirectPath = getRedirectPath(userRole, role);
+        router.push(redirectPath);
+      } catch (error) {
+        console.error("Login failed:", error);
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router],
+  );
+
+  const logout = useCallback(async () => {
+    setIsLoading(true);
+
+    try {
+      await api.post("/user/auth/logout").catch(() => {
+        // Ignore logout API errors
+      });
     } finally {
-      setUser(null);
-      setIsAuthenticated(false);
-      localStorage.removeItem("user");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("refreshToken");
-
-      // Clear cookie
-      document.cookie = "accessToken=; path=/; max-age=0; SameSite=Lax; Secure";
-
+      clearAuthData();
       router.push("/login");
       setIsLoading(false);
     }
+  }, [router, clearAuthData]);
+
+  const hasRole = useCallback(
+    (role: UserRole | UserRole[]): boolean => {
+      if (!user) return false;
+
+      const roles = Array.isArray(role) ? role : [role];
+      return roles.includes(user.role);
+    },
+    [user],
+  );
+
+  const getDashboardRoute = useCallback((): string => {
+    if (!user) return "/login";
+    return getRedirectPath(user.role);
+  }, [user]);
+
+  const value: AuthContextType = {
+    user,
+    isAuthenticated,
+    isLoading,
+    login,
+    logout,
+    refreshUser,
+    hasRole,
+    getDashboardRoute,
   };
 
-  return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated, isLoading, login, logout, refreshUser }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
 
-export const useAuth = () => {
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
+
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
   return context;
-};
+}
+
+export type { AuthContextType };

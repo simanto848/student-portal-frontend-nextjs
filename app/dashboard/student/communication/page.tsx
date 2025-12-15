@@ -3,27 +3,27 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent } from "@/components/ui/card";
+import { DashboardSkeleton } from "@/components/dashboard/shared";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   MessageSquare,
   Search,
-  Loader2,
   BookOpen,
   Users,
   User,
   GraduationCap,
-  ArrowLeft,
+  AlertCircle,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { chatService, Message } from "@/services/communication/chat.service";
 import { ChatInterface } from "@/components/dashboard/communication/ChatInterface";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { batchService } from "@/services/academic/batch.service";
-import { notifyError } from "@/components/toast";
 
 type ChatGroupListItem = {
   id: string;
@@ -38,33 +38,36 @@ type ChatGroupListItem = {
   updatedAt?: string;
 };
 
+// Query keys for chat groups
+const chatKeys = {
+  all: ["chat"] as const,
+  groups: () => [...chatKeys.all, "groups"] as const,
+  myGroups: () => [...chatKeys.groups(), "mine"] as const,
+};
+
 export default function StudentCommunicationPage() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
-  const [groups, setGroups] = useState<ChatGroupListItem[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<ChatGroupListItem | null>(
-    null
+    null,
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("course");
   const [canPin, setCanPin] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const data =
-          (await chatService.listMyChatGroups()) as ChatGroupListItem[];
-        setGroups(Array.isArray(data) ? data : []);
-      } catch (e: any) {
-        notifyError(e?.message || "Failed to load channels.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, []);
+  // Use React Query for data fetching
+  const {
+    data: groups = [],
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: chatKeys.myGroups(),
+    queryFn: async () => {
+      const data =
+        (await chatService.listMyChatGroups()) as ChatGroupListItem[];
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
   useEffect(() => {
     const checkPermissions = async () => {
@@ -112,18 +115,34 @@ export default function StudentCommunicationPage() {
     const q = searchQuery.trim().toLowerCase();
     if (q) {
       filtered = filtered.filter((g) =>
-        JSON.stringify(g).toLowerCase().includes(q)
+        JSON.stringify(g).toLowerCase().includes(q),
       );
     }
 
     return filtered;
   }, [groups, searchQuery, activeTab]);
 
-  useEffect(() => {
-    if (!selectedGroup && filteredGroups.length > 0 && !loading) {
-      // setSelectedGroup(filteredGroups[0]); // Optional: Auto-select first group
-    }
-  }, [filteredGroups, selectedGroup, loading]);
+  // Loading state using DashboardSkeleton
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex h-[calc(100vh-100px)] -m-4 md:-m-8 overflow-hidden bg-gray-50/50">
+          <div className="w-full md:w-[380px] flex flex-col border-r bg-white">
+            <DashboardSkeleton
+              layout="cards-only"
+              cardCount={4}
+              withLayout={false}
+            />
+          </div>
+          <div className="flex-1 hidden md:flex items-center justify-center bg-gray-50/50">
+            <div className="text-muted-foreground">
+              Loading conversations...
+            </div>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -132,7 +151,7 @@ export default function StudentCommunicationPage() {
         <div
           className={cn(
             "w-full md:w-[380px] flex flex-col border-r bg-white z-10",
-            selectedGroup ? "hidden md:flex" : "flex"
+            selectedGroup ? "hidden md:flex" : "flex",
           )}
         >
           {/* Header */}
@@ -158,6 +177,18 @@ export default function StudentCommunicationPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+
+            {/* Error Alert */}
+            {isError && (
+              <Alert variant="destructive" className="py-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  {error instanceof Error
+                    ? error.message
+                    : "Failed to load channels."}
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           {/* Tabs */}
@@ -189,7 +220,6 @@ export default function StudentCommunicationPage() {
                 groups={filteredGroups}
                 selectedId={selectedGroup?.id}
                 onSelect={setSelectedGroup}
-                loading={loading}
                 type="course"
               />
             </TabsContent>
@@ -199,7 +229,6 @@ export default function StudentCommunicationPage() {
                 groups={filteredGroups}
                 selectedId={selectedGroup?.id}
                 onSelect={setSelectedGroup}
-                loading={loading}
                 type="batch"
               />
             </TabsContent>
@@ -285,23 +314,13 @@ function GroupList({
   groups,
   selectedId,
   onSelect,
-  loading,
   type,
 }: {
   groups: ChatGroupListItem[];
   selectedId?: string;
   onSelect: (g: ChatGroupListItem) => void;
-  loading: boolean;
   type: "course" | "batch";
 }) {
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   if (groups.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-muted-foreground">
@@ -323,14 +342,14 @@ function GroupList({
                 "flex flex-col items-start text-left p-3 rounded-xl transition-all duration-200 border",
                 isSelected
                   ? "bg-[#1a3d32]/5 border-[#1a3d32]/20 shadow-sm"
-                  : "bg-white border-transparent hover:bg-gray-50 hover:border-gray-100"
+                  : "bg-white border-transparent hover:bg-gray-50 hover:border-gray-100",
               )}
             >
               <div className="w-full flex justify-between items-start mb-1">
                 <span
                   className={cn(
                     "font-semibold text-sm line-clamp-1",
-                    isSelected ? "text-[#1a3d32]" : "text-gray-900"
+                    isSelected ? "text-[#1a3d32]" : "text-gray-900",
                   )}
                 >
                   {type === "course"

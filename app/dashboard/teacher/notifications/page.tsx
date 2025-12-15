@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import {
+  DashboardHero,
+  DashboardSkeleton,
+} from "@/components/dashboard/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,106 +15,156 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Bell, AlertCircle, Search, CheckCheck } from "lucide-react";
 import {
-  notificationService,
-  NotificationItem,
-} from "@/services/notification/notification.service";
-import { toast } from "sonner";
+  useNotificationCenter,
+  useNotificationStats,
+} from "@/hooks/queries/useNotificationQueries";
+
+type FilterType = "all" | "unread" | "read";
 
 export default function TeacherNotificationsPage() {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [markingId, setMarkingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filter, setFilter] = useState<FilterType>("all");
 
-  useEffect(() => {
-    if (user?.id) {
-      loadNotifications();
-    }
-  }, [user?.id]);
+  // Use React Query hooks for data fetching
+  const {
+    notifications,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    markAsRead,
+    markAllAsRead,
+    isMarkingRead,
+    isMarkingAllRead,
+  } = useNotificationCenter();
 
-  const loadNotifications = async () => {
-    setLoading(true);
-    try {
-      const res = await notificationService.list({
-        mine: true,
-        page: 1,
-        limit: 50,
-      });
-      const list = res?.notifications || [];
-      setNotifications(list);
-    } catch (error) {
-      console.error("Notifications fetch error", error);
-      toast.error("Failed to load notifications");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats } = useNotificationStats();
 
-  const markRead = async (id: string) => {
-    setMarkingId(id);
-    try {
-      await notificationService.markRead(id);
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n.id === id
-            ? { ...n, status: "read", readAt: new Date().toISOString() }
-            : n
-        )
+  // Sort notifications by date (newest first)
+  const sortedNotifications = useMemo(() => {
+    return [...notifications].sort(
+      (a, b) =>
+        new Date(b.sendAt || b.createdAt || 0).getTime() -
+        new Date(a.sendAt || a.createdAt || 0).getTime(),
+    );
+  }, [notifications]);
+
+  // Filter notifications based on filter and search
+  const filteredNotifications = useMemo(() => {
+    return sortedNotifications
+      .filter((n) => {
+        if (filter === "unread") return n.status !== "read";
+        if (filter === "read") return n.status === "read";
+        return true;
+      })
+      .filter((n) =>
+        JSON.stringify(n).toLowerCase().includes(searchQuery.toLowerCase()),
       );
-    } catch (error) {
-      console.error("Mark read error", error);
-      toast.error("Failed to mark as read");
-    } finally {
-      setMarkingId(null);
-    }
-  };
+  }, [sortedNotifications, filter, searchQuery]);
 
-  const statusBadge = (status?: string) => {
-    switch (status) {
-      case "sent":
-        return <Badge className="bg-blue-500 text-white">Sent</Badge>;
-      case "read":
-        return <Badge className="bg-green-500 text-white">Read</Badge>;
-      case "scheduled":
-        return <Badge className="bg-amber-500 text-white">Scheduled</Badge>;
-      default:
-        return <Badge variant="secondary">Draft</Badge>;
-    }
-  };
+  const unreadCount = stats?.unread ?? 0;
+
+  // Loading state using DashboardSkeleton
+  if (isLoading) {
+    return <DashboardSkeleton layout="hero-table" rowCount={6} />;
+  }
 
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">
-              Notifications
-            </h1>
-            <p className="text-muted-foreground">
-              Messages and alerts sent to you and your classes
-            </p>
+        {/* Hero Section using DashboardHero component */}
+        <DashboardHero
+          icon={Bell}
+          label="Notifications"
+          title="Messages and alerts for you and your classes"
+          description="Stay updated with important announcements and system notifications."
+          actions={
+            <>
+              <Button
+                size="sm"
+                className="bg-white text-[#1a3d32] hover:bg-white/90 shadow-md"
+                onClick={() => markAllAsRead()}
+                disabled={isMarkingAllRead || unreadCount === 0}
+              >
+                <CheckCheck className="h-4 w-4 mr-2" />
+                {isMarkingAllRead ? "Marking..." : "Mark all as read"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-white/40 text-white hover:bg-white/10"
+                onClick={() => refetch()}
+              >
+                Refresh
+              </Button>
+            </>
+          }
+          stats={{
+            label: "Unread Notifications",
+            value: unreadCount.toString(),
+            subtext: "new",
+          }}
+        >
+          <p className="text-[11px] text-white/70 mt-2">
+            Total: {notifications.length} notifications
+          </p>
+        </DashboardHero>
+
+        {/* Error Alert */}
+        {isError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {error instanceof Error
+                ? error.message
+                : "Failed to load notifications."}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Search and Filter */}
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 md:max-w-md">
+            <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
+            <Input
+              placeholder="Search notifications..."
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <Button variant="outline" onClick={loadNotifications}>
-            Refresh
-          </Button>
+          <Tabs
+            value={filter}
+            onValueChange={(v) => setFilter(v as FilterType)}
+          >
+            <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="unread">Unread</TabsTrigger>
+              <TabsTrigger value="read">Read</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        <Card>
+        {/* Notifications Table */}
+        <Card className="border-none shadow-sm">
           <CardHeader>
-            <CardTitle>Inbox</CardTitle>
+            <CardTitle className="text-lg font-bold dashboard-title flex items-center gap-2">
+              <Bell className="h-4 w-4 dashboard-accent" /> Inbox
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {filteredNotifications.length === 0 ? (
               <div className="py-10 text-center text-muted-foreground">
-                Loading notifications...
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="py-10 text-center text-muted-foreground">
-                No notifications yet.
+                {searchQuery || filter !== "all"
+                  ? "No notifications match your filters."
+                  : "No notifications yet."}
               </div>
             ) : (
               <Table>
@@ -124,27 +178,13 @@ export default function TeacherNotificationsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {notifications.map((n) => (
-                    <TableRow key={n.id}>
-                      <TableCell className="font-medium">{n.title}</TableCell>
-                      <TableCell className="max-w-xl text-sm text-muted-foreground">
-                        {n.content}
-                      </TableCell>
-                      <TableCell>{statusBadge(n.status)}</TableCell>
-                      <TableCell>
-                        {n.sendAt ? new Date(n.sendAt).toLocaleString() : ""}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={n.status === "read" || markingId === n.id}
-                          onClick={() => markRead(n.id)}
-                        >
-                          Mark read
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                  {filteredNotifications.map((n) => (
+                    <NotificationRow
+                      key={n.id}
+                      notification={n}
+                      onMarkAsRead={() => markAsRead(n.id)}
+                      isMarkingRead={isMarkingRead}
+                    />
                   ))}
                 </TableBody>
               </Table>
@@ -153,5 +193,61 @@ export default function TeacherNotificationsPage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+// Notification Row sub-component
+interface NotificationRowProps {
+  notification: {
+    id: string;
+    title: string;
+    content?: string;
+    message?: string;
+    status?: string;
+    sendAt?: string;
+    createdAt?: string;
+  };
+  onMarkAsRead: () => void;
+  isMarkingRead: boolean;
+}
+
+function NotificationRow({
+  notification,
+  onMarkAsRead,
+  isMarkingRead,
+}: NotificationRowProps) {
+  const isRead = notification.status === "read";
+  const dateStr = notification.sendAt || notification.createdAt;
+
+  return (
+    <TableRow className={isRead ? "" : "bg-[#3e6253]/5"}>
+      <TableCell className="font-medium">
+        <span className={isRead ? "text-gray-600" : "dashboard-title"}>
+          {notification.title}
+        </span>
+      </TableCell>
+      <TableCell className="max-w-xl text-sm text-muted-foreground">
+        <span className="line-clamp-2">
+          {notification.content || notification.message || "—"}
+        </span>
+      </TableCell>
+      <TableCell>
+        <StatusBadge status={notification.status || "draft"} />
+      </TableCell>
+      <TableCell className="text-muted-foreground">
+        {dateStr ? new Date(dateStr).toLocaleString() : "—"}
+      </TableCell>
+      <TableCell className="text-right">
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={isRead || isMarkingRead}
+          onClick={onMarkAsRead}
+          className="text-[#3e6253] hover:bg-[#3e6253]/10"
+        >
+          Mark read
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 }

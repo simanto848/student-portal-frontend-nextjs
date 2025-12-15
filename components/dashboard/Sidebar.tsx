@@ -4,41 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  Calendar,
-  Settings,
-  FileText,
   LogOut,
   GraduationCap,
-  Building2,
-  Library,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
   X,
-  ClipboardList,
-  MessageSquare,
-  CheckSquare,
-  Bell,
+  Settings,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import {
+  getNavigationForUser,
+  getDashboardTitle,
+  isPathActive,
+  isChildActive,
+  NavItem,
+  NavChildItem,
+} from "@/config/navigation";
 
 interface SidebarProps {
   className?: string;
   onClose?: () => void;
   isCollapsed?: boolean;
   toggleCollapse?: () => void;
-}
-
-interface NavItem {
-  href?: string;
-  label: string;
-  icon: React.ComponentType<{ className?: string }>;
-  children?: { href: string; label: string }[];
 }
 
 export function Sidebar({
@@ -51,280 +41,23 @@ export function Sidebar({
   const { user, logout } = useAuth();
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
 
-  let role = user?.role || "student";
+  // Get navigation items for the current user
+  const navigationItems = useMemo(() => {
+    return user ? getNavigationForUser(user) : [];
+  }, [user]);
 
-  if (["super_admin", "moderator"].includes(role)) {
-    role = "admin";
-  }
+  // Get dashboard title based on user role
+  const dashboardTitle = useMemo(() => {
+    return user ? getDashboardTitle(user.role) : "Dashboard";
+  }, [user]);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
       prev.includes(section)
         ? prev.filter((s) => s !== section)
-        : [...prev, section]
+        : [...prev, section],
     );
   };
-
-  const adminLinks: NavItem[] = [
-    {
-      href: "/dashboard/admin",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Academic Management",
-      icon: GraduationCap,
-      children: [
-        { href: "/dashboard/admin/academic/faculty", label: "Faculty" },
-        { href: "/dashboard/admin/academic/department", label: "Department" },
-        { href: "/dashboard/admin/academic/program", label: "Program" },
-        { href: "/dashboard/admin/academic/session", label: "Session" },
-        { href: "/dashboard/admin/academic/course", label: "Course" },
-        { href: "/dashboard/admin/academic/batch", label: "Batch" },
-        {
-          href: "/dashboard/admin/academic/session-course",
-          label: "Session Course",
-        },
-        { href: "/dashboard/admin/academic/classroom", label: "Classroom" },
-        { href: "/dashboard/admin/academic/schedule", label: "Schedule" },
-        { href: "/dashboard/admin/academic/syllabus", label: "Syllabus" },
-        {
-          href: "/dashboard/admin/academic/exam-committee",
-          label: "Exam Committee",
-        },
-        {
-          href: "/dashboard/admin/academic/prerequisite",
-          label: "Prerequisite",
-        },
-      ],
-    },
-    {
-      label: "Enrollment Management",
-      icon: ClipboardList,
-      children: [
-        { href: "/dashboard/admin/enrollment", label: "Overview" },
-        {
-          href: "/dashboard/admin/enrollment/enrollments",
-          label: "Enrollments",
-        },
-        {
-          href: "/dashboard/admin/enrollment/instructors",
-          label: "Instructors",
-        },
-        {
-          href: "/dashboard/admin/enrollment/assessments",
-          label: "Assessments",
-        },
-        {
-          href: "/dashboard/admin/enrollment/grades/workflow",
-          label: "Grade Workflow",
-        },
-        {
-          href: "/dashboard/admin/enrollment/attendance",
-          label: "Attendance",
-        },
-      ],
-    },
-    {
-      label: "Workspaces Management",
-      icon: Building2,
-      children: [
-        { href: "/dashboard/admin/classroom", label: "Classrooms" },
-        {
-          href: "/dashboard/admin/classroom/assignments",
-          label: "Assignments",
-        },
-        { href: "/dashboard/admin/classroom/materials", label: "Materials" },
-        {
-          href: "/dashboard/admin/classroom/submissions",
-          label: "Submissions",
-        },
-        { href: "/dashboard/admin/classroom/rubrics", label: "Rubrics" },
-      ],
-    },
-    {
-      label: "User Management",
-      icon: Users,
-      children: [
-        { href: "/dashboard/admin/users/admins", label: "Admins" },
-        { href: "/dashboard/admin/users/staff", label: "Staff" },
-        { href: "/dashboard/admin/users/faculty", label: "Faculty" },
-        { href: "/dashboard/admin/users/students", label: "Students" },
-      ],
-    },
-    ...(user?.role !== "moderator"
-      ? [
-        {
-          label: "Library Management",
-          icon: BookOpen,
-          children: [
-            { href: "/dashboard/admin/library", label: "Overview" },
-            {
-              href: "/dashboard/admin/library/libraries",
-              label: "Libraries",
-            },
-            { href: "/dashboard/admin/library/books", label: "Books" },
-            { href: "/dashboard/admin/library/copies", label: "Book Copies" },
-            {
-              href: "/dashboard/admin/library/borrowings",
-              label: "Borrowings",
-            },
-            {
-              href: "/dashboard/admin/library/reservations",
-              label: "Reservations",
-            },
-          ],
-        },
-      ]
-      : []),
-    {
-      href: "/dashboard/admin/reports",
-      label: "System Reports",
-      icon: FileText,
-    },
-  ];
-
-  const teacherLinks: NavItem[] = [
-    { href: "/dashboard/teacher", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/teacher/courses", label: "My Courses", icon: BookOpen },
-    {
-      href: "/dashboard/teacher/classroom",
-      label: "Classroom",
-      icon: Building2,
-    },
-    {
-      href: "/dashboard/teacher/attendance",
-      label: "Attendance",
-      icon: CheckSquare,
-    },
-    {
-      href: "/dashboard/teacher/grading",
-      label: "Grading",
-      icon: ClipboardList,
-    },
-    {
-      href: "/dashboard/teacher/communication",
-      label: "Communication",
-      icon: MessageSquare,
-    },
-    {
-      href: "/dashboard/teacher/notifications",
-      label: "Notifications",
-      icon: Bell,
-    },
-    { href: "/dashboard/teacher/schedule", label: "Schedule", icon: Calendar },
-    ...(user?.isDepartmentHead
-      ? [
-        {
-          href: "/dashboard/teacher/exam-committee",
-          label: "Exam Committee",
-          icon: Users,
-        },
-      ]
-      : []),
-  ];
-
-  const studentLinks: NavItem[] = [
-    { href: "/dashboard/student", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/student/classes", label: "My Classes", icon: BookOpen },
-    {
-      href: "/dashboard/student/attendances",
-      label: "Attendances",
-      icon: CheckSquare,
-    },
-    { href: "/dashboard/student/grades", label: "Grades", icon: FileText },
-    {
-      href: "/dashboard/student/classroom",
-      label: "Classroom",
-      icon: Building2,
-    },
-    {
-      href: "/dashboard/student/communication",
-      label: "Communication",
-      icon: MessageSquare,
-    },
-    { href: "/dashboard/student/library", label: "Library", icon: Library },
-    { href: "/dashboard/student/payments", label: "Payments", icon: Building2 },
-  ];
-
-  // Program Controller staff role
-  const programControllerLinks: NavItem[] = [
-    {
-      href: "/dashboard/staff/program-controller",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Academic Management",
-      icon: GraduationCap,
-      children: [
-        {
-          href: "/dashboard/staff/program-controller/courses",
-          label: "Courses",
-        },
-        {
-          href: "/dashboard/staff/program-controller/classrooms",
-          label: "Classrooms",
-        },
-        {
-          href: "/dashboard/staff/program-controller/schedules",
-          label: "Schedules",
-        },
-        {
-          href: "/dashboard/staff/program-controller/syllabus",
-          label: "Syllabus",
-        },
-        {
-          href: "/dashboard/staff/program-controller/prerequisites",
-          label: "Prerequisites",
-        },
-      ],
-    },
-  ];
-
-  // Librarian staff role
-  const librarianLinks: NavItem[] = [
-    {
-      href: "/dashboard/staff/library",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-    },
-    {
-      label: "Library Catalog",
-      icon: BookOpen,
-      children: [
-        { href: "/dashboard/staff/library/libraries", label: "Libraries" },
-        { href: "/dashboard/staff/library/books", label: "Books" },
-        { href: "/dashboard/staff/library/copies", label: "Book Copies" },
-      ],
-    },
-    {
-      label: "Transactions",
-      icon: Users,
-      children: [
-        { href: "/dashboard/staff/library/borrowings", label: "Borrowings" },
-        {
-          href: "/dashboard/staff/library/reservations",
-          label: "Reservations",
-        },
-      ],
-    },
-  ];
-
-  const roleLinks = {
-    admin: adminLinks,
-    teacher: teacherLinks,
-    student: studentLinks,
-    program_controller: programControllerLinks,
-    library: librarianLinks,
-    staff: [],
-  };
-
-  const links = roleLinks[role as keyof typeof roleLinks] || [];
-
-  const isActive = (href: string) => pathname === href;
-  const isChildActive = (children?: { href: string }[]) =>
-    children?.some((child) => pathname === child.href) || false;
 
   const handleLinkClick = () => {
     if (onClose) onClose();
@@ -334,7 +67,8 @@ export function Sidebar({
     if (item.children) {
       const sectionId = item.label.toLowerCase().replace(/\s+/g, "-");
       const isExpanded =
-        expandedSections.includes(sectionId) || isChildActive(item.children);
+        expandedSections.includes(sectionId) ||
+        isChildActive(pathname, item.children);
 
       return (
         <div key={item.label} className="space-y-1">
@@ -352,15 +86,16 @@ export function Sidebar({
             }}
             className={cn(
               "w-full justify-between gap-3 hover:bg-[#588157]/30 hover:text-white text-gray-200 h-11",
-              isChildActive(item.children) && "bg-[#588157]/20 text-white",
-              isCollapsed && "justify-center px-2"
+              isChildActive(pathname, item.children) &&
+                "bg-[#588157]/20 text-white",
+              isCollapsed && "justify-center px-2",
             )}
             title={isCollapsed ? item.label : undefined}
           >
             <span
               className={cn(
                 "flex items-center gap-3",
-                isCollapsed && "justify-center"
+                isCollapsed && "justify-center",
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -378,7 +113,7 @@ export function Sidebar({
 
           {!isCollapsed && isExpanded && (
             <div className="ml-4 pl-4 border-l-2 border-[#588157]/30 space-y-1">
-              {item.children.map((child) => (
+              {item.children.map((child: NavChildItem) => (
                 <Link
                   key={child.href}
                   href={child.href}
@@ -388,9 +123,9 @@ export function Sidebar({
                     variant="ghost"
                     className={cn(
                       "w-full justify-start text-sm h-10 hover:bg-[#588157]/30 hover:text-white",
-                      isActive(child.href)
+                      isPathActive(pathname, child.href)
                         ? "bg-[#588157] text-white font-medium"
-                        : "text-gray-300"
+                        : "text-gray-300",
                     )}
                   >
                     {child.label}
@@ -409,10 +144,10 @@ export function Sidebar({
           variant="ghost"
           className={cn(
             "w-full justify-start gap-3 hover:bg-[#588157]/30 hover:text-white h-11",
-            isActive(item.href!)
+            isPathActive(pathname, item.href!)
               ? "bg-[#588157] text-white font-medium"
               : "text-gray-200",
-            isCollapsed && "justify-center px-2"
+            isCollapsed && "justify-center px-2",
           )}
           title={isCollapsed ? item.label : undefined}
         >
@@ -427,12 +162,13 @@ export function Sidebar({
     <div
       className={cn("h-full bg-[#344e41] text-white flex flex-col", className)}
     >
+      {/* Header */}
       <div className="px-4 py-6 border-b border-white/10">
         <div className="flex items-center justify-between">
           <div
             className={cn(
               "flex items-center gap-3",
-              isCollapsed && "justify-center w-full"
+              isCollapsed && "justify-center w-full",
             )}
           >
             <div className="h-10 w-10 rounded-full bg-[#588157]/30 flex items-center justify-center shrink-0">
@@ -441,13 +177,7 @@ export function Sidebar({
             {!isCollapsed && (
               <div>
                 <h2 className="text-lg font-bold tracking-tight">
-                  {role === "admin"
-                    ? "Admin Portal"
-                    : role === "teacher"
-                      ? "Teacher Panel"
-                      : role === "student"
-                        ? "Student Dashboard"
-                        : "Staff Panel"}
+                  {dashboardTitle}
                 </h2>
                 <p className="text-xs text-[#a3b18a]">University Name</p>
               </div>
@@ -465,7 +195,7 @@ export function Sidebar({
         <div
           className={cn(
             "hidden lg:flex mt-2",
-            isCollapsed ? "justify-center w-full" : "justify-end"
+            isCollapsed ? "justify-center w-full" : "justify-end",
           )}
         >
           <Button
@@ -473,7 +203,7 @@ export function Sidebar({
             size="sm"
             className={cn(
               "hover:bg-[#588157]/30 text-gray-300 transition-all duration-200",
-              isCollapsed ? "h-10 w-10 rounded-full p-0" : "h-6 w-6 p-0"
+              isCollapsed ? "h-10 w-10 rounded-full p-0" : "h-6 w-6 p-0",
             )}
             onClick={toggleCollapse}
           >
@@ -486,10 +216,14 @@ export function Sidebar({
         </div>
       </div>
 
+      {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4">
-        <div className="px-3 space-y-2">{links.map(renderNavItem)}</div>
+        <div className="px-3 space-y-2">
+          {navigationItems.map(renderNavItem)}
+        </div>
       </div>
 
+      {/* Footer */}
       <div className="px-3 py-4 border-t border-white/10">
         <div className="space-y-1">
           <Link href="/dashboard/settings" onClick={handleLinkClick}>
@@ -497,7 +231,7 @@ export function Sidebar({
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-3 text-gray-200 hover:bg-[#588157]/30 hover:text-white h-11",
-                isCollapsed && "justify-center px-2"
+                isCollapsed && "justify-center px-2",
               )}
               title={isCollapsed ? "Settings" : undefined}
             >
@@ -509,7 +243,7 @@ export function Sidebar({
             variant="ghost"
             className={cn(
               "w-full justify-start gap-3 text-gray-200 hover:bg-red-500/20 hover:text-red-300 h-11",
-              isCollapsed && "justify-center px-2"
+              isCollapsed && "justify-center px-2",
             )}
             onClick={logout}
             title={isCollapsed ? "Logout" : undefined}

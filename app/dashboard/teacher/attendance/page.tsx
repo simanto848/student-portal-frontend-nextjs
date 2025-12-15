@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import {
+  DashboardHero,
+  DashboardSkeleton,
+} from "@/components/dashboard/shared";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -20,23 +24,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  batchCourseInstructorService,
-  BatchCourseInstructor,
-} from "@/services/enrollment/batchCourseInstructor.service";
+import { useAttendanceManagement } from "@/hooks/queries/useTeacherQueries";
 import {
   enrollmentService,
   Enrollment,
 } from "@/services/enrollment/enrollment.service";
-import {
-  attendanceService,
-  Attendance,
-} from "@/services/enrollment/attendance.service";
+import { attendanceService } from "@/services/enrollment/attendance.service";
 import { studentService } from "@/services/user/student.service";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Check, X, Clock, AlertCircle } from "lucide-react";
+import {
+  Check,
+  X,
+  Clock,
+  AlertCircle,
+  CalendarDays,
+  Users,
+  ClipboardCheck,
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 interface AttendanceState {
@@ -49,30 +56,28 @@ interface AttendanceState {
 export default function AttendancePage() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
+  const instructorId = user?.id || user?._id || "";
 
-  const [courses, setCourses] = useState<BatchCourseInstructor[]>([]);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>(
-    searchParams.get("courseId") ? "" : ""
-  );
+  // Use React Query hook for courses
+  const { courses, isLoading: coursesLoading } =
+    useAttendanceManagement(instructorId);
+
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string>("");
   const [date, setDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
   const [students, setStudents] = useState<Enrollment[]>([]);
   const [attendanceState, setAttendanceState] = useState<AttendanceState>({});
-  const [loading, setLoading] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchCourses();
-    }
-  }, [user?.id]);
-
+  // Handle URL params for course/batch selection
   useEffect(() => {
     const paramCourseId = searchParams.get("courseId");
     const paramBatchId = searchParams.get("batchId");
 
     if (courses.length > 0 && paramCourseId && paramBatchId) {
       const match = courses.find(
-        (c) => c.courseId === paramCourseId && c.batchId === paramBatchId
+        (c) => c.courseId === paramCourseId && c.batchId === paramBatchId,
       );
       if (match) {
         setSelectedAssignmentId(match.id);
@@ -80,34 +85,15 @@ export default function AttendancePage() {
     }
   }, [courses, searchParams]);
 
-  useEffect(() => {
-    if (selectedAssignmentId && date) {
-      fetchClassData();
-    } else {
-      setStudents([]);
-    }
-  }, [selectedAssignmentId, date]);
-
-  const fetchCourses = async () => {
-    try {
-      const data = await batchCourseInstructorService.getInstructorCourses(
-        user!.id
-      );
-      setCourses(data);
-    } catch (error) {
-      console.error("Fetch courses error:", error);
-      toast.error("Failed to load courses");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchClassData = async () => {
-    setLoading(true);
+  // Fetch class data function wrapped in useCallback
+  const fetchClassData = useCallback(async () => {
+    setLoadingStudents(true);
+    setError(null);
     try {
       const assignment = courses.find((c) => c.id === selectedAssignmentId);
       if (!assignment) return;
 
+      // Fetch enrolled students
       const enrollmentsResponse = await enrollmentService.listEnrollments({
         batchId: assignment.batchId,
         courseId: assignment.courseId,
@@ -115,12 +101,13 @@ export default function AttendancePage() {
       });
       let enrolledStudents = enrollmentsResponse.enrollments || [];
 
+      // Enrich students with details
       const studentsWithDetails = await Promise.all(
         enrolledStudents.map(async (enrollment) => {
           if (!enrollment.student) {
             try {
               const studentDetails = await studentService.getById(
-                enrollment.studentId
+                enrollment.studentId,
               );
               return {
                 ...enrollment,
@@ -129,35 +116,47 @@ export default function AttendancePage() {
             } catch (error) {
               console.error(
                 `Failed to fetch student ${enrollment.studentId}:`,
-                error
+                error,
               );
               return enrollment;
             }
           }
           return enrollment;
-        })
+        }),
       );
       enrolledStudents = studentsWithDetails;
       setStudents(enrolledStudents);
 
+      // Fetch existing attendance for the date
       const startDateTime = new Date(date);
       startDateTime.setHours(0, 0, 0, 0);
 
       const endDateTime = new Date(date);
       endDateTime.setHours(23, 59, 59, 999);
 
-      const attendanceResponse: any = await attendanceService.listAttendance({
+      const attendanceResponse = await attendanceService.listAttendance({
         batchId: assignment.batchId,
         courseId: assignment.courseId,
         startDate: startDateTime.toISOString(),
         endDate: endDateTime.toISOString(),
       });
-      const existingAttendance = Array.isArray(attendanceResponse) ? attendanceResponse : (attendanceResponse.attendance || []);
+      const existingAttendance = Array.isArray(attendanceResponse)
+        ? attendanceResponse
+        : (
+            attendanceResponse as {
+              attendance?: {
+                studentId: string;
+                status: "present" | "absent" | "late" | "excused";
+                remarks?: string;
+              }[];
+            }
+          ).attendance || [];
 
+      // Initialize attendance state
       const initialState: AttendanceState = {};
       enrolledStudents.forEach((student) => {
         const record = existingAttendance.find(
-          (a: { studentId: string; }) => a.studentId === student.studentId
+          (a: { studentId: string }) => a.studentId === student.studentId,
         );
         initialState[student.studentId] = {
           status: record ? record.status : "present",
@@ -167,15 +166,26 @@ export default function AttendancePage() {
       setAttendanceState(initialState);
     } catch (error) {
       console.error("Fetch class data error:", error);
+      setError("Failed to load student list");
       toast.error("Failed to load student list");
     } finally {
-      setLoading(false);
+      setLoadingStudents(false);
     }
-  };
+  }, [courses, selectedAssignmentId, date]);
+
+  // Fetch students and attendance when course/date changes
+  useEffect(() => {
+    if (selectedAssignmentId && date) {
+      fetchClassData();
+    } else {
+      setStudents([]);
+      setAttendanceState({});
+    }
+  }, [selectedAssignmentId, date, fetchClassData]);
 
   const handleStatusChange = (
     studentId: string,
-    status: "present" | "absent" | "late" | "excused"
+    status: "present" | "absent" | "late" | "excused",
   ) => {
     setAttendanceState((prev) => ({
       ...prev,
@@ -218,19 +228,84 @@ export default function AttendancePage() {
     }
   };
 
+  // Calculate attendance summary
+  const attendanceSummary = useMemo(() => {
+    const total = students.length;
+    const present = Object.values(attendanceState).filter(
+      (s) => s.status === "present",
+    ).length;
+    const absent = Object.values(attendanceState).filter(
+      (s) => s.status === "absent",
+    ).length;
+    const late = Object.values(attendanceState).filter(
+      (s) => s.status === "late",
+    ).length;
+    const excused = Object.values(attendanceState).filter(
+      (s) => s.status === "excused",
+    ).length;
+
+    return { total, present, absent, late, excused };
+  }, [students, attendanceState]);
+
+  // Get selected course name for display
+  const selectedCourse = useMemo(
+    () => courses.find((c) => c.id === selectedAssignmentId),
+    [courses, selectedAssignmentId],
+  );
+  const selectedCourseName = selectedCourse
+    ? `${selectedCourse.course?.code} - ${selectedCourse.course?.name}`
+    : "";
+
+  // Loading state using DashboardSkeleton
+  if (coursesLoading) {
+    return <DashboardSkeleton layout="hero-table" rowCount={8} />;
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-[#1a3d32]">
-            Attendance Management
-          </h1>
-          <p className="text-muted-foreground">
-            Mark and view attendance for your classes
-          </p>
-        </div>
+        {/* Hero Section using DashboardHero component */}
+        <DashboardHero
+          icon={ClipboardCheck}
+          label="Attendance Management"
+          title="Mark and view attendance for your classes"
+          description={
+            selectedCourseName
+              ? `Currently viewing: ${selectedCourseName}`
+              : "Select a class to begin marking attendance"
+          }
+          stats={
+            selectedAssignmentId && students.length > 0
+              ? {
+                  label: "Present Today",
+                  value: `${attendanceSummary.present}/${attendanceSummary.total}`,
+                  subtext: "students",
+                  progress: attendanceSummary.present,
+                  progressMax: attendanceSummary.total || 1,
+                }
+              : undefined
+          }
+        >
+          {selectedAssignmentId && students.length > 0 && (
+            <div className="flex gap-4 mt-2 text-xs text-white/70">
+              <span>Present: {attendanceSummary.present}</span>
+              <span>Absent: {attendanceSummary.absent}</span>
+              <span>Late: {attendanceSummary.late}</span>
+              <span>Excused: {attendanceSummary.excused}</span>
+            </div>
+          )}
+        </DashboardHero>
 
-        <Card>
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Main Content Card */}
+        <Card className="border-none shadow-sm">
           <CardHeader className="bg-[#f8f9fa]">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
@@ -268,13 +343,15 @@ export default function AttendancePage() {
           <CardContent className="pt-6">
             {!selectedAssignmentId ? (
               <div className="text-center py-10 text-muted-foreground">
-                Please select a class to mark attendance.
+                <CalendarDays className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                <p>Please select a class to mark attendance.</p>
               </div>
-            ) : loading ? (
+            ) : loadingStudents ? (
               <div className="text-center py-10">Loading class list...</div>
             ) : students.length === 0 ? (
               <div className="text-center py-10 text-muted-foreground">
-                No students enrolled in this class.
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                <p>No students enrolled in this class.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -289,106 +366,24 @@ export default function AttendancePage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {students.map((student) => {
-                        const state = attendanceState[student.studentId] || {
-                          status: "present",
-                          remarks: "",
-                        };
-                        return (
-                          <TableRow key={student.studentId}>
-                            <TableCell className="font-medium">
-                              {student.student?.registrationNumber}
-                            </TableCell>
-                            <TableCell>{student.student?.fullName}</TableCell>
-                            <TableCell>
-                              <div className="flex justify-center gap-2">
-                                <Button
-                                  size="sm"
-                                  variant={
-                                    state.status === "present" ? "default" : "outline"
-                                  }
-                                  className={
-                                    state.status === "present" ? "bg-green-600 hover:bg-green-700" : ""
-                                  }
-                                  onClick={() =>
-                                    handleStatusChange(
-                                      student.studentId,
-                                      "present"
-                                    )
-                                  }
-                                  title="Present"
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={
-                                    state.status === "absent" ? "destructive" : "outline"
-                                  }
-                                  onClick={() =>
-                                    handleStatusChange(
-                                      student.studentId,
-                                      "absent"
-                                    )
-                                  }
-                                  title="Absent"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={
-                                    state.status === "late" ? "secondary" : "outline"
-                                  }
-                                  className={
-                                    state.status === "late" ? "bg-yellow-500 text-white hover:bg-yellow-600" : ""
-                                  }
-                                  onClick={() =>
-                                    handleStatusChange(
-                                      student.studentId,
-                                      "late"
-                                    )
-                                  }
-                                  title="Late"
-                                >
-                                  <Clock className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={
-                                    state.status === "excused" ? "secondary" : "outline"
-                                  }
-                                  className={
-                                    state.status === "excused" ? "bg-blue-500 text-white hover:bg-blue-600" : ""
-                                  }
-                                  onClick={() =>
-                                    handleStatusChange(
-                                      student.studentId,
-                                      "excused"
-                                    )
-                                  }
-                                  title="Excused"
-                                >
-                                  <AlertCircle className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Input
-                                placeholder="Optional remarks"
-                                value={state.remarks}
-                                onChange={(e) =>
-                                  handleRemarksChange(
-                                    student.studentId,
-                                    e.target.value
-                                  )
-                                }
-                                className="h-8 md:w-48"
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      {students.map((student) => (
+                        <AttendanceRow
+                          key={student.studentId}
+                          student={student}
+                          state={
+                            attendanceState[student.studentId] || {
+                              status: "present",
+                              remarks: "",
+                            }
+                          }
+                          onStatusChange={(status) =>
+                            handleStatusChange(student.studentId, status)
+                          }
+                          onRemarksChange={(remarks) =>
+                            handleRemarksChange(student.studentId, remarks)
+                          }
+                        />
+                      ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -408,5 +403,88 @@ export default function AttendancePage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+// Attendance Row sub-component
+interface AttendanceRowProps {
+  student: Enrollment;
+  state: { status: "present" | "absent" | "late" | "excused"; remarks: string };
+  onStatusChange: (status: "present" | "absent" | "late" | "excused") => void;
+  onRemarksChange: (remarks: string) => void;
+}
+
+function AttendanceRow({
+  student,
+  state,
+  onStatusChange,
+  onRemarksChange,
+}: AttendanceRowProps) {
+  return (
+    <TableRow>
+      <TableCell className="font-medium">
+        {student.student?.registrationNumber || "N/A"}
+      </TableCell>
+      <TableCell>{student.student?.fullName || "Unknown"}</TableCell>
+      <TableCell>
+        <div className="flex justify-center gap-2">
+          <Button
+            size="sm"
+            variant={state.status === "present" ? "default" : "outline"}
+            className={
+              state.status === "present"
+                ? "bg-green-600 hover:bg-green-700"
+                : ""
+            }
+            onClick={() => onStatusChange("present")}
+            title="Present"
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant={state.status === "absent" ? "destructive" : "outline"}
+            onClick={() => onStatusChange("absent")}
+            title="Absent"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant={state.status === "late" ? "secondary" : "outline"}
+            className={
+              state.status === "late"
+                ? "bg-yellow-500 text-white hover:bg-yellow-600"
+                : ""
+            }
+            onClick={() => onStatusChange("late")}
+            title="Late"
+          >
+            <Clock className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant={state.status === "excused" ? "secondary" : "outline"}
+            className={
+              state.status === "excused"
+                ? "bg-blue-500 text-white hover:bg-blue-600"
+                : ""
+            }
+            onClick={() => onStatusChange("excused")}
+            title="Excused"
+          >
+            <AlertCircle className="h-4 w-4" />
+          </Button>
+        </div>
+      </TableCell>
+      <TableCell>
+        <Input
+          placeholder="Optional remarks"
+          value={state.remarks}
+          onChange={(e) => onRemarksChange(e.target.value)}
+          className="h-8 md:w-48"
+        />
+      </TableCell>
+    </TableRow>
   );
 }
