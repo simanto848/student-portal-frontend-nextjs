@@ -174,7 +174,7 @@ export default function CommunicationPage() {
             <Button
               size="sm"
               variant="outline"
-              className="border-white/40 text-white hover:bg-white/10"
+              className="border-white/40 text-dashboard-900 hover:bg-white/10 hover:text-white hover:cursor-pointer"
               onClick={refetchAll}
             >
               Refresh
@@ -217,21 +217,19 @@ export default function CommunicationPage() {
         <div className="flex items-center space-x-1 border-b">
           <button
             onClick={() => setActiveTab("courses")}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "courses"
-                ? "border-[#1a3d32] text-[#1a3d32]"
-                : "border-transparent text-muted-foreground hover:text-slate-700"
-            }`}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "courses"
+              ? "border-[#1a3d32] text-[#1a3d32]"
+              : "border-transparent text-muted-foreground hover:text-slate-700"
+              }`}
           >
             My Courses ({filteredCourses.length})
           </button>
           <button
             onClick={() => setActiveTab("batches")}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              activeTab === "batches"
-                ? "border-[#1a3d32] text-[#1a3d32]"
-                : "border-transparent text-muted-foreground hover:text-slate-700"
-            }`}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === "batches"
+              ? "border-[#1a3d32] text-[#1a3d32]"
+              : "border-transparent text-muted-foreground hover:text-slate-700"
+              }`}
           >
             My Batches ({filteredBatches.length})
           </button>
@@ -312,7 +310,7 @@ function CourseChatCard({
   isEntering,
 }: CourseChatCardProps) {
   return (
-    <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow p-0">
+    <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow pt-0">
       <CardHeader className="bg-[#f8f9fa] border-b py-4">
         <div className="flex justify-between items-start">
           <div>

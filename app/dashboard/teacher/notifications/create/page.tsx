@@ -47,6 +47,7 @@ import {
   Zap,
   AlertTriangle,
   Info,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,13 +65,21 @@ import toast from "react-hot-toast";
 
 interface CourseOption {
   id: string;
-  type: "course" | "batch";
+  type: "course" | "batch" | "department";
   courseId?: string;
-  batchId: string;
-  courseName: string;
-  batchCode: string;
-  semester: number;
+  batchId?: string;
+  departmentId?: string;
+  courseName?: string;
+  batchCode?: string;
+  departmentName?: string;
+  semester?: number;
   label: string;
+}
+
+interface AudienceFilters {
+  students: boolean;
+  teachers: boolean;
+  staff: boolean;
 }
 
 interface FormErrors {
@@ -144,6 +153,11 @@ export default function CreateNotificationPage() {
     "low" | "medium" | "high" | "urgent"
   >("medium");
   const [sendEmail, setSendEmail] = useState(false);
+  const [audienceFilters, setAudienceFilters] = useState<AudienceFilters>({
+    students: true,
+    teachers: true,
+    staff: true,
+  });
   const [scheduleNotification, setScheduleNotification] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
@@ -240,9 +254,94 @@ export default function CreateNotificationPage() {
     }
   }, [user?.id]);
 
+  const fetchTargetOptions = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setIsLoading(true);
+      setLoadError(null);
+
+      const [instructorAssignments, scope] = await Promise.all([
+        batchCourseInstructorService.getInstructorCourses(user.id),
+        notificationService.getMyScope().catch(() => null),
+      ]);
+
+      const options: CourseOption[] = [];
+      const addedIds = new Set<string>();
+
+      // 1. Add Department Options (from scope)
+      if (scope?.options) {
+        scope.options.forEach((opt) => {
+          if (opt.type === "department" && opt.id && !addedIds.has(opt.id)) {
+            addedIds.add(opt.id);
+            options.push({
+              id: `dept-${opt.id}`,
+              type: "department",
+              departmentId: opt.id,
+              departmentName: opt.label,
+              label: opt.label,
+            });
+          }
+        });
+      }
+
+      // 2. Add Course/Batch Options (from assignments)
+      if (instructorAssignments) {
+        setAssignments(instructorAssignments);
+        const addedBatches = new Set<string>();
+
+        instructorAssignments.forEach((assignment) => {
+          // Add course-specific option
+          if (assignment.courseId && assignment.batchId) {
+            const courseName = assignment.course?.name || "Unknown Course";
+            const batchCode = assignment.batch?.code || "Unknown Batch";
+
+            options.push({
+              id: `${assignment.courseId}-${assignment.batchId}`,
+              type: "course",
+              courseId: assignment.courseId,
+              batchId: assignment.batchId,
+              courseName,
+              batchCode,
+              semester: assignment.semester || 1,
+              label: `${courseName} - ${batchCode}`,
+            });
+          }
+
+          // Add batch option
+          if (assignment.batchId && !addedBatches.has(assignment.batchId)) {
+            addedBatches.add(assignment.batchId);
+            const batchCode = assignment.batch?.code || assignment.batch?.name || "Unknown Batch";
+
+            options.push({
+              id: `batch-${assignment.batchId}`,
+              type: "batch",
+              batchId: assignment.batchId,
+              batchCode,
+              label: `All students in ${batchCode}`,
+            });
+          }
+        });
+      }
+
+      setCourseOptions(options);
+
+      if (options.length === 0) {
+        setLoadError(
+          "No courses or departments found to create notifications for.",
+        );
+      }
+    } catch (err) {
+      console.error("Failed to fetch target options:", err);
+      setLoadError("Failed to load targeting options.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
-    fetchInstructorCourses();
-  }, [fetchInstructorCourses]);
+    fetchTargetOptions();
+  }, [fetchTargetOptions]);
 
   // Validate a single field
   const validateField = (field: string, value: unknown): string | undefined => {
@@ -356,11 +455,28 @@ export default function CreateNotificationPage() {
         content: content.trim(),
         summary: summary.trim() || undefined,
         targetType: "batch",
-        targetBatchIds: [selectedOption!.batchId],
+        targetBatchIds: selectedOption?.batchId ? [selectedOption.batchId] : [],
         priority,
         sendEmail,
         deliveryChannels: sendEmail ? ["socket", "email"] : ["socket"],
       };
+
+      if (selectedOption?.type === "department") {
+        data.targetType = "department";
+        data.targetDepartmentIds = [selectedOption.departmentId!];
+
+        const targetRoles: string[] = [];
+        if (audienceFilters.students) targetRoles.push("student");
+        if (audienceFilters.teachers) targetRoles.push("teacher");
+        if (audienceFilters.staff) targetRoles.push("staff");
+        (data as any).targetRoles = targetRoles;
+      } else if (selectedOption?.type === "batch") {
+        data.targetType = "batch";
+        data.targetBatchIds = [selectedOption.batchId!];
+      } else if (selectedOption?.type === "course") {
+        data.targetType = "batch";
+        data.targetBatchIds = [selectedOption.batchId!];
+      }
 
       const notification = await notificationService.create(data);
       if (scheduleNotification && scheduleDate && scheduleTime) {
@@ -627,6 +743,30 @@ export default function CreateNotificationPage() {
                           </SelectItem>
                         ))}
                     </SelectGroup>
+                    <Separator className="my-2" />
+                    <SelectGroup>
+                      <SelectLabel className="flex items-center gap-2 text-dashboard-800">
+                        <Building2 className="h-4 w-4" />
+                        By Department
+                      </SelectLabel>
+                      {courseOptions
+                        .filter((o) => o.type === "department")
+                        .map((option) => (
+                          <SelectItem
+                            key={option.id}
+                            value={option.id}
+                            className="py-3"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-dashboard-800" />
+                              <span className="font-medium">
+                                {option.departmentName}
+                              </span>
+                              <Badge key="head" variant="secondary" className="ml-2 text-[10px] h-5">Head</Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldError
@@ -641,6 +781,55 @@ export default function CreateNotificationPage() {
                         ? `Students enrolled in ${selectedOption.courseName}`
                         : `All students in ${selectedOption.batchCode}`}
                     </span>
+                  </div>
+                )}
+
+                {/* Audience Filters for Department */}
+                {selectedOption?.type === "department" && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                    <Label className="text-sm font-medium mb-3 block text-gray-700">
+                      Select Audience within Department
+                    </Label>
+                    <div className="flex flex-wrap gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={audienceFilters.students}
+                            onChange={(e) => setAudienceFilters(prev => ({ ...prev, students: e.target.checked }))}
+                            className="peer h-4 w-4 rounded border-gray-300 text-dashboard-600 focus:ring-dashboard-600 cursor-pointer transition-colors"
+                          />
+                        </div>
+                        <span className="text-sm text-gray-700 group-hover:text-dashboard-700 transition-colors">Students</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={audienceFilters.teachers}
+                            onChange={(e) => setAudienceFilters(prev => ({ ...prev, teachers: e.target.checked }))}
+                            className="peer h-4 w-4 rounded border-gray-300 text-dashboard-600 focus:ring-dashboard-600 cursor-pointer transition-colors"
+                          />
+                        </div>
+                        <span className="text-sm text-gray-700 group-hover:text-dashboard-700 transition-colors">Teachers</span>
+                      </label>
+
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <div className="relative flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={audienceFilters.staff}
+                            onChange={(e) => setAudienceFilters(prev => ({ ...prev, staff: e.target.checked }))}
+                            className="peer h-4 w-4 rounded border-gray-300 text-dashboard-600 focus:ring-dashboard-600 cursor-pointer transition-colors"
+                          />
+                        </div>
+                        <span className="text-sm text-gray-700 group-hover:text-dashboard-700 transition-colors">Staff</span>
+                      </label>
+                    </div>
+                    {!audienceFilters.students && !audienceFilters.teachers && !audienceFilters.staff && (
+                      <p className="text-xs text-red-500 mt-2">Please select at least one audience group.</p>
+                    )}
                   </div>
                 )}
               </div>

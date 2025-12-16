@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   batchCourseInstructorService,
@@ -10,6 +11,8 @@ import {
 } from "@/services/enrollment/courseGrade.service";
 import { attendanceService } from "@/services/enrollment/attendance.service";
 import { assessmentService } from "@/services/enrollment/assessment.service";
+
+const EMPTY_ARRAY: any[] = [];
 
 // ===================================== Query Keys =======================================
 
@@ -252,51 +255,69 @@ export function useBulkAssignInstructors() {
 export function useTeacherCourseDashboard(instructorId: string) {
   const query = useInstructorCoursesWithStats(instructorId);
 
-  return {
-    courses: query.data ?? [],
-    isLoading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
-    refetch: query.refetch,
-  };
+  const { data, isLoading, isError, error, refetch } = query;
+  return useMemo(
+    () => ({
+      courses: (data as any[]) ?? EMPTY_ARRAY,
+      isLoading,
+      isError,
+      error,
+      refetch,
+    }),
+    [data, isLoading, isError, error, refetch],
+  );
 }
 
 // Hook for grading workflow page
 export function useGradingWorkflowDashboard() {
   const query = useGradingWorkflow();
 
-  const workflows = query.data ?? [];
+  const { data, isLoading, isError, error, refetch } = query;
 
-  const allWorkflows = workflows;
-  const pendingWorkflows = workflows.filter(
-    (w) => w.status === "draft" || w.status === "pending",
-  );
-  const submittedWorkflows = workflows.filter((w) => w.status === "submitted");
-  const returnedWorkflows = workflows.filter((w) => w.status === "returned");
-  const approvedWorkflows = workflows.filter((w) => w.status === "approved");
+  return useMemo(() => {
+    const workflows = (data as ResultWorkflow[]) ?? EMPTY_ARRAY;
 
-  return {
-    all: allWorkflows,
-    pending: pendingWorkflows,
-    submitted: submittedWorkflows,
-    returned: returnedWorkflows,
-    approved: approvedWorkflows,
-    isLoading: query.isLoading,
-    isError: query.isError,
-    error: query.error,
-    refetch: query.refetch,
-  };
+    const allWorkflows = workflows;
+    const pendingWorkflows = workflows.filter(
+      (w) => w.status === "draft" || w.status === "pending",
+    );
+    const submittedWorkflows = workflows.filter(
+      (w) => w.status === "submitted",
+    );
+    const returnedWorkflows = workflows.filter(
+      (w) => w.status === "returned",
+    );
+    const approvedWorkflows = workflows.filter(
+      (w) => w.status === "approved",
+    );
+
+    return {
+      all: allWorkflows,
+      pending: pendingWorkflows,
+      submitted: submittedWorkflows,
+      returned: returnedWorkflows,
+      approved: approvedWorkflows,
+      isLoading,
+      isError,
+      error,
+      refetch,
+    };
+  }, [data, isLoading, isError, error, refetch]);
 }
 
 // Hook for attendance management page
 export function useAttendanceManagement(instructorId: string) {
   const coursesQuery = useInstructorCourses(instructorId);
+  const { data, isLoading, isError, error, refetch } = coursesQuery;
 
-  return {
-    courses: coursesQuery.data ?? [],
-    isLoading: coursesQuery.isLoading,
-    isError: coursesQuery.isError,
-    error: coursesQuery.error,
-    refetch: coursesQuery.refetch,
-  };
+  return useMemo(
+    () => ({
+      courses: (data as any[]) ?? EMPTY_ARRAY,
+      isLoading,
+      isError,
+      error,
+      refetch,
+    }),
+    [data, isLoading, isError, error, refetch],
+  );
 }

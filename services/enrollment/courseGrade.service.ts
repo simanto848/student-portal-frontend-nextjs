@@ -200,5 +200,14 @@ export const courseGradeService = {
         } catch (error) {
             return handleApiError(error);
         }
+    },
+
+    publishResult: async (id: string, otp: string): Promise<any> => {
+        try {
+            const response = await api.post(`/enrollment/grades/workflow/${id}/publish`, { otp });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
     }
 };

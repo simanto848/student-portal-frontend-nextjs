@@ -16,19 +16,24 @@ import { BookOpen, Clock, AlertCircle, Search, History } from "lucide-react";
 import {
   useStudentLibraryDashboard,
   useReturnBook,
+  useAvailableBooks,
 } from "@/hooks/queries/useLibraryQueries";
-import { Borrowing } from "@/services/library/types";
+import { Borrowing, Book } from "@/services/library/types";
 
 export default function StudentLibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [catalogSearch, setCatalogSearch] = useState("");
 
-  // Use React Query hooks for data fetching
   const { borrowed, overdue, history, isLoading, isError, error, refetch } =
     useStudentLibraryDashboard();
 
+  const {
+    data: availableBooks = [],
+    isLoading: isLoadingCatalog
+  } = useAvailableBooks({ search: catalogSearch });
+
   const returnBookMutation = useReturnBook();
 
-  // Filter borrowed books based on search
   const filteredBorrowed = useMemo(() => {
     if (!searchQuery) return borrowed;
     return borrowed.filter((item: Borrowing) =>
@@ -36,7 +41,6 @@ export default function StudentLibraryPage() {
     );
   }, [borrowed, searchQuery]);
 
-  // Filter history based on search
   const filteredHistory = useMemo(() => {
     if (!searchQuery) return history;
     return history.filter((item: Borrowing) =>
@@ -58,7 +62,6 @@ export default function StudentLibraryPage() {
     );
   };
 
-  // Loading state using DashboardSkeleton
   if (isLoading) {
     return <DashboardSkeleton layout="hero-grid" />;
   }
@@ -103,9 +106,8 @@ export default function StudentLibraryPage() {
               </div>
             </div>
             <div
-              className={`rounded-2xl backdrop-blur p-4 min-w-[140px] shadow-lg ${
-                overdue.length > 0 ? "bg-red-500/20" : "bg-white/10"
-              }`}
+              className={`rounded-2xl backdrop-blur p-4 min-w-[140px] shadow-lg ${overdue.length > 0 ? "bg-red-500/20" : "bg-white/10"
+                }`}
             >
               <p className="text-xs uppercase tracking-wide text-white/80">
                 Overdue
@@ -154,12 +156,15 @@ export default function StudentLibraryPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="borrowed" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-3 lg:w-[600px]">
             <TabsTrigger value="borrowed">
               Currently Borrowed ({borrowed.length})
             </TabsTrigger>
             <TabsTrigger value="history">
               History ({history.length})
+            </TabsTrigger>
+            <TabsTrigger value="catalog">
+              Browse Catalog
             </TabsTrigger>
           </TabsList>
 
@@ -215,9 +220,44 @@ export default function StudentLibraryPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="catalog" className="space-y-4">
+            <div className="relative">
+              <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
+              <Input
+                placeholder="Search by title, author, or category..."
+                className="pl-9"
+                value={catalogSearch}
+                onChange={(e) => setCatalogSearch(e.target.value)}
+              />
+            </div>
+
+            <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold dashboard-title flex items-center gap-2">
+                  <BookOpen className="h-4 w-4 dashboard-accent" /> Library Catalog
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {isLoadingCatalog ? (
+                  <DashboardSkeleton layout="cards-only" cardCount={3} />
+                ) : availableBooks.length > 0 ? (
+                  availableBooks.map((book: Book) => (
+                    <BookCard key={book.id} book={book} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    {catalogSearch
+                      ? "No books match your search."
+                      : "No books available in the catalog."}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 }
 
@@ -271,13 +311,12 @@ function BorrowedBookCard({
               Borrowed: {new Date(item.borrowDate).toLocaleDateString()}
             </span>
             <span
-              className={`flex items-center gap-1 ${
-                isOverdue
-                  ? "text-red-600 font-semibold"
-                  : daysLeft <= 3
-                    ? "text-yellow-700 font-semibold"
-                    : ""
-              }`}
+              className={`flex items-center gap-1 ${isOverdue
+                ? "text-red-600 font-semibold"
+                : daysLeft <= 3
+                  ? "text-yellow-700 font-semibold"
+                  : ""
+                }`}
             >
               <Clock className="h-3 w-3" />
               Due: {dueDate.toLocaleDateString()}
@@ -294,6 +333,43 @@ function BorrowedBookCard({
         >
           {isReturning ? "Returning..." : "Return"}
         </Button>
+      </div>
+    </div>
+  );
+}
+
+
+function BookCard({ book }: { book: Book }) {
+  return (
+    <div className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-all duration-200">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold dashboard-title">
+              {book.title}
+            </p>
+            <StatusBadge
+              status={book.availableCopies && book.availableCopies > 0 ? "active" : "failed"}
+              label={book.availableCopies && book.availableCopies > 0 ? "Available" : "Unavailable"}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {book.author} • {book.category}
+          </p>
+          {book.publisher && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {book.publisher} {book.publicationYear ? `(${book.publicationYear})` : ''}
+            </p>
+          )}
+          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            <span className="font-medium text-[#1a3d32]">
+              Copies Available: {book.availableCopies || 0}
+            </span>
+            {book.language && (
+              <span>Language: {book.language}</span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

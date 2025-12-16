@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { studentService } from "@/services/user/student.service";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EditStudentProfileDialog } from "@/components/student/profile/EditStudentProfileDialog";
 
 export default function StudentProfilePage() {
   const { user } = useAuth();
@@ -40,10 +41,12 @@ export default function StudentProfilePage() {
       const studentId = user.id || user._id;
 
       // Fetch student details (includes profile when available)
-      const student = await studentService.getById(studentId);
+      if (studentId) {
+        const student = await studentService.getById(studentId);
 
-      setStudentData(student);
-      setProfileData((student as any)?.profile || null);
+        setStudentData(student);
+        setProfileData((student as any)?.profile || null);
+      }
     } catch (err: any) {
       console.error("Failed to fetch profile", err);
       setError("Failed to load profile data.");
@@ -115,15 +118,19 @@ export default function StudentProfilePage() {
               </div>
             </div>
             <div className="flex gap-3 flex-wrap">
-              <Button
-                size="sm"
-                className="bg-white text-[#1a3d32] hover:bg-white/90 shadow-md"
-                onClick={() =>
-                  window.alert("Edit profile functionality - Coming soon")
+              <EditStudentProfileDialog
+                student={student}
+                profile={profile}
+                onProfileUpdated={fetchProfile}
+                trigger={
+                  <Button
+                    size="sm"
+                    className="bg-white text-[#1a3d32] hover:bg-white/90 shadow-md"
+                  >
+                    Edit Profile
+                  </Button>
                 }
-              >
-                Edit Profile
-              </Button>
+              />
             </div>
           </div>
         </div>
@@ -184,8 +191,8 @@ export default function StudentProfilePage() {
                     {student.dateOfBirth
                       ? new Date(student.dateOfBirth).toLocaleDateString()
                       : profile?.dateOfBirth
-                      ? new Date(profile.dateOfBirth).toLocaleDateString()
-                      : "N/A"}
+                        ? new Date(profile.dateOfBirth).toLocaleDateString()
+                        : "N/A"}
                   </p>
                 </div>
                 <div>

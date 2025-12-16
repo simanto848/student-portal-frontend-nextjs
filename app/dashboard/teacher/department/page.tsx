@@ -26,6 +26,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Batch } from "@/services/academic/types";
 import { Search, Plus, Eye, ArrowLeft, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DepartmentResultsView } from "./DepartmentResultsView";
 
 export default function DepartmentBatchesPage() {
   const router = useRouter();
@@ -36,17 +38,18 @@ export default function DepartmentBatchesPage() {
   const [department, setDepartment] = useState<any>(null);
 
   useEffect(() => {
-    if (user?.departmentId) {
-      fetchData();
+    const deptId = (user as any)?.departmentId;
+    if (deptId) {
+      fetchData(deptId);
     }
   }, [user]);
 
-  const fetchData = async () => {
+  const fetchData = async (departmentId: string) => {
     setIsLoading(true);
     try {
       const [deptData, batchesData] = await Promise.all([
-        departmentService.getDepartmentById(user.departmentId),
-        batchService.getAllBatches({ departmentId: user.departmentId }),
+        departmentService.getDepartmentById(departmentId),
+        batchService.getAllBatches({ departmentId: departmentId }),
       ]);
 
       setDepartment(deptData);
@@ -92,94 +95,104 @@ export default function DepartmentBatchesPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search batches..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
+        <Tabs defaultValue="batches" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="batches">Batches</TabsTrigger>
+            <TabsTrigger value="results">Results & Publishing</TabsTrigger>
+          </TabsList>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Batch Name</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Students</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Counselor</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      Loading...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredBatches.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      No batches found
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredBatches.map((batch) => (
-                    <TableRow key={batch.id}>
-                      <TableCell className="font-medium">
-                        {batch.code ??
-                          (batch.shift
-                            ? `${batch.shift === "evening" ? "E" : "D"}${
-                                batch.name
-                              }`
-                            : batch.name)}
-                      </TableCell>
-                      <TableCell>{batch.year}</TableCell>
-                      <TableCell>
-                        {batch.currentStudents}/{batch.maxStudents}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            batch.status
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {batch.status ? "Active" : "Inactive"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {/* Use getName to handle both object (populated) and fallback (though fallback won't be pretty without object) */}
-                        {(batch.counselorId as any)?.fullName || "Not Assigned"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() =>
-                            router.push(
-                              `/dashboard/teacher/department/batch/${batch.id}`
-                            )
-                          }
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
+          <TabsContent value="batches">
+            <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="relative w-72">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search batches..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Batch Name</TableHead>
+                      <TableHead>Year</TableHead>
+                      <TableHead>Students</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Counselor</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          Loading...
+                        </TableCell>
+                      </TableRow>
+                    ) : filteredBatches.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8">
+                          No batches found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredBatches.map((batch) => (
+                        <TableRow key={batch.id}>
+                          <TableCell className="font-medium">
+                            {batch.code ??
+                              (batch.shift
+                                ? `${batch.shift === "evening" ? "E" : "D"}${batch.name
+                                }`
+                                : batch.name)}
+                          </TableCell>
+                          <TableCell>{batch.year}</TableCell>
+                          <TableCell>
+                            {batch.currentStudents}/{batch.maxStudents}
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${batch.status
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                                }`}
+                            >
+                              {batch.status ? "Active" : "Inactive"}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            {(batch.counselorId as any)?.fullName || "Not Assigned"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/teacher/department/batch/${batch.id}`
+                                )
+                              }
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="results">
+            <DepartmentResultsView />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

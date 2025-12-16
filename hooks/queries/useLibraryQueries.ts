@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { borrowingService } from "@/services/library/borrowing.service";
+import { bookService } from "@/services/library/book.service";
 import { libraryService } from "@/services/library/library.service";
 import { BorrowingStatus, LibraryStatus } from "@/services/library/types";
 
@@ -12,6 +13,10 @@ export const libraryKeys = {
   librariesList: (params?: Record<string, unknown>) =>
     [...libraryKeys.libraries(), "list", params] as const,
   library: (id: string) => [...libraryKeys.libraries(), id] as const,
+  // Books
+  books: () => [...libraryKeys.all, "books"] as const,
+  availableBooks: (params?: Record<string, unknown>) => [...libraryKeys.books(), "available", params] as const,
+
 
   // Borrowings
   borrowings: () => [...libraryKeys.all, "borrowings"] as const,
@@ -48,6 +53,19 @@ export function useLibrary(id: string) {
     queryKey: libraryKeys.library(id),
     queryFn: () => libraryService.getById(id),
     enabled: !!id,
+  });
+}
+
+// Fetch available books
+export function useAvailableBooks(params?: {
+  search?: string;
+  category?: string;
+  limit?: number;
+  page?: number;
+}) {
+  return useQuery({
+    queryKey: libraryKeys.availableBooks(params),
+    queryFn: () => bookService.getAvailableBooks(params),
   });
 }
 
