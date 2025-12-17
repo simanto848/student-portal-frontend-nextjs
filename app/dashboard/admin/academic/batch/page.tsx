@@ -20,7 +20,7 @@ import {
   AcademicApiError,
 } from "@/services/academic.service";
 import { teacherService, Teacher } from "@/services/user/teacher.service";
-import { toast } from "sonner";
+import { notifySuccess, notifyError } from "@/components/toast";
 import { Users } from "lucide-react";
 
 const getName = (item: any): string => {
@@ -214,7 +214,7 @@ export default function BatchManagementPage() {
         ],
       },
     ],
-    [programs, departments, sessions, teachers]
+    [programs, departments, sessions, teachers],
   );
 
   useEffect(() => {
@@ -242,7 +242,7 @@ export default function BatchManagementPage() {
         error instanceof AcademicApiError
           ? error.message
           : "Failed to load data";
-      toast.error(message);
+      notifyError(message);
       setBatches([]);
     } finally {
       setIsLoading(false);
@@ -269,7 +269,7 @@ export default function BatchManagementPage() {
     setIsDeleting(true);
     try {
       await academicService.deleteBatch(selectedBatch.id);
-      toast.success("Batch deleted successfully");
+      notifySuccess("Batch deleted successfully");
       fetchData();
       setIsDeleteModalOpen(false);
     } catch (error) {
@@ -277,7 +277,7 @@ export default function BatchManagementPage() {
         error instanceof AcademicApiError
           ? error.message
           : "Failed to delete batch";
-      toast.error(message);
+      notifyError(message);
     } finally {
       setIsDeleting(false);
       setSelectedBatch(null);
@@ -304,10 +304,10 @@ export default function BatchManagementPage() {
 
       if (selectedBatch) {
         await academicService.updateBatch(selectedBatch.id, submitData);
-        toast.success("Batch updated successfully");
+        notifySuccess("Batch updated successfully");
       } else {
         await academicService.createBatch(submitData);
-        toast.success("Batch created successfully");
+        notifySuccess("Batch created successfully");
       }
       fetchData();
       setIsFormModalOpen(false);
@@ -316,7 +316,7 @@ export default function BatchManagementPage() {
         error instanceof AcademicApiError
           ? error.message
           : "Failed to save batch";
-      toast.error(message);
+      notifyError(message);
     } finally {
       setIsSubmitting(false);
     }

@@ -27,7 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Eye, Pencil } from "lucide-react";
-import { toast } from "sonner";
+import { notifySuccess, notifyError } from "@/components/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +60,7 @@ export default function ExamCommitteePage() {
 
   // Modal states
   const [selectedMember, setSelectedMember] = useState<ExamCommittee | null>(
-    null
+    null,
   );
   const [viewOpen, setViewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -129,26 +129,31 @@ export default function ExamCommitteePage() {
       const [committeeData, allTeachers] = await Promise.all([
         examCommitteeService.getMembers(deptId, batchId, shift),
         import("@/services/teacher.service").then((m) =>
-          m.teacherService.getAllTeachers()
+          m.teacherService.getAllTeachers(),
         ),
       ]);
 
       const enrichedMembers = committeeData.map((member) => {
-        const teacher = allTeachers.find(
-          (t: any) => (t.id || t._id) === member.teacherId
-        );
+        const teacher = allTeachers.find((t: unknown) => {
+          const teacherObj = t as Record<string, unknown>;
+          return (teacherObj.id || teacherObj._id) === member.teacherId;
+        });
         let departmentObj = member.department;
         if (
           !departmentObj &&
           typeof member.departmentId === "object" &&
           member.departmentId !== null
         ) {
-          departmentObj = member.departmentId as any;
+          departmentObj =
+            member.departmentId as unknown as typeof member.department;
         }
 
+        const memberId =
+          member.id ||
+          ((member as unknown as Record<string, unknown>)._id as string);
         return {
           ...member,
-          id: member.id || (member as any)._id,
+          id: memberId,
           department: departmentObj,
           teacher: teacher
             ? {
@@ -157,12 +162,11 @@ export default function ExamCommitteePage() {
                 registrationNumber: teacher.registrationNumber,
               }
             : { fullName: "Unknown", email: "" },
-        };
+        } as ExamCommittee;
       });
-      setMembers(enrichedMembers);
-    } catch (error) {
-      console.error(error);
-      if (!silent) toast.error("Failed to fetch committee members");
+      setMembers(enrichedMembers as ExamCommittee[]);
+    } catch {
+      if (!silent) notifyError("Failed to fetch committee members");
     } finally {
       if (!silent) setLoading(false);
     }
@@ -171,10 +175,10 @@ export default function ExamCommitteePage() {
   const handleDelete = async (id: string) => {
     try {
       await examCommitteeService.removeMember(id);
-      toast.success("Member removed successfully");
+      notifySuccess("Member removed successfully");
       fetchMembers();
-    } catch (error) {
-      toast.error("Failed to remove member");
+    } catch {
+      notifyError("Failed to remove member");
     }
   };
 

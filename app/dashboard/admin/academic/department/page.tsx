@@ -30,6 +30,7 @@ import { teacherService, Teacher } from "@/services/teacher.service";
 // Validation
 import { departmentSchema, validateForm } from "@/lib/validations/academic";
 import { ApiError } from "@/types/api";
+import { notifyError, notifySuccess } from "@/components/toast";
 
 // Helper functions
 const getFacultyName = (dept: Department): string => {
@@ -82,7 +83,6 @@ export default function DepartmentManagementPage() {
         const data = await teacherService.getAllTeachers();
         setTeachers(Array.isArray(data) ? data : []);
       } catch (error) {
-        console.error("Failed to load teachers:", error);
         setTeachers([]);
       } finally {
         setIsTeachersLoading(false);
@@ -250,14 +250,12 @@ export default function DepartmentManagementPage() {
     setIsDeleting(true);
     try {
       await deleteDepartmentMutation.mutateAsync(selectedDepartment.id);
-      toast.success("Department deleted successfully");
+      notifySuccess("Department deleted successfully");
       setIsDeleteModalOpen(false);
       setSelectedDepartment(null);
     } catch (error) {
-      const message = ApiError.isApiError(error)
-        ? error.message
-        : "Failed to delete department";
-      toast.error(message);
+      const message = ApiError.isApiError(error) ? error.message : "Failed to delete department";
+      notifyError(message);
     } finally {
       setIsDeleting(false);
     }
@@ -267,13 +265,10 @@ export default function DepartmentManagementPage() {
     setIsSubmitting(true);
 
     try {
-      // Validate using Zod schema
       const validation = validateForm(departmentSchema, data);
-
       if (!validation.success) {
-        // Show first validation error
         const firstError = Object.values(validation.errors)[0];
-        toast.error(firstError);
+        notifyError(firstError);
         setIsSubmitting(false);
         return;
       }
@@ -294,19 +289,17 @@ export default function DepartmentManagementPage() {
           id: selectedDepartment.id,
           data: submitData,
         });
-        toast.success("Department updated successfully");
+        notifySuccess("Department updated successfully");
       } else {
         await createDepartmentMutation.mutateAsync(submitData);
-        toast.success("Department created successfully");
+        notifySuccess("Department created successfully");
       }
 
       setIsFormModalOpen(false);
       setSelectedDepartment(null);
     } catch (error) {
-      const message = ApiError.isApiError(error)
-        ? error.message
-        : "Failed to save department";
-      toast.error(message);
+      const message = ApiError.isApiError(error) ? error.message : "Failed to save department";
+      notifyError(message);
     } finally {
       setIsSubmitting(false);
     }

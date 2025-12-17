@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
@@ -10,11 +10,10 @@ import {
   FormField,
 } from "@/components/dashboard/shared/GenericFormModal";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { notifySuccess, notifyError } from "@/components/toast";
 import { Building2 } from "lucide-react";
 
 // Hooks
-import { useCrudOperations } from "@/hooks/useCrudOperations";
 import {
   useFaculties,
   useCreateFaculty,
@@ -34,7 +33,7 @@ import { useState } from "react";
 
 export default function FacultyManagementPage() {
   // React Query hooks
-  const { data: faculties = [], isLoading, refetch } = useFaculties();
+  const { data: faculties = [], isLoading } = useFaculties();
   const createFacultyMutation = useCreateFaculty();
   const updateFacultyMutation = useUpdateFaculty();
   const deleteFacultyMutation = useDeleteFaculty();
@@ -65,11 +64,14 @@ export default function FacultyManagementPage() {
   }, []);
 
   // Get dean name helper
-  const getDeanName = (deanId?: string) => {
-    if (!deanId) return null;
-    const teacher = teachers.find((t) => t.id === deanId);
-    return teacher ? teacher.fullName : "Unknown Dean";
-  };
+  const getDeanName = useCallback(
+    (deanId?: string) => {
+      if (!deanId) return null;
+      const teacher = teachers.find((t) => t.id === deanId);
+      return teacher ? teacher.fullName : "Unknown Dean";
+    },
+    [teachers],
+  );
 
   // Table columns definition
   const columns: Column<Faculty>[] = useMemo(
@@ -136,7 +138,7 @@ export default function FacultyManagementPage() {
         ),
       },
     ],
-    [teachers],
+    [getDeanName],
   );
 
   // Form fields definition
@@ -220,14 +222,14 @@ export default function FacultyManagementPage() {
     setIsDeleting(true);
     try {
       await deleteFacultyMutation.mutateAsync(selectedFaculty.id);
-      toast.success("Faculty deleted successfully");
+      notifySuccess("Faculty deleted successfully");
       setIsDeleteModalOpen(false);
       setSelectedFaculty(null);
     } catch (error) {
       const message = ApiError.isApiError(error)
         ? error.message
         : "Failed to delete faculty";
-      toast.error(message);
+      notifyError(message);
     } finally {
       setIsDeleting(false);
     }
@@ -243,7 +245,7 @@ export default function FacultyManagementPage() {
       if (!validation.success) {
         // Show first validation error
         const firstError = Object.values(validation.errors)[0];
-        toast.error(firstError);
+        notifyError(firstError);
         setIsSubmitting(false);
         return;
       }
@@ -260,10 +262,10 @@ export default function FacultyManagementPage() {
           id: selectedFaculty.id,
           data: submitData,
         });
-        toast.success("Faculty updated successfully");
+        notifySuccess("Faculty updated successfully");
       } else {
         await createFacultyMutation.mutateAsync(submitData);
-        toast.success("Faculty created successfully");
+        notifySuccess("Faculty created successfully");
       }
 
       setIsFormModalOpen(false);
@@ -272,7 +274,7 @@ export default function FacultyManagementPage() {
       const message = ApiError.isApiError(error)
         ? error.message
         : "Failed to save faculty";
-      toast.error(message);
+      notifyError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -287,14 +289,14 @@ export default function FacultyManagementPage() {
         facultyId: selectedFaculty.id,
         deanId: data.deanId,
       });
-      toast.success("Dean assigned successfully");
+      notifySuccess("Dean assigned successfully");
       setIsAssignDeanModalOpen(false);
       setSelectedFaculty(null);
     } catch (error) {
       const message = ApiError.isApiError(error)
         ? error.message
         : "Failed to assign dean";
-      toast.error(message);
+      notifyError(message);
     } finally {
       setIsSubmitting(false);
     }
