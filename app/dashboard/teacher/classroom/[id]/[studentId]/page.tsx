@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,7 +15,8 @@ import { departmentService } from "@/services/academic/department.service";
 import { programService } from "@/services/academic/program.service";
 import { batchService } from "@/services/academic/batch.service";
 import { sessionService } from "@/services/academic/session.service";
-import { toast } from "sonner";
+import { notifyError } from "@/components/toast";
+import { getErrorMessage } from "@/lib/utils/toastHelpers";
 import {
   ArrowLeft,
   Users,
@@ -64,12 +64,13 @@ export default function StudentDetailsPage() {
       const [s, p, depts, progs, batchesData, sessionsData] = await Promise.all(
         [
           studentService.getById(studentId),
+          // don't let profile failure break the whole page
           studentProfileService.get(studentId).catch(() => null),
           departmentService.getAllDepartments(),
           programService.getAllPrograms(),
           batchService.getAllBatches(),
           sessionService.getAllSessions(),
-        ]
+        ],
       );
 
       setStudent(s);
@@ -79,7 +80,10 @@ export default function StudentDetailsPage() {
       setBatches(Array.isArray(batchesData) ? batchesData : []);
       setSessions(Array.isArray(sessionsData) ? sessionsData : []);
     } catch (error) {
-      toast.error("Failed to load student details");
+      const message = getErrorMessage(error, "Failed to load student details");
+      // Show backend message if present, otherwise fallback
+      notifyError(message);
+      // Navigate back to classroom listing for a better UX
       router.push(`/dashboard/teacher/classroom/${classroomId}`);
     } finally {
       setIsLoading(false);
@@ -112,9 +116,11 @@ export default function StudentDetailsPage() {
               router.push(`/dashboard/teacher/classroom/${classroomId}`)
             }
             className="p-2 rounded-full hover:bg-[#dad7cd] transition-colors"
+            aria-label="Back"
           >
             <ArrowLeft className="w-5 h-5 text-[#344e41]" />
           </button>
+
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full bg-[#dad7cd]/50 overflow-hidden shrink-0 border-2 border-[#a3b18a]/30">
               {student.profile?.profilePicture ? (
@@ -133,6 +139,7 @@ export default function StudentDetailsPage() {
                 </div>
               )}
             </div>
+
             <PageHeader
               title={student.fullName}
               subtitle={student.registrationNumber}
@@ -183,12 +190,16 @@ export default function StudentDetailsPage() {
                 <InfoRow
                   icon={Calendar}
                   label="Admission Date"
-                  value={new Date(student.admissionDate).toLocaleDateString()}
+                  value={
+                    student.admissionDate
+                      ? new Date(student.admissionDate).toLocaleDateString()
+                      : "N/A"
+                  }
                 />
                 <InfoRow
                   icon={GraduationCap}
                   label="Status"
-                  value={student.enrollmentStatus}
+                  value={student.enrollmentStatus || "N/A"}
                   valueClass="capitalize"
                 />
               </CardContent>
@@ -398,39 +409,6 @@ export default function StudentDetailsPage() {
                   )}
                 </CardContent>
               </Card>
-
-              <Card className="border-[#a3b18a]/30">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#344e41] flex items-center gap-2">
-                    <Contact className="h-5 w-5" /> Emergency Contact
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {profile?.emergencyContact ? (
-                    <>
-                      <InfoRow
-                        icon={User}
-                        label="Name"
-                        value={profile.emergencyContact.name || "N/A"}
-                      />
-                      <InfoRow
-                        icon={Phone}
-                        label="Cell"
-                        value={profile.emergencyContact.cell || "N/A"}
-                      />
-                      <InfoRow
-                        icon={Users}
-                        label="Relation"
-                        value={profile.emergencyContact.relation || "N/A"}
-                      />
-                    </>
-                  ) : (
-                    <div className="text-center py-4 text-[#344e41]/60">
-                      No emergency contact details.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </TabsContent>
         </Tabs>
@@ -439,29 +417,28 @@ export default function StudentDetailsPage() {
   );
 }
 
+// Small reusable info row
 function InfoRow({
   icon: Icon,
   label,
   value,
-  valueClass = "",
+  valueClass,
 }: {
   icon: any;
   label: string;
-  value: string;
+  value: string | number | null | undefined;
   valueClass?: string;
 }) {
   return (
-    <div className="flex items-start gap-3 p-3 rounded-md hover:bg-[#dad7cd]/10 transition-colors">
-      <div className="p-2 rounded-full bg-[#dad7cd]/20 text-[#344e41]">
+    <div className="flex items-center gap-3">
+      <div className="h-6 w-6 flex items-center justify-center text-[#588157]">
         <Icon className="h-4 w-4" />
       </div>
-      <div className="space-y-0.5">
-        <p className="text-xs uppercase tracking-wide text-[#344e41]/60 font-medium">
-          {label}
-        </p>
-        <p className={`text-sm font-medium text-[#344e41] ${valueClass}`}>
-          {value}
-        </p>
+      <div className="flex-1">
+        <div className="text-xs text-muted-foreground">{label}</div>
+        <div className={`text-sm ${valueClass || "text-[#344e41]"}`}>
+          {value ?? "N/A"}
+        </div>
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export default function MyCoursesPage() {
             <Button
               size="sm"
               variant="outline"
-              className="border-white/40 text-white hover:bg-white/10"
+              className="border-white/40 bg-accent hover:bg-white hover:text-accent hover:cursor-pointer"
               onClick={() => refetch()}
             >
               Refresh
@@ -191,10 +191,10 @@ function CourseCard({
   onViewGrades,
 }: CourseCardProps) {
   return (
-    <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow">
-      <CardHeader className="bg-[#f8f9fa] border-b pb-4">
+    <Card className="flex flex-col border-none shadow-md hover:shadow-lg transition-shadow pt-0">
+      <CardHeader className="bg-[#f8f9fa] border-b pt-4">
         <div className="flex justify-between items-start">
-          <div>
+          <div className="pt-2">
             <p className="text-sm font-medium text-[#588157]">
               {assignment.course?.code || "N/A"}
             </p>
@@ -242,14 +242,14 @@ function CourseCard({
       </CardContent>
       <CardFooter className="pt-4 border-t bg-gray-50/50 gap-2">
         <Button
-          className="flex-1 bg-[#3a5a40] hover:bg-[#344e41] text-white"
+          className="flex-1 bg-[#3a5a40] hover:bg-[#344e41] text-white hover:cursor-pointer"
           onClick={onViewClass}
         >
           View Class
         </Button>
         <Button
           variant="outline"
-          className="px-3"
+          className="px-3 hover:text-white"
           title="Attendance"
           onClick={onViewAttendance}
         >
@@ -257,7 +257,7 @@ function CourseCard({
         </Button>
         <Button
           variant="outline"
-          className="px-3"
+          className="px-3 hover:text-white"
           title="Grades"
           onClick={onViewGrades}
         >

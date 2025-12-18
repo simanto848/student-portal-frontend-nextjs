@@ -42,7 +42,8 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import { toast } from "sonner";
+import { notifySuccess, notifyError } from "@/components/toast";
+import { getErrorMessage, getSuccessMessage } from "@/lib/utils/toastHelpers";
 import { format } from "date-fns";
 import { downloadBlob } from "@/lib/download";
 
@@ -93,18 +94,18 @@ export default function TeacherClassroomDetailPage() {
           batchId ? batchService.getBatchById(batchId) : null,
           batchId
             ? studentService
-              .getAll({
-                batchId,
-                limit: 200,
-              })
-              .then((res) => res.students)
+                .getAll({
+                  batchId,
+                  limit: 200,
+                })
+                .then((res) => res.students)
             : [],
           ws?.teacherIds?.length
             ? Promise.all(
-              ws.teacherIds.map((teacherId) =>
-                teacherService.getById(teacherId)
+                ws.teacherIds.map((teacherId) =>
+                  teacherService.getById(teacherId),
+                ),
               )
-            )
             : [],
         ]);
 
@@ -120,7 +121,8 @@ export default function TeacherClassroomDetailPage() {
         });
       }
     } catch (error) {
-      toast.error("Failed to load classroom data");
+      const message = getErrorMessage(error, "Failed to load classroom data");
+      notifyError(message);
       router.push("/dashboard/teacher/classroom");
     } finally {
       setIsLoading(false);
@@ -131,10 +133,11 @@ export default function TeacherClassroomDetailPage() {
     if (!confirm("Are you sure you want to delete this assignment?")) return;
     try {
       await assignmentService.delete(assignmentId);
-      toast.success("Assignment deleted");
+      notifySuccess("Assignment deleted");
       fetchData();
     } catch (error) {
-      toast.error("Failed to delete assignment");
+      const message = getErrorMessage(error, "Failed to delete assignment");
+      notifyError(message);
     }
   };
 
@@ -142,22 +145,26 @@ export default function TeacherClassroomDetailPage() {
     if (!confirm("Are you sure you want to delete this material?")) return;
     try {
       await materialService.delete(materialId);
-      toast.success("Material deleted");
+      notifySuccess("Material deleted");
       fetchData();
     } catch (error) {
-      toast.error("Failed to delete material");
+      const message = getErrorMessage(error, "Failed to delete material");
+      notifyError(message);
     }
   };
 
-  const handleDownloadMaterialAttachment = async (material: Material, index: number) => {
+  const handleDownloadMaterialAttachment = async (
+    material: Material,
+    index: number,
+  ) => {
     try {
       const attachment = material.attachments?.[index];
       if (!attachment) return;
       const blob = await materialService.downloadAttachment(attachment);
-      downloadBlob(blob, attachment.name || 'material');
+      downloadBlob(blob, attachment.name || "material");
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to download attachment';
-      toast.error(message);
+      const message = getErrorMessage(error, "Failed to download attachment");
+      notifyError(message);
     }
   };
 
@@ -383,13 +390,13 @@ export default function TeacherClassroomDetailPage() {
                         <p className="text-xs text-muted-foreground">
                           Material
                         </p>
-                        {material.type === 'text' && material.content ? (
+                        {material.type === "text" && material.content ? (
                           <p className="text-sm text-muted-foreground mt-2">
                             {material.content}
                           </p>
                         ) : null}
 
-                        {material.type === 'link' && material.content ? (
+                        {material.type === "link" && material.content ? (
                           <a
                             href={material.content}
                             target="_blank"
@@ -400,14 +407,20 @@ export default function TeacherClassroomDetailPage() {
                           </a>
                         ) : null}
 
-                        {material.type === 'file' && material.attachments?.length ? (
+                        {material.type === "file" &&
+                        material.attachments?.length ? (
                           <div className="mt-2 space-y-1">
                             {material.attachments.map((att, idx) => (
                               <Button
                                 key={att.id || `${material.id}-${idx}`}
                                 variant="ghost"
                                 className="h-auto p-0 justify-start text-[#3e6253] hover:underline"
-                                onClick={() => handleDownloadMaterialAttachment(material, idx)}
+                                onClick={() =>
+                                  handleDownloadMaterialAttachment(
+                                    material,
+                                    idx,
+                                  )
+                                }
                               >
                                 <FileText className="mr-2 h-4 w-4" />
                                 {att.name}
@@ -538,7 +551,7 @@ export default function TeacherClassroomDetailPage() {
                             size="sm"
                             onClick={() =>
                               router.push(
-                                `/dashboard/teacher/classroom/${id}/${stu.id}`
+                                `/dashboard/teacher/classroom/${id}/${stu.id}`,
                               )
                             }
                           >
@@ -561,12 +574,18 @@ export default function TeacherClassroomDetailPage() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-[#344e41]">Quizzes & Exams</h2>
-                  <p className="text-sm text-muted-foreground">Create and manage quizzes for your students</p>
+                  <h2 className="text-2xl font-bold text-[#344e41]">
+                    Quizzes & Exams
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Create and manage quizzes for your students
+                  </p>
                 </div>
                 <Button
                   className="bg-[#588157] hover:bg-[#3a5a40] text-white gap-2"
-                  onClick={() => router.push(`/dashboard/teacher/classroom/${id}/quiz`)}
+                  onClick={() =>
+                    router.push(`/dashboard/teacher/classroom/${id}/quiz`)
+                  }
                 >
                   Manage Quizzes
                 </Button>
@@ -574,13 +593,18 @@ export default function TeacherClassroomDetailPage() {
               <Card className="border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-12">
                   <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium text-[#344e41] mb-2">Quiz Management</h3>
+                  <h3 className="text-lg font-medium text-[#344e41] mb-2">
+                    Quiz Management
+                  </h3>
                   <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
-                    Create MCQ, true/false, short answer, and essay questions. Set time limits and track student performance.
+                    Create MCQ, true/false, short answer, and essay questions.
+                    Set time limits and track student performance.
                   </p>
                   <Button
                     className="bg-[#588157] hover:bg-[#3a5a40] text-white"
-                    onClick={() => router.push(`/dashboard/teacher/classroom/${id}/quiz`)}
+                    onClick={() =>
+                      router.push(`/dashboard/teacher/classroom/${id}/quiz`)
+                    }
                   >
                     Open Quiz Manager
                   </Button>
@@ -621,10 +645,11 @@ export default function TeacherClassroomDetailPage() {
                             onClick={() =>
                               setSelectedAssignmentId(assignment.id)
                             }
-                            className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${selectedAssignmentId === assignment.id
-                              ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
-                              : "text-gray-600 border-l-4 border-transparent"
-                              }`}
+                            className={`text-left px-6 py-3 text-sm hover:bg-gray-50 transition-colors ${
+                              selectedAssignmentId === assignment.id
+                                ? "bg-[#3e6253]/10 text-[#3e6253] font-medium border-l-4 border-[#3e6253]"
+                                : "text-gray-600 border-l-4 border-transparent"
+                            }`}
                           >
                             {assignment.title}
                           </button>

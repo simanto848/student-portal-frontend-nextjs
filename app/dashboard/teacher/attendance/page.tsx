@@ -33,7 +33,8 @@ import {
 } from "@/services/enrollment/enrollment.service";
 import { attendanceService } from "@/services/enrollment/attendance.service";
 import { studentService } from "@/services/user/student.service";
-import { toast } from "sonner";
+import { notifySuccess, notifyError } from "@/components/toast";
+import { getErrorMessage, getSuccessMessage } from "@/lib/utils/toastHelpers";
 import { format } from "date-fns";
 import {
   Check,
@@ -166,8 +167,9 @@ export default function AttendancePage() {
       setAttendanceState(initialState);
     } catch (error) {
       console.error("Fetch class data error:", error);
-      setError("Failed to load student list");
-      toast.error("Failed to load student list");
+      const message = getErrorMessage(error, "Failed to load student list");
+      setError(message);
+      notifyError(message);
     } finally {
       setLoadingStudents(false);
     }
@@ -219,10 +221,12 @@ export default function AttendancePage() {
         })),
       };
 
-      await attendanceService.bulkMarkAttendance(payload);
-      toast.success("Attendance saved successfully");
+      const res = await attendanceService.bulkMarkAttendance(payload);
+      const message = getSuccessMessage(res, "Attendance saved successfully");
+      notifySuccess(message);
     } catch (error) {
-      toast.error("Failed to save attendance");
+      const message = getErrorMessage(error, "Failed to save attendance");
+      notifyError(message);
     } finally {
       setSaving(false);
     }
