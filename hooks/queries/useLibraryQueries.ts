@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import { borrowingService } from "@/services/library/borrowing.service";
 import { bookService } from "@/services/library/book.service";
+import { bookCopyService } from "@/services/library/bookCopy.service";
 import { libraryService } from "@/services/library/library.service";
+import { libraryApi } from "@/services/library/axios-instance";
 import { BorrowingStatus, LibraryStatus } from "@/services/library/types";
 
 // ==================================== Query Keys ========================================
@@ -17,6 +19,10 @@ export const libraryKeys = {
   books: () => [...libraryKeys.all, "books"] as const,
   availableBooks: (params?: Record<string, unknown>) => [...libraryKeys.books(), "available", params] as const,
 
+  // Copies
+  copies: () => [...libraryKeys.all, "copies"] as const,
+  availableCopies: (bookId: string) => [...libraryKeys.copies(), "available", bookId] as const,
+
 
   // Borrowings
   borrowings: () => [...libraryKeys.all, "borrowings"] as const,
@@ -27,6 +33,13 @@ export const libraryKeys = {
   myOverdue: () => [...libraryKeys.borrowings(), "my-overdue"] as const,
   myHistory: (params?: Record<string, unknown>) =>
     [...libraryKeys.borrowings(), "my-history", params] as const,
+
+  // Reservations
+  reservations: () => [...libraryKeys.all, "reservations"] as const,
+  reservationsList: (params?: Record<string, unknown>) =>
+    [...libraryKeys.reservations(), "list", params] as const,
+  myReservations: (params?: Record<string, unknown>) =>
+    [...libraryKeys.reservations(), "my-reservations", params] as const,
 };
 
 // ==================================== Library Queries ========================================
@@ -56,16 +69,38 @@ export function useLibrary(id: string) {
   });
 }
 
-// Fetch available books
-export function useAvailableBooks(params?: {
+// Fetch available books (infinite query)
+export function useInfiniteAvailableBooks(params?: {
   search?: string;
   category?: string;
   limit?: number;
-  page?: number;
 }) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: libraryKeys.availableBooks(params),
-    queryFn: () => bookService.getAvailableBooks(params),
+    queryFn: async ({ pageParam = 1 }) => {
+      const result = await bookService.getAvailableBooks({
+        ...params,
+        page: pageParam as number,
+        limit: params?.limit || 10,
+      });
+      return result;
+    },
+    getNextPageParam: (lastPage: any) => {
+      if (lastPage.pagination && lastPage.pagination.page < lastPage.pagination.pages) {
+        return lastPage.pagination.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
+  });
+}
+
+// Fetch available copies for a book
+export function useAvailableCopiesByBook(bookId: string, params?: { libraryId?: string }) {
+  return useQuery({
+    queryKey: libraryKeys.availableCopies(bookId),
+    queryFn: () => bookCopyService.getAvailableCopiesByBook(bookId, params),
+    enabled: !!bookId,
   });
 }
 
@@ -175,6 +210,25 @@ export function useMyBorrowingHistory(params?: {
   });
 }
 
+// ==================================== Reservation Queries ========================================
+
+// Fetch current user's active reservations
+export function useMyReservations(params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  return useQuery({
+    queryKey: libraryKeys.myReservations(params),
+    queryFn: async () => {
+      // Note: We'll use the getAll with userId filter if a dedicated my-reservations isn't clear, 
+      // but the backend has /library/reservations/my-reservations
+      const response = await libraryApi.get("/library/reservations/my-reservations", { params });
+      return response.data.data;
+    },
+  });
+}
+
 // ===================================== Borrowing Mutations =======================================
 
 // Borrow a book mutation
@@ -249,6 +303,66 @@ export function useCheckOverdue() {
   });
 }
 
+// ===================================== Reservation Mutations =======================================
+
+// Reserve a book (finds an available copy and reserves it)
+export function useReserveBook() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: {
+      bookId: string;
+      libraryId: string;
+      userId: string;
+      userType: string;
+      notes?: string;
+    }) => {
+      // 1. Get available copies for this book
+      const copies = await bookCopyService.getAvailableCopiesByBook(data.bookId, {
+        libraryId: data.libraryId,
+      });
+
+      if (!copies || copies.length === 0) {
+        throw new Error("No available copies found for this book.");
+      }
+
+      // 2. Select the first available copy
+      const copyId = copies[0].id;
+
+      // 3. Create the reservation
+      const response = await libraryApi.post("/library/reservations/reserve", {
+        copyId,
+        libraryId: data.libraryId,
+        userId: data.userId,
+        userType: data.userType,
+        notes: data.notes,
+      });
+
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.reservations() });
+      queryClient.invalidateQueries({ queryKey: libraryKeys.myReservations() });
+      queryClient.invalidateQueries({ queryKey: libraryKeys.books() });
+      queryClient.invalidateQueries({ queryKey: libraryKeys.copies() });
+    },
+  });
+}
+
+// Cancel a reservation
+export function useCancelReservation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => libraryApi.post(`/library/reservations/${id}/cancel`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.reservations() });
+      queryClient.invalidateQueries({ queryKey: libraryKeys.myReservations() });
+      queryClient.invalidateQueries({ queryKey: libraryKeys.books() });
+    },
+  });
+}
+
 // =================================== Combined Hooks for Common Use Cases =========================================
 
 // Hook to get all library data for student dashboard
@@ -256,22 +370,26 @@ export function useStudentLibraryDashboard() {
   const borrowedQuery = useMyBorrowedBooks();
   const overdueQuery = useMyOverdueBooks();
   const historyQuery = useMyBorrowingHistory({ limit: 10 });
+  const reservationsQuery = useMyReservations({ status: 'pending' });
 
   return {
     borrowed: borrowedQuery.data ?? [],
     overdue: overdueQuery.data ?? [],
     history: historyQuery.data ?? [],
+    reservations: reservationsQuery.data?.reservations ?? [],
     isLoading:
       borrowedQuery.isLoading ||
       overdueQuery.isLoading ||
-      historyQuery.isLoading,
+      historyQuery.isLoading ||
+      reservationsQuery.isLoading,
     isError:
-      borrowedQuery.isError || overdueQuery.isError || historyQuery.isError,
-    error: borrowedQuery.error || overdueQuery.error || historyQuery.error,
+      borrowedQuery.isError || overdueQuery.isError || historyQuery.isError || reservationsQuery.isError,
+    error: borrowedQuery.error || overdueQuery.error || historyQuery.error || reservationsQuery.error,
     refetch: () => {
       borrowedQuery.refetch();
       overdueQuery.refetch();
       historyQuery.refetch();
+      reservationsQuery.refetch();
     },
   };
 }

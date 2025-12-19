@@ -29,7 +29,7 @@ import {
 } from "./LibraryComponents";
 import { toast } from "sonner";
 
-export default function StudentLibraryPage() {
+export default function TeacherLibraryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [catalogSearch, setCatalogSearch] = useState("");
   const { user } = useAuth();

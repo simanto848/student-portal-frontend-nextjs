@@ -65,6 +65,7 @@ const normalizeBook = (data: unknown): Book => {
     library: typeof d.libraryId === 'object' && d.libraryId !== null
       ? (d.libraryId as Library)
       : (d.library as Library | undefined),
+    availableCopies: (d.availableCopies as number) || 0,
     createdAt: (d.createdAt as string) || "",
     updatedAt: (d.updatedAt as string) || "",
   };
@@ -101,10 +102,23 @@ export const bookService = {
   getAvailableBooks: async (params?: {
     libraryId?: string;
     category?: string;
-  }): Promise<Book[]> => {
+    search?: string;
+    limit?: number;
+    page?: number;
+  }): Promise<{
+    books: Book[];
+    pagination?: { page: number; limit: number; total: number; pages: number };
+  }> => {
     try {
       const res = await libraryApi.get("/library/books/available", { params });
-      return extractLibraryArrayData<Book>(res).map(normalizeBook);
+      const apiData = res.data as any;
+      const rawBooks = apiData.data?.books || [];
+      const books = Array.isArray(rawBooks) ? rawBooks.map(normalizeBook) : [];
+
+      return {
+        books,
+        pagination: apiData.data?.pagination,
+      };
     } catch (error: unknown) {
       return handleLibraryApiError(error);
     }

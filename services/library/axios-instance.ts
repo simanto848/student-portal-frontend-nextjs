@@ -10,7 +10,6 @@ export const libraryApi = axios.create({
 });
 
 libraryApi.interceptors.request.use((config) => {
-  // Guard for Next.js SSR where window/localStorage are undefined
   if (typeof window !== "undefined") {
     const token = window.localStorage?.getItem("accessToken");
     if (token) {
@@ -23,7 +22,6 @@ libraryApi.interceptors.request.use((config) => {
   return config;
 });
 
-// API Response structure
 export interface LibraryApiResponse<T> {
   success: boolean;
   message: string;
@@ -40,7 +38,6 @@ export interface LibraryApiResponse<T> {
   statusCode: number;
 }
 
-// API Error structure
 export interface LibraryApiErrorResponse {
   success: false;
   message: string;
@@ -48,7 +45,6 @@ export interface LibraryApiErrorResponse {
   statusCode: number;
 }
 
-// Custom error class for better error handling
 export class LibraryApiError extends Error {
   statusCode: number;
   errors?: Array<{ path: string; message: string }>;
@@ -65,7 +61,6 @@ export class LibraryApiError extends Error {
   }
 }
 
-// Helper to handle API errors
 export const handleLibraryApiError = (error: unknown): never => {
   if (error instanceof AxiosError && error.response) {
     const data = error.response.data as LibraryApiErrorResponse;
@@ -78,18 +73,28 @@ export const handleLibraryApiError = (error: unknown): never => {
   throw new LibraryApiError("Network error occurred", 500);
 };
 
-// Helper function to safely extract array data from API response
 export const extractLibraryArrayData = <T>(response: {
   data: LibraryApiResponse<T[]>;
 }): T[] => {
   try {
     const apiData = response.data;
-    if (apiData && apiData.data && Array.isArray(apiData.data.data)) {
-      return apiData.data.data;
+    if (!apiData || !apiData.data) return [];
+
+    if (Array.isArray(apiData.data)) {
+      return apiData.data;
     }
-    if (apiData && apiData.data && Array.isArray(apiData.data)) {
-      return apiData.data as unknown as T[];
+    if ((apiData.data as any).data && Array.isArray((apiData.data as any).data)) {
+      return (apiData.data as any).data;
     }
+
+    if (typeof apiData.data === "object") {
+      const keys = Object.keys(apiData.data);
+      const arrayKey = keys.find((k) => Array.isArray((apiData.data as any)[k]));
+      if (arrayKey) {
+        return (apiData.data as any)[arrayKey];
+      }
+    }
+
     console.warn("Unexpected API response structure:", apiData);
     return [];
   } catch (error) {
@@ -98,7 +103,6 @@ export const extractLibraryArrayData = <T>(response: {
   }
 };
 
-// Helper function to extract single item data
 export const extractLibraryItemData = <T>(response: {
   data: LibraryApiResponse<T> | { data: T };
 }): T => {
