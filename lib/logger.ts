@@ -1,9 +1,28 @@
-import fs from 'fs';
-import path from 'path';
-
-const LOG_DIR = path.join(process.cwd(), 'logs');
 const MAX_LOG_SIZE = 50 * 1024; // 50KB in bytes
-const MAX_LOG_FILES = 10; // Keep only 20 most recent log files
+const MAX_LOG_FILES = 10; // Keep only 10 most recent log files
+
+/**
+ * Helper to get Node.js modules without triggering bundler errors in browser
+ */
+async function getFs() {
+    if (typeof window !== 'undefined') return null;
+    try {
+        // Use eval to hide the import from static analysis
+        return await eval('import("fs")');
+    } catch (e) {
+        return null;
+    }
+}
+
+async function getPath() {
+    if (typeof window !== 'undefined') return null;
+    try {
+        // Use eval to hide the import from static analysis
+        return await eval('import("path")');
+    } catch (e) {
+        return null;
+    }
+}
 
 /**
  * Check if logging is enabled via environment variable
@@ -21,18 +40,30 @@ export interface LogEntry {
     method: string;
     url: string;
     status?: number;
-    request?: any;
-    response?: any;
-    error?: any;
+    request?: unknown;
+    response?: unknown;
+    error?: unknown;
     duration?: number;
     level: 'success' | 'error' | 'warning' | 'info';
 }
 
+/**
+ * Get log directory path (server-side only)
+ */
+async function getLogDir() {
+    if (typeof window !== 'undefined') return null;
+    const path = await getPath();
+    if (!path) return null;
+    return path.join(process.cwd(), 'logs');
+}
+
 // Ensure logs directory exists
-function ensureLogDirectory() {
+async function ensureLogDirectory() {
     if (typeof window === 'undefined') {
         try {
-            if (!fs.existsSync(LOG_DIR)) {
+            const fs = await getFs();
+            const LOG_DIR = await getLogDir();
+            if (fs && LOG_DIR && !fs.existsSync(LOG_DIR)) {
                 fs.mkdirSync(LOG_DIR, { recursive: true });
             }
         } catch (error) {
@@ -44,21 +75,27 @@ function ensureLogDirectory() {
 /**
  * Clean up old log files, keeping only the most recent MAX_LOG_FILES
  */
-function cleanupOldLogFiles() {
+async function cleanupOldLogFiles() {
+    if (typeof window !== 'undefined') return;
     try {
+        const fs = await getFs();
+        const path = await getPath();
+        const LOG_DIR = await getLogDir();
+        if (!fs || !path || !LOG_DIR) return;
+
         const files = fs.readdirSync(LOG_DIR)
-            .filter(file => file.startsWith('api-') && file.endsWith('.log'))
-            .map(file => ({
+            .filter((file: string) => file.startsWith('api-') && file.endsWith('.log'))
+            .map((file: string) => ({
                 name: file,
                 path: path.join(LOG_DIR, file),
                 stats: fs.statSync(path.join(LOG_DIR, file))
             }))
-            .sort((a, b) => b.stats.mtime.getTime() - a.stats.mtime.getTime()); // Sort by modification time, newest first
+            .sort((a: { stats: { mtime: Date } }, b: { stats: { mtime: Date } }) => b.stats.mtime.getTime() - a.stats.mtime.getTime()); // Sort by modification time, newest first
 
         // If we have more than MAX_LOG_FILES, delete the oldest ones
         if (files.length > MAX_LOG_FILES) {
             const filesToDelete = files.slice(MAX_LOG_FILES);
-            filesToDelete.forEach(file => {
+            filesToDelete.forEach((file: { path: string; name: string }) => {
                 try {
                     fs.unlinkSync(file.path);
                     console.log(`Deleted old log file: ${file.name}`);
@@ -75,11 +112,17 @@ function cleanupOldLogFiles() {
 /**
  * Get the current active log file name
  */
-function getActiveLogFile(): string {
-    ensureLogDirectory();
+async function getActiveLogFile(): Promise<string | null> {
+    if (typeof window !== 'undefined') return null;
+
+    await ensureLogDirectory();
+    const fs = await getFs();
+    const path = await getPath();
+    const LOG_DIR = await getLogDir();
+    if (!fs || !path || !LOG_DIR) return null;
 
     const files = fs.readdirSync(LOG_DIR)
-        .filter(file => file.startsWith('api-') && file.endsWith('.log'))
+        .filter((file: string) => file.startsWith('api-') && file.endsWith('.log'))
         .sort()
         .reverse();
 
@@ -100,7 +143,7 @@ function getActiveLogFile(): string {
     const newFilePath = path.join(LOG_DIR, newFileName);
 
     // Clean up old files after creating a new one
-    cleanupOldLogFiles();
+    await cleanupOldLogFiles();
 
     return newFilePath;
 }
@@ -108,14 +151,14 @@ function getActiveLogFile(): string {
 /**
  * Log API request and response to file
  */
-export function logAPICall(data: {
+export async function logAPICall(data: {
     timestamp: string;
     method: string;
     url: string;
     status?: number;
-    requestData?: any;
-    responseData?: any;
-    error?: any;
+    requestData?: unknown;
+    responseData?: unknown;
+    error?: unknown;
     duration?: number;
 }) {
     if (typeof window !== 'undefined') {
@@ -127,8 +170,6 @@ export function logAPICall(data: {
         // Skip logging if disabled via environment variable
         return;
     }
-
-    ensureLogDirectory();
 
     // Determine log level based on status
     let level: LogEntry['level'] = 'info';
@@ -158,9 +199,12 @@ export function logAPICall(data: {
     };
 
     try {
-        const logFile = getActiveLogFile();
-        const logLine = JSON.stringify(logEntry) + '\n';
-        fs.appendFileSync(logFile, logLine, 'utf8');
+        const fs = await getFs();
+        const logFile = await getActiveLogFile();
+        if (fs && logFile) {
+            const logLine = JSON.stringify(logEntry) + '\n';
+            fs.appendFileSync(logFile, logLine, 'utf8');
+        }
     } catch (error) {
         console.error('Failed to write to log file:', error);
     }
@@ -176,13 +220,13 @@ export function getTimestamp(): string {
 /**
  * Log general errors (not just API calls)
  */
-export function logError(data: {
+export async function logError(data: {
     message: string;
     stack?: string;
     url?: string;
     userAgent?: string;
     timestamp?: string;
-    context?: any;
+    context?: unknown;
     type: 'client' | 'server' | 'api' | 'build' | 'runtime';
 }) {
     if (typeof window !== 'undefined') {
@@ -194,8 +238,6 @@ export function logError(data: {
             return;
         }
     }
-
-    ensureLogDirectory();
 
     const logEntry: LogEntry = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -213,9 +255,12 @@ export function logError(data: {
     };
 
     try {
-        const logFile = getActiveLogFile();
-        const logLine = JSON.stringify(logEntry) + '\n';
-        fs.appendFileSync(logFile, logLine, 'utf8');
+        const fs = await getFs();
+        const logFile = await getActiveLogFile();
+        if (fs && logFile) {
+            const logLine = JSON.stringify(logEntry) + '\n';
+            fs.appendFileSync(logFile, logLine, 'utf8');
+        }
     } catch (error) {
         console.error('Failed to write error to log file:', error);
     }
@@ -224,7 +269,7 @@ export function logError(data: {
 /**
  * Get all log files (server-side only)
  */
-export function getLogFiles(): string[] {
+export async function getLogFiles(): Promise<string[]> {
     if (typeof window !== 'undefined') {
         return [];
     }
@@ -233,10 +278,14 @@ export function getLogFiles(): string[] {
         return [];
     }
 
-    ensureLogDirectory();
+    const fs = await getFs();
+    const LOG_DIR = await getLogDir();
+    if (!fs || !LOG_DIR) return [];
+
+    await ensureLogDirectory();
 
     return fs.readdirSync(LOG_DIR)
-        .filter(file => file.startsWith('api-') && file.endsWith('.log'))
+        .filter((file: string) => file.startsWith('api-') && file.endsWith('.log'))
         .sort()
         .reverse();
 }
@@ -244,7 +293,7 @@ export function getLogFiles(): string[] {
 /**
  * Read logs from a specific file (server-side only)
  */
-export function readLogFile(filename: string): LogEntry[] {
+export async function readLogFile(filename: string): Promise<LogEntry[]> {
     if (typeof window !== 'undefined') {
         return [];
     }
@@ -252,6 +301,11 @@ export function readLogFile(filename: string): LogEntry[] {
     if (!isLoggingEnabled()) {
         return [];
     }
+
+    const fs = await getFs();
+    const path = await getPath();
+    const LOG_DIR = await getLogDir();
+    if (!fs || !path || !LOG_DIR) return [];
 
     const filePath = path.join(LOG_DIR, filename);
 
@@ -261,15 +315,17 @@ export function readLogFile(filename: string): LogEntry[] {
 
     try {
         const content = fs.readFileSync(filePath, 'utf8');
-        const lines = content.trim().split('\n').filter(line => line.trim());
+        const lines = content.trim().split('\n').filter((line: string) => line.trim());
 
-        return lines.map(line => {
+        const logEntries: (LogEntry | null)[] = lines.map((line: string) => {
             try {
                 return JSON.parse(line) as LogEntry;
             } catch {
                 return null;
             }
-        }).filter(entry => entry !== null) as LogEntry[];
+        });
+
+        return logEntries.filter((entry): entry is LogEntry => entry !== null);
     } catch (error) {
         console.error('Failed to read log file:', error);
         return [];
