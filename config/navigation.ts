@@ -12,6 +12,7 @@ import {
   MessageSquare,
   CheckSquare,
   Bell,
+  Activity,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { User, UserRole, isTeacherUser } from "@/types/user";
@@ -116,6 +117,11 @@ export const adminNavigation: NavItem[] = [
     href: "/dashboard/admin/reports",
     label: "System Reports",
     icon: FileText,
+  },
+  {
+    href: "/dashboard/admin/monitoring",
+    label: "System Monitoring",
+    icon: Activity,
   },
 ];
 
