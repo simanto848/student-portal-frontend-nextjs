@@ -13,6 +13,10 @@ import {
   CheckSquare,
   Bell,
   Activity,
+  HeadphonesIcon,
+  Shield,
+  UserCog,
+  Database
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { User, UserRole, isTeacherUser } from "@/types/user";
@@ -43,6 +47,7 @@ export const adminNavigation: NavItem[] = [
   {
     label: "Academic Management",
     icon: GraduationCap,
+    roles: ["admin", "super_admin"], // Not available for moderator
     children: [
       { href: "/dashboard/admin/academic/faculty", label: "Faculty" },
       { href: "/dashboard/admin/academic/department", label: "Department" },
@@ -67,6 +72,7 @@ export const adminNavigation: NavItem[] = [
   {
     label: "Enrollment Management",
     icon: ClipboardList,
+    roles: ["admin", "super_admin"], // Not available for moderator
     children: [
       { href: "/dashboard/admin/enrollment", label: "Overview" },
       { href: "/dashboard/admin/enrollment/enrollments", label: "Enrollments" },
@@ -82,6 +88,7 @@ export const adminNavigation: NavItem[] = [
   {
     label: "Workspaces Management",
     icon: Building2,
+    roles: ["admin", "super_admin"], // Not available for moderator
     children: [
       { href: "/dashboard/admin/classroom", label: "Classrooms" },
       { href: "/dashboard/admin/classroom/assignments", label: "Assignments" },
@@ -94,10 +101,12 @@ export const adminNavigation: NavItem[] = [
     label: "User Management",
     icon: Users,
     children: [
-      { href: "/dashboard/admin/users/admins", label: "Admins" },
-      { href: "/dashboard/admin/users/staff", label: "Staff" },
-      { href: "/dashboard/admin/users/faculty", label: "Faculty" },
+      { href: "/dashboard/admin/users/admins", label: "Admins", roles: ["admin", "super_admin"] },
+      { href: "/dashboard/admin/users/staff", label: "Staff", roles: ["admin", "super_admin", "moderator"] },
+      { href: "/dashboard/admin/users/faculty", label: "Faculty", roles: ["admin", "super_admin", "moderator"] },
       { href: "/dashboard/admin/users/students", label: "Students" },
+      { href: "/dashboard/admin/users/all", label: "All Users", roles: ["super_admin"] },
+      { href: "/dashboard/admin/users/blocked", label: "Blocked Users", roles: ["super_admin"] },
     ],
   },
   {
@@ -114,14 +123,27 @@ export const adminNavigation: NavItem[] = [
     ],
   },
   {
+    href: "/dashboard/admin/support",
+    label: "Support Tickets",
+    icon: HeadphonesIcon,
+  },
+  {
     href: "/dashboard/admin/reports",
     label: "System Reports",
     icon: FileText,
+    roles: ["admin", "super_admin"], // Not available for moderator
   },
   {
     href: "/dashboard/admin/monitoring",
     label: "System Monitoring",
     icon: Activity,
+    roles: ["admin", "super_admin"], // Not available for moderator
+  },
+  {
+    href: "/dashboard/admin/settings",
+    label: "System Settings",
+    icon: Shield,
+    roles: ["super_admin"], // Super admin only
   },
 ];
 
@@ -374,7 +396,7 @@ export function getDashboardTitle(role: UserRole): string {
   const titles: Record<string, string> = {
     admin: "Admin Portal",
     super_admin: "Admin Portal",
-    moderator: "Admin Portal",
+    moderator: "Moderator Panel",
     teacher: "Teacher Panel",
     student: "Student Dashboard",
     program_controller: "Program Controller",
