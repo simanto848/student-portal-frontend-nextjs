@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
-import { authService, UserRole } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
+import { UserRole } from "@/types/user";
 import { toast } from "sonner";
 
 interface ForgotPasswordFormProps {

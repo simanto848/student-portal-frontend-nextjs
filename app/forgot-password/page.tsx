@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authService, UserRole } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
+import { UserRole } from "@/types/user";
 import { toast } from "sonner";
 
 function ForgotPasswordContent() {
@@ -15,7 +16,7 @@ function ForgotPasswordContent() {
   const roleParam = searchParams.get("role");
 
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<UserRole>("student");
+  const [role, setRole] = useState<UserRole>(UserRole.STUDENT);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {

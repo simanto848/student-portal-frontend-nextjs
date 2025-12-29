@@ -25,7 +25,7 @@ import {
   BorrowedBookCard,
   BookCard,
   ReservationCard,
-  HistoryCard
+  LibraryHistoryCard
 } from "./LibraryComponents";
 import { toast } from "sonner";
 
@@ -304,7 +304,7 @@ export default function StudentLibraryPage() {
               <CardContent className="space-y-3">
                 {filteredHistory.length > 0 ? (
                   filteredHistory.map((item: Borrowing) => (
-                    <HistoryCard key={item.id} item={item} />
+                    <LibraryHistoryCard key={item.id} item={item} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">

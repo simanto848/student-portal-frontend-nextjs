@@ -54,7 +54,10 @@ interface AttendanceState {
   };
 }
 
-export default function AttendancePage() {
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+function AttendanceContent() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const instructorId = user?.id || user?._id || "";
@@ -144,14 +147,14 @@ export default function AttendancePage() {
       const existingAttendance = Array.isArray(attendanceResponse)
         ? attendanceResponse
         : (
-            attendanceResponse as {
-              attendance?: {
-                studentId: string;
-                status: "present" | "absent" | "late" | "excused";
-                remarks?: string;
-              }[];
-            }
-          ).attendance || [];
+          attendanceResponse as {
+            attendance?: {
+              studentId: string;
+              status: "present" | "absent" | "late" | "excused";
+              remarks?: string;
+            }[];
+          }
+        ).attendance || [];
 
       // Initialize attendance state
       const initialState: AttendanceState = {};
@@ -281,12 +284,12 @@ export default function AttendancePage() {
           stats={
             selectedAssignmentId && students.length > 0
               ? {
-                  label: "Present Today",
-                  value: `${attendanceSummary.present}/${attendanceSummary.total}`,
-                  subtext: "students",
-                  progress: attendanceSummary.present,
-                  progressMax: attendanceSummary.total || 1,
-                }
+                label: "Present Today",
+                value: `${attendanceSummary.present}/${attendanceSummary.total}`,
+                subtext: "students",
+                progress: attendanceSummary.present,
+                progressMax: attendanceSummary.total || 1,
+              }
               : undefined
           }
         >
@@ -407,6 +410,18 @@ export default function AttendancePage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AttendancePage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <DashboardSkeleton layout="hero-table" rowCount={8} />
+      </DashboardLayout>
+    }>
+      <AttendanceContent />
+    </Suspense>
   );
 }
 

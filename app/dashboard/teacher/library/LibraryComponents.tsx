@@ -233,7 +233,7 @@ export function HistoryCard({ item }: { item: Borrowing | Reservation }) {
                             <>
                                 <span>Borrowed: {new Date((item as Borrowing).borrowDate).toLocaleDateString()}</span>
                                 {(item as Borrowing).returnDate && (
-                                    <span>Returned: {new Date((item as Borrowing).returnDate).toLocaleDateString()}</span>
+                                    <span>Returned: {new Date((item as Borrowing).returnDate as string).toLocaleDateString()}</span>
                                 )}
                             </>
                         ) : (

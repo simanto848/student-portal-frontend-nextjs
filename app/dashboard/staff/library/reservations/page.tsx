@@ -21,7 +21,10 @@ import { Button } from "@/components/ui/button";
 import { Eye, Plus, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export default function ReservationsPage() {
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+function ReservationsContent() {
   const [items, setItems] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
@@ -228,5 +231,19 @@ export default function ReservationsPage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function ReservationsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex h-[50vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+        </div>
+      </DashboardLayout>
+    }>
+      <ReservationsContent />
+    </Suspense>
   );
 }

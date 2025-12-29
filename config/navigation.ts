@@ -13,6 +13,16 @@ import {
   CheckSquare,
   Bell,
   Activity,
+  Shield,
+  Database,
+  Flag,
+  FileWarning,
+  Eye,
+  AlertTriangle,
+  CheckCircle,
+  Globe,
+  Server,
+  FileCheck
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { User, UserRole, isTeacherUser } from "@/types/user";
@@ -24,6 +34,7 @@ export interface NavItem {
   children?: NavChildItem[];
   roles?: UserRole[];
   condition?: (user: User) => boolean;
+  badge?: number;
 }
 
 export interface NavChildItem {
@@ -33,7 +44,68 @@ export interface NavChildItem {
   condition?: (user: User) => boolean;
 }
 
-// ===================== Admin Navigation =====================
+// ===================== Super Admin Navigation (System Level) =====================
+export const superAdminNavigation: NavItem[] = [
+  {
+    href: "/dashboard/super-admin",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/super-admin/organizations",
+    label: "Organizations",
+    icon: Building2,
+  },
+  {
+    href: "/dashboard/super-admin/users",
+    label: "All Users",
+    icon: Users,
+  },
+  {
+    href: "/dashboard/super-admin/roles",
+    label: "Role Management",
+    icon: Shield,
+  },
+  {
+    href: "/dashboard/super-admin/database",
+    label: "Database",
+    icon: Database,
+  },
+  {
+    href: "/dashboard/super-admin/health",
+    label: "System Health",
+    icon: Server,
+  },
+  {
+    href: "/dashboard/super-admin/logs",
+    label: "Activity Logs",
+    icon: Activity,
+  },
+  // System Section
+  {
+    href: "/dashboard/super-admin/api",
+    label: "API Management",
+    icon: Globe,
+  },
+  {
+    href: "/dashboard/super-admin/reports",
+    label: "System Reports",
+    icon: FileText,
+  },
+  {
+    href: "/dashboard/super-admin/alerts",
+    label: "Alerts",
+    icon: Bell,
+    badge: 5,
+  },
+  {
+    href: "/dashboard/super-admin/settings",
+    label: "Settings",
+    icon: Settings,
+  },
+];
+
+// ===================== Admin Navigation (Institution Level) =====================
 export const adminNavigation: NavItem[] = [
   {
     href: "/dashboard/admin",
@@ -50,17 +122,11 @@ export const adminNavigation: NavItem[] = [
       { href: "/dashboard/admin/academic/session", label: "Session" },
       { href: "/dashboard/admin/academic/course", label: "Course" },
       { href: "/dashboard/admin/academic/batch", label: "Batch" },
-      {
-        href: "/dashboard/admin/academic/session-course",
-        label: "Session Course",
-      },
+      { href: "/dashboard/admin/academic/session-course", label: "Session Course" },
       { href: "/dashboard/admin/academic/classroom", label: "Classroom" },
       { href: "/dashboard/admin/academic/schedule", label: "Schedule" },
       { href: "/dashboard/admin/academic/syllabus", label: "Syllabus" },
-      {
-        href: "/dashboard/admin/academic/exam-committee",
-        label: "Exam Committee",
-      },
+      { href: "/dashboard/admin/academic/exam-committee", label: "Exam Committee" },
       { href: "/dashboard/admin/academic/prerequisite", label: "Prerequisite" },
     ],
   },
@@ -72,15 +138,12 @@ export const adminNavigation: NavItem[] = [
       { href: "/dashboard/admin/enrollment/enrollments", label: "Enrollments" },
       { href: "/dashboard/admin/enrollment/instructors", label: "Instructors" },
       { href: "/dashboard/admin/enrollment/assessments", label: "Assessments" },
-      {
-        href: "/dashboard/admin/enrollment/grades/workflow",
-        label: "Grade Workflow",
-      },
+      { href: "/dashboard/admin/enrollment/grades/workflow", label: "Grade Workflow" },
       { href: "/dashboard/admin/enrollment/attendance", label: "Attendance" },
     ],
   },
   {
-    label: "Workspaces Management",
+    label: "Workspaces",
     icon: Building2,
     children: [
       { href: "/dashboard/admin/classroom", label: "Classrooms" },
@@ -94,16 +157,14 @@ export const adminNavigation: NavItem[] = [
     label: "User Management",
     icon: Users,
     children: [
-      { href: "/dashboard/admin/users/admins", label: "Admins" },
       { href: "/dashboard/admin/users/staff", label: "Staff" },
       { href: "/dashboard/admin/users/faculty", label: "Faculty" },
       { href: "/dashboard/admin/users/students", label: "Students" },
     ],
   },
   {
-    label: "Library Management",
+    label: "Library",
     icon: BookOpen,
-    roles: ["admin", "super_admin"], // Not available for moderator
     children: [
       { href: "/dashboard/admin/library", label: "Overview" },
       { href: "/dashboard/admin/library/libraries", label: "Libraries" },
@@ -114,14 +175,79 @@ export const adminNavigation: NavItem[] = [
     ],
   },
   {
+    href: "/dashboard/admin/approvals",
+    label: "Approvals",
+    icon: FileCheck,
+    badge: 8,
+  },
+  {
     href: "/dashboard/admin/reports",
-    label: "System Reports",
+    label: "Reports",
     icon: FileText,
   },
   {
-    href: "/dashboard/admin/monitoring",
-    label: "System Monitoring",
-    icon: Activity,
+    href: "/dashboard/admin/messages",
+    label: "Messages",
+    icon: MessageSquare,
+    badge: 3,
+  },
+  {
+    href: "/dashboard/admin/settings",
+    label: "Settings",
+    icon: Settings,
+  },
+];
+
+// ===================== Moderator Navigation (Support/Content) =====================
+export const moderatorNavigation: NavItem[] = [
+  {
+    href: "/dashboard/moderator",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/moderator/reported",
+    label: "Reported Content",
+    icon: Flag,
+    badge: 15,
+  },
+  {
+    href: "/dashboard/moderator/users",
+    label: "User Reports",
+    icon: Users,
+    badge: 7,
+  },
+  {
+    href: "/dashboard/moderator/queue",
+    label: "Content Queue",
+    icon: FileWarning,
+  },
+  {
+    href: "/dashboard/moderator/support",
+    label: "Support Tickets",
+    icon: MessageSquare,
+    badge: 4,
+  },
+  // Tools Section
+  {
+    href: "/dashboard/moderator/activity",
+    label: "Activity Monitor",
+    icon: Eye,
+  },
+  {
+    href: "/dashboard/moderator/warnings",
+    label: "Warnings Issued",
+    icon: AlertTriangle,
+  },
+  {
+    href: "/dashboard/moderator/resolved",
+    label: "Resolved Cases",
+    icon: CheckCircle,
+  },
+  {
+    href: "/dashboard/moderator/settings",
+    label: "Settings",
+    icon: Settings,
   },
 ];
 
@@ -219,8 +345,7 @@ export const studentNavigation: NavItem[] = [
   },
 ];
 
-// ===================== Teacher Navigation Configurations =====================
-
+// ===================== Other Staff Navigation =====================
 export const programControllerNavigation: NavItem[] = [
   {
     href: "/dashboard/staff/program-controller",
@@ -232,22 +357,10 @@ export const programControllerNavigation: NavItem[] = [
     icon: GraduationCap,
     children: [
       { href: "/dashboard/staff/program-controller/courses", label: "Courses" },
-      {
-        href: "/dashboard/staff/program-controller/classrooms",
-        label: "Classrooms",
-      },
-      {
-        href: "/dashboard/staff/program-controller/schedules",
-        label: "Schedules",
-      },
-      {
-        href: "/dashboard/staff/program-controller/syllabus",
-        label: "Syllabus",
-      },
-      {
-        href: "/dashboard/staff/program-controller/prerequisites",
-        label: "Prerequisites",
-      },
+      { href: "/dashboard/staff/program-controller/classrooms", label: "Classrooms" },
+      { href: "/dashboard/staff/program-controller/schedules", label: "Schedules" },
+      { href: "/dashboard/staff/program-controller/syllabus", label: "Syllabus" },
+      { href: "/dashboard/staff/program-controller/prerequisites", label: "Prerequisites" },
     ],
   },
 ];
@@ -277,7 +390,6 @@ export const librarianNavigation: NavItem[] = [
   },
 ];
 
-// Common staff navigation (fallback for staff without specific navigation)
 export const defaultStaffNavigation: NavItem[] = [
   {
     href: "/dashboard/staff",
@@ -297,30 +409,20 @@ export const commonNavigation: NavItem[] = [
 
 // ===================== Navigation Configuration Map =====================
 export const navigationConfig: Record<string, NavItem[]> = {
-  admin: adminNavigation,
-  super_admin: adminNavigation,
-  moderator: adminNavigation,
-  teacher: teacherNavigation,
-  student: studentNavigation,
-  program_controller: programControllerNavigation,
-  library: librarianNavigation,
-  staff: defaultStaffNavigation,
+  [UserRole.ADMIN]: adminNavigation,
+  [UserRole.SUPER_ADMIN]: superAdminNavigation,
+  [UserRole.MODERATOR]: moderatorNavigation,
+  [UserRole.TEACHER]: teacherNavigation,
+  [UserRole.STUDENT]: studentNavigation,
+  [UserRole.PROGRAM_CONTROLLER]: programControllerNavigation,
+  [UserRole.LIBRARY]: librarianNavigation,
+  [UserRole.STAFF]: defaultStaffNavigation,
 };
 
 // ===================== Helper Functions =====================
-
 export function getNavigationForUser(user: User | null): NavItem[] {
   if (!user) return [];
-
-  // Normalize admin roles
-  let role = user.role;
-  if (["super_admin", "moderator"].includes(role)) {
-    role = "admin" as UserRole;
-  }
-
-  const baseNavigation =
-    navigationConfig[user.role] || navigationConfig[role] || [];
-
+  const baseNavigation = navigationConfig[user.role] || [];
   return filterNavItems(baseNavigation, user);
 }
 
@@ -372,14 +474,14 @@ export function isChildActive(
 
 export function getDashboardTitle(role: UserRole): string {
   const titles: Record<string, string> = {
-    admin: "Admin Portal",
-    super_admin: "Admin Portal",
-    moderator: "Admin Portal",
-    teacher: "Teacher Panel",
-    student: "Student Dashboard",
-    program_controller: "Program Controller",
-    library: "Library Panel",
-    staff: "Staff Panel",
+    [UserRole.ADMIN]: "Institution Admin",
+    [UserRole.SUPER_ADMIN]: "Super Admin System",
+    [UserRole.MODERATOR]: "Moderator Panel",
+    [UserRole.TEACHER]: "Teacher Panel",
+    [UserRole.STUDENT]: "Student Dashboard",
+    [UserRole.PROGRAM_CONTROLLER]: "Program Controller",
+    [UserRole.LIBRARY]: "Library Panel",
+    [UserRole.STAFF]: "Staff Panel",
   };
 
   return titles[role] || "Dashboard";
@@ -387,19 +489,14 @@ export function getDashboardTitle(role: UserRole): string {
 
 export function getRoleDisplayName(role: UserRole): string {
   const names: Record<string, string> = {
-    admin: "Administrator",
-    super_admin: "Super Administrator",
-    moderator: "Moderator",
-    teacher: "Teacher",
-    student: "Student",
-    program_controller: "Program Controller",
-    library: "Librarian",
-    staff: "Staff",
-    admission: "Admission Officer",
-    exam: "Exam Controller",
-    finance: "Finance Officer",
-    hr: "HR Manager",
-    it: "IT Administrator",
+    [UserRole.ADMIN]: "Administrator",
+    [UserRole.SUPER_ADMIN]: "Super Administrator",
+    [UserRole.MODERATOR]: "Moderator",
+    [UserRole.TEACHER]: "Teacher",
+    [UserRole.STUDENT]: "Student",
+    [UserRole.PROGRAM_CONTROLLER]: "Program Controller",
+    [UserRole.LIBRARY]: "Librarian",
+    [UserRole.STAFF]: "Staff",
   };
 
   return (
