@@ -152,13 +152,7 @@ export default function DatabaseStatusPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {[
-                                    { name: 'users', count: 5420, size: '45 MB' },
-                                    { name: 'logs', count: 3200, size: '120 MB' },
-                                    { name: 'enrollments', count: 1500, size: '12 MB' },
-                                    { name: 'courses', count: 850, size: '5 MB' },
-                                    { name: 'notifications', count: 4450, size: '25 MB' }
-                                ].map((col) => (
+                                {stats?.topCollections?.length ? stats.topCollections.map((col) => (
                                     <div key={col.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                                         <div className="flex items-center gap-3">
                                             <div className="bg-primary/10 p-2 rounded-full">
@@ -171,7 +165,9 @@ export default function DatabaseStatusPage() {
                                         </div>
                                         <div className="text-sm font-bold">{col.count.toLocaleString()} docs</div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <p className="text-center text-muted-foreground py-4">No collection data available</p>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

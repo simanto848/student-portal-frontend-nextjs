@@ -81,11 +81,15 @@ export const superAdminNavigation: NavItem[] = [
     label: "Activity Logs",
     icon: Activity,
   },
-  // System Section
   {
     href: "/dashboard/super-admin/api",
     label: "API Management",
     icon: Globe,
+  },
+  {
+    href: "/dashboard/super-admin/monitoring",
+    label: "Monitoring",
+    icon: Activity,
   },
   {
     href: "/dashboard/super-admin/reports",

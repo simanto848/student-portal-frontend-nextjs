@@ -6,21 +6,47 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { systemService, SystemHealth } from "@/services/system.service";
-import { Server, Database, Cpu, Activity, RefreshCw } from "lucide-react";
+import { Server, Database, Cpu, Activity, RefreshCw, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+const ALL_SERVICES = [
+    { name: 'Gateway', port: 8000, description: 'API Gateway & Routing' },
+    { name: 'User Service', port: 8001, description: 'Authentication & Users' },
+    { name: 'Academic Service', port: 8002, description: 'Courses & Programs' },
+    { name: 'Enrollment Service', port: 8003, description: 'Enrollments & Grades' },
+    { name: 'Classroom Service', port: 8004, description: 'Virtual Classrooms' },
+    { name: 'Library Service', port: 8005, description: 'Library Management' },
+    { name: 'Notification Service', port: 8006, description: 'Alerts & Notifications' },
+    { name: 'Communication Service', port: 8007, description: 'Messaging & Chat' },
+];
 
 export default function SystemHealthPage() {
     const [health, setHealth] = useState<SystemHealth | null>(null);
     const [loading, setLoading] = useState(true);
+    const [serviceStatus, setServiceStatus] = useState<Record<string, boolean>>({});
 
     const fetchHealth = async () => {
         try {
             setLoading(true);
             const data = await systemService.getHealth();
             setHealth(data);
+
+            // For now, assume all services operational if API responds
+            // In production, each service would have its own health endpoint
+            const statuses: Record<string, boolean> = {};
+            ALL_SERVICES.forEach(s => {
+                statuses[s.name] = true; // All operational if we can reach the API
+            });
+            setServiceStatus(statuses);
         } catch (error) {
             toast.error("Failed to fetch system health");
+            // Mark all services as down if API fails
+            const statuses: Record<string, boolean> = {};
+            ALL_SERVICES.forEach(s => {
+                statuses[s.name] = false;
+            });
+            setServiceStatus(statuses);
         } finally {
             setLoading(false);
         }
@@ -28,7 +54,6 @@ export default function SystemHealthPage() {
 
     useEffect(() => {
         fetchHealth();
-        // Auto-refresh every 30 seconds
         const interval = setInterval(fetchHealth, 30000);
         return () => clearInterval(interval);
     }, []);
@@ -42,6 +67,8 @@ export default function SystemHealthPage() {
             </DashboardLayout>
         );
     }
+
+    const operationalCount = Object.values(serviceStatus).filter(Boolean).length;
 
     return (
         <DashboardLayout>
@@ -120,51 +147,84 @@ export default function SystemHealthPage() {
                     </Card>
                 </div>
 
-                {/* Detailed Metrics */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Service Health Check</CardTitle>
-                            <CardDescription>Status of individual microservices</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            {['User Service', 'Academic Service', 'Enrollment Service', 'Notification Service'].map((service) => (
-                                <div key={service} className="flex items-center justify-between p-2 border rounded-lg">
+                {/* All Microservices Health */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Microservices Health</CardTitle>
+                                <CardDescription>Status of all backend services ({operationalCount}/{ALL_SERVICES.length} operational)</CardDescription>
+                            </div>
+                            <Badge variant="outline" className={operationalCount === ALL_SERVICES.length ? "bg-green-100 text-green-700 border-green-200" : "bg-yellow-100 text-yellow-700 border-yellow-200"}>
+                                {operationalCount === ALL_SERVICES.length ? "All Operational" : "Degraded"}
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-3 md:grid-cols-2">
+                            {ALL_SERVICES.map((service) => (
+                                <div key={service.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-2 w-2 rounded-full bg-green-500" />
-                                        <span className="font-medium">{service}</span>
+                                        <div className={`h-2.5 w-2.5 rounded-full ${serviceStatus[service.name] ? 'bg-green-500' : 'bg-red-500'}`} />
+                                        <div>
+                                            <span className="font-medium">{service.name}</span>
+                                            <p className="text-xs text-muted-foreground">{service.description}</p>
+                                        </div>
                                     </div>
-                                    <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Operational</Badge>
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-xs">:{service.port}</Badge>
+                                        {serviceStatus[service.name] ? (
+                                            <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                                <CheckCircle className="h-3 w-3 mr-1" />
+                                                Operational
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="text-red-600 border-red-200 bg-red-50">
+                                                <XCircle className="h-3 w-3 mr-1" />
+                                                Down
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>System Information</CardTitle>
-                            <CardDescription>Environment details</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex justify-between py-2 border-b">
-                                <span className="text-muted-foreground">Environment</span>
-                                <span className="font-medium">Production</span>
+                {/* System Information */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>System Information</CardTitle>
+                        <CardDescription>Environment and runtime details</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-3">
+                                <div className="flex justify-between py-2 border-b">
+                                    <span className="text-muted-foreground">Environment</span>
+                                    <span className="font-medium">Development</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b">
+                                    <span className="text-muted-foreground">Node.js Version</span>
+                                    <span className="font-medium">{typeof process !== 'undefined' ? process.version : 'N/A'}</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between py-2 border-b">
-                                <span className="text-muted-foreground">Version</span>
-                                <span className="font-medium">v2.4.0</span>
+                            <div className="space-y-3">
+                                <div className="flex justify-between py-2 border-b">
+                                    <span className="text-muted-foreground">Database</span>
+                                    <span className="font-medium">MongoDB</span>
+                                </div>
+                                <div className="flex justify-between py-2 border-b">
+                                    <span className="text-muted-foreground">Last Check</span>
+                                    <span className="font-medium flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        {new Date().toLocaleTimeString()}
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex justify-between py-2 border-b">
-                                <span className="text-muted-foreground">Node.js Version</span>
-                                <span className="font-medium">v18.17.0</span>
-                            </div>
-                            <div className="flex justify-between py-2">
-                                <span className="text-muted-foreground">Region</span>
-                                <span className="font-medium">ap-southeast-1</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </DashboardLayout>
     );

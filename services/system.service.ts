@@ -28,11 +28,29 @@ export interface DatabaseStats {
     size: string;
     connections: number;
     operations: {
-        reads: number;
-        writes: number;
-        updates: number;
-        deletes: number;
+        reads: string;
+        writes: string;
+        updates: string;
+        deletes: string;
     };
+    counts: {
+        totalUsers: number;
+        students: number;
+        teachers: number;
+        admins: number;
+        staff: number;
+        organizations: number;
+    };
+    breakdown: {
+        name: string;
+        count: number;
+        color: string;
+    }[];
+    topCollections: {
+        name: string;
+        count: number;
+        size: string;
+    }[];
 }
 
 export interface ActivityLog {
@@ -53,8 +71,21 @@ export interface SystemAlert {
 
 export interface ApiStats {
     requests: { total: number; success: number; error: number };
-    latency: { avg: number; p95: number };
-    endpoints: { method: string; path: string; calls: number; errorRate: string }[];
+    latency: { avg: number; p95: number; p99?: number };
+    errorRate: number;
+    activeServices: number;
+    totalServices: number;
+    endpoints: {
+        method: string;
+        path: string;
+        service: string;
+        description: string;
+        calls: number;
+        avgLatency: number;
+        errorRate: number;
+        lastCalled: string;
+    }[];
+    updatedAt: string;
 }
 
 
@@ -82,5 +113,17 @@ export const systemService = {
     getApiStats: async (): Promise<ApiStats> => {
         const response = await api.get("/user/system/api-stats");
         return response.data.data;
+    },
+
+    getOrganizations: async (): Promise<Organization[]> => {
+        const response = await api.get("/user/system/organizations");
+        return response.data.data;
     }
 };
+
+export interface Organization {
+    name: string;
+    users: number;
+    status: "active" | "inactive" | "pending";
+    growth: number;
+}
