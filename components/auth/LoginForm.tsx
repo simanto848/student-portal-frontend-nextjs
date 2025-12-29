@@ -11,7 +11,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { UserRole } from "@/services/auth.service";
+import { UserRole } from "@/types/user";
 
 interface LoginFormProps {
   role: UserRole;
@@ -34,7 +34,7 @@ export function LoginForm({ role }: LoginFormProps) {
       console.error(error);
       alert(
         error.response?.data?.message ||
-          "Login failed. Please check your credentials."
+        "Login failed. Please check your credentials."
       );
     }
   };

@@ -51,7 +51,8 @@ export default function StudentDashboard() {
 
     try {
       setLoading(true);
-      const studentId = user.id || user._id;
+      const studentId = user.id || (user as any)._id;
+      if (!studentId) return;
 
       // Fetch all data in parallel
       const [cgpaRes, gradeRes, attRes, borrowedRes, notifRes] =
@@ -132,8 +133,8 @@ export default function StudentDashboard() {
               daysLeft < 0
                 ? ("overdue" as const)
                 : daysLeft <= 3
-                ? ("due_soon" as const)
-                : ("normal" as const),
+                  ? ("due_soon" as const)
+                  : ("normal" as const),
           };
         })
       );
@@ -155,9 +156,9 @@ export default function StudentDashboard() {
 
       // Fetch schedule if batch is available
       let batchId: string | undefined;
-      if (typeof user.batchId === "string") {
+      if ('batchId' in user && typeof user.batchId === "string") {
         batchId = user.batchId;
-      } else if (user.batchId && typeof user.batchId === "object") {
+      } else if ('batchId' in user && user.batchId && typeof user.batchId === "object") {
         batchId = (user.batchId as any).id || (user.batchId as any)._id;
       }
 
@@ -183,7 +184,7 @@ export default function StudentDashboard() {
           .map((s) => {
             const course =
               typeof s.sessionCourseId === "object" &&
-              "course" in s.sessionCourseId
+                "course" in s.sessionCourseId
                 ? (s.sessionCourseId as any).course
                 : null;
             const room =
@@ -439,8 +440,8 @@ export default function StudentDashboard() {
                     variant="link"
                     className="text-xs text-muted-foreground"
                     onClick={() =>
-                      (window.location.href =
-                        "/dashboard/student/notifications")
+                    (window.location.href =
+                      "/dashboard/student/notifications")
                     }
                   >
                     View All
@@ -452,8 +453,8 @@ export default function StudentDashboard() {
                       key={notif.id}
                       className="flex gap-3 rounded-xl border border-gray-100 p-3 hover:bg-gray-50 transition-all duration-200 cursor-pointer"
                       onClick={() =>
-                        (window.location.href =
-                          "/dashboard/student/notifications")
+                      (window.location.href =
+                        "/dashboard/student/notifications")
                       }
                     >
                       <notif.icon className="h-5 w-5 text-[#3e6253] shrink-0 mt-0.5" />

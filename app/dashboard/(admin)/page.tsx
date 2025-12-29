@@ -5,7 +5,7 @@ import { StatCard } from "@/components/dashboard/widgets/StatCard";
 import { EnrollmentChart } from "@/components/dashboard/widgets/EnrollmentChart";
 import { ActivityList } from "@/components/dashboard/widgets/ActivityList";
 import { ActionTable } from "@/components/dashboard/widgets/ActionTable";
-import { Users, BookOpen, Building, GraduationCap } from "lucide-react"; // Changed icons
+import { Users, BookOpen, Building, GraduationCap } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function AdminDashboard() {
@@ -13,14 +13,14 @@ export default function AdminDashboard() {
         { title: "Total Active Students", value: "12,456", change: { value: "+2.5%", trend: "up" as const } },
         { title: "Total Faculty Members", value: "832", change: { value: "+1.2%", trend: "up" as const } },
         { title: "Active Courses", value: "1,102", change: { value: "+5.0%", trend: "up" as const } },
-        { title: "Departments", value: "48", change: { value: "Stable", trend: "neutral" as const } }, // Replaced System Uptime
+        { title: "Departments", value: "48", change: { value: "Stable", trend: "neutral" as const } },
     ];
 
     const activities = [
         { id: "1", type: "approval" as const, title: 'Course "Intro to AI" approved', time: "1 hour ago" },
         { id: "2", type: "new_user" as const, title: "New faculty account created", time: "3 hours ago" },
-        { id: "3", type: "update" as const, title: "Department 'Computer Science' updated", time: "5 hours ago" }, // Changed alert to update
-        { id: "4", type: "approval" as const, title: "New student enrollment batch processed", time: "Yesterday" }, // Changed backup result
+        { id: "3", type: "update" as const, title: "Department 'Computer Science' updated", time: "5 hours ago" },
+        { id: "4", type: "approval" as const, title: "New student enrollment batch processed", time: "Yesterday" },
     ];
 
     const actionItems = [
@@ -33,8 +33,8 @@ export default function AdminDashboard() {
     const managementPanels = [
         { title: "User Management", icon: Users },
         { title: "Course Catalog", icon: BookOpen },
-        { title: "Departments", icon: Building }, // Changed
-        { title: "Student Records", icon: GraduationCap }, // Changed
+        { title: "Departments", icon: Building },
+        { title: "Student Records", icon: GraduationCap },
     ];
 
     return (
@@ -50,8 +50,6 @@ export default function AdminDashboard() {
                         <StatCard key={stat.title} {...stat} />
                     ))}
                 </div>
-
-                {/* Removed SystemHealth */}
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                     <div className="col-span-4">

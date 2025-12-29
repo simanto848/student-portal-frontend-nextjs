@@ -23,7 +23,9 @@ import { toast } from "sonner";
 import { ArrowLeft, Save, Loader2, ChevronRight, Home } from "lucide-react";
 import Link from "next/link";
 
-export default function CreateCopyPage() {
+import { Suspense } from "react";
+
+function CreateCopyContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const prefilledBookId = searchParams?.get("bookId");
@@ -298,5 +300,19 @@ export default function CreateCopyPage() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function CreateCopyPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex h-[50vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+        </div>
+      </DashboardLayout>
+    }>
+      <CreateCopyContent />
+    </Suspense>
   );
 }

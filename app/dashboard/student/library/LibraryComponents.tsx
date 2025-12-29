@@ -201,7 +201,7 @@ export function ReservationCard({
 }
 
 // --- History Card (Unified Borrowing & Reservation) ---
-export function HistoryCard({ item }: { item: Borrowing | Reservation }) {
+export function LibraryHistoryCard({ item }: { item: Borrowing | Reservation }) {
     // Determine if it's a borrowing or reservation
     const isBorrowing = (item as Borrowing).borrowDate !== undefined;
     const bookDetails = item.copy?.book;
@@ -233,7 +233,7 @@ export function HistoryCard({ item }: { item: Borrowing | Reservation }) {
                             <>
                                 <span>Borrowed: {new Date((item as Borrowing).borrowDate).toLocaleDateString()}</span>
                                 {(item as Borrowing).returnDate && (
-                                    <span>Returned: {new Date((item as Borrowing).returnDate!).toLocaleDateString()}</span>
+                                    <span>Returned: {new Date((item as Borrowing).returnDate as string).toLocaleDateString()}</span>
                                 )}
                             </>
                         ) : (

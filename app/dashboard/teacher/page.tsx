@@ -56,10 +56,11 @@ export default function TeacherDashboard() {
       ];
 
       // Check if department head
-      if (user?.departmentId) {
+      if (user && 'departmentId' in user && user.departmentId) {
+        const deptId = (user as any).departmentId;
         promises.push(
           import("@/services/academic/department.service")
-            .then(m => m.departmentService.getDepartmentById(user!.departmentId))
+            .then(m => m.departmentService.getDepartmentById(deptId))
             .then(dept => {
               if (dept.departmentHeadId === user!.id) {
                 setIsDeptHead(true);

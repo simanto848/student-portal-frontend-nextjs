@@ -4,7 +4,6 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import {
     Building2,
     Users,
@@ -20,8 +19,8 @@ import {
     Globe,
     Shield,
     Zap,
-    ArrowUpRight,
     RefreshCw,
+    ArrowUpRight,
 } from "lucide-react";
 import {
     LineChart,
@@ -37,58 +36,59 @@ import {
     Pie,
     Cell,
 } from "recharts";
+import { Progress } from "@/components/ui/progress";
 
-export default function SuperAdminDashboard() {
-    const systemMetrics = [
-        { time: "00:00", cpu: 45, memory: 62, requests: 1200 },
-        { time: "04:00", cpu: 32, memory: 58, requests: 800 },
-        { time: "08:00", cpu: 68, memory: 71, requests: 3200 },
-        { time: "12:00", cpu: 82, memory: 78, requests: 4500 },
-        { time: "16:00", cpu: 75, memory: 74, requests: 3800 },
-        { time: "20:00", cpu: 58, memory: 68, requests: 2100 },
-        { time: "Now", cpu: 52, memory: 65, requests: 1800 },
-    ];
+const systemMetrics = [
+    { time: "00:00", cpu: 45, memory: 62, requests: 1200 },
+    { time: "04:00", cpu: 32, memory: 58, requests: 800 },
+    { time: "08:00", cpu: 68, memory: 71, requests: 3200 },
+    { time: "12:00", cpu: 82, memory: 78, requests: 4500 },
+    { time: "16:00", cpu: 75, memory: 74, requests: 3800 },
+    { time: "20:00", cpu: 58, memory: 68, requests: 2100 },
+    { time: "Now", cpu: 52, memory: 65, requests: 1800 },
+];
 
-    const organizationGrowth = [
-        { month: "Jul", organizations: 45, users: 12000 },
-        { month: "Aug", organizations: 52, users: 14500 },
-        { month: "Sep", organizations: 58, users: 16200 },
-        { month: "Oct", organizations: 67, users: 19800 },
-        { month: "Nov", organizations: 78, users: 24100 },
-        { month: "Dec", organizations: 92, users: 28500 },
-    ];
+const organizationGrowth = [
+    { month: "Jul", organizations: 45, users: 12000 },
+    { month: "Aug", organizations: 52, users: 14500 },
+    { month: "Sep", organizations: 58, users: 16200 },
+    { month: "Oct", organizations: 67, users: 19800 },
+    { month: "Nov", organizations: 78, users: 24100 },
+    { month: "Dec", organizations: 92, users: 28500 },
+];
 
-    const roleDistribution = [
-        { name: "Students", value: 24500, color: "hsl(234, 89%, 59%)" },
-        { name: "Teachers", value: 1850, color: "hsl(168, 76%, 42%)" },
-        { name: "Admins", value: 280, color: "hsl(38, 92%, 50%)" },
-        { name: "Moderators", value: 45, color: "hsl(199, 89%, 48%)" },
-        { name: "Super Admins", value: 5, color: "hsl(0, 84%, 60%)" },
-    ];
+const roleDistribution = [
+    { name: "Students", value: 24500, color: "hsl(234, 89%, 59%)" },
+    { name: "Teachers", value: 1850, color: "hsl(168, 76%, 42%)" },
+    { name: "Admins", value: 280, color: "hsl(38, 92%, 50%)" },
+    { name: "Moderators", value: 45, color: "hsl(199, 89%, 48%)" },
+    { name: "Super Admins", value: 5, color: "hsl(0, 84%, 60%)" },
+];
 
-    const recentAlerts = [
-        { id: 1, type: "critical", message: "Database connection pool reaching limit", time: "5m ago", org: "System" },
-        { id: 2, type: "warning", message: "High API response time detected", time: "12m ago", org: "Lincoln HS" },
-        { id: 3, type: "info", message: "New organization registered", time: "28m ago", org: "Oak Valley Academy" },
-        { id: 4, type: "success", message: "Backup completed successfully", time: "1h ago", org: "System" },
-        { id: 5, type: "warning", message: "Storage usage above 80%", time: "2h ago", org: "Metro University" },
-    ];
+const recentAlerts = [
+    { id: 1, type: "critical", message: "Database connection pool reaching limit", time: "5m ago", org: "System" },
+    { id: 2, type: "warning", message: "High API response time detected", time: "12m ago", org: "Lincoln HS" },
+    { id: 3, type: "info", message: "New organization registered", time: "28m ago", org: "Oak Valley Academy" },
+    { id: 4, type: "success", message: "Backup completed successfully", time: "1h ago", org: "System" },
+    { id: 5, type: "warning", message: "Storage usage above 80%", time: "2h ago", org: "Metro University" },
+];
 
-    const organizations = [
-        { name: "Lincoln High School", users: 2450, status: "active", growth: 12 },
-        { name: "Metro University", users: 8200, status: "active", growth: 8 },
-        { name: "Oak Valley Academy", users: 890, status: "pending", growth: 0 },
-        { name: "Central Tech Institute", users: 3100, status: "active", growth: -3 },
-        { name: "Riverside College", users: 4500, status: "active", growth: 15 },
-    ];
+const organizations = [
+    { name: "Lincoln High School", users: 2450, status: "active", growth: 12 },
+    { name: "Metro University", users: 8200, status: "active", growth: 8 },
+    { name: "Oak Valley Academy", users: 890, status: "pending", growth: 0 },
+    { name: "Central Tech Institute", users: 3100, status: "active", growth: -3 },
+    { name: "Riverside College", users: 4500, status: "active", growth: 15 },
+];
 
+const SuperAdminDashboard = () => {
     return (
         <DashboardLayout>
             <div className="space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-bold text-[#1a3d32]">System Overview</h1>
+                        <h1 className="text-3xl font-bold text-foreground">System Overview</h1>
                         <p className="text-muted-foreground mt-1">
                             Complete platform monitoring and control center
                         </p>
@@ -98,7 +98,7 @@ export default function SuperAdminDashboard() {
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Refresh
                         </Button>
-                        <Button variant="destructive">
+                        <Button className="bg-destructive hover:bg-destructive/90">
                             <Shield className="h-4 w-4 mr-2" />
                             Security Scan
                         </Button>
@@ -107,7 +107,7 @@ export default function SuperAdminDashboard() {
 
                 {/* System Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="border-l-4 border-l-red-500">
+                    <Card className="border-l-4 border-l-destructive shadow-sm">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -118,14 +118,14 @@ export default function SuperAdminDashboard() {
                                         <span className="text-xs text-green-600">+18% this month</span>
                                     </div>
                                 </div>
-                                <div className="h-12 w-12 rounded-xl bg-red-100 flex items-center justify-center">
-                                    <Building2 className="h-6 w-6 text-red-600" />
+                                <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+                                    <Building2 className="h-6 w-6 text-destructive" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-blue-500">
+                    <Card className="border-l-4 border-l-primary shadow-sm">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -136,14 +136,14 @@ export default function SuperAdminDashboard() {
                                         <span className="text-xs text-green-600">+2,450 this month</span>
                                     </div>
                                 </div>
-                                <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                                    <Users className="h-6 w-6 text-blue-600" />
+                                <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                    <Users className="h-6 w-6 text-primary" />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-green-500">
+                    <Card className="border-l-4 border-l-green-600 shadow-sm">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -161,19 +161,19 @@ export default function SuperAdminDashboard() {
                         </CardContent>
                     </Card>
 
-                    <Card className="border-l-4 border-l-yellow-500">
+                    <Card className="border-l-4 border-l-amber-500 shadow-sm">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Active Alerts</p>
                                     <p className="text-2xl font-bold text-foreground">7</p>
                                     <div className="flex items-center gap-1 mt-1">
-                                        <AlertTriangle className="h-3 w-3 text-yellow-600" />
-                                        <span className="text-xs text-yellow-600">2 critical, 5 warnings</span>
+                                        <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                        <span className="text-xs text-amber-500">2 critical, 5 warnings</span>
                                     </div>
                                 </div>
-                                <div className="h-12 w-12 rounded-xl bg-yellow-100 flex items-center justify-center">
-                                    <Activity className="h-6 w-6 text-yellow-600" />
+                                <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                                    <Activity className="h-6 w-6 text-amber-500" />
                                 </div>
                             </div>
                         </CardContent>
@@ -183,7 +183,7 @@ export default function SuperAdminDashboard() {
                 {/* System Resources & Growth */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* System Resources */}
-                    <Card>
+                    <Card className="shadow-sm">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <div>
@@ -199,18 +199,18 @@ export default function SuperAdminDashboard() {
                         <CardContent>
                             <div className="space-y-6">
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div className="text-center p-3 rounded-lg bg-gray-50">
-                                        <Cpu className="h-5 w-5 mx-auto text-blue-600 mb-1" />
+                                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                                        <Cpu className="h-5 w-5 mx-auto text-primary mb-1" />
                                         <p className="text-2xl font-bold text-foreground">52%</p>
                                         <p className="text-xs text-muted-foreground">CPU Usage</p>
                                     </div>
-                                    <div className="text-center p-3 rounded-lg bg-gray-50">
-                                        <Database className="h-5 w-5 mx-auto text-purple-600 mb-1" />
+                                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                                        <Database className="h-5 w-5 mx-auto text-indigo-500 mb-1" />
                                         <p className="text-2xl font-bold text-foreground">65%</p>
                                         <p className="text-xs text-muted-foreground">Memory</p>
                                     </div>
-                                    <div className="text-center p-3 rounded-lg bg-gray-50">
-                                        <HardDrive className="h-5 w-5 mx-auto text-yellow-600 mb-1" />
+                                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                                        <HardDrive className="h-5 w-5 mx-auto text-amber-500 mb-1" />
                                         <p className="text-2xl font-bold text-foreground">78%</p>
                                         <p className="text-xs text-muted-foreground">Storage</p>
                                     </div>
@@ -223,13 +223,13 @@ export default function SuperAdminDashboard() {
                                             <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
                                             <Tooltip
                                                 contentStyle={{
-                                                    backgroundColor: "white",
-                                                    border: "1px solid #e2e8f0",
+                                                    backgroundColor: "hsl(var(--card))",
+                                                    border: "1px solid hsl(var(--border))",
                                                     borderRadius: "8px",
                                                 }}
                                             />
-                                            <Area type="monotone" dataKey="cpu" stroke="#3b82f6" fill="#3b82f633" />
-                                            <Area type="monotone" dataKey="memory" stroke="#10b981" fill="#10b98133" />
+                                            <Area type="monotone" dataKey="cpu" stroke="hsl(234, 89%, 59%)" fill="hsl(234, 89%, 59%)" fillOpacity={0.2} />
+                                            <Area type="monotone" dataKey="memory" stroke="hsl(168, 76%, 42%)" fill="hsl(168, 76%, 42%)" fillOpacity={0.2} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -238,7 +238,7 @@ export default function SuperAdminDashboard() {
                     </Card>
 
                     {/* Organization Growth */}
-                    <Card>
+                    <Card className="shadow-sm">
                         <CardHeader>
                             <CardTitle>Platform Growth</CardTitle>
                             <CardDescription>Organizations and user acquisition</CardDescription>
@@ -253,13 +253,13 @@ export default function SuperAdminDashboard() {
                                         <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} className="text-muted-foreground" />
                                         <Tooltip
                                             contentStyle={{
-                                                backgroundColor: "white",
-                                                border: "1px solid #e2e8f0",
+                                                backgroundColor: "hsl(var(--card))",
+                                                border: "1px solid hsl(var(--border))",
                                                 borderRadius: "8px",
                                             }}
                                         />
-                                        <Line yAxisId="left" type="monotone" dataKey="organizations" stroke="#ef4444" strokeWidth={2} dot={{ fill: "#ef4444" }} />
-                                        <Line yAxisId="right" type="monotone" dataKey="users" stroke="#3b82f6" strokeWidth={2} dot={{ fill: "#3b82f6" }} />
+                                        <Line yAxisId="left" type="monotone" dataKey="organizations" stroke="hsl(0, 84%, 60%)" strokeWidth={2} dot={{ fill: "hsl(0, 84%, 60%)" }} />
+                                        <Line yAxisId="right" type="monotone" dataKey="users" stroke="hsl(234, 89%, 59%)" strokeWidth={2} dot={{ fill: "hsl(234, 89%, 59%)" }} />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
@@ -270,7 +270,7 @@ export default function SuperAdminDashboard() {
                 {/* Alerts & Organizations */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Recent Alerts */}
-                    <Card className="lg:col-span-1">
+                    <Card className="lg:col-span-1 shadow-sm">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Recent Alerts</CardTitle>
@@ -280,13 +280,13 @@ export default function SuperAdminDashboard() {
                         <CardContent>
                             <div className="space-y-3">
                                 {recentAlerts.map((alert) => (
-                                    <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                                        <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${alert.type === "critical" ? "bg-red-100" :
-                                            alert.type === "warning" ? "bg-yellow-100" :
+                                    <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                        <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${alert.type === "critical" ? "bg-destructive/10" :
+                                            alert.type === "warning" ? "bg-amber-100" :
                                                 alert.type === "success" ? "bg-green-100" : "bg-blue-100"
                                             }`}>
-                                            {alert.type === "critical" && <AlertTriangle className="h-4 w-4 text-red-600" />}
-                                            {alert.type === "warning" && <AlertTriangle className="h-4 w-4 text-yellow-600" />}
+                                            {alert.type === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                                            {alert.type === "warning" && <AlertTriangle className="h-4 w-4 text-amber-600" />}
                                             {alert.type === "success" && <CheckCircle className="h-4 w-4 text-green-600" />}
                                             {alert.type === "info" && <Activity className="h-4 w-4 text-blue-600" />}
                                         </div>
@@ -305,7 +305,7 @@ export default function SuperAdminDashboard() {
                     </Card>
 
                     {/* Organizations */}
-                    <Card className="lg:col-span-2">
+                    <Card className="lg:col-span-2 shadow-sm">
                         <CardHeader>
                             <div className="flex items-center justify-between">
                                 <CardTitle>Organizations Overview</CardTitle>
@@ -318,10 +318,10 @@ export default function SuperAdminDashboard() {
                         <CardContent>
                             <div className="space-y-3">
                                 {organizations.map((org, index) => (
-                                    <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                                    <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                                         <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                                <Building2 className="h-5 w-5 text-blue-600" />
+                                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                <Building2 className="h-5 w-5 text-primary" />
                                             </div>
                                             <div>
                                                 <p className="font-medium text-foreground">{org.name}</p>
@@ -330,13 +330,13 @@ export default function SuperAdminDashboard() {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <Badge variant="outline" className={
-                                                org.status === "active" ? "bg-green-100 text-green-600 border-green-200" :
-                                                    "bg-yellow-100 text-yellow-600 border-yellow-200"
+                                                org.status === "active" ? "bg-green-100 text-green-700 border-green-200" :
+                                                    "bg-amber-100 text-amber-700 border-amber-200"
                                             }>
                                                 {org.status}
                                             </Badge>
                                             {org.growth !== 0 && (
-                                                <div className={`flex items-center gap-1 ${org.growth > 0 ? "text-green-600" : "text-red-600"}`}>
+                                                <div className={`flex items-center gap-1 ${org.growth > 0 ? "text-green-600" : "text-destructive"}`}>
                                                     {org.growth > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                                                     <span className="text-sm font-medium">{Math.abs(org.growth)}%</span>
                                                 </div>
@@ -353,7 +353,7 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* Role Distribution */}
-                <Card>
+                <Card className="shadow-sm">
                     <CardHeader>
                         <CardTitle>User Role Distribution</CardTitle>
                         <CardDescription>Breakdown of users across all organizations</CardDescription>
@@ -378,8 +378,8 @@ export default function SuperAdminDashboard() {
                                         </Pie>
                                         <Tooltip
                                             contentStyle={{
-                                                backgroundColor: "white",
-                                                border: "1px solid #e2e8f0",
+                                                backgroundColor: "hsl(var(--card))",
+                                                border: "1px solid hsl(var(--border))",
                                                 borderRadius: "8px",
                                             }}
                                         />
@@ -409,4 +409,6 @@ export default function SuperAdminDashboard() {
             </div>
         </DashboardLayout>
     );
-}
+};
+
+export default SuperAdminDashboard;

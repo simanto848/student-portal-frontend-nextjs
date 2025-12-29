@@ -31,7 +31,7 @@ export default function AISchedulerPage() {
     }, []);
 
     useEffect(() => {
-        if (user?.departmentId) {
+        if (user && 'departmentId' in user && user.departmentId) {
             setSelectedDepartmentId(user.departmentId);
         }
     }, [user]);
@@ -140,7 +140,7 @@ export default function AISchedulerPage() {
                             <Select
                                 value={selectedDepartmentId}
                                 onValueChange={setSelectedDepartmentId}
-                                disabled={!!user?.departmentId}
+                                disabled={!!(user && 'departmentId' in user && user.departmentId)}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="All Departments" />

@@ -6,7 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PasswordField, PasswordStrengthIndicator } from "@/components/auth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { authService, UserRole } from "@/services/auth.service";
+import { authService } from "@/services/auth.service";
+import { UserRole } from "@/types/user";
 import { toast } from "sonner";
 
 function PasswordChangeContent() {

@@ -10,7 +10,7 @@ const api = axios.create({
     },
 });
 
-export type UserRole = 'student' | 'teacher' | 'staff' | 'admin';
+import { UserRole } from '@/types/user';
 
 export interface LoginResponse {
     user: any;
@@ -21,13 +21,27 @@ export interface LoginResponse {
 class AuthService {
     private getEndpoint(role: UserRole): string {
         switch (role) {
-            case 'student':
+            case UserRole.STUDENT:
                 return '/user/auth/students/login';
-            case 'teacher':
+            case UserRole.TEACHER:
                 return '/user/auth/teachers/login';
-            case 'staff':
+            case UserRole.STAFF:
+            case UserRole.PROGRAM_CONTROLLER:
+            case UserRole.ADMISSION:
+            case UserRole.EXAM:
+            case UserRole.FINANCE:
+            case UserRole.LIBRARY:
+            case UserRole.TRANSPORT:
+            case UserRole.HR:
+            case UserRole.IT:
+            case UserRole.HOSTEL:
+            case UserRole.HOSTEL_WARDEN:
+            case UserRole.HOSTEL_SUPERVISOR:
+            case UserRole.MAINTENANCE:
                 return '/user/auth/staffs/login';
-            case 'admin':
+            case UserRole.ADMIN:
+            case UserRole.SUPER_ADMIN:
+            case UserRole.MODERATOR:
                 return '/user/auth/admins/login';
             default:
                 throw new Error('Invalid user role');

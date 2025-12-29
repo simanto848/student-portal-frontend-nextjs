@@ -38,15 +38,16 @@ export default function StudentSchedulesPage() {
       try {
         setLoading(true);
         let batchId: string | undefined;
-        if (typeof user.batchId === 'string') {
+        if ('batchId' in user && typeof user.batchId === 'string') {
           batchId = user.batchId;
-        } else if (user.batchId && typeof user.batchId === 'object') {
-          batchId = user.batchId.id || user.batchId._id;
+        } else if ('batchId' in user && user.batchId && typeof user.batchId === 'object') {
+          batchId = (user.batchId as any).id || (user.batchId as any)._id;
         }
 
         if (!batchId && user.role === 'student') {
           try {
-            const studentId = user.id || user._id;
+            const studentId = user.id || (user as any)._id;
+            if (!studentId) return;
             const studentProfile = await studentService.getById(studentId);
             if (studentProfile) {
               if (typeof studentProfile.batchId === 'string') {

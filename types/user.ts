@@ -1,24 +1,29 @@
-export type UserRole =
-  | "student"
-  | "teacher"
-  | "staff"
-  | "admin"
-  | "super_admin"
-  | "moderator"
-  | "program_controller"
-  | "admission"
-  | "exam"
-  | "finance"
-  | "library"
-  | "transport"
-  | "hr"
-  | "it"
-  | "hostel"
-  | "hostel_warden"
-  | "hostel_supervisor"
-  | "maintenance";
+export enum UserRole {
+  STUDENT = "student",
+  TEACHER = "teacher",
+  STAFF = "staff",
+  ADMIN = "admin",
+  SUPER_ADMIN = "super_admin",
+  MODERATOR = "moderator",
+  PROGRAM_CONTROLLER = "program_controller",
+  ADMISSION = "admission",
+  EXAM = "exam",
+  FINANCE = "finance",
+  LIBRARY = "library",
+  TRANSPORT = "transport",
+  HR = "hr",
+  IT = "it",
+  HOSTEL = "hostel",
+  HOSTEL_WARDEN = "hostel_warden",
+  HOSTEL_SUPERVISOR = "hostel_supervisor",
+  MAINTENANCE = "maintenance",
+}
 
-export const ADMIN_ROLES: UserRole[] = ["super_admin", "moderator", "admin"];
+export const ADMIN_ROLES: UserRole[] = [
+  UserRole.SUPER_ADMIN,
+  UserRole.MODERATOR,
+  UserRole.ADMIN,
+];
 
 export const STAFF_ROLE_ROUTES: Record<string, string> = {
   program_controller: "/dashboard/staff/program-controller",
@@ -51,7 +56,7 @@ export interface BaseUser {
 
 // Student-specific user interface
 export interface StudentUser extends BaseUser {
-  role: "student";
+  role: UserRole.STUDENT;
   registrationNumber: string;
   batchId: string;
   programId: string;
@@ -70,7 +75,7 @@ export interface StudentUser extends BaseUser {
 
 // Teacher-specific user interface
 export interface TeacherUser extends BaseUser {
-  role: "teacher";
+  role: UserRole.TEACHER;
   registrationNumber: string;
   departmentId: string;
   designation: string;
@@ -85,7 +90,11 @@ export interface TeacherUser extends BaseUser {
 export interface StaffUser extends BaseUser {
   role: Exclude<
     UserRole,
-    "student" | "teacher" | "admin" | "super_admin" | "moderator"
+    | UserRole.STUDENT
+    | UserRole.TEACHER
+    | UserRole.ADMIN
+    | UserRole.SUPER_ADMIN
+    | UserRole.MODERATOR
   >;
   employeeId: string;
   departmentId?: string;
@@ -95,7 +104,7 @@ export interface StaffUser extends BaseUser {
 
 // Admin-specific user interface
 export interface AdminUser extends BaseUser {
-  role: "admin" | "super_admin" | "moderator";
+  role: UserRole.ADMIN | UserRole.SUPER_ADMIN | UserRole.MODERATOR;
   permissions?: string[];
   adminLevel?: number;
 }
@@ -137,11 +146,11 @@ export interface ResetPasswordRequest {
 
 // Type guards for user types
 export const isStudentUser = (user: User): user is StudentUser => {
-  return user.role === "student";
+  return user.role === UserRole.STUDENT;
 };
 
 export const isTeacherUser = (user: User): user is TeacherUser => {
-  return user.role === "teacher";
+  return user.role === UserRole.TEACHER;
 };
 
 export const isAdminUser = (user: User): user is AdminUser => {
@@ -149,9 +158,13 @@ export const isAdminUser = (user: User): user is AdminUser => {
 };
 
 export const isStaffUser = (user: User): user is StaffUser => {
-  return !["student", "teacher", "admin", "super_admin", "moderator"].includes(
-    user.role,
-  );
+  return ![
+    UserRole.STUDENT,
+    UserRole.TEACHER,
+    UserRole.ADMIN,
+    UserRole.SUPER_ADMIN,
+    UserRole.MODERATOR,
+  ].includes(user.role);
 };
 
 // Helper to get normalized role for navigation
@@ -163,7 +176,9 @@ export const getNormalizedRole = (role: UserRole): string => {
 
 // Helper to get dashboard path for a role
 export const getDashboardPath = (role: UserRole): string => {
-  if (ADMIN_ROLES.includes(role)) return "/dashboard/admin";
+  if (role === UserRole.ADMIN) return "/dashboard/admin";
+  if (role === UserRole.SUPER_ADMIN) return "/dashboard/super-admin";
+  if (role === UserRole.MODERATOR) return "/dashboard/moderator";
   if (STAFF_ROLE_ROUTES[role]) return STAFF_ROLE_ROUTES[role];
   return `/dashboard/${role}`;
 };
