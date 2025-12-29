@@ -27,9 +27,15 @@ export async function proxy(request: NextRequest) {
     let dashboardRole = role;
     let targetPath = `/dashboard/${role}`;
 
-    if (["super_admin", "moderator", "admin"].includes(role)) {
+    if (role === "admin") {
       dashboardRole = "admin";
       targetPath = "/dashboard/admin";
+    } else if (role === "super_admin") {
+      dashboardRole = "super_admin";
+      targetPath = "/dashboard/super-admin";
+    } else if (role === "moderator") {
+      dashboardRole = "moderator";
+      targetPath = "/dashboard/moderator";
     } else if (
       [
         "program_controller",

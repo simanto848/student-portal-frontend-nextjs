@@ -54,10 +54,6 @@ const getLoginEndpoint = (role: UserRole): string => {
 };
 
 const getRedirectPath = (role: UserRole, requestedRole?: UserRole): string => {
-  if (ADMIN_ROLES.includes(role)) {
-    return "/dashboard/admin";
-  }
-
   if (requestedRole === "staff" && STAFF_ROLE_ROUTES[role]) {
     return STAFF_ROLE_ROUTES[role];
   }
