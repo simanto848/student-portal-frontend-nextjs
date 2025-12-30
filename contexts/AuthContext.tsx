@@ -81,6 +81,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const token = localStorage.getItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
 
       if (token) {
+        // Sync token to cookie if missing (for server-side components)
+        const isSecure = window.location.protocol === "https:";
+        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${token}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
         try {
           const response = await api.get("/user/auth/me", {
             headers: { Authorization: `Bearer ${token}` },
@@ -116,7 +121,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.removeItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
       localStorage.removeItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
 
-      document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax; Secure`;
+      const isSecure = window.location.protocol === "https:";
+      document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax${isSecure ? "; Secure" : ""}`;
     }
   }, []);
 
@@ -171,7 +177,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
 
         const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
-        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 
         const redirectPath = getRedirectPath(userRole, role);
         router.push(redirectPath);

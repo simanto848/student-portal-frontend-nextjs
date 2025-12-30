@@ -5,17 +5,27 @@ import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_THEMES } from "@/config/themes";
+import { DashboardThemeProvider } from "@/contexts/DashboardThemeContext";
+import { DashboardTheme } from "@/config/themes";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+    return (
+        <DashboardThemeProvider>
+            <DashboardLayoutInner>
+                {children}
+            </DashboardLayoutInner>
+        </DashboardThemeProvider>
+    );
+}
+
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user } = useAuth();
-
-    // Determine current theme
     const theme = user && ROLE_THEMES[user.role]
         ? ROLE_THEMES[user.role]
         : ROLE_THEMES.default;
