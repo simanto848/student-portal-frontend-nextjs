@@ -12,3 +12,4 @@ export * from './syllabus.service';
 export * from './exam-committee.service';
 export * from './prerequisite.service';
 export * from './types';
+export * from './utils';

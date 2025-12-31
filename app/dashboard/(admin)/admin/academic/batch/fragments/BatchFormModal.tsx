@@ -10,6 +10,7 @@ import {
     Program,
     Department,
     Session,
+    getId,
 } from "@/services/academic.service";
 import { Teacher } from "@/services/user/teacher.service";
 
@@ -24,13 +25,6 @@ interface BatchFormModalProps {
     sessions: Session[];
     teachers: Teacher[];
 }
-
-const getId = (item: any): string => {
-    if (!item) return "";
-    if (typeof item === "string") return item;
-    if (typeof item === "object" && item.id) return item.id;
-    return "";
-};
 
 export function BatchFormModal({
     isOpen,
