@@ -48,10 +48,22 @@ export function MultiSearchableSelect({
         setInputValue("");
     };
 
-    const selected = value.map((v) => options.find((opt) => opt.value === v)).filter(Boolean) as Option[];
-    const filteredOptions = options.filter(option =>
-        option.label.toLowerCase().includes(inputValue.toLowerCase())
-    );
+    const selected = React.useMemo(() => {
+        const uniqueValues = Array.from(new Set(value));
+        return uniqueValues
+            .map((v) => options.find((opt) => opt.value === v))
+            .filter(Boolean) as Option[];
+    }, [value, options]);
+
+    const filteredOptions = React.useMemo(() => {
+        const seen = new Set();
+        return options
+            .filter(option =>
+                option.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+                !seen.has(option.value) &&
+                seen.add(option.value)
+            );
+    }, [options, inputValue]);
 
     return (
         <Command onKeyDown={(e) => {

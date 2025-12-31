@@ -249,6 +249,15 @@ export function useBulkAssignInstructors() {
   });
 }
 
+// Fetch all teachers
+export function useTeachers() {
+  const { teacherService } = require("@/services/teacher.service");
+  return useQuery({
+    queryKey: [...teacherKeys.all, "list"],
+    queryFn: () => teacherService.getAllTeachers(),
+  });
+}
+
 // ===================================== Combined Hooks for Common Use Cases =======================================
 
 // Hook for teacher courses page

@@ -710,6 +710,53 @@ export const useDeleteCourse = () => {
   });
 };
 
+// ===================== Session Course Queries =====================
+
+export const useSessionCourses = (
+  params?: Record<string, any>,
+  options?: Omit<
+    UseQueryOptions<SessionCourse[], ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) => {
+  return useQuery({
+    queryKey: params
+      ? [...academicKeys.sessionCourses(), params]
+      : academicKeys.sessionCourses(),
+    queryFn: async () => {
+      try {
+        const response = await academicApi.get("/session-courses", { params });
+        return extractArrayData<SessionCourse>(response);
+      } catch (error) {
+        return handleApiError(error);
+      }
+    },
+    ...options,
+  });
+};
+
+export const useSessionCourse = (
+  id: string,
+  options?: Omit<
+    UseQueryOptions<SessionCourse, ApiError>,
+    "queryKey" | "queryFn"
+  >,
+) => {
+  return useQuery({
+    queryKey: academicKeys.sessionCourse(id),
+    queryFn: async () => {
+      try {
+        const response = await academicApi.get(`/session-courses/${id}`);
+        return extractItemData<SessionCourse>(response);
+      } catch (error) {
+        return handleApiError(error);
+      }
+    },
+    enabled: !!id,
+    ...options,
+  });
+};
+
 // ===================== Classroom Queries =====================
 
 export const useClassrooms = (
