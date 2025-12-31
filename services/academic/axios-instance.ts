@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { getAuthToken } from '@/lib/authHelper';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
@@ -7,8 +8,8 @@ export const api = axios.create({
     withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('accessToken');
+api.interceptors.request.use(async (config) => {
+    const token = await getAuthToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
