@@ -41,7 +41,7 @@ export function CourseCard({ title, code, batchName, studentCount, progress, var
                     <span>{progress.label}</span>
                     <span>{progress.current}/{progress.total} {variant === 'teacher' ? 'Graded' : 'Classes'}</span>
                 </div>
-                <Progress value={percentage} className="h-2 bg-gray-300" indicatorClassName="bg-[#3e6253]" />
+                <Progress value={percentage} className="h-2 bg-gray-300" />
             </CardContent>
             <CardFooter className="pt-4">
                 <Button className="w-full bg-[#3e6253] hover:bg-[#2c4a3e] text-white">
