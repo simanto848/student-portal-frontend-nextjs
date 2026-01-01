@@ -352,6 +352,64 @@ export const syllabusSchema = z.object({
 export type SyllabusFormData = z.input<typeof syllabusSchema>;
 export type SyllabusSubmitData = z.output<typeof syllabusSchema>;
 
+// Assessment Schema
+export const assessmentSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(200, "Title must be less than 200 characters")
+    .transform((val) => val.trim()),
+  description: z.string().optional().or(z.literal("")),
+  courseId: z.string().min(1, "Please select a course"),
+  batchId: z.string().min(1, "Please select a batch"),
+  typeId: z.string().min(1, "Please select an assessment type"),
+  totalMarks: z
+    .number()
+    .min(1, "Total marks must be at least 1")
+    .max(1000, "Total marks cannot exceed 1000"),
+  passingMarks: z
+    .number()
+    .min(0, "Passing marks must be at least 0")
+    .max(1000, "Passing marks cannot exceed 1000"),
+  weightPercentage: z
+    .number()
+    .min(0, "Weight percentage must be at least 0")
+    .max(100, "Weight percentage cannot exceed 100"),
+  dueDate: z.string().optional().or(z.literal("")),
+  status: z.enum(["draft", "published", "closed", "graded"], {
+    message: "Please select a status",
+  }),
+})
+.refine((data) => data.passingMarks <= data.totalMarks, {
+  message: "Passing marks cannot exceed total marks",
+  path: ["passingMarks"],
+});
+
+export type AssessmentFormData = z.input<typeof assessmentSchema>;
+export type AssessmentSubmitData = z.output<typeof assessmentSchema>;
+
+// Assessment Type Schema
+export const assessmentTypeSchema = z.object({
+  name: z
+    .string()
+    .min(3, "Name must be at least 3 characters")
+    .max(100, "Name must be less than 100 characters")
+    .transform((val) => val.trim()),
+  code: z
+    .string()
+    .min(2, "Code must be at least 2 characters")
+    .max(20, "Code must be less than 20 characters")
+    .transform((val) => val.trim().toUpperCase()),
+  weightPercentage: z
+    .number()
+    .min(0, "Weight percentage must be at least 0")
+    .max(100, "Weight percentage cannot exceed 100"),
+  description: z.string().optional().or(z.literal("")),
+  isActive: booleanStringSchema,
+});
+
+export type AssessmentTypeFormData = z.input<typeof assessmentTypeSchema>;
+export type AssessmentTypeSubmitData = z.output<typeof assessmentTypeSchema>;
 
 export function validateForm<T extends z.ZodSchema>(
   schema: T,
