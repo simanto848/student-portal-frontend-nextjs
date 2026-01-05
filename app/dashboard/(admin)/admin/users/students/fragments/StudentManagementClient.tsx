@@ -169,23 +169,23 @@ export function StudentManagementClient({
         <div className="space-y-10 pb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-4 w-fit shadow-sm">
+                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
                         <GraduationCap className="w-3.5 h-3.5" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-[#92400E]">Overview</span>
                     </Badge>
-                    <h1 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">Student Management</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">Student Management</h1>
                 </div>
                 <Button
                     onClick={() => router.push("/dashboard/admin/users/students/create")}
-                    className="h-14 px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
+                    className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
                 >
                     <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                    Add Student
+                    <span>Add Student</span>
                 </Button>
             </div>
 
-            <Tabs defaultValue="active" onValueChange={setActiveTab} className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden">
-                <div className="bg-slate-50 px-10 py-8 border-b border-slate-100 flex flex-col lg:flex-row gap-8 lg:items-center justify-between">
+            <Tabs defaultValue="active" onValueChange={setActiveTab} className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden">
+                <div className="bg-slate-50 px-6 py-6 md:px-10 md:py-8 border-b border-slate-100 flex flex-col lg:flex-row gap-6 md:gap-8 lg:items-center justify-between">
                     <TabsList className="bg-slate-200/50 p-1.5 rounded-2xl h-auto self-start">
                         <TabsTrigger value="active" className="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-lg transition-all">Active Students</TabsTrigger>
                         <TabsTrigger value="suspended" className="px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-lg transition-all">Suspended</TabsTrigger>
@@ -243,11 +243,11 @@ export function StudentManagementClient({
                     <Table>
                         <TableHeader>
                             <TableRow className="hover:bg-transparent border-none">
-                                <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Student Name</TableHead>
-                                <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Registration ID</TableHead>
-                                <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Academic Info</TableHead>
-                                <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</TableHead>
-                                <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Actions</TableHead>
+                                <TableHead className="px-4 py-4 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Student Name</TableHead>
+                                <TableHead className="px-4 py-4 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Registration ID</TableHead>
+                                <TableHead className="px-4 py-4 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Academic Info</TableHead>
+                                <TableHead className="px-4 py-4 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</TableHead>
+                                <TableHead className="px-4 py-4 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -261,7 +261,7 @@ export function StudentManagementClient({
                                         key={s.id}
                                         className="group border-b border-slate-50 last:border-none hover:bg-amber-50/30 transition-colors"
                                     >
-                                        <TableCell className="px-8 py-6">
+                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
                                             <div className="flex items-center gap-5">
                                                 <div className="h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-100 group-hover:border-amber-200 transition-all shadow-sm">
                                                     {s.profile?.profilePicture ? (
@@ -285,7 +285,7 @@ export function StudentManagementClient({
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-8 py-6">
+                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2">
                                                     <Hash className="w-3 h-3 text-amber-500" />
@@ -297,7 +297,7 @@ export function StudentManagementClient({
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-8 py-6">
+                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
                                             <div className="flex flex-col gap-1.5">
                                                 <div className="flex items-center gap-2">
                                                     <Building2 className="w-3 h-3 text-slate-400" />
@@ -313,7 +313,7 @@ export function StudentManagementClient({
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-8 py-6">
+                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
                                             <Badge className={`px-2.5 py-1 rounded-lg font-black text-[9px] uppercase tracking-[0.15em] border-none shadow-sm ${statusColors[s.enrollmentStatus]}`}>
                                                 {s.enrollmentStatus.replace(/_/g, " ")}
                                             </Badge>

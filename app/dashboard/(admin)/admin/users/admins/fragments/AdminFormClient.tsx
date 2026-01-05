@@ -176,27 +176,27 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
     return (
         <div className="space-y-10 pb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4 sm:gap-6">
                     <button
                         onClick={() => router.back()}
-                        className="h-14 w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-amber-600 hover:border-amber-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
+                        className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-amber-600 hover:border-amber-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
                     >
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                     </button>
                     <div>
-                        <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-4 w-fit shadow-sm">
+                        <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
                             <ShieldPlus className="w-3.5 h-3.5" />
                             <span className="text-[10px] font-black uppercase tracking-widest">{isEdit ? "Update Admin" : "Add Admin"}</span>
                         </Badge>
-                        <h1 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
                             {isEdit ? `Editing: ${admin?.fullName}` : "New Admin Registration"}
                         </h1>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
-                <div className="bg-slate-900 px-10 py-8 flex items-center justify-between overflow-x-auto gap-8">
+            <div className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
+                <div className="bg-slate-900 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between overflow-x-auto gap-8 no-scrollbar">
                     {steps.map((s, idx) => {
                         const active = step === s.id;
                         const completed = step > s.id;
@@ -215,17 +215,17 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                     })}
                 </div>
 
-                <div className="p-10 min-h-[400px]">
+                <div className="p-4 sm:p-6 md:px-6 md:py-8 lg:p-10 min-h-[400px]">
                     <AnimatePresence mode="wait">
                         {step === 1 && (
                             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
                                     <FormGroup label="Full Name" icon={UserIcon}>
                                         <Input
                                             value={basic.fullName}
                                             onChange={e => setBasic({ ...basic, fullName: e.target.value })}
                                             placeholder="Enter full name"
-                                            className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
+                                            className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
                                         />
                                     </FormGroup>
                                     {!isEdit && (
@@ -234,13 +234,13 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                                                 value={basic.email}
                                                 onChange={e => setBasic({ ...basic, email: e.target.value })}
                                                 placeholder="email@university.edu"
-                                                className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
+                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
                                             />
                                         </FormGroup>
                                     )}
                                     <FormGroup label="Admin Role" icon={Shield}>
                                         <Select value={basic.role} onValueChange={(v) => setBasic({ ...basic, role: v as AdminRole })}>
-                                            <SelectTrigger className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20">
+                                            <SelectTrigger className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20">
                                                 <SelectValue placeholder="Select Role" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
@@ -256,7 +256,7 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                                                 value={basic.registrationNumber}
                                                 onChange={e => setBasic({ ...basic, registrationNumber: e.target.value })}
                                                 placeholder="ADM-YYYY-XXXX"
-                                                className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
+                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
                                             />
                                             <button
                                                 type="button"
@@ -273,7 +273,7 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
 
                         {step === 2 && (
                             <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
                                     <FormGroup label="Joining Date" icon={Calendar}>
                                         <Input
                                             type="date"
@@ -288,7 +288,7 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                                                 value={advanced.ipInput}
                                                 onChange={e => setAdvanced({ ...advanced, ipInput: e.target.value })}
                                                 placeholder="e.g. 192.168.1.1"
-                                                className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
+                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
                                             />
                                             <button
                                                 type="button"
@@ -432,7 +432,7 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pt-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 pt-4">
                                         <SummaryItem label="Full Name" value={basic.fullName} />
                                         {!isEdit && <SummaryItem label="Email Address" value={basic.email} />}
                                         <SummaryItem label="Admin Role" value={basic.role} highlighted />
@@ -456,20 +456,20 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                     </AnimatePresence>
                 </div>
 
-                <div className="bg-slate-50 px-10 py-8 flex items-center justify-between border-t border-slate-100">
+                <div className="bg-slate-50 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between border-t border-slate-100 gap-4">
                     <Button
                         variant="ghost"
                         onClick={prevStep}
                         disabled={step === 1 || isSubmitting}
-                        className="h-14 px-8 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 group"
+                        className="h-12 md:h-14 px-4 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 group"
                     >
-                        <ChevronLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-                        Back
+                        <ChevronLeft className="w-4 h-4 mr-1 md:mr-2 group-hover:-translate-x-1 transition-transform" />
+                        <span className="hidden sm:inline">Back</span>
                     </Button>
                     {step < 5 ? (
                         <Button
                             onClick={nextStep}
-                            className="h-14 px-10 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 group"
+                            className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 group"
                         >
                             Next Step
                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -478,7 +478,7 @@ export function AdminFormClient({ admin, profile }: AdminFormClientProps) {
                         <Button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="h-14 px-12 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-900/30"
+                            className="h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-900/30"
                         >
                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                             Save Admin

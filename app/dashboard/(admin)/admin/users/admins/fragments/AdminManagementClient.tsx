@@ -223,27 +223,27 @@ export function AdminManagementClient({
         <div className="space-y-10 pb-20">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-4 w-fit shadow-sm">
+                    <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
                         <Shield className="w-3.5 h-3.5" />
                         <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
                     </Badge>
-                    <h1 className="text-5xl font-black tracking-tighter text-slate-900 leading-none">Admin Management</h1>
-                    <p className="text-slate-500 font-bold mt-3 text-lg">Manage university administrators and their access permissions.</p>
+                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none">Admin Management</h1>
+                    <p className="text-slate-500 font-bold mt-2 md:mt-3 text-sm md:text-lg">Manage university administrators and their access permissions.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
                         onClick={() => router.push("/dashboard/admin/users/admins/create")}
-                        className="h-14 px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
+                        className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
                     >
                         <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        Add Admin
+                        <span>Add Admin</span>
                     </Button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card className="bg-white border-2 border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/40 group hover:border-amber-500/50 transition-all duration-500">
-                    <CardContent className="p-8">
+                <Card className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[2.5rem] shadow-xl shadow-slate-200/40 group hover:border-amber-500/50 transition-all duration-500">
+                    <CardContent className="p-6 md:p-8">
                         <div className="flex items-center justify-between mb-4">
                             <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
                                 <Users className="h-6 w-6" />
@@ -259,7 +259,7 @@ export function AdminManagementClient({
                     const Icon = iconMap[role] || Shield;
                     return (
                         <Card key={role} className="bg-white border-2 border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/40 group hover:border-amber-500/50 transition-all duration-500">
-                            <CardContent className="p-8">
+                            <CardContent className="p-6 md:p-8">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
                                         <Icon className="h-6 h-6" />
@@ -322,7 +322,7 @@ export function AdminManagementClient({
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.98 }}
-                            className="bg-white border-2 border-slate-100 rounded-[3rem] p-8 shadow-2xl shadow-slate-200/30 overflow-hidden relative group"
+                            className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] p-4 sm:p-6 md:p-8 shadow-2xl shadow-slate-200/30 overflow-hidden relative group"
                         >
                             <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
                                 <Shield className="w-40 h-40 text-slate-900" />
@@ -346,7 +346,7 @@ export function AdminManagementClient({
                             className="bg-white border-2 border-slate-100 rounded-[3rem] p-10 shadow-2xl shadow-slate-200/30"
                         >
                             <div className="flex items-center gap-4 mb-10">
-                                <div className="h-14 w-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-inner">
+                                <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-inner">
                                     <Clock className="w-7 h-7" />
                                 </div>
                                 <div>
