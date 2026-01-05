@@ -114,6 +114,90 @@ export const ROLE_THEMES: Record<string, DashboardTheme> = {
             },
         },
     },
+    [UserRole.TEACHER]: {
+        name: "Academic Hub",
+        colors: {
+            sidebar: {
+                bg: "bg-white",
+                text: "text-slate-600",
+                hover: "hover:bg-indigo-50 hover:text-indigo-700",
+                active: "bg-indigo-50",
+                activeBgSubtle: "bg-indigo-50/50",
+                activeText: "text-indigo-700",
+                border: "border-slate-200",
+                borderSubtle: "border-indigo-100",
+                iconBg: "bg-indigo-100",
+            },
+            header: {
+                bg: "bg-white",
+                text: "text-slate-800",
+                border: "border-slate-200",
+            },
+            main: {
+                bg: "bg-slate-50",
+            },
+            accent: {
+                primary: "text-indigo-600",
+                secondary: "bg-indigo-600",
+            },
+        },
+    },
+    [UserRole.STAFF]: {
+        name: "Operations",
+        colors: {
+            sidebar: {
+                bg: "bg-white",
+                text: "text-slate-600",
+                hover: "hover:bg-emerald-50 hover:text-emerald-700",
+                active: "bg-emerald-50",
+                activeBgSubtle: "bg-emerald-50/50",
+                activeText: "text-emerald-700",
+                border: "border-slate-200",
+                borderSubtle: "border-emerald-100",
+                iconBg: "bg-emerald-100",
+            },
+            header: {
+                bg: "bg-white",
+                text: "text-slate-800",
+                border: "border-slate-200",
+            },
+            main: {
+                bg: "bg-slate-50",
+            },
+            accent: {
+                primary: "text-emerald-600",
+                secondary: "bg-emerald-600",
+            },
+        },
+    },
+    [UserRole.STUDENT]: {
+        name: "Student Nexus",
+        colors: {
+            sidebar: {
+                bg: "bg-white",
+                text: "text-slate-600",
+                hover: "hover:bg-violet-50 hover:text-violet-700",
+                active: "bg-violet-50",
+                activeBgSubtle: "bg-violet-50/50",
+                activeText: "text-violet-700",
+                border: "border-slate-200",
+                borderSubtle: "border-violet-100",
+                iconBg: "bg-violet-100",
+            },
+            header: {
+                bg: "bg-white",
+                text: "text-slate-800",
+                border: "border-slate-200",
+            },
+            main: {
+                bg: "bg-slate-50",
+            },
+            accent: {
+                primary: "text-violet-600",
+                secondary: "bg-violet-600",
+            },
+        },
+    },
 
     default: {
         name: "Default",

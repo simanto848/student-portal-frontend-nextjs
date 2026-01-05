@@ -1,5 +1,6 @@
 "use client";
-
+import { useEffect, useState } from "react";
+import { systemService, DatabaseStats } from "@/services/system.service";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,33 @@ const organizations = [
 ];
 
 const SuperAdminDashboard = () => {
+    const [stats, setStats] = useState<DatabaseStats | null>(null);
+    const [organizations, setOrganizations] = useState<any[]>([]);
+    const [alerts, setAlerts] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            const [dbStats, orgs, systemAlerts] = await Promise.all([
+                systemService.getDatabaseStats(),
+                systemService.getOrganizations(),
+                systemService.getAlerts()
+            ]);
+            setStats(dbStats);
+            setOrganizations(orgs);
+            setAlerts(systemAlerts);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, []);
+
     return (
         <DashboardLayout>
             <div className="space-y-6">
@@ -94,8 +122,8 @@ const SuperAdminDashboard = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Button variant="outline" size="sm">
-                            <RefreshCw className="h-4 w-4 mr-2" />
+                        <Button variant="outline" size="sm" onClick={fetchData}>
+                            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                             Refresh
                         </Button>
                         <Button className="bg-destructive hover:bg-destructive/90">
@@ -112,10 +140,12 @@ const SuperAdminDashboard = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Total Organizations</p>
-                                    <p className="text-2xl font-bold text-foreground">92</p>
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {loading ? "..." : (stats?.counts?.organizations || 0)}
+                                    </p>
                                     <div className="flex items-center gap-1 mt-1">
                                         <TrendingUp className="h-3 w-3 text-green-600" />
-                                        <span className="text-xs text-green-600">+18% this month</span>
+                                        <span className="text-xs text-green-600">Active</span>
                                     </div>
                                 </div>
                                 <div className="h-12 w-12 rounded-xl bg-destructive/10 flex items-center justify-center">
@@ -130,10 +160,12 @@ const SuperAdminDashboard = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Total Users</p>
-                                    <p className="text-2xl font-bold text-foreground">28,680</p>
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {loading ? "..." : (stats?.counts?.totalUsers?.toLocaleString() || 0)}
+                                    </p>
                                     <div className="flex items-center gap-1 mt-1">
                                         <TrendingUp className="h-3 w-3 text-green-600" />
-                                        <span className="text-xs text-green-600">+2,450 this month</span>
+                                        <span className="text-xs text-green-600">Registered</span>
                                     </div>
                                 </div>
                                 <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -166,10 +198,12 @@ const SuperAdminDashboard = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-muted-foreground">Active Alerts</p>
-                                    <p className="text-2xl font-bold text-foreground">7</p>
+                                    <p className="text-2xl font-bold text-foreground">
+                                        {loading ? "..." : alerts.length}
+                                    </p>
                                     <div className="flex items-center gap-1 mt-1">
                                         <AlertTriangle className="h-3 w-3 text-amber-500" />
-                                        <span className="text-xs text-amber-500">2 critical, 5 warnings</span>
+                                        <span className="text-xs text-amber-500">System generated</span>
                                     </div>
                                 </div>
                                 <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
@@ -279,27 +313,32 @@ const SuperAdminDashboard = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                {recentAlerts.map((alert) => (
-                                    <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                                        <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${alert.type === "critical" ? "bg-destructive/10" :
-                                            alert.type === "warning" ? "bg-amber-100" :
-                                                alert.type === "success" ? "bg-green-100" : "bg-blue-100"
-                                            }`}>
-                                            {alert.type === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
-                                            {alert.type === "warning" && <AlertTriangle className="h-4 w-4 text-amber-600" />}
-                                            {alert.type === "success" && <CheckCircle className="h-4 w-4 text-green-600" />}
-                                            {alert.type === "info" && <Activity className="h-4 w-4 text-blue-600" />}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-foreground truncate">{alert.message}</p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-xs text-muted-foreground">{alert.org}</span>
-                                                <span className="text-xs text-muted-foreground">•</span>
-                                                <span className="text-xs text-muted-foreground">{alert.time}</span>
+                                {loading ? (
+                                    <div className="text-center py-4 text-muted-foreground">Loading alerts...</div>
+                                ) : (
+                                    alerts.length > 0 ? alerts.map((alert) => (
+                                        <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${alert.type === "critical" ? "bg-destructive/10" :
+                                                alert.type === "warning" ? "bg-amber-100" :
+                                                    alert.type === "success" ? "bg-green-100" : "bg-blue-100"
+                                                }`}>
+                                                {alert.type === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                                                {alert.type === "warning" && <AlertTriangle className="h-4 w-4 text-amber-600" />}
+                                                {alert.type === "success" && <CheckCircle className="h-4 w-4 text-green-600" />}
+                                                {alert.type === "info" && <Activity className="h-4 w-4 text-blue-600" />}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-foreground truncate">{alert.message}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs text-muted-foreground">System</span>
+                                                    <span className="text-xs text-muted-foreground">•</span>
+                                                    <span className="text-xs text-muted-foreground">{alert.time}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )) : (
+                                        <div className="text-center py-4 text-muted-foreground">No recent alerts</div>
+                                    ))}
                             </div>
                         </CardContent>
                     </Card>
@@ -317,36 +356,36 @@ const SuperAdminDashboard = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                {organizations.map((org, index) => (
-                                    <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                                <Building2 className="h-5 w-5 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium text-foreground">{org.name}</p>
-                                                <p className="text-sm text-muted-foreground">{org.users.toLocaleString()} users</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <Badge variant="outline" className={
-                                                org.status === "active" ? "bg-green-100 text-green-700 border-green-200" :
-                                                    "bg-amber-100 text-amber-700 border-amber-200"
-                                            }>
-                                                {org.status}
-                                            </Badge>
-                                            {org.growth !== 0 && (
-                                                <div className={`flex items-center gap-1 ${org.growth > 0 ? "text-green-600" : "text-destructive"}`}>
-                                                    {org.growth > 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
-                                                    <span className="text-sm font-medium">{Math.abs(org.growth)}%</span>
+                                {loading ? (
+                                    <div className="text-center py-4 text-muted-foreground">Loading organizations...</div>
+                                ) : (
+                                    organizations.length > 0 ? organizations.map((org, index) => (
+                                        <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                                    <Building2 className="h-5 w-5 text-primary" />
                                                 </div>
-                                            )}
-                                            <Button variant="ghost" size="icon">
-                                                <ArrowUpRight className="h-4 w-4" />
-                                            </Button>
+                                                <div>
+                                                    <p className="font-medium text-foreground">{org.name}</p>
+                                                    <p className="text-sm text-muted-foreground">{org.users.toLocaleString()} users</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <Badge variant="outline" className={
+                                                    org.status === "active" ? "bg-green-100 text-green-700 border-green-200" :
+                                                        "bg-amber-100 text-amber-700 border-amber-200"
+                                                }>
+                                                    {org.status}
+                                                </Badge>
+
+                                                <Button variant="ghost" size="icon">
+                                                    <ArrowUpRight className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    )) : (
+                                        <div className="text-center py-4 text-muted-foreground">No organizations found</div>
+                                    ))}
                             </div>
                         </CardContent>
                     </Card>
@@ -356,54 +395,60 @@ const SuperAdminDashboard = () => {
                 <Card className="shadow-sm">
                     <CardHeader>
                         <CardTitle>User Role Distribution</CardTitle>
-                        <CardDescription>Breakdown of users across all organizations</CardDescription>
+                        <CardDescription>Breakdown of users across all roles</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                            <div className="h-64">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={roleDistribution}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={100}
-                                            paddingAngle={2}
-                                            dataKey="value"
-                                        >
-                                            {roleDistribution.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip
-                                            contentStyle={{
-                                                backgroundColor: "hsl(var(--card))",
-                                                border: "1px solid hsl(var(--border))",
-                                                borderRadius: "8px",
-                                            }}
-                                        />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                        {loading ? (
+                            <div className="flex h-64 items-center justify-center">
+                                <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
                             </div>
-                            <div className="space-y-3">
-                                {roleDistribution.map((role, index) => (
-                                    <div key={index} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: role.color }} />
-                                            <span className="text-sm text-foreground">{role.name}</span>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-sm font-medium text-foreground">{role.value.toLocaleString()}</span>
-                                            <Progress
-                                                value={(role.value / 28680) * 100}
-                                                className="w-24 h-2"
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={stats?.breakdown || []}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={100}
+                                                paddingAngle={2}
+                                                dataKey="count"
+                                            >
+                                                {stats?.breakdown?.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: "hsl(var(--card))",
+                                                    border: "1px solid hsl(var(--border))",
+                                                    borderRadius: "8px",
+                                                }}
                                             />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="space-y-3">
+                                    {stats?.breakdown?.map((role, index) => (
+                                        <div key={index} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-3 w-3 rounded-full" style={{ backgroundColor: role.color }} />
+                                                <span className="text-sm text-foreground">{role.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-sm font-medium text-foreground">{role.count.toLocaleString()}</span>
+                                                <Progress
+                                                    value={(role.count / (stats.counts.totalUsers || 1)) * 100}
+                                                    className="w-24 h-2"
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>

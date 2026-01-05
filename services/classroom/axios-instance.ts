@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { getAuthToken } from '@/lib/authHelper';
 
 const API_URL = process.env.NEXT_PUBLIC_CLASSROOM_API_URL || 'http://localhost:8000/api/classroom';
 
@@ -7,8 +8,8 @@ export const classroomApi = axios.create({
     withCredentials: true,
 });
 
-classroomApi.interceptors.request.use((config) => {
-    const token = localStorage.getItem('accessToken');
+classroomApi.interceptors.request.use(async (config) => {
+    const token = await getAuthToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }

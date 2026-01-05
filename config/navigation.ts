@@ -81,11 +81,15 @@ export const superAdminNavigation: NavItem[] = [
     label: "Activity Logs",
     icon: Activity,
   },
-  // System Section
   {
     href: "/dashboard/super-admin/api",
     label: "API Management",
     icon: Globe,
+  },
+  {
+    href: "/dashboard/super-admin/monitoring",
+    label: "Monitoring",
+    icon: Activity,
   },
   {
     href: "/dashboard/super-admin/reports",
@@ -422,7 +426,8 @@ export const navigationConfig: Record<string, NavItem[]> = {
 // ===================== Helper Functions =====================
 export function getNavigationForUser(user: User | null): NavItem[] {
   if (!user) return [];
-  const baseNavigation = navigationConfig[user.role] || [];
+  const normalizedRole = user.role.toLowerCase() as UserRole;
+  const baseNavigation = navigationConfig[normalizedRole] || [];
   return filterNavItems(baseNavigation, user);
 }
 

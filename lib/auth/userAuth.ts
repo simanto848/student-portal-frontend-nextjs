@@ -15,14 +15,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAxios } from "@/lib/useAxios";
-import type { User } from "@/types/user";
+import type { User, UserRole } from "@/types/user";
 import type { ApiResponse } from "@/types/api";
 
 // ============================================================================
 // TOKEN MANAGEMENT
 // ============================================================================
 
-const USER_TOKEN_COOKIE_NAME = "user_token";
+const USER_TOKEN_COOKIE_NAME = "accessToken";
 
 /**
  * Get the user authentication token from cookies
@@ -87,20 +87,31 @@ export const getCurrentUser = async (
       { user: User } | User
     >;
 
-    // Backend shape in services is /user/auth/me; payload may be either:
-    // - { data: { data: { user: User } } } OR
-    // - { data: { data: User } }
-    if (response?.success && response?.data?.data) {
-      const payload = response.data.data as { user?: User } | User;
-      if (
-        payload &&
-        typeof payload === "object" &&
-        "user" in payload &&
-        payload.user
-      ) {
-        return payload.user;
+    // Unified data extraction logic similar to extractItemData in axios-instance
+    if (response) {
+      // If interceptor returned data directly or we have the full response object
+      // Case 1: response is the full ApiResponse structure
+      if ('success' in response && response.success && response.data) {
+        const innerData = response.data;
+        if (innerData && typeof innerData === 'object' && 'data' in innerData) {
+          const payload = (innerData as any).data;
+          if (payload && typeof payload === 'object' && 'user' in payload) {
+            return payload.user;
+          }
+          return payload as User;
+        }
+        // Case 2: data is directly the user or { user: User }
+        if (innerData && typeof innerData === 'object' && 'user' in innerData) {
+          return (innerData as any).user;
+        }
+        return innerData as User;
       }
-      return payload as User;
+
+      // Case 3: response itself is the payload (interceptor behavior sometimes)
+      if (response && typeof response === 'object' && 'user' in response) {
+        return (response as any).user;
+      }
+      return response as unknown as User;
     }
 
     return null;
@@ -111,18 +122,19 @@ export const getCurrentUser = async (
   }
 };
 
-/**
- * Require authenticated user or redirect to login
- * Use this in pages that need authentication
- */
 export async function requireUser(
   redirectTo: string = "/login",
+  allowedRoles?: UserRole[],
 ): Promise<User> {
   const token = await getUserToken();
   const user = await getCurrentUser(token);
 
   if (!user) {
     return redirect(redirectTo);
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return redirect("/dashboard"); // Or wherever unauthorized users go
   }
 
   return user;

@@ -54,10 +54,6 @@ const getLoginEndpoint = (role: UserRole): string => {
 };
 
 const getRedirectPath = (role: UserRole, requestedRole?: UserRole): string => {
-  if (ADMIN_ROLES.includes(role)) {
-    return "/dashboard/admin";
-  }
-
   if (requestedRole === "staff" && STAFF_ROLE_ROUTES[role]) {
     return STAFF_ROLE_ROUTES[role];
   }
@@ -85,6 +81,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const token = localStorage.getItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
 
       if (token) {
+        // Sync token to cookie if missing (for server-side components)
+        const isSecure = window.location.protocol === "https:";
+        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${token}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
         try {
           const response = await api.get("/user/auth/me", {
             headers: { Authorization: `Bearer ${token}` },
@@ -92,11 +93,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const userData = response.data?.data?.user;
 
           if (userData) {
-            setUser(userData as User);
+            const normalizedUser = {
+              ...userData,
+              role: (userData.role as string).toLowerCase() as UserRole
+            };
+            setUser(normalizedUser);
             setIsAuthenticated(true);
             localStorage.setItem(
               AUTH_CONFIG.USER_STORAGE_KEY,
-              JSON.stringify(userData),
+              JSON.stringify(normalizedUser),
             );
           }
         } catch (error) {
@@ -120,7 +125,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.removeItem(AUTH_CONFIG.ACCESS_TOKEN_KEY);
       localStorage.removeItem(AUTH_CONFIG.REFRESH_TOKEN_KEY);
 
-      document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax; Secure`;
+      const isSecure = window.location.protocol === "https:";
+      document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=; path=/; max-age=0; SameSite=Lax${isSecure ? "; Secure" : ""}`;
     }
   }, []);
 
@@ -137,11 +143,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userData = response.data?.data?.user;
 
       if (userData) {
-        setUser(userData as User);
+        const normalizedUser = {
+          ...userData,
+          role: (userData.role as string).toLowerCase() as UserRole
+        };
+        setUser(normalizedUser);
         setIsAuthenticated(true);
         localStorage.setItem(
           AUTH_CONFIG.USER_STORAGE_KEY,
-          JSON.stringify(userData),
+          JSON.stringify(normalizedUser),
         );
       }
     } catch (error) {
@@ -162,20 +172,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw new Error("Invalid login response");
         }
 
-        const userRole = data.user.role || role;
+        const userRole = (data.user.role || role).toLowerCase() as UserRole;
+        const normalizedUser = {
+          ...data.user,
+          role: userRole
+        };
 
-        setUser(data.user);
+        setUser(normalizedUser);
         setIsAuthenticated(true);
 
         localStorage.setItem(
           AUTH_CONFIG.USER_STORAGE_KEY,
-          JSON.stringify(data.user),
+          JSON.stringify(normalizedUser),
         );
         localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
         localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
 
         const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
-        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 
         const redirectPath = getRedirectPath(userRole, role);
         router.push(redirectPath);
