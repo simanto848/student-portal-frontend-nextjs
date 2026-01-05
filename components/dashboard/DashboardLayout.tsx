@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth } from "@/contexts/AuthContext";
-import { ROLE_THEMES } from "@/config/themes";
 import { DashboardThemeProvider } from "@/contexts/DashboardThemeContext";
-import { DashboardTheme } from "@/config/themes";
+import { DashboardTheme, ROLE_THEMES } from "@/config/themes";
+import { UserRole } from "@/types/user";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;
@@ -26,12 +26,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { user } = useAuth();
-    const theme = user && ROLE_THEMES[user.role]
-        ? ROLE_THEMES[user.role]
+    const normalizedRole = user?.role?.toLowerCase() as UserRole;
+    const theme = normalizedRole && ROLE_THEMES[normalizedRole]
+        ? ROLE_THEMES[normalizedRole]
         : ROLE_THEMES.default;
 
+    const containerStyle = {
+        "--theme-primary": theme.colors.accent.secondary.replace("bg-", ""),
+        "--theme-text-primary": theme.colors.accent.primary.replace("text-", ""),
+        "--theme-bg-main": theme.colors.main.bg.replace("bg-", ""),
+        "--theme-sidebar-bg": theme.colors.sidebar.bg.replace("bg-", ""),
+        "--theme-header-bg": theme.colors.header.bg.replace("bg-", ""),
+    } as React.CSSProperties;
+
     return (
-        <div className={`flex min-h-screen ${theme.colors.main.bg}`}>
+        <div className={`flex min-h-screen ${theme.colors.main.bg}`} style={containerStyle}>
             {/* Mobile sidebar overlay */}
             {sidebarOpen && (
                 <div

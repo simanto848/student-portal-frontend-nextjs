@@ -93,11 +93,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const userData = response.data?.data?.user;
 
           if (userData) {
-            setUser(userData as User);
+            const normalizedUser = {
+              ...userData,
+              role: (userData.role as string).toLowerCase() as UserRole
+            };
+            setUser(normalizedUser);
             setIsAuthenticated(true);
             localStorage.setItem(
               AUTH_CONFIG.USER_STORAGE_KEY,
-              JSON.stringify(userData),
+              JSON.stringify(normalizedUser),
             );
           }
         } catch (error) {
@@ -139,11 +143,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userData = response.data?.data?.user;
 
       if (userData) {
-        setUser(userData as User);
+        const normalizedUser = {
+          ...userData,
+          role: (userData.role as string).toLowerCase() as UserRole
+        };
+        setUser(normalizedUser);
         setIsAuthenticated(true);
         localStorage.setItem(
           AUTH_CONFIG.USER_STORAGE_KEY,
-          JSON.stringify(userData),
+          JSON.stringify(normalizedUser),
         );
       }
     } catch (error) {
@@ -164,14 +172,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw new Error("Invalid login response");
         }
 
-        const userRole = data.user.role || role;
+        const userRole = (data.user.role || role).toLowerCase() as UserRole;
+        const normalizedUser = {
+          ...data.user,
+          role: userRole
+        };
 
-        setUser(data.user);
+        setUser(normalizedUser);
         setIsAuthenticated(true);
 
         localStorage.setItem(
           AUTH_CONFIG.USER_STORAGE_KEY,
-          JSON.stringify(data.user),
+          JSON.stringify(normalizedUser),
         );
         localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
         localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);

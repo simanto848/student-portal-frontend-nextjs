@@ -44,9 +44,9 @@ export function ScheduleList({ items, className }: ScheduleListProps) {
             default:
                 return {
                     icon: BookOpen,
-                    bg: "bg-emerald-100",
-                    text: "text-emerald-700",
-                    border: "border-emerald-200",
+                    bg: "bg-indigo-100",
+                    text: "text-indigo-700",
+                    border: "border-indigo-200",
                     label: "Lecture"
                 };
         }

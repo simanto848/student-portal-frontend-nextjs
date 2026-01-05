@@ -426,7 +426,8 @@ export const navigationConfig: Record<string, NavItem[]> = {
 // ===================== Helper Functions =====================
 export function getNavigationForUser(user: User | null): NavItem[] {
   if (!user) return [];
-  const baseNavigation = navigationConfig[user.role] || [];
+  const normalizedRole = user.role.toLowerCase() as UserRole;
+  const baseNavigation = navigationConfig[normalizedRole] || [];
   return filterNavItems(baseNavigation, user);
 }
 

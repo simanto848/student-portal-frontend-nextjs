@@ -148,9 +148,9 @@ export default function TeacherDashboard() {
   const statusBadge = (status: string) => {
     switch (status) {
       case "approved": return <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 border-emerald-200">Approved</Badge>;
-      case "submitted": return <Badge className="bg-blue-500/15 text-blue-600 hover:bg-blue-500/25 border-blue-200">Submitted</Badge>;
-      case "returned": return <Badge className="bg-red-500/15 text-red-600 hover:bg-red-500/25 border-red-200">Returned</Badge>;
-      case "draft": return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Draft</Badge>;
+      case "submitted": return <Badge className="bg-indigo-500/15 text-indigo-600 hover:bg-indigo-500/25 border-indigo-200">Submitted</Badge>;
+      case "returned": return <Badge className="bg-rose-500/15 text-rose-600 hover:bg-rose-500/25 border-rose-200">Returned</Badge>;
+      case "draft": return <Badge variant="secondary" className="bg-slate-100 text-slate-600">Draft</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -163,7 +163,7 @@ export default function TeacherDashboard() {
       subtitle: "For today's classes",
       actionLabel: "Go to Attendance",
       onClick: () => router.push("/dashboard/teacher/attendance"),
-      icon: <Calendar className="h-5 w-5 text-emerald-600" />
+      icon: <Calendar className="h-5 w-5 text-indigo-600" />
     },
     {
       id: "2",
@@ -172,7 +172,7 @@ export default function TeacherDashboard() {
       subtitle: "Submit/track grades",
       actionLabel: "Open Grading",
       onClick: () => router.push("/dashboard/teacher/grading"),
-      icon: <FileCheck className="h-5 w-5 text-blue-600" />
+      icon: <FileCheck className="h-5 w-5 text-indigo-600" />
     },
     {
       id: "3",
@@ -190,7 +190,7 @@ export default function TeacherDashboard() {
       subtitle: "Manage Batches",
       actionLabel: "View Batches",
       onClick: () => router.push("/dashboard/teacher/department"),
-      icon: <Building2 className="h-5 w-5 text-orange-600" />
+      icon: <Building2 className="h-5 w-5 text-indigo-600" />
     }] : []),
   ];
 
@@ -205,90 +205,96 @@ export default function TeacherDashboard() {
         {/* Hero Section */}
         <motion.div
           variants={itemVariants}
-          className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1a3d32] to-[#2d5246] p-8 md:p-10 text-white shadow-xl"
+          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 p-8 md:p-12 text-white shadow-2xl"
         >
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-white/10 blur-3xl opacity-50" />
-          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-black/10 blur-3xl opacity-50" />
+          <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-indigo-500/20 blur-[100px] opacity-50" />
+          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-96 w-96 rounded-full bg-indigo-600/10 blur-[100px] opacity-30" />
 
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
+          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
+            <div className="space-y-4">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="flex items-center gap-2 text-emerald-100 mb-2 font-medium"
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-indigo-200 text-sm font-bold uppercase tracking-widest"
               >
-                <GraduationCap className="h-5 w-5" />
-                <span>Teacher Portal</span>
+                <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
+                <GraduationCap className="h-4 w-4" />
+                <span>Academic Intelligence Hub</span>
               </motion.div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
-                Welcome back, {user?.fullName?.split(' ')[0]}!
-              </h1>
-              <p className="text-emerald-50 max-w-lg text-lg/relaxed">
-                You have <span className="font-semibold text-white">{todaySchedules.length} classes</span> today and <span className="font-semibold text-white">{pendingGradesCount} pending</span> grading tasks.
-              </p>
+              <div>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-3 leading-tight">
+                  Shalom, {user?.fullName?.split(' ')[0]}!
+                </h1>
+                <p className="text-indigo-100/80 max-w-xl text-lg font-medium leading-relaxed">
+                  Your academic trajectory for <span className="text-white font-bold">{today}</span> involves <span className="text-white font-bold">{todaySchedules.length} active sessions</span> and <span className="text-white font-bold">{pendingGradesCount} pending</span> evaluations.
+                </p>
+              </div>
             </div>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-4 flex-wrap">
               <Button
-                className="bg-white text-[#1a3d32] hover:bg-emerald-50 border-0 shadow-lg font-semibold transition-transform hover:scale-105"
+                className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white border-0 shadow-xl shadow-indigo-950/20 font-black tracking-tight transition-all active:scale-95"
                 onClick={() => router.push("/dashboard/teacher/attendance")}
               >
-                Take Attendance
+                Mark Presence
               </Button>
               <Button
                 variant="outline"
-                className="bg-[#ffffff1a] text-white border-white/20 hover:bg-[#ffffff30] backdrop-blur-sm shadow-lg transition-transform hover:scale-105"
+                className="h-14 px-8 rounded-2xl bg-white/5 text-white border-white/10 hover:bg-white/10 backdrop-blur-sm shadow-xl font-black tracking-tight transition-all active:scale-95"
                 onClick={() => router.push("/dashboard/teacher/classroom")}
               >
-                Classroom
+                Virtual Room
               </Button>
             </div>
           </div>
         </motion.div>
 
         {/* Quick Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { label: "Active Courses", value: activeCoursesCount, icon: BookOpen, color: "text-blue-600", bg: "bg-blue-50" },
-            { label: "Total Students", value: totalStudents, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Pending Grading", value: pendingGradesCount, icon: FileCheck, color: "text-amber-600", bg: "bg-amber-50" }
+            { label: "Active Streams", value: activeCoursesCount, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Induced Students", value: totalStudents, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Pending Evaluations", value: pendingGradesCount, icon: FileCheck, color: "text-indigo-600", bg: "bg-indigo-50" }
           ].map((stat, i) => (
-            <motion.div key={i} variants={itemVariants} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+            <motion.div key={i} variants={itemVariants} className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/40 border border-slate-100 hover:shadow-2xl hover:border-indigo-100 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
-                  <h3 className="text-2xl font-bold mt-1 text-slate-800">{stat.value}</h3>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
+                  <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
                 </div>
-                <div className={`p-3 rounded-xl ${stat.bg}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                <div className={`p-4 rounded-2xl ${stat.bg} group-hover:scale-110 transition-transform duration-300`}>
+                  <stat.icon className={`h-7 w-7 ${stat.color}`} />
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-10 lg:grid-cols-12">
           {/* Main Content Area */}
-          <div className="lg:col-span-8 space-y-8">
+          <div className="lg:col-span-8 space-y-10">
 
             {/* My Courses Section */}
             <motion.section variants={itemVariants}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-emerald-600" />
-                  Active Courses
-                </h2>
-                <Button variant="ghost" size="sm" className="text-emerald-700 hover:text-emerald-800" onClick={() => router.push('/dashboard/teacher/courses')}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Stream Portfolio</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Streams</h2>
+                </div>
+                <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 font-bold" onClick={() => router.push('/dashboard/teacher/courses')}>
                   View All <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </div>
 
               {loading ? (
-                <div className="grid md:grid-cols-2 gap-4">
-                  {[1, 2].map(i => <div key={i} className="h-40 bg-slate-100 rounded-2xl animate-pulse" />)}
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[1, 2].map(i => <div key={i} className="h-48 bg-slate-50 rounded-[2rem] animate-pulse" />)}
                 </div>
               ) : courses.length > 0 ? (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid md:grid-cols-2 gap-6">
                   {courses.slice(0, 4).map((c, idx) => {
                     const relatedWorkflows = workflows.filter(
                       (w) => w.grade?.courseId === c.courseId
@@ -301,7 +307,7 @@ export default function TeacherDashboard() {
                     return (
                       <motion.div
                         key={idx}
-                        whileHover={{ y: -4 }}
+                        whileHover={{ y: -8 }}
                         transition={{ type: "spring", stiffness: 300 }}
                       >
                         <CourseCard
@@ -312,7 +318,7 @@ export default function TeacherDashboard() {
                           progress={{
                             current: approvedCount,
                             total: totalWorkflows,
-                            label: totalWorkflows > 1 ? "Grading Progress" : "Grading Started",
+                            label: "Evaluation Progress",
                           }}
                         />
                       </motion.div>
@@ -320,9 +326,9 @@ export default function TeacherDashboard() {
                   })}
                 </div>
               ) : (
-                <Card className="border-dashed border-2 shadow-none bg-slate-50/50">
-                  <CardContent className="py-10 text-center text-muted-foreground">
-                    No active courses found.
+                <Card className="border-dashed border-2 rounded-[2rem] shadow-none bg-slate-50/50">
+                  <CardContent className="py-16 text-center text-slate-400 font-bold italic">
+                    No active streams detected in your sector.
                   </CardContent>
                 </Card>
               )}
@@ -330,51 +336,59 @@ export default function TeacherDashboard() {
 
             {/* Grading Workflow Section */}
             <motion.section variants={itemVariants}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                  <FileCheck className="h-5 w-5 text-amber-500" />
-                  Grading Tasks
-                </h2>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Evaluation Pipeline</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pending Tasks</h2>
+                </div>
               </div>
 
-              <Card className="border shadow-sm overflow-hidden bg-white/80 backdrop-blur-sm">
+              <Card className="border-2 border-slate-100 shadow-xl shadow-slate-200/40 rounded-[2.5rem] overflow-hidden bg-white/80 backdrop-blur-xl">
                 <CardContent className="p-0">
                   {pendingWorkflows.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground">
-                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 mb-3">
-                        <FileCheck className="h-6 w-6 text-slate-400" />
+                    <div className="p-16 text-center text-slate-400">
+                      <div className="inline-flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-50 mb-6">
+                        <FileCheck className="h-10 w-10 text-slate-200" />
                       </div>
-                      <p>All caught up! No pending grading tasks.</p>
+                      <p className="font-bold">Evaluation pipeline clear. No pending tasks.</p>
                     </div>
                   ) : (
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y-2 divide-slate-50">
                       {pendingWorkflows.map((wf) => (
                         <div
                           key={wf.id}
-                          className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                          className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-all group"
                         >
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center border border-amber-100">
-                              <span className="text-amber-700 font-bold text-xs">{wf.grade?.course?.code?.substring(0, 3)}</span>
+                          <div className="flex items-center gap-6">
+                            <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100 group-hover:scale-110 transition-transform">
+                              <span className="text-indigo-700 font-black text-xs uppercase">{wf.grade?.course?.code?.substring(0, 3)}</span>
                             </div>
                             <div>
-                              <p className="font-semibold text-slate-800">{wf.grade?.course?.name}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
+                              <p className="font-black text-slate-800 tracking-tight">{wf.grade?.course?.name}</p>
+                              <div className="flex items-center gap-3 mt-1.5">
                                 {statusBadge(wf.status)}
-                                <span className="text-xs text-muted-foreground">{format(new Date(wf.actionAt), 'MMM d, yyyy')}</span>
+                                <div className="h-1 w-1 rounded-full bg-slate-300" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(wf.actionAt), 'MMM d, yyyy')}</span>
                               </div>
                             </div>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => router.push(`/dashboard/teacher/courses/${wf.grade?.courseId || ""}`)}>
-                            Review
+                          <Button
+                            className="h-10 rounded-xl bg-white border-2 border-slate-100 hover:border-indigo-500/30 hover:text-indigo-600 font-bold transition-all shadow-lg shadow-slate-200/40"
+                            variant="outline"
+                            onClick={() => router.push(`/dashboard/teacher/courses/${wf.grade?.courseId || ""}`)}
+                          >
+                            Execute
                           </Button>
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="p-3 bg-slate-50 border-t border-slate-100 text-center">
-                    <Button variant="link" size="sm" className="text-slate-600" onClick={() => router.push("/dashboard/teacher/grading")}>
-                      View All Workflows
+                  <div className="p-4 bg-slate-50/80 border-t-2 border-slate-100 text-center">
+                    <Button variant="link" size="sm" className="text-slate-500 font-black uppercase tracking-widest text-[10px] hover:text-indigo-600" onClick={() => router.push("/dashboard/teacher/grading")}>
+                      View Full Pipeline
                     </Button>
                   </div>
                 </CardContent>
@@ -384,36 +398,47 @@ export default function TeacherDashboard() {
           </div>
 
           {/* Right Sidebar */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 space-y-10">
 
             {/* Quick Actions */}
             <motion.section variants={itemVariants}>
-              <h2 className="text-xl font-bold text-slate-800 mb-4">Quick Actions</h2>
-              <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Tactical Actions</h2>
+              </div>
+              <div className="space-y-4">
                 {actionItems.map((item) => (
                   <motion.button
                     key={item.id}
                     whileHover={{ scale: 1.02, backgroundColor: "rgba(248, 250, 252, 1)" }}
                     whileTap={{ scale: 0.98 }}
                     onClick={item.onClick}
-                    className="w-full flex items-center gap-4 p-4 rounded-xl bg-white border border-slate-200 shadow-sm text-left transition-all hover:border-emerald-200 group"
+                    className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] bg-white border-2 border-slate-100 shadow-lg shadow-slate-200/40 text-left transition-all hover:border-indigo-500/30 group"
                   >
-                    <div className="p-3 rounded-lg bg-slate-50 group-hover:bg-emerald-50 transition-colors">
+                    <div className="p-3.5 rounded-2xl bg-slate-50 group-hover:bg-indigo-50 transition-colors">
                       {item.icon}
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-800">{item.title}</p>
-                      <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+                      <p className="font-black text-slate-800 tracking-tight leading-none mb-1.5">{item.title}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.subtitle}</p>
                     </div>
                   </motion.button>
                 ))}
 
-                <div className="grid grid-cols-2 gap-3 mt-3">
-                  <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center" onClick={() => router.push("/dashboard/teacher/notifications")}>
-                    <span className="font-semibold">Notifications</span>
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    className="h-20 rounded-2xl border-2 border-slate-100 hover:border-indigo-500/30 font-black tracking-tight text-slate-600 hover:text-indigo-600 transition-all shadow-lg shadow-slate-200/40"
+                    onClick={() => router.push("/dashboard/teacher/notifications")}
+                  >
+                    Alerts
                   </Button>
-                  <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center justify-center" onClick={() => router.push("/dashboard/teacher/communication")}>
-                    <span className="font-semibold">Messages</span>
+                  <Button
+                    variant="outline"
+                    className="h-20 rounded-2xl border-2 border-slate-100 hover:border-indigo-500/30 font-black tracking-tight text-slate-600 hover:text-indigo-600 transition-all shadow-lg shadow-slate-200/40"
+                    onClick={() => router.push("/dashboard/teacher/communication")}
+                  >
+                    Signals
                   </Button>
                 </div>
               </div>
@@ -421,20 +446,24 @@ export default function TeacherDashboard() {
 
             {/* Today's Schedule */}
             <motion.section variants={itemVariants}>
-              <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center justify-between">
-                <span>Today's Schedule</span>
-                <span className="text-sm font-normal text-muted-foreground bg-slate-100 px-2 py-1 rounded-md">{today}</span>
-              </h2>
-              <Card className="border-none shadow-sm bg-white overflow-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Session Matrix</h2>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1.5 rounded-full">{today}</span>
+              </div>
+              <Card className="border-2 border-slate-100 shadow-xl shadow-slate-200/40 rounded-[2.5rem] bg-white overflow-hidden">
                 <CardContent className="p-0">
                   {todaySchedules.length > 0 ? (
                     <ScheduleList items={todaySchedules} />
                   ) : (
-                    <div className="p-8 text-center bg-slate-50/50">
-                      <Calendar className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-                      <p className="text-muted-foreground text-sm">
-                        No classes scheduled for today.
-                        <br />Enjoy your free time!
+                    <div className="p-16 text-center bg-slate-50/20">
+                      <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-6">
+                        <Calendar className="h-8 w-8 text-slate-200" />
+                      </div>
+                      <p className="text-slate-400 font-bold italic text-sm">
+                        Matrix clear. No sessions<br />scheduled for orbital period.
                       </p>
                     </div>
                   )}
