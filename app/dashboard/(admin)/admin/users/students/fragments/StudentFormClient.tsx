@@ -52,7 +52,8 @@ import {
     UploadCloud,
     RotateCcw,
     Hash,
-    ShieldAlert
+    ShieldAlert,
+    Lock
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
@@ -86,6 +87,8 @@ export function StudentFormClient({
 
     const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
     // Form State
     const [basic, setBasic] = useState({
         fullName: student?.fullName || "",
@@ -101,30 +104,33 @@ export function StudentFormClient({
     });
 
     const validateStep = (s: number) => {
-        switch (s) {
-            case 1:
-                if (!basic.fullName.trim()) { toast.error("Full name required"); return false; }
-                if (!isEdit && !basic.email.trim()) { toast.error("Email address required"); return false; }
-                if (!basic.admissionDate) { toast.error("Admission date required"); return false; }
-                return true;
-            case 2:
-                if (!basic.batchId) { toast.error("Batch selection required"); return false; }
-                return true;
-            case 3:
-                if (!profileForm.studentMobile.trim()) { toast.error("Phone number required"); return false; }
-                if (!profileForm.gender) { toast.error("Gender selection required"); return false; }
-                if (!profileForm.dateOfBirth) { toast.error("Date of birth required"); return false; }
-                return true;
-            case 4:
-                if (!(addresses.permanent?.street ?? "").trim() || !(addresses.permanent?.city ?? "").trim()) { toast.error("Permanent address details required"); return false; }
-                if (!(addresses.mailing?.street ?? "").trim() || !(addresses.mailing?.city ?? "").trim()) { toast.error("Mailing address details required"); return false; }
-                return true;
-            case 5:
-                if (!kinForm.emergencyContact.name.trim() || !kinForm.emergencyContact.cell.trim()) { toast.error("Emergency contact details required"); return false; }
-                return true;
-            default:
-                return true;
+        const newErrors: Record<string, string> = {};
+
+        if (s === 1) {
+            if (!basic.fullName.trim()) newErrors.fullName = "Full name required";
+            if (!isEdit && !basic.email.trim()) newErrors.email = "Email address required";
+            if (!basic.admissionDate) newErrors.admissionDate = "Admission date required";
+        } else if (s === 2) {
+            if (!basic.batchId) newErrors.batchId = "Batch selection required";
+            if (!basic.programId) newErrors.programId = "Program selection required";
+            if (!basic.departmentId) newErrors.departmentId = "Department selection required";
+        } else if (s === 3) {
+            if (!profileForm.studentMobile.trim()) newErrors.studentMobile = "Phone number required";
+            if (!profileForm.gender) newErrors.gender = "Gender selection required";
+            if (!profileForm.dateOfBirth) newErrors.dateOfBirth = "Date of birth required";
+        } else if (s === 4) {
+            if (!(addresses.permanent?.street ?? "").trim() || !(addresses.permanent?.city ?? "").trim()) newErrors.permanent = "Permanent address required";
+            if (!(addresses.mailing?.street ?? "").trim() || !(addresses.mailing?.city ?? "").trim()) newErrors.mailing = "Mailing address required";
+        } else if (s === 5) {
+            if (!kinForm.emergencyContact.name.trim() || !kinForm.emergencyContact.cell.trim()) newErrors.emergencyContact = "Emergency contact required";
         }
+
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) {
+            toast.error("Please fill all required fields");
+            return false;
+        }
+        return true;
     };
 
     const nextStep = () => {
@@ -322,27 +328,49 @@ export function StudentFormClient({
                         {step === 1 && (
                             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
-                                    <FormGroup label="Full Name" icon={UserIcon}>
-                                        <Input value={basic.fullName} onChange={e => setBasic({ ...basic, fullName: e.target.value })} placeholder="Enter full name" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                    <FormGroup label="Full Name" icon={UserIcon} error={errors.fullName}>
+                                        <Input
+                                            value={basic.fullName}
+                                            onChange={e => {
+                                                setBasic({ ...basic, fullName: e.target.value });
+                                                if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
+                                            }}
+                                            placeholder="Enter full name"
+                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.fullName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}
+                                        />
                                     </FormGroup>
                                     {!isEdit && (
-                                        <FormGroup label="Email Address" icon={Mail}>
-                                            <Input value={basic.email} onChange={e => setBasic({ ...basic, email: e.target.value })} placeholder="email@university.edu" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                        </FormGroup>
-                                    )}
-                                    {isEdit && (
-                                        <FormGroup label="Registration Number" icon={Hash}>
+                                        <FormGroup label="Email Address" icon={Mail} error={errors.email}>
                                             <Input
-                                                value={basic.registrationNumber}
-                                                disabled
-                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-100 border-2 border-slate-200 font-bold text-slate-500 cursor-not-allowed opacity-70"
+                                                value={basic.email}
+                                                onChange={e => {
+                                                    setBasic({ ...basic, email: e.target.value });
+                                                    if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
+                                                }}
+                                                placeholder="email@university.edu"
+                                                className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.email ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}
                                             />
                                         </FormGroup>
                                     )}
-                                    <FormGroup label="Admission Date" icon={Calendar}>
+                                    <FormGroup label="Registration Number" icon={Hash}>
+                                        <div className="relative">
+                                            <Input
+                                                value={isEdit ? basic.registrationNumber : "Auto-generated by system"}
+                                                readOnly
+                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-100 border-2 border-slate-200 font-bold text-slate-500 cursor-not-allowed opacity-70"
+                                            />
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                <Lock className="w-4 h-4 text-slate-400" />
+                                            </div>
+                                        </div>
+                                    </FormGroup>
+                                    <FormGroup label="Admission Date" icon={Calendar} error={errors.admissionDate}>
                                         <DatePicker
                                             date={basic.admissionDate ? parseISO(basic.admissionDate) : undefined}
-                                            onChange={d => setBasic({ ...basic, admissionDate: d ? formatDate(d, "yyyy-MM-dd") : "" })}
+                                            onChange={d => {
+                                                setBasic({ ...basic, admissionDate: d ? formatDate(d, "yyyy-MM-dd") : "" });
+                                                if (errors.admissionDate) setErrors(prev => ({ ...prev, admissionDate: "" }));
+                                            }}
                                         />
                                     </FormGroup>
                                 </div>
@@ -355,35 +383,47 @@ export function StudentFormClient({
                                     <Sparkles className="w-4 h-4" /> Select batch first — it will automatically update session, program, and department fields.
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
-                                    <FormGroup label="Batch" icon={Layers}>
+                                    <FormGroup label="Batch" icon={Layers} error={errors.batchId}>
                                         <SearchableSelect
                                             options={batches.map(b => ({ label: getBatchLabel(b.id || b._id), value: b.id || b._id }))}
                                             value={basic.batchId}
-                                            onChange={handleBatchChange}
+                                            onChange={v => {
+                                                handleBatchChange(v);
+                                                if (errors.batchId) setErrors(prev => ({ ...prev, batchId: "" }));
+                                            }}
                                             placeholder="Select Batch"
                                         />
                                     </FormGroup>
-                                    <FormGroup label="Session" icon={Clock}>
+                                    <FormGroup label="Session" icon={Clock} error={errors.sessionId}>
                                         <SearchableSelect
                                             options={sessions.map(s => ({ label: s.name, value: s.id || s._id }))}
                                             value={basic.sessionId}
-                                            onChange={v => setBasic({ ...basic, sessionId: v })}
+                                            onChange={v => {
+                                                setBasic({ ...basic, sessionId: v });
+                                                if (errors.sessionId) setErrors(prev => ({ ...prev, sessionId: "" }));
+                                            }}
                                             placeholder="Select Session"
                                         />
                                     </FormGroup>
-                                    <FormGroup label="Program" icon={BookOpen}>
+                                    <FormGroup label="Program" icon={BookOpen} error={errors.programId}>
                                         <SearchableSelect
                                             options={programs.map(p => ({ label: p.name, value: p.id || p._id }))}
                                             value={basic.programId}
-                                            onChange={v => setBasic({ ...basic, programId: v })}
+                                            onChange={v => {
+                                                setBasic({ ...basic, programId: v });
+                                                if (errors.programId) setErrors(prev => ({ ...prev, programId: "" }));
+                                            }}
                                             placeholder="Select Program"
                                         />
                                     </FormGroup>
-                                    <FormGroup label="Department" icon={Building2}>
+                                    <FormGroup label="Department" icon={Building2} error={errors.departmentId}>
                                         <SearchableSelect
                                             options={departments.map(d => ({ label: d.name, value: d.id || d._id }))}
                                             value={basic.departmentId}
-                                            onChange={v => setBasic({ ...basic, departmentId: v })}
+                                            onChange={v => {
+                                                setBasic({ ...basic, departmentId: v });
+                                                if (errors.departmentId) setErrors(prev => ({ ...prev, departmentId: "" }));
+                                            }}
                                             placeholder="Select Department"
                                         />
                                     </FormGroup>
@@ -409,18 +449,35 @@ export function StudentFormClient({
                         {step === 3 && (
                             <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-                                    <FormGroup label="Phone Number" icon={Phone}>
-                                        <Input value={profileForm.studentMobile} onChange={e => setProfileForm({ ...profileForm, studentMobile: e.target.value })} placeholder="+X XXX XXX XXXX" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                    </FormGroup>
-                                    <FormGroup label="Date of Birth" icon={Calendar}>
-                                        <DatePicker
-                                            date={profileForm.dateOfBirth ? parseISO(profileForm.dateOfBirth) : undefined}
-                                            onChange={d => setProfileForm({ ...profileForm, dateOfBirth: d ? formatDate(d, "yyyy-MM-dd") : "" })}
+                                    <FormGroup label="Phone Number" icon={Phone} error={errors.studentMobile}>
+                                        <Input
+                                            value={profileForm.studentMobile}
+                                            onChange={e => {
+                                                setProfileForm({ ...profileForm, studentMobile: e.target.value });
+                                                if (errors.studentMobile) setErrors(prev => ({ ...prev, studentMobile: "" }));
+                                            }}
+                                            placeholder="+X XXX XXX XXXX"
+                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.studentMobile ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}
                                         />
                                     </FormGroup>
-                                    <FormGroup label="Gender" icon={UserIcon}>
-                                        <Select value={profileForm.gender} onValueChange={v => setProfileForm({ ...profileForm, gender: v })}>
-                                            <SelectTrigger className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900">
+                                    <FormGroup label="Date of Birth" icon={Calendar} error={errors.dateOfBirth}>
+                                        <DatePicker
+                                            date={profileForm.dateOfBirth ? parseISO(profileForm.dateOfBirth) : undefined}
+                                            onChange={d => {
+                                                setProfileForm({ ...profileForm, dateOfBirth: d ? formatDate(d, "yyyy-MM-dd") : "" });
+                                                if (errors.dateOfBirth) setErrors(prev => ({ ...prev, dateOfBirth: "" }));
+                                            }}
+                                        />
+                                    </FormGroup>
+                                    <FormGroup label="Gender" icon={UserIcon} error={errors.gender}>
+                                        <Select
+                                            value={profileForm.gender}
+                                            onValueChange={v => {
+                                                setProfileForm({ ...profileForm, gender: v });
+                                                if (errors.gender) setErrors(prev => ({ ...prev, gender: "" }));
+                                            }}
+                                        >
+                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.gender ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}>
                                                 <SelectValue placeholder="Select" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
@@ -521,35 +578,77 @@ export function StudentFormClient({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-3 px-1">
-                                            <Home className="w-4 h-4 text-slate-900" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Permanent Address</p>
+                                            <Home className={`w-4 h-4 ${errors.permanent ? 'text-red-500' : 'text-slate-900'}`} />
+                                            <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${errors.permanent ? 'text-red-500' : 'text-slate-900'}`}>Permanent Address</p>
                                         </div>
-                                        <div className="space-y-4 p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 shadow-inner">
+                                        <div className={`space-y-4 p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-[2.5rem] bg-slate-50 border-2 ${errors.permanent ? 'border-red-500' : 'border-slate-100'} shadow-inner`}>
                                             <FormGroup label="Street" icon={MapPin}>
-                                                <Input value={addresses.permanent.street} onChange={e => setAddresses({ ...addresses, permanent: { ...addresses.permanent, street: e.target.value } })} className="bg-white" />
+                                                <Input
+                                                    value={addresses.permanent.street}
+                                                    onChange={e => {
+                                                        setAddresses({ ...addresses, permanent: { ...addresses.permanent, street: e.target.value } });
+                                                        if (errors.permanent) setErrors(prev => ({ ...prev, permanent: "" }));
+                                                    }}
+                                                    className="bg-white"
+                                                />
                                             </FormGroup>
                                             <FormGroup label="City" icon={Globe}>
-                                                <Input value={addresses.permanent.city} onChange={e => setAddresses({ ...addresses, permanent: { ...addresses.permanent, city: e.target.value } })} className="bg-white" />
+                                                <Input
+                                                    value={addresses.permanent.city}
+                                                    onChange={e => {
+                                                        setAddresses({ ...addresses, permanent: { ...addresses.permanent, city: e.target.value } });
+                                                        if (errors.permanent) setErrors(prev => ({ ...prev, permanent: "" }));
+                                                    }}
+                                                    className="bg-white"
+                                                />
                                             </FormGroup>
                                             <FormGroup label="Country" icon={Flag}>
-                                                <Input value={addresses.permanent.country} onChange={e => setAddresses({ ...addresses, permanent: { ...addresses.permanent, country: e.target.value } })} className="bg-white" />
+                                                <Input
+                                                    value={addresses.permanent.country}
+                                                    onChange={e => {
+                                                        setAddresses({ ...addresses, permanent: { ...addresses.permanent, country: e.target.value } });
+                                                        if (errors.permanent) setErrors(prev => ({ ...prev, permanent: "" }));
+                                                    }}
+                                                    className="bg-white"
+                                                />
                                             </FormGroup>
                                         </div>
                                     </div>
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-3 px-1">
-                                            <MapPin className="w-4 h-4 text-amber-600" />
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-600">Mailing Address</p>
+                                            <MapPin className={`w-4 h-4 ${errors.mailing ? 'text-red-500' : 'text-amber-600'}`} />
+                                            <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${errors.mailing ? 'text-red-500' : 'text-amber-600'}`}>Mailing Address</p>
                                         </div>
-                                        <div className="space-y-4 p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-[2.5rem] bg-amber-50/30 border-2 border-amber-100/50 shadow-inner">
+                                        <div className={`space-y-4 p-4 sm:p-6 md:p-8 rounded-2xl md:rounded-[2.5rem] bg-amber-50/30 border-2 ${errors.mailing ? 'border-red-500' : 'border-amber-100/50'} shadow-inner`}>
                                             <FormGroup label="Street" icon={MapPin}>
-                                                <Input value={addresses.mailing.street} onChange={e => setAddresses({ ...addresses, mailing: { ...addresses.mailing, street: e.target.value } })} className="bg-white border-amber-100 focus:ring-amber-500/10" />
+                                                <Input
+                                                    value={addresses.mailing.street}
+                                                    onChange={e => {
+                                                        setAddresses({ ...addresses, mailing: { ...addresses.mailing, street: e.target.value } });
+                                                        if (errors.mailing) setErrors(prev => ({ ...prev, mailing: "" }));
+                                                    }}
+                                                    className="bg-white border-amber-100 focus:ring-amber-500/10"
+                                                />
                                             </FormGroup>
                                             <FormGroup label="City" icon={Globe}>
-                                                <Input value={addresses.mailing.city} onChange={e => setAddresses({ ...addresses, mailing: { ...addresses.mailing, city: e.target.value } })} className="bg-white border-amber-100 focus:ring-amber-500/10" />
+                                                <Input
+                                                    value={addresses.mailing.city}
+                                                    onChange={e => {
+                                                        setAddresses({ ...addresses, mailing: { ...addresses.mailing, city: e.target.value } });
+                                                        if (errors.mailing) setErrors(prev => ({ ...prev, mailing: "" }));
+                                                    }}
+                                                    className="bg-white border-amber-100 focus:ring-amber-500/10"
+                                                />
                                             </FormGroup>
                                             <FormGroup label="Country" icon={Flag}>
-                                                <Input value={addresses.mailing.country} onChange={e => setAddresses({ ...addresses, mailing: { ...addresses.mailing, country: e.target.value } })} className="bg-white border-amber-100 focus:ring-amber-500/10" />
+                                                <Input
+                                                    value={addresses.mailing.country}
+                                                    onChange={e => {
+                                                        setAddresses({ ...addresses, mailing: { ...addresses.mailing, country: e.target.value } });
+                                                        if (errors.mailing) setErrors(prev => ({ ...prev, mailing: "" }));
+                                                    }}
+                                                    className="bg-white border-amber-100 focus:ring-amber-500/10"
+                                                />
                                             </FormGroup>
                                         </div>
                                     </div>
@@ -560,10 +659,10 @@ export function StudentFormClient({
                         {step === 5 && (
                             <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 lg:gap-10">
-                                    <KinInputSection label="Father's Info" icon={UserIcon} data={kinForm.father} onChange={v => setKinForm({ ...kinForm, father: v })} />
-                                    <KinInputSection label="Mother's Info" icon={UserIcon} data={kinForm.mother} onChange={v => setKinForm({ ...kinForm, mother: v })} />
-                                    <KinInputSection label="Guardian Info" icon={ShieldAlert} data={kinForm.guardian} onChange={v => setKinForm({ ...kinForm, guardian: v })} hasOccupation />
-                                    <KinInputSection label="Emergency Contact" icon={Contact} data={kinForm.emergencyContact} onChange={v => setKinForm({ ...kinForm, emergencyContact: v })} hasRelation />
+                                    <KinInputSection label="Father's Info" icon={UserIcon} data={kinForm.father} onChange={v => setKinForm({ ...kinForm, father: v })} errors={errors.father} setErrors={setErrors} />
+                                    <KinInputSection label="Mother's Info" icon={UserIcon} data={kinForm.mother} onChange={v => setKinForm({ ...kinForm, mother: v })} errors={errors.mother} setErrors={setErrors} />
+                                    <KinInputSection label="Guardian Info" icon={ShieldAlert} data={kinForm.guardian} onChange={v => setKinForm({ ...kinForm, guardian: v })} hasOccupation errors={errors.guardian} setErrors={setErrors} />
+                                    <KinInputSection label="Emergency Contact" icon={Contact} data={kinForm.emergencyContact} onChange={v => setKinForm({ ...kinForm, emergencyContact: v })} hasRelation errors={errors.emergencyContact} setErrors={setErrors} />
                                 </div>
                             </motion.div>
                         )}
@@ -641,42 +740,73 @@ export function StudentFormClient({
     );
 }
 
-function FormGroup({ label, icon: Icon, children }: { label: string, icon: any, children: React.ReactNode }) {
+function FormGroup({ label, icon: Icon, children, error }: { label: string, icon: any, children: React.ReactNode, error?: string }) {
     return (
         <div className="space-y-2">
-            <div className="flex items-center gap-2 px-1">
-                <Icon className="w-3.5 h-3.5 text-slate-400" />
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
+            <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                    <Icon className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-400'}`} />
+                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${error ? 'text-red-500' : 'text-slate-400'}`}>{label}</p>
+                </div>
+                {error && <p className="text-[9px] font-black text-red-500 uppercase tracking-tighter">{error}</p>}
             </div>
             {children}
         </div>
     );
 }
 
-function KinInputSection({ label, icon, data, onChange, hasOccupation = false, hasRelation = false }: { label: string, icon: any, data: any, onChange: (v: any) => void, hasOccupation?: boolean, hasRelation?: boolean }) {
+function KinInputSection({ label, icon: Icon, data, onChange, hasOccupation = false, hasRelation = false, errors, setErrors }: { label: string, icon: any, data: any, onChange: (v: any) => void, hasOccupation?: boolean, hasRelation?: boolean, errors?: string, setErrors?: any }) {
     return (
-        <div className="p-8 rounded-[2.5rem] bg-white border-2 border-slate-50 shadow-sm space-y-6 hover:border-amber-500/20 transition-all duration-500">
-            <div className="flex items-center gap-3 mb-2">
-                <div className="h-8 w-8 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center">
-                    <IconRenderer icon={icon} />
+        <div className={`p-8 rounded-[2.5rem] bg-white border-2 ${errors ? 'border-red-500 bg-red-50/10' : 'border-slate-50'} shadow-sm space-y-6 hover:border-amber-500/20 transition-all duration-500`}>
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-3">
+                    <div className={`h-8 w-8 rounded-xl ${errors ? 'bg-red-100 text-red-500' : 'bg-slate-100 text-slate-400'} flex items-center justify-center`}>
+                        <Icon className="w-4 h-4" />
+                    </div>
+                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${errors ? 'text-red-500' : 'text-slate-900'}`}>{label}</p>
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">{label}</p>
+                {errors && <p className="text-[9px] font-black text-red-500 uppercase tracking-tighter">{errors}</p>}
             </div>
             <div className="space-y-4">
-                <FormGroup label="Full Name" icon={UserIcon}>
-                    <Input value={data.name} onChange={e => onChange({ ...data, name: e.target.value })} className="h-12 px-4 rounded-xl bg-slate-50" />
+                <FormGroup label="Full Name" icon={UserIcon} error={errors && !data.name ? "Required" : ""}>
+                    <Input
+                        value={data.name}
+                        onChange={e => {
+                            onChange({ ...data, name: e.target.value });
+                            if (errors && setErrors) {
+                                // Clear error if both fields are now filled
+                                if (e.target.value && data.cell) {
+                                    const key = label.toLowerCase().replace("'s info", "").replace(" info", "").replace(" contact", "Contact");
+                                    setErrors((prev: any) => ({ ...prev, [key]: "" }));
+                                }
+                            }
+                        }}
+                        className={`h-12 px-4 rounded-xl bg-slate-50 border-2 ${errors && !data.name ? 'border-red-500' : 'border-slate-100'}`}
+                    />
                 </FormGroup>
-                <FormGroup label="Phone Number" icon={Phone}>
-                    <Input value={data.cell} onChange={e => onChange({ ...data, cell: e.target.value })} className="h-12 px-4 rounded-xl bg-slate-50" />
+                <FormGroup label="Phone Number" icon={Phone} error={errors && !data.cell ? "Required" : ""}>
+                    <Input
+                        value={data.cell}
+                        onChange={e => {
+                            onChange({ ...data, cell: e.target.value });
+                            if (errors && setErrors) {
+                                if (data.name && e.target.value) {
+                                    const key = label.toLowerCase().replace("'s info", "").replace(" info", "").replace(" contact", "Contact");
+                                    setErrors((prev: any) => ({ ...prev, [key]: "" }));
+                                }
+                            }
+                        }}
+                        className={`h-12 px-4 rounded-xl bg-slate-50 border-2 ${errors && !data.cell ? 'border-red-500' : 'border-slate-100'}`}
+                    />
                 </FormGroup>
                 {hasOccupation && (
                     <FormGroup label="Occupation" icon={Briefcase}>
-                        <Input value={data.occupation} onChange={e => onChange({ ...data, occupation: e.target.value })} className="h-12 px-4 rounded-xl bg-slate-50" />
+                        <Input value={data.occupation} onChange={e => onChange({ ...data, occupation: e.target.value })} className="h-12 px-4 rounded-xl bg-slate-50 border-2 border-slate-100" />
                     </FormGroup>
                 )}
                 {hasRelation && (
                     <FormGroup label="Relation" icon={ShieldAlert}>
-                        <Input value={data.relation} onChange={e => onChange({ ...data, relation: e.target.value })} className="h-12 px-4 rounded-xl bg-slate-50" />
+                        <Input value={data.relation} onChange={e => onChange({ ...data, relation: e.target.value })} className="h-12 px-4 rounded-xl bg-slate-50 border-2 border-slate-100" />
                     </FormGroup>
                 )}
             </div>
