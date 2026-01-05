@@ -1,445 +1,105 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { PageHeader } from "@/components/dashboard/shared/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { studentService, Student } from "@/services/user/student.service";
-import {
-  studentProfileService,
-  StudentProfile,
-} from "@/services/user/studentProfile.service";
+import { studentProfileService, StudentProfile } from "@/services/user/studentProfile.service";
 import { departmentService } from "@/services/academic/department.service";
 import { programService } from "@/services/academic/program.service";
 import { batchService } from "@/services/academic/batch.service";
 import { sessionService } from "@/services/academic/session.service";
+import { Loader2 } from "lucide-react";
 import { notifyError } from "@/components/toast";
 import { getErrorMessage } from "@/lib/utils/toastHelpers";
-import {
-  ArrowLeft,
-  Users,
-  Mail,
-  Phone,
-  Calendar,
-  MapPin,
-  BookOpen,
-  GraduationCap,
-  User,
-  School,
-  Clock,
-  Heart,
-  Flag,
-  CreditCard,
-  Home,
-  Contact,
-} from "lucide-react";
-import Image from "next/image";
-import { getImageUrl } from "@/lib/utils";
+import { StudentDetailClient } from "../../fragments/StudentDetailClient";
 
-export default function StudentDetailsPage() {
+export default function StudentProfilePage() {
   const params = useParams();
-  const router = useRouter();
-  const classroomId = params.id as string;
   const studentId = params.studentId as string;
+  const classroomId = params.id as string;
 
   const [student, setStudent] = useState<Student | null>(null);
   const [profile, setProfile] = useState<StudentProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
   const [departments, setDepartments] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (studentId) fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (studentId) {
+      fetchData();
+    }
   }, [studentId]);
 
   const fetchData = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
-      const [s, p, depts, progs, batchesData, sessionsData] = await Promise.all(
-        [
-          studentService.getById(studentId),
-          // don't let profile failure break the whole page
-          studentProfileService.get(studentId).catch(() => null),
-          departmentService.getAllDepartments(),
-          programService.getAllPrograms(),
-          batchService.getAllBatches(),
-          sessionService.getAllSessions(),
-        ],
-      );
+      const [
+        studentData,
+        profileData,
+        deptList,
+        progList,
+        batchList,
+        sessionList
+      ] = await Promise.all([
+        studentService.getById(studentId),
+        studentProfileService.get(studentId),
+        departmentService.getAllDepartments(),
+        programService.getAllPrograms(),
+        batchService.getAllBatches(),
+        sessionService.getAllSessions()
+      ]);
 
-      setStudent(s);
-      setProfile(p);
-      setDepartments(Array.isArray(depts) ? depts : []);
-      setPrograms(Array.isArray(progs) ? progs : []);
-      setBatches(Array.isArray(batchesData) ? batchesData : []);
-      setSessions(Array.isArray(sessionsData) ? sessionsData : []);
+      setStudent(studentData);
+      setProfile(profileData);
+      setDepartments(deptList || []);
+      setPrograms(progList || []);
+      setBatches(batchList || []);
+      setSessions(sessionList || []);
     } catch (error) {
-      const message = getErrorMessage(error, "Failed to load student details");
-      // Show backend message if present, otherwise fallback
+      const message = getErrorMessage(error, "Failed to load student profile");
       notifyError(message);
-      // Navigate back to classroom listing for a better UX
-      router.push(`/dashboard/teacher/classroom/${classroomId}`);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const getName = (list: any[], id: string) => {
-    const item = list.find((i) => (i.id || i._id) === id);
-    return item ? item.name : "N/A";
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]" />
+        <div className="flex h-[70vh] items-center justify-center">
+          <div className="relative">
+            <div className="h-16 w-16 rounded-full border-t-4 border-indigo-600 animate-spin" />
+            <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-indigo-200 animate-pulse" />
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  if (!student) return null;
+  if (!student) {
+    return (
+      <DashboardLayout>
+        <div className="bg-white border text-center p-20 rounded-3xl">
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Student data not found</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() =>
-              router.push(`/dashboard/teacher/classroom/${classroomId}`)
-            }
-            className="p-2 rounded-full hover:bg-[#dad7cd] transition-colors"
-            aria-label="Back"
-          >
-            <ArrowLeft className="w-5 h-5 text-[#344e41]" />
-          </button>
-
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-[#dad7cd]/50 overflow-hidden shrink-0 border-2 border-[#a3b18a]/30">
-              {student.profile?.profilePicture ? (
-                <Image
-                  src={`${getImageUrl(student.profile.profilePicture)}`}
-                  alt={student.fullName}
-                  width={64}
-                  height={64}
-                  className="h-full w-full object-cover"
-                  loader={({ src }) => src}
-                  unoptimized
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center">
-                  <User className="h-8 w-8 text-[#588157]" />
-                </div>
-              )}
-            </div>
-
-            <PageHeader
-              title={student.fullName}
-              subtitle={student.registrationNumber}
-              icon={undefined}
-              actionLabel={undefined}
-              onAction={undefined}
-            />
-          </div>
-        </div>
-
-        <Tabs defaultValue="academic" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-[#dad7cd]/20 p-1 rounded-lg">
-            <TabsTrigger value="academic">Academic Info</TabsTrigger>
-            <TabsTrigger value="personal">Personal Info</TabsTrigger>
-            <TabsTrigger value="address">Address</TabsTrigger>
-            <TabsTrigger value="guardian">Guardian & Contact</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="academic" className="mt-6">
-            <Card className="border-[#a3b18a]/30">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-[#344e41] flex items-center gap-2">
-                  <School className="h-5 w-5" /> Academic Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-6 md:grid-cols-2">
-                <InfoRow icon={Mail} label="Email" value={student.email} />
-                <InfoRow
-                  icon={School}
-                  label="Department"
-                  value={getName(departments, student.departmentId)}
-                />
-                <InfoRow
-                  icon={BookOpen}
-                  label="Program"
-                  value={getName(programs, student.programId)}
-                />
-                <InfoRow
-                  icon={Users}
-                  label="Batch"
-                  value={getName(batches, student.batchId)}
-                />
-                <InfoRow
-                  icon={Clock}
-                  label="Session"
-                  value={getName(sessions, student.sessionId)}
-                />
-                <InfoRow
-                  icon={Calendar}
-                  label="Admission Date"
-                  value={
-                    student.admissionDate
-                      ? new Date(student.admissionDate).toLocaleDateString()
-                      : "N/A"
-                  }
-                />
-                <InfoRow
-                  icon={GraduationCap}
-                  label="Status"
-                  value={student.enrollmentStatus || "N/A"}
-                  valueClass="capitalize"
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="personal" className="mt-6">
-            <Card className="border-[#a3b18a]/30">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-[#344e41] flex items-center gap-2">
-                  <User className="h-5 w-5" /> Personal Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-6 md:grid-cols-2">
-                {profile ? (
-                  <>
-                    <InfoRow
-                      icon={Phone}
-                      label="Mobile"
-                      value={profile.studentMobile || "N/A"}
-                    />
-                    <InfoRow
-                      icon={User}
-                      label="Gender"
-                      value={profile.gender || "N/A"}
-                    />
-                    <InfoRow
-                      icon={Calendar}
-                      label="Date of Birth"
-                      value={
-                        profile.dateOfBirth
-                          ? new Date(profile.dateOfBirth).toLocaleDateString()
-                          : "N/A"
-                      }
-                    />
-                    <InfoRow
-                      icon={Heart}
-                      label="Blood Group"
-                      value={profile.bloodGroup || "N/A"}
-                    />
-                    <InfoRow
-                      icon={BookOpen}
-                      label="Religion"
-                      value={profile.religion || "N/A"}
-                    />
-                    <InfoRow
-                      icon={Users}
-                      label="Marital Status"
-                      value={profile.maritalStatus || "N/A"}
-                    />
-                    <InfoRow
-                      icon={Flag}
-                      label="Nationality"
-                      value={profile.nationality || "N/A"}
-                    />
-                    <InfoRow
-                      icon={CreditCard}
-                      label="NID / Passport"
-                      value={profile.nidOrPassportNo || "N/A"}
-                    />
-                  </>
-                ) : (
-                  <div className="col-span-2 text-center py-8 text-[#344e41]/60">
-                    No personal information available.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="address" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="border-[#a3b18a]/30">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#344e41] flex items-center gap-2">
-                    <Home className="h-5 w-5" /> Permanent Address
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {profile?.permanentAddress ? (
-                    <>
-                      <InfoRow
-                        icon={MapPin}
-                        label="Street"
-                        value={profile.permanentAddress.street || "N/A"}
-                      />
-                      <InfoRow
-                        icon={MapPin}
-                        label="City"
-                        value={profile.permanentAddress.city || "N/A"}
-                      />
-                      <InfoRow
-                        icon={Flag}
-                        label="Country"
-                        value={profile.permanentAddress.country || "N/A"}
-                      />
-                    </>
-                  ) : (
-                    <div className="text-center py-4 text-[#344e41]/60">
-                      No address details.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <Card className="border-[#a3b18a]/30">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#344e41] flex items-center gap-2">
-                    <Mail className="h-5 w-5" /> Mailing Address
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {profile?.mailingAddress ? (
-                    <>
-                      <InfoRow
-                        icon={MapPin}
-                        label="Street"
-                        value={profile.mailingAddress.street || "N/A"}
-                      />
-                      <InfoRow
-                        icon={MapPin}
-                        label="City"
-                        value={profile.mailingAddress.city || "N/A"}
-                      />
-                      <InfoRow
-                        icon={Flag}
-                        label="Country"
-                        value={profile.mailingAddress.country || "N/A"}
-                      />
-                    </>
-                  ) : (
-                    <div className="text-center py-4 text-[#344e41]/60">
-                      No address details.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="guardian" className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <Card className="border-[#a3b18a]/30">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold text-[#344e41] flex items-center gap-2">
-                    <Users className="h-5 w-5" /> Parents & Guardian
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {profile ? (
-                    <>
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-[#344e41]">Father</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <InfoRow
-                            icon={User}
-                            label="Name"
-                            value={profile.father?.name || "N/A"}
-                          />
-                          <InfoRow
-                            icon={Phone}
-                            label="Cell"
-                            value={profile.father?.cell || "N/A"}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-[#344e41]">Mother</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <InfoRow
-                            icon={User}
-                            label="Name"
-                            value={profile.mother?.name || "N/A"}
-                          />
-                          <InfoRow
-                            icon={Phone}
-                            label="Cell"
-                            value={profile.mother?.cell || "N/A"}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="font-medium text-[#344e41]">Guardian</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                          <InfoRow
-                            icon={User}
-                            label="Name"
-                            value={profile.guardian?.name || "N/A"}
-                          />
-                          <InfoRow
-                            icon={Phone}
-                            label="Cell"
-                            value={profile.guardian?.cell || "N/A"}
-                          />
-                          <InfoRow
-                            icon={School}
-                            label="Occupation"
-                            value={profile.guardian?.occupation || "N/A"}
-                          />
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-4 text-[#344e41]/60">
-                      No guardian details.
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+      <StudentDetailClient
+        student={student}
+        profile={profile}
+        departments={departments}
+        programs={programs}
+        batches={batches}
+        sessions={sessions}
+        classroomId={classroomId}
+      />
     </DashboardLayout>
-  );
-}
-
-// Small reusable info row
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-  valueClass,
-}: {
-  icon: any;
-  label: string;
-  value: string | number | null | undefined;
-  valueClass?: string;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="h-6 w-6 flex items-center justify-center text-[#588157]">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="flex-1">
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className={`text-sm ${valueClass || "text-[#344e41]"}`}>
-          {value ?? "N/A"}
-        </div>
-      </div>
-    </div>
   );
 }
