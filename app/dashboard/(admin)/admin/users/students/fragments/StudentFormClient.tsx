@@ -59,6 +59,8 @@ import {
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { DatePicker } from "@/components/ui/date-picker";
+import { parseISO, format as formatDate } from "date-fns";
 
 interface StudentFormClientProps {
     student?: Student;
@@ -318,7 +320,10 @@ export function StudentFormClient({
                                         </FormGroup>
                                     )}
                                     <FormGroup label="Admission Date" icon={Calendar}>
-                                        <Input type="date" value={basic.admissionDate} onChange={e => setBasic({ ...basic, admissionDate: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                        <DatePicker
+                                            date={basic.admissionDate ? parseISO(basic.admissionDate) : undefined}
+                                            onChange={d => setBasic({ ...basic, admissionDate: d ? formatDate(d, "yyyy-MM-dd") : "" })}
+                                        />
                                     </FormGroup>
                                 </div>
                             </motion.div>
@@ -388,7 +393,10 @@ export function StudentFormClient({
                                         <Input value={profileForm.studentMobile} onChange={e => setProfileForm({ ...profileForm, studentMobile: e.target.value })} placeholder="+X XXX XXX XXXX" className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
                                     </FormGroup>
                                     <FormGroup label="Date of Birth" icon={Calendar}>
-                                        <Input type="date" value={profileForm.dateOfBirth} onChange={e => setProfileForm({ ...profileForm, dateOfBirth: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                        <DatePicker
+                                            date={profileForm.dateOfBirth ? parseISO(profileForm.dateOfBirth) : undefined}
+                                            onChange={d => setProfileForm({ ...profileForm, dateOfBirth: d ? formatDate(d, "yyyy-MM-dd") : "" })}
+                                        />
                                     </FormGroup>
                                     <FormGroup label="Gender" icon={UserIcon}>
                                         <Select value={profileForm.gender} onValueChange={v => setProfileForm({ ...profileForm, gender: v })}>

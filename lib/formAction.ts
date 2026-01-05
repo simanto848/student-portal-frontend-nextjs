@@ -1,6 +1,5 @@
 "use server";
 
-import { consola } from "consola";
 import { z, ZodSchema } from "zod";
 import * as yup from "yup";
 
@@ -150,7 +149,7 @@ export async function createFormAction<T = unknown>(
                 } catch (error) {
                     if (error instanceof yup.ValidationError) {
                         const errors = flattenYupErrors(error);
-                        consola.warn("Yup validation failed:", errors);
+                        console.warn("Yup validation failed:", errors);
 
                         if (config.onValidationError) {
                             await config.onValidationError(errors);
@@ -172,7 +171,7 @@ export async function createFormAction<T = unknown>(
 
                 if (!validation.success) {
                     const errors = flattenZodErrors(validation.error);
-                    consola.warn("Zod validation failed:", errors);
+                    console.warn("Zod validation failed:", errors);
 
                     if (config.onValidationError) {
                         await config.onValidationError(errors);
@@ -252,7 +251,7 @@ export async function createFormAction<T = unknown>(
         }
 
         // Handle other errors
-        consola.error(`${config.method.toUpperCase()} ${config.endpoint} error:`, {
+        console.error(`${config.method.toUpperCase()} ${config.endpoint} error:`, {
             message: errorMessage,
             status: errorResponse?.status,
             data: errorData,

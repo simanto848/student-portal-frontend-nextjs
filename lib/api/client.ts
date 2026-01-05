@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import { ApiError, ApiErrorResponse, ApiResponse } from "@/types/api";
+import { API_CONFIG, AUTH_CONFIG } from "@/config/constants";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const BASE_URL = API_CONFIG.BASE_URL;
 
 let isRefreshing = false;
 let failedQueue: Array<{
@@ -90,7 +91,9 @@ export const createApiClient = (basePath: string = ""): AxiosInstance => {
             localStorage.setItem("refreshToken", newRefreshToken);
           }
 
-          document.cookie = `accessToken=${accessToken}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure`;
+          const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+          const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+          document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 
           processQueue(null, accessToken);
           if (originalRequest.headers) {

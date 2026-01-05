@@ -7,19 +7,37 @@ import { sessionService } from "@/services/academic/session.service";
 import { StudentManagementClient } from "./fragments/StudentManagementClient";
 
 export default async function StudentsPage() {
-  const [studentsData, deletedStudents, departments, programs, batches, sessions] = await Promise.all([
-    studentService.getAll({ limit: 50 }),
-    studentService.getDeleted().catch(() => []),
-    departmentService.getAllDepartments().catch(() => []),
-    programService.getAllPrograms().catch(() => []),
-    batchService.getAllBatches().catch(() => []),
-    sessionService.getAllSessions().catch(() => []),
+  const [studentsResult, deletedStudents, departments, programs, batches, sessions] = await Promise.all([
+    studentService.getAll({ limit: 50 }).catch((error) => {
+      console.error("Failed to fetch students:", error);
+      return { students: [], pagination: undefined };
+    }),
+    studentService.getDeleted().catch((error) => {
+      console.error("Failed to fetch deleted students:", error);
+      return [];
+    }),
+    departmentService.getAllDepartments().catch((error) => {
+      console.error("Failed to fetch departments:", error);
+      return [];
+    }),
+    programService.getAllPrograms().catch((error) => {
+      console.error("Failed to fetch programs:", error);
+      return [];
+    }),
+    batchService.getAllBatches().catch((error) => {
+      console.error("Failed to fetch batches:", error);
+      return [];
+    }),
+    sessionService.getAllSessions().catch((error) => {
+      console.error("Failed to fetch sessions:", error);
+      return [];
+    }),
   ]);
 
   return (
     <DashboardLayout>
       <StudentManagementClient
-        initialStudents={studentsData.students}
+        initialStudents={studentsResult.students || []}
         deletedStudents={deletedStudents}
         departments={Array.isArray(departments) ? departments : []}
         programs={Array.isArray(programs) ? programs : []}
