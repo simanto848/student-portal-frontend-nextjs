@@ -6,6 +6,7 @@ import { EnrollmentDetailClient } from "../fragments/EnrollmentDetailClient";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/userAuth";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export const metadata: Metadata = {
   title: "Lifecycle Detail | Guardian Intelligence",
@@ -17,7 +18,7 @@ interface PageProps {
 }
 
 export default async function EnrollmentDetailsPage({ params }: PageProps) {
-  // requireUser('/login');
+  await requireUser('/login');
 
   const { id } = await params;
 
@@ -35,12 +36,14 @@ export default async function EnrollmentDetailsPage({ params }: PageProps) {
     ]);
 
     return (
-      <EnrollmentDetailClient
-        enrollment={enrollment}
-        student={student}
-        course={course}
-        batch={batch}
-      />
+      <DashboardLayout>
+        <EnrollmentDetailClient
+          enrollment={enrollment}
+          student={student}
+          course={course}
+          batch={batch}
+        />
+      </DashboardLayout>
     );
   } catch (error) {
     return notFound();

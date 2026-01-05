@@ -263,11 +263,19 @@ export function EnrollmentManagementClient({
                 </CardContent>
             </Card>
 
+            {/* Overall Metrics Overlay */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-10">
+                <MetricCard icon={Users} label="Total Managed" value={groupedEnrollments.length} color="amber" />
+                <MetricCard icon={BookOpen} label="Intel Frequency" value={enrollments.length} color="indigo" />
+                <MetricCard icon={Sparkles} label="Success Ratio" value="94.8%" color="emerald" />
+                <MetricCard icon={University} label="Active Streams" value={new Set(enrollments.map(e => e.courseId)).size} color="slate" />
+            </div>
+
             {/* Groups Grid */}
             <div className="space-y-6">
                 <AnimatePresence mode="popLayout">
                     {filteredGroups.length === 0 ? (
-                        <Card className="py-32 text-center bg-white border-2 border-slate-100 rounded-[3rem]">
+                        <Card key="empty-state" className="py-32 text-center bg-white border-2 border-slate-100 rounded-[3rem]">
                             <div className="flex flex-col items-center gap-6 grayscale opacity-20">
                                 <GraduationCap className="w-20 h-20 text-slate-900" />
                                 <p className="text-sm font-black uppercase tracking-widest text-slate-500 italic">No student intel detected in this frequency</p>
@@ -324,7 +332,7 @@ export function EnrollmentManagementClient({
                                                     className="h-10 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] text-slate-400 hover:text-amber-600 hover:bg-amber-50 gap-2 transition-all"
                                                 >
                                                     {expandedStudent === group.studentId ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                                    {expandedStudent === group.studentId ? "Conceal Details" : "Reveal Intelligence"}
+                                                    {expandedStudent === group.studentId ? "Conceal Details" : "Show Details"}
                                                 </Button>
                                             </div>
                                         </div>
@@ -334,6 +342,7 @@ export function EnrollmentManagementClient({
                                     <AnimatePresence>
                                         {expandedStudent === group.studentId && (
                                             <motion.div
+                                                key={`expanded-${group.studentId}`}
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: "auto", opacity: 1 }}
                                                 exit={{ height: 0, opacity: 0 }}
@@ -342,7 +351,7 @@ export function EnrollmentManagementClient({
                                                 <div className="p-8 md:p-10 space-y-4">
                                                     {group.enrollments.map((enrollment, idx) => (
                                                         <div
-                                                            key={enrollment.id}
+                                                            key={`${enrollment.id}-${idx}`}
                                                             className="flex items-center justify-between p-6 bg-white border-2 border-slate-100 rounded-[2rem] hover:border-amber-500/20 hover:shadow-xl hover:shadow-slate-200/50 transition-all group/row"
                                                         >
                                                             <div className="flex items-center gap-6">
@@ -393,14 +402,6 @@ export function EnrollmentManagementClient({
                         ))
                     )}
                 </AnimatePresence>
-            </div>
-
-            {/* Overall Metrics Overlay */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-10">
-                <MetricCard icon={Users} label="Total Managed" value={groupedEnrollments.length} color="amber" />
-                <MetricCard icon={BookOpen} label="Intel Frequency" value={enrollments.length} color="indigo" />
-                <MetricCard icon={Sparkles} label="Success Ratio" value="94.8%" color="emerald" />
-                <MetricCard icon={University} label="Active Streams" value={new Set(enrollments.map(e => e.courseId)).size} color="slate" />
             </div>
         </div>
     );

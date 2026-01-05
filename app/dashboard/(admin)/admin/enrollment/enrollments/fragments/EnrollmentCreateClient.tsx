@@ -214,7 +214,7 @@ export function EnrollmentCreateClient({
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1 flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-amber-500" />
-                                        Target Student
+                                        Student
                                     </label>
                                     <SearchableSelect
                                         options={filteredStudents.map(s => ({
@@ -229,7 +229,7 @@ export function EnrollmentCreateClient({
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1 flex items-center gap-2">
                                         <div className="w-1 h-1 rounded-full bg-amber-500" />
-                                        Target Cohort
+                                        Batch
                                     </label>
                                     <SearchableSelect
                                         options={filteredBatches.map(b => ({
@@ -245,16 +245,16 @@ export function EnrollmentCreateClient({
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Current Phase</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Current Semester</label>
                                     <Input
-                                        value={semester ? `Phase ${semester}` : ""}
+                                        value={semester ? `Semester ${semester}` : ""}
                                         readOnly
                                         className="h-14 border-2 border-slate-100 rounded-2xl bg-slate-50 font-black text-slate-400 tracking-tight"
                                         placeholder="Waiting for cohort..."
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Active Frequency</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 ml-1">Session</label>
                                     <Input
                                         value={sessionName}
                                         readOnly
@@ -269,25 +269,25 @@ export function EnrollmentCreateClient({
                     {/* Action Footer */}
                     <div className="flex items-center justify-between p-10 bg-slate-900 rounded-[2.5rem] shadow-2xl shadow-slate-900/40 border-2 border-slate-800">
                         <div className="hidden md:block">
-                            <p className="text-white font-black text-xl tracking-tighter">Ready for Induction?</p>
+                            <p className="text-white font-black text-xl tracking-tighter">Ready for Enrollment?</p>
                             <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Verify and synchronize student intel</p>
                         </div>
-                        <div className="flex gap-4 w-full md:w-auto">
+                        <div className="flex gap-4 w-full md:w-auto hover:scale-95 transition-all">
                             <Button
                                 type="button"
                                 variant="ghost"
                                 onClick={() => router.back()}
-                                className="h-14 px-8 rounded-2xl text-slate-400 hover:text-white font-black tracking-tight"
+                                className="h-14 px-8 rounded-2xl text-slate-400 hover:text-white font-black tracking-tight hover:cursor-pointer"
                             >
                                 Abort
                             </Button>
                             <Button
                                 type="submit"
                                 disabled={isLoading || !studentId || !batchId || enrichedCourses.length === 0}
-                                className="h-14 px-10 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black tracking-tight flex items-center gap-3 shadow-xl active:scale-95 transition-all w-full md:w-auto"
+                                className="h-14 px-10 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-black tracking-tight flex items-center gap-3 shadow-xl active:scale-95 transition-all w-full md:w-auto hover:cursor-pointer"
                             >
                                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                                Begin Induction
+                                Begin Enrollment
                             </Button>
                         </div>
                     </div>

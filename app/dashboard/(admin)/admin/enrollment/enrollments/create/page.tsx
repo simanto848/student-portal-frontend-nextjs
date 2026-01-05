@@ -1,9 +1,11 @@
+
 import { studentService } from "@/services/user/student.service";
 import { batchService } from "@/services/academic/batch.service";
 import { departmentService } from "@/services/academic/department.service";
 import { EnrollmentCreateClient } from "../fragments/EnrollmentCreateClient";
 import { Metadata } from "next";
 import { requireUser } from "@/lib/auth/userAuth";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export const metadata: Metadata = {
     title: "Intel Induction | Guardian Intelligence",
@@ -11,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateEnrollmentPage() {
-    requireUser('/login');
+    await requireUser('/login');
 
     // Initial data fetching on server
     const [studentsResponse, batchesData, departmentsData] = await Promise.all([
@@ -21,10 +23,12 @@ export default async function CreateEnrollmentPage() {
     ]);
 
     return (
-        <EnrollmentCreateClient
-            students={studentsResponse.students || []}
-            batches={batchesData || []}
-            departments={departmentsData || []}
-        />
+        <DashboardLayout>
+            <EnrollmentCreateClient
+                students={studentsResponse.students || []}
+                batches={batchesData || []}
+                departments={departmentsData || []}
+            />
+        </DashboardLayout>
     );
 }
