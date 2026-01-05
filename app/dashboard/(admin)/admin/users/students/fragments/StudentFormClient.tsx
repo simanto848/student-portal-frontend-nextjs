@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/select";
 import {
     Student,
-    StudentCreatePayload,
-    StudentUpdatePayload,
     studentService,
     EnrollmentStatus
 } from "@/services/user/student.service";
@@ -34,12 +32,9 @@ import {
     ChevronRight,
     ChevronLeft,
     CheckCircle2,
-    Network,
     Sparkles,
     Settings2,
-    Lock,
     Globe,
-    Trash2,
     Loader2,
     ShieldPlus,
     Building2,
@@ -53,9 +48,13 @@ import {
     CreditCard,
     Home,
     Contact,
-    ShieldAlert,
-    Users
+    Users,
+    UploadCloud,
+    RotateCcw,
+    Hash,
+    ShieldAlert
 } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -158,6 +157,23 @@ export function StudentFormClient({
     });
 
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string>(student?.profile?.profilePicture ? (getImageUrl(student.profile.profilePicture) ?? "") : "");
+
+    useEffect(() => {
+        if (!profilePicture) {
+            if (isEdit && student?.profile?.profilePicture) {
+                setPreviewUrl(getImageUrl(student.profile.profilePicture) ?? "");
+            } else {
+                setPreviewUrl("");
+            }
+            return;
+        }
+
+        const objectUrl = URL.createObjectURL(profilePicture);
+        setPreviewUrl(objectUrl);
+
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [profilePicture, isEdit, student, getImageUrl]);
 
     const handleBatchChange = (v: string) => {
         setBasic(prev => {
@@ -316,7 +332,11 @@ export function StudentFormClient({
                                     )}
                                     {isEdit && (
                                         <FormGroup label="Registration Number" icon={Hash}>
-                                            <Input value={basic.registrationNumber} onChange={e => setBasic({ ...basic, registrationNumber: e.target.value })} placeholder="ID Number" className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                            <Input
+                                                value={basic.registrationNumber}
+                                                disabled
+                                                className="h-14 px-6 rounded-2xl bg-slate-100 border-2 border-slate-200 font-bold text-slate-500 cursor-not-allowed opacity-70"
+                                            />
                                         </FormGroup>
                                     )}
                                     <FormGroup label="Admission Date" icon={Calendar}>
@@ -429,15 +449,70 @@ export function StudentFormClient({
                                         <Input value={profileForm.nationality} onChange={e => setProfileForm({ ...profileForm, nationality: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
                                     </FormGroup>
                                 </div>
-                                <FormGroup label="Profile Picture" icon={Sparkles}>
-                                    <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={e => setProfilePicture(e.target.files?.[0] || null)}
-                                        className="h-14 px-6 py-3 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 file:bg-slate-900 file:text-white file:rounded-xl file:border-none file:px-4 file:mr-4 file:text-[10px] file:font-black file:uppercase file:tracking-widest cursor-pointer hover:bg-slate-100 transition-all shadow-sm"
-                                    />
-                                    {profilePicture && <p className="mt-2 text-[10px] font-black text-amber-600 uppercase">Uploading profile picture: {profilePicture.name}</p>}
-                                </FormGroup>
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-2 px-1">
+                                        <Sparkles className="w-3.5 h-3.5 text-slate-400" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Profile Picture</p>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row items-center gap-8 p-8 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 shadow-inner">
+                                        <div className="relative group">
+                                            <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white flex items-center justify-center relative z-10">
+                                                {previewUrl ? (
+                                                    <img
+                                                        src={previewUrl}
+                                                        alt="Preview"
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <UserIcon className="w-12 h-12 text-slate-200" />
+                                                )}
+                                            </div>
+                                            <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg z-20">
+                                                <Sparkles className="w-5 h-5" />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1 space-y-4 w-full">
+                                            <div className="relative group/input">
+                                                <Input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={e => setProfilePicture(e.target.files?.[0] || null)}
+                                                    className="hidden"
+                                                    id="pfp-upload"
+                                                />
+                                                <label
+                                                    htmlFor="pfp-upload"
+                                                    className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-white hover:bg-slate-50 hover:border-amber-500/30 transition-all cursor-pointer group/label"
+                                                >
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                        <UploadCloud className="w-8 h-8 text-slate-400 mb-2 group-hover/label:text-amber-500 transition-colors" />
+                                                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
+                                                            {profilePicture ? profilePicture.name : "Choose profile picture"}
+                                                        </p>
+                                                        <p className="text-[9px] text-slate-400 font-bold mt-1">PNG, JPG or WEBP (MAX. 2MB)</p>
+                                                    </div>
+                                                </label>
+                                            </div>
+
+                                            {profilePicture && (
+                                                <div className="flex items-center justify-between px-2">
+                                                    <p className="text-[10px] font-black text-amber-600 uppercase flex items-center gap-2">
+                                                        <CheckCircle2 className="w-3 h-3" />
+                                                        Ready for upload
+                                                    </p>
+                                                    <button
+                                                        onClick={() => setProfilePicture(null)}
+                                                        className="text-[10px] font-black text-red-500 uppercase hover:text-red-600 transition-colors"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
                             </motion.div>
                         )}
 
@@ -622,4 +697,5 @@ function SummaryItem({ label, value, highlighted = false }: { label: string, val
     );
 }
 
-import { UserPlus, User as UserPlusIcon, RotateCcw, Hash } from "lucide-react";
+
+

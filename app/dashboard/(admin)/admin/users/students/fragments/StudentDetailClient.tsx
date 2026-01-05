@@ -198,7 +198,7 @@ export function StudentDetailClient({
                         </TabsList>
 
                         <AnimatePresence mode="wait">
-                            <TabsContent value="academic">
+                            <TabsContent value="academic" key="academic">
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                                     <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-10">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -211,7 +211,7 @@ export function StudentDetailClient({
                                 </motion.div>
                             </TabsContent>
 
-                            <TabsContent value="personal">
+                            <TabsContent value="personal" key="personal">
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                                     <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-10">
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -226,7 +226,7 @@ export function StudentDetailClient({
                                 </motion.div>
                             </TabsContent>
 
-                            <TabsContent value="locus">
+                            <TabsContent value="locus" key="locus">
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-8">
                                         <div className="flex items-center gap-4 mb-6">
@@ -261,7 +261,7 @@ export function StudentDetailClient({
                                 </motion.div>
                             </TabsContent>
 
-                            <TabsContent value="kin">
+                            <TabsContent value="kin" key="kin">
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-6">
                                         <KinBlock label="Father's Info" icon={UserIcon} name={profile?.father?.name} phone={profile?.father?.cell} />
