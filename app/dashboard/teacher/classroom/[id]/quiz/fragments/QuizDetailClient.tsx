@@ -135,6 +135,7 @@ export function QuizDetailClient({
         studentId: student.id,
         fullName: student.fullName,
         registrationNumber: student.registrationNumber,
+        profilePicture: student.profile?.profilePicture,
         hasAttempted: submissionMap.has(student.id),
         submission: submissionMap.get(student.id),
     }));
@@ -145,6 +146,7 @@ export function QuizDetailClient({
                 studentId: sub.studentId,
                 fullName: `Student ${sub.studentId.slice(-6).toUpperCase()}`,
                 registrationNumber: "EXT-QUIZ",
+                profilePicture: undefined,
                 hasAttempted: true,
                 submission: sub,
             });
@@ -353,6 +355,7 @@ export function QuizDetailClient({
                                         fullName: s.fullName,
                                         registrationNumber: s.registrationNumber,
                                         id: s.studentId,
+                                        profilePicture: s.profilePicture,
                                     }}
                                     attempt={s.submission}
                                     hasAttempted={s.hasAttempted}

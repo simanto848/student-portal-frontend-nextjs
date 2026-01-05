@@ -33,7 +33,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { QuizHeader } from "./QuizHeader";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, getImageUrl } from "@/lib/utils";
 
 interface QuizGradingClientProps {
     quiz: Quiz;
@@ -159,8 +159,16 @@ export function QuizGradingClient({
                     <CardContent className="p-10 relative z-10">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                             <div className="flex items-center gap-6">
-                                <div className="h-20 w-20 rounded-[2rem] bg-white text-slate-900 flex items-center justify-center font-black text-3xl italic shadow-2xl border-4 border-slate-800">
-                                    {student?.fullName.substring(0, 1).toUpperCase() || "A"}
+                                <div className="h-20 w-20 rounded-[2rem] bg-white text-slate-900 flex items-center justify-center font-black text-3xl italic shadow-2xl border-4 border-slate-800 overflow-hidden relative group">
+                                    {student?.profile?.profilePicture ? (
+                                        <img
+                                            src={getImageUrl(student.profile.profilePicture)}
+                                            alt={student.fullName}
+                                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        />
+                                    ) : (
+                                        student?.fullName.substring(0, 1).toUpperCase() || "A"
+                                    )}
                                 </div>
                                 <div>
                                     <h2 className="text-3xl font-black tracking-tight">{student?.fullName || `Student #${attempt.studentId.slice(-8).toUpperCase()}`}</h2>

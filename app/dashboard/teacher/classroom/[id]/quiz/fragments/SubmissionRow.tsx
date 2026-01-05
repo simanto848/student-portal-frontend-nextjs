@@ -14,12 +14,14 @@ import {
     GraduationCap
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { getImageUrl } from "@/lib/utils";
 
 interface SubmissionRowProps {
     student: {
         fullName: string;
         registrationNumber: string;
         id: string;
+        profilePicture?: string;
     };
     attempt?: QuizAttempt;
     hasAttempted: boolean;
@@ -45,8 +47,24 @@ export function SubmissionRow({
         >
             <div className="group relative flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-[2rem] bg-white border-2 border-slate-50 hover:border-indigo-100/50 hover:bg-indigo-50/10 transition-all duration-300 shadow-lg shadow-slate-100/50">
                 <div className="flex items-center gap-5">
-                    <div className="h-14 w-14 rounded-2xl bg-slate-50 border-2 border-white overflow-hidden flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all duration-300 font-black text-xl shadow-sm italic">
-                        {student.fullName.substring(0, 1).toUpperCase()}
+                    <div className="h-14 w-14 rounded-2xl bg-slate-50 border-2 border-white overflow-hidden flex items-center justify-center text-slate-400 group-hover:text-amber-600 group-hover:bg-amber-50 group-hover:border-amber-200 transition-all duration-300 shadow-sm italic relative">
+                        {student.profilePicture ? (
+                            <img
+                                src={getImageUrl(student.profilePicture)}
+                                alt={student.fullName}
+                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                            />
+                        ) : (
+                            student.fullName.substring(0, 1).toUpperCase()
+                        )}
+                        {!student.profilePicture && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-slate-50 text-slate-400 group-hover:text-amber-600 group-hover:bg-amber-50 transition-all duration-300 font-black text-xl italic">
+                                {student.fullName.substring(0, 1).toUpperCase()}
+                            </div>
+                        )}
                     </div>
                     <div>
                         <h4 className="font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
