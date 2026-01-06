@@ -20,7 +20,7 @@ interface AttendanceStatsProps {
 export function AttendanceStats({ summary }: AttendanceStatsProps) {
     const stats = [
         {
-            label: "Live Presence",
+            label: "Present",
             value: summary.present,
             total: summary.total,
             icon: CheckCircle2,
@@ -30,7 +30,7 @@ export function AttendanceStats({ summary }: AttendanceStatsProps) {
             shadow: "shadow-emerald-500/20"
         },
         {
-            label: "Missing Entry",
+            label: "Absent",
             value: summary.absent,
             total: summary.total,
             icon: XCircle,
@@ -40,7 +40,7 @@ export function AttendanceStats({ summary }: AttendanceStatsProps) {
             shadow: "shadow-rose-500/20"
         },
         {
-            label: "Delayed Arrival",
+            label: "Late",
             value: summary.late,
             total: summary.total,
             icon: Clock,
@@ -50,7 +50,7 @@ export function AttendanceStats({ summary }: AttendanceStatsProps) {
             shadow: "shadow-amber-500/20"
         },
         {
-            label: "Authorized Case",
+            label: "Excused",
             value: summary.excused,
             total: summary.total,
             icon: AlertCircle,

@@ -8,7 +8,7 @@ import { AttendanceContent } from "./fragments/AttendanceContent";
 export default function AttendancePage() {
   return (
     <DashboardLayout>
-      <Suspense fallback={<DashboardSkeleton layout="hero-table" rowCount={8} />}>
+      <Suspense fallback={<DashboardSkeleton layout="hero-table" rowCount={8} withLayout={false} />}>
         <AttendanceContent />
       </Suspense>
     </DashboardLayout>

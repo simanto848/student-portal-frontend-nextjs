@@ -264,7 +264,7 @@ export function AttendanceContent() {
     };
 
     if (coursesLoading) {
-        return <DashboardSkeleton layout="hero-table" rowCount={8} />;
+        return <DashboardSkeleton layout="hero-table" rowCount={8} withLayout={false} />;
     }
 
     return (
