@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -8,14 +9,14 @@ import { Workspace, PendingWorkspace } from "@/services/classroom/types";
 import { notifySuccess, notifyError } from "@/components/toast";
 import { getErrorMessage, getSuccessMessage } from "@/lib/utils/toastHelpers";
 import { useRouter } from "next/navigation";
-import { BookOpen, Search, Sparkles, GraduationCap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search, Sparkles, GraduationCap } from "lucide-react";
+import { motion } from "framer-motion";
 import { ClassroomCard } from "./fragments/ClassroomCard";
 import { PendingClassroomCard } from "./fragments/PendingClassroomCard";
 import { Input } from "@/components/ui/input";
 
 export default function ClassroomsPage() {
-  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
+  const { isLoading: authLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [pendingWorkspaces, setPendingWorkspaces] = useState<
@@ -108,7 +109,7 @@ export default function ClassroomsPage() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 p-10 md:p-14 text-white shadow-2xl"
+          className="relative overflow-hidden rounded-[2.5rem] bg-linear-to-br from-indigo-950 via-indigo-900 to-slate-900 p-10 md:p-14 text-white shadow-2xl"
         >
           <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-indigo-500/20 blur-[100px] opacity-50" />
           <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-96 w-96 rounded-full bg-indigo-600/10 blur-[100px] opacity-30" />

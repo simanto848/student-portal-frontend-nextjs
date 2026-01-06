@@ -157,9 +157,12 @@ export const courseGradeService = {
         }
     },
 
-    submitToCommittee: async (id: string): Promise<any> => {
+    submitToCommittee: async (data: string | { courseId: string; batchId: string; semester: number }): Promise<any> => {
         try {
-            const response = await api.post('/enrollment/grades/workflow/submit', { gradeId: id });
+            const payload = typeof data === 'string'
+                ? { gradeId: data }
+                : data;
+            const response = await api.post('/enrollment/grades/workflow/submit', payload);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -205,6 +208,30 @@ export const courseGradeService = {
     publishResult: async (id: string, otp: string): Promise<any> => {
         try {
             const response = await api.post(`/enrollment/grades/workflow/${id}/publish`, { otp });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    // New Methods for Course Final Marks Entry
+    getMarkConfig: async (courseId: string): Promise<any> => {
+        try {
+            const response = await api.get(`/enrollment/grades/mark-config/${courseId}`);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    bulkSaveMarks: async (data: {
+        courseId: string;
+        batchId: string;
+        semester: number;
+        entries: any[];
+    }): Promise<any> => {
+        try {
+            const response = await api.post('/enrollment/grades/bulk-entry', data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
