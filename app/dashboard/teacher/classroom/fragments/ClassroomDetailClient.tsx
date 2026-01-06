@@ -24,7 +24,6 @@ import { CourseGradeView } from "@/components/classroom/CourseGradeView";
 import {
     FileText,
     BookOpen,
-    Users,
     ArrowLeft,
     Sparkles,
     Layers,
@@ -163,7 +162,7 @@ export function ClassroomDetailClient({
             </div>
 
             <Tabs defaultValue="stream" className="w-full">
-                <TabsList className="bg-slate-100/50 p-1.5 rounded-[2rem] gap-2 mb-10 overflow-x-auto inline-flex whitespace-nowrap scrollbar-hide">
+                <TabsList className="bg-slate-100/50 p-1.5 rounded-4xl gap-2 mb-10 overflow-x-auto inline-flex whitespace-nowrap scrollbar-hide">
                     {["Stream", "Classwork", "Quizzes", "People", "Assessments", "Grades"].map(
                         (tab) => (
                             <TabsTrigger
@@ -273,14 +272,14 @@ export function ClassroomDetailClient({
                                         <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
                                             General Content
                                         </h3>
-                                        <div className="flex-1 h-[1px] bg-slate-100" />
+                                        <div className="flex-1 h-px bg-slate-100" />
                                     </div>
                                     {assignments.map((assignment, index) => (
                                         <ClassworkCard
                                             key={`asgn-${assignment.id || index}`}
                                             item={assignment}
                                             type="assignment"
-                                            onEdit={() => { }} // Dialog handle is inside standard JSX usually, but here we can trigger it
+                                            onEdit={() => { }}
                                             onDelete={handleDeleteAssignment}
                                         />
                                     ))}
@@ -319,7 +318,7 @@ export function ClassroomDetailClient({
                                     {teachers.map((teacher, index) => (
                                         <Card
                                             key={`teacher-${teacher.id || index}`}
-                                            className="border-2 border-slate-50 p-6 rounded-[2rem] flex items-center gap-4 bg-white shadow-lg shadow-slate-200/30"
+                                            className="border-2 border-slate-50 p-6 rounded-4xl flex items-center gap-4 bg-white shadow-lg shadow-slate-200/30"
                                         >
                                             <div className="h-14 w-14 rounded-2xl bg-indigo-50 border-2 border-white overflow-hidden flex items-center justify-center text-indigo-600 font-black text-xl shadow-sm">
                                                 {(teacher.fullName || teacher.email || "T")
@@ -389,8 +388,8 @@ export function ClassroomDetailClient({
                             </div>
 
                             <Card className="border-2 border-dashed border-slate-100 rounded-[3rem] p-20 text-center bg-white overflow-hidden relative">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 via-rose-400 to-indigo-400" />
-                                <div className="inline-flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-50 text-slate-200 mb-8">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-400 via-rose-400 to-indigo-400" />
+                                <div className="inline-flex h-20 w-20 items-center justify-center rounded-4xl bg-slate-50 text-slate-200 mb-8">
                                     <FileText className="h-10 w-10 text-slate-300" />
                                 </div>
                                 <h3 className="text-xl font-black text-slate-900 mb-4 px-2">
@@ -467,8 +466,8 @@ export function ClassroomDetailClient({
                                                                 key={`grade-asgn-${assignment.id || index}`}
                                                                 onClick={() => setSelectedAssignmentId(assignment.id)}
                                                                 className={`text-left px-8 py-5 text-sm transition-all relative group ${selectedAssignmentId === assignment.id
-                                                                        ? "bg-indigo-50/50 text-indigo-700 font-black"
-                                                                        : "text-slate-600 font-bold hover:bg-slate-50"
+                                                                    ? "bg-indigo-50/50 text-indigo-700 font-black"
+                                                                    : "text-slate-600 font-bold hover:bg-slate-50"
                                                                     }`}
                                                             >
                                                                 {selectedAssignmentId === assignment.id && (
