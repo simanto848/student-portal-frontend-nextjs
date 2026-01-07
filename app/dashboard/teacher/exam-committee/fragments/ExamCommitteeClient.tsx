@@ -53,7 +53,7 @@ import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { notifySuccess, notifyError, notifyLoading } from "@/components/toast";
 import { ExamCommitteeMember, TeacherOption } from "../types";
-import { addCommitteeMember, removeCommitteeMember, updateCommitteeMember } from "../actions";
+import { addCommitteeMember, removeCommitteeMember, updateCommitteeMember, getDeletedCommitteeMembers, restoreCommitteeMember } from "../actions";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -76,6 +76,11 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
 
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<ExamCommitteeMember | null>(null);
+
+    // Deleted Members State
+    const [isTrashOpen, setIsTrashOpen] = useState(false);
+    const [deletedMembers, setDeletedMembers] = useState<any[]>([]);
+    const [isLoadingTrash, setIsLoadingTrash] = useState(false);
 
     const [selectedTeacher, setSelectedTeacher] = useState("");
     const [selectedShift, setSelectedShift] = useState<"day" | "evening">("day");
@@ -203,6 +208,28 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
         }
     };
 
+    const handleOpenTrash = async () => {
+        setIsTrashOpen(true);
+        setIsLoadingTrash(true);
+        const result = await getDeletedCommitteeMembers(departmentId);
+        if (result.success) {
+            setDeletedMembers(result.data);
+        } else {
+            notifyError(result.error as string);
+        }
+        setIsLoadingTrash(false);
+    };
+
+    const handleRestoreMember = async (id: string) => {
+        const toastId = notifyLoading("Restoring member...");
+        const result = await restoreCommitteeMember(id);
+        if (result.success) {
+            notifySuccess("Member restored successfully", { id: toastId });
+            window.location.reload();
+        } else {
+            notifyError(result.error as string, { id: toastId });
+        }
+    };
 
     const uniqueTeachers = Array.from(new Map(
         teachers.filter(t => t.id).map(t => [t.id, t])
@@ -243,6 +270,14 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                     </div>
 
                     <div className="flex items-center gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={handleOpenTrash}
+                            className="h-12 w-12 rounded-xl border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all p-0 flex items-center justify-center shadow-sm"
+                            title="View Removed Members"
+                        >
+                            <Trash2 className="h-5 w-5" />
+                        </Button>
                         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                             <DialogTrigger asChild>
                                 <Button onClick={handleCreateClick} className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
@@ -415,17 +450,55 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                 </AnimatePresence>
             </div>
 
-            {filteredMembers.length === 0 && (
-                <div className="py-24 text-center">
-                    <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 mb-6">
-                        <Users className="h-8 w-8 text-slate-300" />
+            {/* Trash Dialog */}
+            <Dialog open={isTrashOpen} onOpenChange={setIsTrashOpen}>
+                <DialogContent className="sm:max-w-md rounded-[2rem]">
+                    <DialogHeader>
+                        <DialogTitle>Removed Members</DialogTitle>
+                        <DialogDescription>
+                            Restore previously removed committee members.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                        {isLoadingTrash ? (
+                            <div className="py-8 text-center text-slate-400">Loading...</div>
+                        ) : deletedMembers.length === 0 ? (
+                            <div className="py-8 text-center text-slate-400 text-sm">No removed members found.</div>
+                        ) : (
+                            deletedMembers.map((member) => (
+                                <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                    <div>
+                                        <h4 className="font-bold text-slate-700 text-sm">{getTeacherName(member)}</h4>
+                                        <p className="text-xs text-slate-400">{getTeacherEmail(member)}</p>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-8 px-3 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 font-medium"
+                                        onClick={() => handleRestoreMember(member.id)}
+                                    >
+                                        Restore
+                                    </Button>
+                                </div>
+                            ))
+                        )}
                     </div>
-                    <h3 className="text-xl font-black text-slate-900">No Committee Members</h3>
-                    <p className="text-slate-400 mt-2 max-w-sm mx-auto">
-                        {searchQuery ? "No members match your search." : "Get started by adding teachers to the exam committee."}
-                    </p>
-                </div>
-            )}
-        </div>
+                </DialogContent>
+            </Dialog>
+
+            {
+                filteredMembers.length === 0 && (
+                    <div className="py-24 text-center">
+                        <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 mb-6">
+                            <Users className="h-8 w-8 text-slate-300" />
+                        </div>
+                        <h3 className="text-xl font-black text-slate-900">No Committee Members</h3>
+                        <p className="text-slate-400 mt-2 max-w-sm mx-auto">
+                            {searchQuery ? "No members match your search." : "Get started by adding teachers to the exam committee."}
+                        </p>
+                    </div>
+                )
+            }
+        </div >
     );
 }

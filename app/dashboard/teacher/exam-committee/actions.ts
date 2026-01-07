@@ -139,3 +139,24 @@ export async function removeCommitteeMember(id: string) {
         return { success: false, error: error.response?.data?.message || "Failed to remove member" };
     }
 }
+
+export async function getDeletedCommitteeMembers(departmentId: string) {
+    await requireUser();
+    try {
+        const response = await academicApi.get("/academic/exam-committees/deleted", { params: { departmentId } });
+        return { success: true, data: response.data.data || [] };
+    } catch (error: any) {
+        return { success: false, error: error.response?.data?.message || "Failed to fetch deleted members" };
+    }
+}
+
+export async function restoreCommitteeMember(id: string) {
+    await requireUser();
+    try {
+        await academicApi.patch(`/academic/exam-committees/${id}/restore`);
+        revalidatePath("/dashboard/teacher/exam-committee");
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.response?.data?.message || "Failed to restore member" };
+    }
+}
