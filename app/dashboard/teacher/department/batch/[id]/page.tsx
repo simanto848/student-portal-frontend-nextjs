@@ -15,13 +15,13 @@ import {
   ArrowLeft,
   Users,
   GraduationCap,
-  Building2,
   Calendar,
   UserCheck,
   User,
   Edit2,
   Check,
-  ChevronsUpDown,
+  Layers,
+  Search,
 } from "lucide-react";
 import {
   Dialog,
@@ -38,7 +38,17 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { studentService, Student } from "@/services/user/student.service";
+import { Badge } from "@/components/ui/badge";
 
 export default function TeacherBatchDetailsPage() {
   const params = useParams();
@@ -46,6 +56,7 @@ export default function TeacherBatchDetailsPage() {
   const id = params?.id as string;
 
   const [batch, setBatch] = useState<Batch | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Counselor Assignment State
@@ -62,10 +73,18 @@ export default function TeacherBatchDetailsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoadingTeachers, setIsLoadingTeachers] = useState(false);
   const [isAssigning, setIsAssigning] = useState(false);
+  const [studentSearchQuery, setStudentSearchQuery] = useState("");
+
+  const filteredStudents = students.filter(student =>
+    student.fullName.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
+    student.registrationNumber.toLowerCase().includes(studentSearchQuery.toLowerCase()) ||
+    student.email.toLowerCase().includes(studentSearchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     if (id) {
       fetchBatch();
+      fetchStudents();
     }
   }, [id]);
 
@@ -113,6 +132,15 @@ export default function TeacherBatchDetailsPage() {
     }
   };
 
+  const fetchStudents = async () => {
+    try {
+      const { students } = await studentService.getAll({ batchId: id, limit: 1000 });
+      setStudents(students);
+    } catch (error) {
+      console.error("Failed to fetch students", error);
+    }
+  };
+
   const fetchTeachers = async () => {
     setIsSearching(true);
     try {
@@ -149,7 +177,7 @@ export default function TeacherBatchDetailsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#588157]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
         </div>
       </DashboardLayout>
     );
@@ -172,278 +200,268 @@ export default function TeacherBatchDetailsPage() {
     return "N/A";
   };
 
+  const InfoCard = ({ icon: Icon, title, children, className }: any) => (
+    <div className={cn("bg-white rounded-[1.5rem] shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-300", className)}>
+      <div className="flex items-center gap-3 mb-6">
+        <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+          <Icon className="h-5 w-5" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800">
+          {title}
+        </h2>
+      </div>
+      <div className="space-y-4">
+        {children}
+      </div>
+    </div>
+  );
+
+  const LabelValue = ({ label, value, subValue }: any) => (
+    <div>
+      <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-1 block">
+        {label}
+      </label>
+      <p className="text-base font-bold text-slate-800">
+        {value}
+      </p>
+      {subValue && (
+        <p className="text-sm text-slate-400 mt-0.5">{subValue}</p>
+      )}
+    </div>
+  );
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="text-[#344e41] hover:text-[#588157] hover:bg-[#588157]/10"
+            className="rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800"
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-[#344e41]">Batch Details</h1>
-            <p className="text-[#344e41]/70">{batchDisplayName}</p>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-3xl font-black text-slate-900">Batch Details</h1>
+              <Badge variant="outline" className="text-indigo-600 border-indigo-200 bg-indigo-50 font-bold">
+                {batch.status ? "ACTIVE" : "INACTIVE"}
+              </Badge>
+            </div>
+            <p className="text-slate-500 font-medium">Manage batch information and students</p>
           </div>
         </div>
 
         {/* Content */}
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {/* Basic Info Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-[#588157]/10 rounded-lg">
-                <Users className="h-5 w-5 text-[#588157]" />
-              </div>
-              <h2 className="text-lg font-semibold text-[#344e41]">
-                Basic Information
-              </h2>
+          <InfoCard icon={Layers} title="Basic Information">
+            <div className="grid grid-cols-2 gap-6">
+              <LabelValue label="Batch Name" value={batchDisplayName} />
+              <LabelValue label="Year" value={batch.year} />
             </div>
-
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Batch Name
-                  </label>
-                  <p className="text-base font-medium text-[#344e41]">
-                    {batchDisplayName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Year
-                  </label>
-                  <p className="text-base font-medium text-[#344e41]">
-                    {batch.year}
-                  </p>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  Shift
-                </label>
-                <p className="text-base font-medium text-[#344e41]">
-                  {batch.shift
-                    ? batch.shift === "evening"
-                      ? "Evening"
-                      : "Day"
-                    : "N/A"}
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Current Semester
-                  </label>
-                  <p className="text-base font-medium text-[#344e41]">
-                    {batch.currentSemester}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Status
-                  </label>
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      batch.status
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {batch.status ? "Active" : "Inactive"}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  Session
-                </label>
-                <p className="text-base font-medium text-[#344e41]">
-                  {getName(batch.sessionId)}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-6">
+              <LabelValue label="Shift" value={batch.shift === "evening" ? "Evening" : "Day"} />
+              <LabelValue label="Current Semester" value={`Level-Term ${batch.currentSemester}`} />
             </div>
-          </div>
+            <LabelValue label="Session" value={getName(batch.sessionId)} />
+          </InfoCard>
 
           {/* Academic Info Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-[#588157]/10 rounded-lg">
-                <GraduationCap className="h-5 w-5 text-[#588157]" />
+          <InfoCard icon={GraduationCap} title="Academic Information">
+            <LabelValue label="Program" value={getName(batch.programId)} />
+            <LabelValue label="Department" value={getName(batch.departmentId)} />
+            <div className="grid grid-cols-2 gap-6 py-2">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                <span className="block text-xl font-black text-indigo-600">{batch.maxStudents}</span>
+                <span className="text-xs font-bold text-slate-400 uppercase">Max Students</span>
               </div>
-              <h2 className="text-lg font-semibold text-[#344e41]">
-                Academic Information
-              </h2>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-100 text-center">
+                <span className="block text-xl font-black text-emerald-600">{batch.currentStudents}</span>
+                <span className="text-xs font-bold text-slate-400 uppercase">Enrolled</span>
+              </div>
             </div>
+          </InfoCard>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  Program
-                </label>
-                <p className="text-base font-medium text-[#344e41]">
-                  {getName(batch.programId)}
-                </p>
+          {/* Leadership & Duration Card (Combined or Separate) */}
+          <div className="space-y-6">
+            <InfoCard icon={UserCheck} title="Leadership">
+              <div className="flex items-start justify-between">
+                <LabelValue
+                  label="Counselor"
+                  value={assignedCounselor?.fullName || "Not Assigned"}
+                  subValue={assignedCounselor?.email}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 font-semibold"
+                  onClick={() => setIsAssignDialogOpen(true)}
+                >
+                  <Edit2 className="h-3 w-3 mr-1.5" />
+                  {batch.counselor ? "Change" : "Assign"}
+                </Button>
               </div>
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  Department
-                </label>
-                <p className="text-base font-medium text-[#344e41]">
-                  {getName(batch.departmentId)}
-                </p>
+              <div className="pt-4 border-t border-slate-100">
+                <LabelValue
+                  label="Class Representative"
+                  value={batch.classRepresentative?.fullName || "Not Assigned"}
+                  subValue={batch.classRepresentative?.registrationNumber ? `Reg: ${batch.classRepresentative.registrationNumber}` : undefined}
+                />
               </div>
+            </InfoCard>
+
+            <InfoCard icon={Calendar} title="Duration" className="py-5">
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Max Students
-                  </label>
-                  <p className="text-base font-medium text-[#344e41]">
-                    {batch.maxStudents}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Current Students
-                  </label>
-                  <p className="text-base font-medium text-[#344e41]">
-                    {batch.currentStudents}
-                  </p>
-                </div>
+                <LabelValue
+                  label="Start Date"
+                  value={batch.startDate ? new Date(batch.startDate).toLocaleDateString() : "N/A"}
+                />
+                <LabelValue
+                  label="End Date"
+                  value={batch.endDate ? new Date(batch.endDate).toLocaleDateString() : "N/A"}
+                />
               </div>
-            </div>
+            </InfoCard>
           </div>
+        </div>
 
-          {/* Leadership Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
-            <div className="flex items-center gap-3 mb-6 justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#588157]/10 rounded-lg">
-                  <UserCheck className="h-5 w-5 text-[#588157]" />
-                </div>
-                <h2 className="text-lg font-semibold text-[#344e41]">
-                  Leadership
+        {/* Student List Section */}
+        <div className="bg-white rounded-[1.5rem] shadow-sm border border-slate-200 p-6 md:p-8">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Users className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Enrolled Students
                 </h2>
+                <p className="text-sm text-slate-500 font-medium">Total: {students.length} students</p>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-[#344e41]/70">
-                    Counselor
-                  </label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-[#588157] hover:text-[#344e41] hover:bg-[#588157]/10"
-                    onClick={() => setIsAssignDialogOpen(true)}
-                  >
-                    <Edit2 className="h-3 w-3 mr-1" />
-                    {batch.counselor ? "Change" : "Assign"}
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4 text-[#344e41]/50" />
-                  <p className="text-base font-medium text-[#344e41]">
-                    {assignedCounselor?.fullName || "Not Assigned"}
-                  </p>
-                </div>
-                {assignedCounselor?.email && (
-                  <p className="text-sm text-[#344e41]/70 ml-6">
-                    {assignedCounselor.email}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  Class Representative
-                </label>
-                <div className="flex items-center gap-2 mt-1">
-                  <User className="h-4 w-4 text-[#344e41]/50" />
-                  <p className="text-base font-medium text-[#344e41]">
-                    {batch.classRepresentative?.fullName || "Not Assigned"}
-                  </p>
-                </div>
-                {batch.classRepresentative?.registrationNumber && (
-                  <p className="text-sm text-[#344e41]/70 ml-6">
-                    Reg: {batch.classRepresentative.registrationNumber}
-                  </p>
-                )}
-              </div>
+            <div className="relative w-full md:w-72">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search students..."
+                value={studentSearchQuery}
+                onChange={(e) => setStudentSearchQuery(e.target.value)}
+                className="w-full h-10 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-full text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              />
             </div>
           </div>
 
-          {/* Duration Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-[#a3b18a]/20 p-6">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-[#588157]/10 rounded-lg">
-                <Calendar className="h-5 w-5 text-[#588157]" />
-              </div>
-              <h2 className="text-lg font-semibold text-[#344e41]">Duration</h2>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  Start Date
-                </label>
-                <p className="text-base font-medium text-[#344e41]">
-                  {batch.startDate
-                    ? new Date(batch.startDate).toLocaleDateString()
-                    : "N/A"}
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-[#344e41]/70">
-                  End Date
-                </label>
-                <p className="text-base font-medium text-[#344e41]">
-                  {batch.endDate
-                    ? new Date(batch.endDate).toLocaleDateString()
-                    : "N/A"}
-                </p>
-              </div>
-            </div>
+          <div className="rounded-2xl border border-slate-200 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-slate-50/80">
+                <TableRow className="hover:bg-transparent border-slate-200">
+                  <TableHead className="w-[80px] font-bold text-slate-700">#</TableHead>
+                  <TableHead className="font-bold text-slate-700">Student Info</TableHead>
+                  <TableHead className="font-bold text-slate-700">Registration ID</TableHead>
+                  <TableHead className="font-bold text-slate-700">Email Address</TableHead>
+                  <TableHead className="text-right font-bold text-slate-700">Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredStudents.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center text-slate-400 py-6">
+                        <div className="h-12 w-12 rounded-full bg-slate-50 flex items-center justify-center mb-3">
+                          <Search className="h-6 w-6 text-slate-300" />
+                        </div>
+                        <p className="font-medium">No students found matching your search.</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredStudents.map((student, index) => (
+                    <TableRow
+                      key={student.id}
+                      className="hover:bg-indigo-50/30 transition-colors border-slate-100 cursor-pointer group"
+                      onClick={() => router.push(`/dashboard/teacher/department/student/${student.id}`)}
+                    >
+                      <TableCell className="font-medium text-slate-500 pl-6 group-hover:text-indigo-600 transition-colors">
+                        {(index + 1).toString().padStart(2, '0')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold border border-indigo-200 text-xs shadow-sm">
+                            {student.fullName.charAt(0)}
+                          </div>
+                          <span className="font-bold text-slate-700">{student.fullName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs font-bold text-slate-500 bg-slate-100/50 py-1 px-2 rounded w-fit">
+                        {student.registrationNumber}
+                      </TableCell>
+                      <TableCell className="text-slate-600 font-medium">{student.email}</TableCell>
+                      <TableCell className="text-right pr-6">
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "capitalize font-bold border-0 shadow-none",
+                            student.enrollmentStatus === 'enrolled' && "bg-emerald-100 text-emerald-700",
+                            student.enrollmentStatus === 'graduated' && "bg-blue-100 text-blue-700",
+                            student.enrollmentStatus === 'dropped_out' && "bg-rose-100 text-rose-700",
+                            (!student.enrollmentStatus || student.enrollmentStatus === 'suspended') && "bg-slate-100 text-slate-600"
+                          )}
+                        >
+                          {student.enrollmentStatus?.replace('_', ' ') || 'Unknown'}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="mt-4 text-center text-xs font-medium text-slate-400">
+            Showing {filteredStudents.length} of {students.length} students
           </div>
         </div>
 
         <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Assign Batch Counselor</DialogTitle>
+          <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden bg-white rounded-2xl border-0 shadow-xl">
+            <DialogHeader className="p-6 pb-2">
+              <DialogTitle className="text-xl font-bold text-slate-900">Assign Batch Counselor</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
-              <Command className="rounded-lg border shadow-md">
+            <div className="px-4 pb-4">
+              <Command className="rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <CommandInput
                   placeholder="Search teachers..."
                   value={searchQuery}
                   onValueChange={setSearchQuery}
+                  className="border-none focus:ring-0"
                 />
-                <CommandList>
-                  <CommandEmpty>No teachers found.</CommandEmpty>
+                <CommandList className="max-h-[300px] overflow-y-auto p-1">
+                  <CommandEmpty className="py-6 text-center text-sm text-slate-500">No teachers found.</CommandEmpty>
                   <CommandGroup>
                     {teachers.map((teacher) => (
                       <CommandItem
                         key={teacher.id}
                         value={teacher.fullName}
                         onSelect={() => setSelectedCounselor(teacher)}
-                        className="cursor-pointer"
+                        className="cursor-pointer rounded-lg data-[selected=true]:bg-indigo-50 data-[selected=true]:text-indigo-700 my-1 hover:bg-indigo-50 hover:text-indigo-700 transition-colors"
                       >
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex flex-col">
-                            <span>{teacher.fullName}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {teacher.email}
-                            </span>
+                        <div className="flex items-center justify-between w-full p-1">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-600">
+                              {teacher.fullName.charAt(0)}
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="font-semibold">{teacher.fullName}</span>
+                              <span className="text-xs text-slate-500">
+                                {teacher.email}
+                              </span>
+                            </div>
                           </div>
                           {selectedCounselor?.id === teacher.id && (
-                            <Check className="h-4 w-4 text-green-600" />
+                            <Check className="h-4 w-4 text-indigo-600" />
                           )}
                         </div>
                       </CommandItem>
@@ -452,16 +470,18 @@ export default function TeacherBatchDetailsPage() {
                 </CommandList>
               </Command>
             </div>
-            <DialogFooter>
+            <DialogFooter className="p-6 pt-2 flex gap-2 bg-slate-50 border-t border-slate-100">
               <Button
                 variant="outline"
                 onClick={() => setIsAssignDialogOpen(false)}
+                className="rounded-xl border-slate-200 hover:bg-white hover:text-slate-900"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleAssignCounselor}
                 disabled={!selectedCounselor}
+                className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-200"
               >
                 Assign Selected
               </Button>
