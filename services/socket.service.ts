@@ -11,7 +11,7 @@ class SocketService {
   private sockets: Map<SocketConnectionType, Socket> = new Map();
   private static instance: SocketService;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): SocketService {
     if (!SocketService.instance) {
@@ -37,10 +37,10 @@ class SocketService {
 
     // Default URLs for different connection types
     const defaultUrls: Record<SocketConnectionType, string> = {
-      chat: process.env.NEXT_PUBLIC_CHAT_SOCKET_URL || "http://localhost:8012",
+      chat: process.env.NEXT_PUBLIC_CHAT_SOCKET_URL || "http://localhost:8004",
       notification:
         process.env.NEXT_PUBLIC_NOTIFICATION_SOCKET_URL ||
-        "http://localhost:8010",
+        "http://localhost:8007",
     };
 
     const url = config?.url || defaultUrls[type];
