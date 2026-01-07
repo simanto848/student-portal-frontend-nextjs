@@ -1,4 +1,4 @@
-import { api, handleApiError, extractArrayData, extractItemData } from './academic/axios-instance';
+import { academicApi as api, handleApiError, extractArrayData, extractItemData } from './academic/axios-instance';
 
 export interface Teacher {
     id: string;

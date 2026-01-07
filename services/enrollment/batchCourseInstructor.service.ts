@@ -1,4 +1,4 @@
-import { api, handleApiError } from "../academic/axios-instance";
+import { academicApi as api, handleApiError } from "../academic/axios-instance";
 import { batchService } from "../academic/batch.service";
 import { courseService } from "../academic/course.service";
 import { Batch, Course } from "../academic/types";

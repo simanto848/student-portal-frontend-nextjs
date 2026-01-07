@@ -1,4 +1,4 @@
-import { api, handleApiError, extractArrayData, extractItemData } from './axios-instance';
+import { academicApi as api, handleApiError, extractArrayData, extractItemData } from './axios-instance';
 import { SessionCourse } from './types';
 
 export const sessionCourseService = {

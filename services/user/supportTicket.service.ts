@@ -1,4 +1,4 @@
-import { api } from "@/services/academic/axios-instance";
+import { academicApi as api } from "@/services/academic/axios-instance";
 
 export type TicketStatus = "open" | "in_progress" | "pending_user" | "resolved" | "closed";
 export type TicketPriority = "low" | "medium" | "high" | "urgent";

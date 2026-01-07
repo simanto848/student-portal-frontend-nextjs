@@ -306,13 +306,13 @@ export const teacherNavigation: NavItem[] = [
     href: "/dashboard/teacher/exam-committee",
     label: "Exam Committee",
     icon: Users,
-    condition: (user) => isTeacherUser(user) && user.isDepartmentHead,
+    condition: (user) => (isTeacherUser(user) && user.isDepartmentHead) || user.role === UserRole.DEPARTMENT_HEAD,
   },
   {
     href: "/dashboard/teacher/department",
     label: "Department",
     icon: Building2,
-    condition: (user) => isTeacherUser(user) && user.isDepartmentHead,
+    condition: (user) => (isTeacherUser(user) && user.isDepartmentHead) || user.role === UserRole.DEPARTMENT_HEAD,
   }
 ];
 
@@ -432,10 +432,13 @@ export const navigationConfig: Record<string, NavItem[]> = {
   [UserRole.PROGRAM_CONTROLLER]: programControllerNavigation,
   [UserRole.LIBRARY]: librarianNavigation,
   [UserRole.STAFF]: defaultStaffNavigation,
+  [UserRole.DEPARTMENT_HEAD]: teacherNavigation,
 };
 
 // ===================== Helper Functions =====================
 export function getNavigationForUser(user: User | null): NavItem[] {
+  if (!user) return [];
+  // ...
   if (!user) return [];
   const normalizedRole = user.role.toLowerCase() as UserRole;
   const baseNavigation = navigationConfig[normalizedRole] || [];

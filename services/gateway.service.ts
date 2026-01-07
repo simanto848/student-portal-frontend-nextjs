@@ -1,4 +1,4 @@
-import { api } from "@/services/academic/axios-instance";
+import { academicApi as api } from "@/services/academic/axios-instance";
 
 export interface ServiceMetrics {
     key: string;

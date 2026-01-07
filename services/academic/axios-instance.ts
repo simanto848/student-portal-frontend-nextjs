@@ -3,12 +3,12 @@ import { getAuthToken } from '@/lib/authHelper';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
-export const api = axios.create({
+export const academicApi = axios.create({
     baseURL: API_URL,
     withCredentials: true,
 });
 
-api.interceptors.request.use(async (config) => {
+academicApi.interceptors.request.use(async (config: any) => {
     const token = await getAuthToken();
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;

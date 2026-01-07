@@ -17,6 +17,7 @@ export enum UserRole {
   HOSTEL_WARDEN = "hostel_warden",
   HOSTEL_SUPERVISOR = "hostel_supervisor",
   MAINTENANCE = "maintenance",
+  DEPARTMENT_HEAD = "department_head",
 }
 
 export const ADMIN_ROLES: UserRole[] = [
