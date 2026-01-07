@@ -12,10 +12,14 @@ import {
     GraduationCap,
     Calendar,
     Award,
-    BadgeCheck,
+    Sparkles,
 } from "lucide-react";
 import { studentService, Student } from "@/services/user/student.service";
 import { courseGradeService, CourseGrade } from "@/services/enrollment/courseGrade.service";
+import { batchService } from "@/services/academic/batch.service";
+import { programService } from "@/services/academic/program.service";
+import { sessionService } from "@/services/academic/session.service";
+import { departmentService } from "@/services/academic/department.service";
 import { Badge } from "@/components/ui/badge";
 import {
     Table,
@@ -27,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import StudentDetailsDialog from "../../fragments/StudentDetailsDialog";
 
 export default function StudentDetailsPage() {
     const params = useParams();
@@ -38,6 +43,14 @@ export default function StudentDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [cgpa, setCgpa] = useState<number | null>(null);
 
+    // Reference Data
+    const [batches, setBatches] = useState<any[]>([]);
+    const [programs, setPrograms] = useState<any[]>([]);
+    const [sessions, setSessions] = useState<any[]>([]);
+    const [departments, setDepartments] = useState<any[]>([]);
+
+    const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+
     useEffect(() => {
         if (studentId) {
             fetchStudentDetails();
@@ -47,14 +60,29 @@ export default function StudentDetailsPage() {
     const fetchStudentDetails = async () => {
         setIsLoading(true);
         try {
-            // Fetch functionality
-            const [studentData, gradesData] = await Promise.all([
+            // Fetch everything in parallel
+            const [
+                studentData,
+                gradesData,
+                batchesData,
+                programsData,
+                sessionsData,
+                departmentsData
+            ] = await Promise.all([
                 studentService.getById(studentId),
-                courseGradeService.list({ studentId, limit: 1000 }) // Fetch all grades for the student
+                courseGradeService.list({ studentId, limit: 1000 }),
+                batchService.getAllBatches({ limit: 1000 }),
+                programService.getAllPrograms(),
+                sessionService.getAllSessions(),
+                departmentService.getAllDepartments()
             ]);
 
             setStudent(studentData);
             setGrades(gradesData.grades || []);
+            setBatches(batchesData);
+            setPrograms(programsData);
+            setSessions(sessionsData);
+            setDepartments(departmentsData);
 
             // Calculate or fetch CGPA if available
             try {
@@ -93,6 +121,25 @@ export default function StudentDetailsPage() {
             </DashboardLayout>
         )
     }
+
+    // Helper functions for manual name resolution
+    const getName = (list: any[], id: string) => {
+        const item = list.find((i) => (i.id || i._id) === id);
+        return item ? item.name : "N/A";
+    };
+
+    const getProgramName = (id: string) => {
+        const item = programs.find((i) => (i.id || i._id) === id);
+        return item ? (item.shortName || item.name) : "N/A";
+    };
+
+    const getBatchLabel = (bId: string) => {
+        const b = batches.find(x => (x.id || x._id) === bId);
+        if (!b) return "N/A";
+        const shift = String(b.shift || "").toLowerCase();
+        const prefix = shift === "evening" ? "E" : "D";
+        return `${prefix}-${b.name || b.code}`;
+    };
 
     const InfoCard = ({ icon: Icon, title, children, className }: any) => (
         <div className={cn("bg-white rounded-[1.5rem] shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow duration-300", className)}>
@@ -137,30 +184,40 @@ export default function StudentDetailsPage() {
         <DashboardLayout>
             <div className="space-y-8 max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => router.back()}
-                        className="rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800"
-                    >
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h1 className="text-3xl font-black text-slate-900">{student.fullName}</h1>
-                            <Badge variant="outline" className={cn(
-                                "font-bold border-0 shadow-none",
-                                student.enrollmentStatus === 'enrolled' && "bg-emerald-100 text-emerald-700",
-                                student.enrollmentStatus === 'graduated' && "bg-blue-100 text-blue-700",
-                                student.enrollmentStatus === 'dropped_out' && "bg-rose-100 text-rose-700",
-                                (!student.enrollmentStatus || student.enrollmentStatus === 'suspended') && "bg-slate-100 text-slate-600"
-                            )}>
-                                {student.enrollmentStatus?.replace('_', ' ').toUpperCase() || "UNKNOWN"}
-                            </Badge>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => router.back()}
+                            className="rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800"
+                        >
+                            <ArrowLeft className="h-6 w-6" />
+                        </Button>
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h1 className="text-3xl font-black text-slate-900">{student.fullName}</h1>
+                                <Badge variant="outline" className={cn(
+                                    "font-bold border-0 shadow-none",
+                                    student.enrollmentStatus === 'enrolled' && "bg-emerald-100 text-emerald-700",
+                                    student.enrollmentStatus === 'graduated' && "bg-blue-100 text-blue-700",
+                                    student.enrollmentStatus === 'dropped_out' && "bg-rose-100 text-rose-700",
+                                    (!student.enrollmentStatus || student.enrollmentStatus === 'suspended') && "bg-slate-100 text-slate-600"
+                                )}>
+                                    {student.enrollmentStatus?.replace('_', ' ').toUpperCase() || "UNKNOWN"}
+                                </Badge>
+                            </div>
+                            <p className="text-slate-500 font-medium">Student Profile & Academic Record</p>
                         </div>
-                        <p className="text-slate-500 font-medium">Student Profile & Academic Record</p>
                     </div>
+
+                    <Button
+                        onClick={() => setIsDetailsDialogOpen(true)}
+                        className="rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-200 font-bold px-6 py-6"
+                    >
+                        <Sparkles className="h-5 w-5 mr-2" />
+                        View Full Details
+                    </Button>
                 </div>
 
                 {/* Overview Cards */}
@@ -173,11 +230,11 @@ export default function StudentDetailsPage() {
 
                     <InfoCard icon={GraduationCap} title="Academic Info">
                         <div className="grid grid-cols-2 gap-4">
-                            <LabelValue label="Batch" value={student.batch?.name ? (student.batch.shift === 'evening' ? `E-${student.batch.name}` : `D-${student.batch.name}`) : "N/A"} />
-                            <LabelValue label="Session" value={student.session?.name} />
+                            <LabelValue label="Batch" value={getBatchLabel(student.batchId)} />
+                            <LabelValue label="Session" value={getName(sessions, student.sessionId)} />
                         </div>
-                        <LabelValue label="Program" value={student.program?.shortName} />
-                        <LabelValue label="Department" value={student.department?.name} />
+                        <LabelValue label="Program" value={getProgramName(student.programId)} />
+                        <LabelValue label="Department" value={getName(departments, student.departmentId)} />
                     </InfoCard>
 
                     <InfoCard icon={Award} title="Performance">
@@ -266,6 +323,16 @@ export default function StudentDetailsPage() {
                         ))
                     )}
                 </div>
+
+                <StudentDetailsDialog
+                    isOpen={isDetailsDialogOpen}
+                    onOpenChange={setIsDetailsDialogOpen}
+                    student={student}
+                    batches={batches}
+                    programs={programs}
+                    sessions={sessions}
+                    departments={departments}
+                />
             </div>
         </DashboardLayout>
     );
