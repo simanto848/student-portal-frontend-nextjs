@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useCallback, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { socketService } from "@/services/socket.service";
 import { notificationKeys } from "@/hooks/queries/useNotificationQueries";
@@ -20,6 +20,7 @@ export function useNotificationSocket(
 ) {
   const { enabled = true, onNotificationReceived } = options;
   const queryClient = useQueryClient();
+  const [isConnected, setIsConnected] = useState(socketService.isConnected("notification"));
   const isConnectedRef = useRef(false);
 
   const handleNotificationPublished = useCallback(
@@ -105,6 +106,11 @@ export function useNotificationSocket(
     if (socket && !isConnectedRef.current) {
       isConnectedRef.current = true;
 
+      // Listen for connection events
+      socket.on("connect", () => setIsConnected(true));
+      socket.on("disconnect", () => setIsConnected(false));
+      socket.on("connect_error", () => setIsConnected(false));
+
       // Listen for new notifications
       socket.on("notification.published", handleNotificationPublished);
 
@@ -112,6 +118,9 @@ export function useNotificationSocket(
       socket.on("notification.read", handleNotificationRead);
 
       console.log("[NotificationSocket] Listeners attached");
+
+      // Initial state
+      setIsConnected(socket.connected);
     }
 
     return () => {
@@ -138,7 +147,7 @@ export function useNotificationSocket(
   }, [handleNotificationPublished, handleNotificationRead]);
 
   return {
-    isConnected: socketService.isConnected("notification"),
+    isConnected,
     reconnect,
   };
 }

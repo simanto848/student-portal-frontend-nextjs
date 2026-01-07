@@ -71,12 +71,12 @@ export function DatePicker({
                 <Button
                     variant={"outline"}
                     className={cn(
-                        "h-14 w-full justify-start text-left font-bold px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 hover:border-amber-500/30 hover:bg-white transition-all group",
+                        "h-14 w-full justify-start text-left font-bold px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 hover:border-indigo-500/30 hover:bg-white transition-all group",
                         !date && "text-slate-400",
                         className
                     )}
                 >
-                    <CalendarIcon className="mr-3 h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                    <CalendarIcon className="mr-3 h-5 w-5 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                     {date ? format(date, "PPP") : <span>{placeholder}</span>}
                     <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
@@ -87,12 +87,12 @@ export function DatePicker({
                         value={getYear(calendarMonth).toString()}
                         onValueChange={handleYearChange}
                     >
-                        <SelectTrigger className="h-9 w-[90px] bg-white border-slate-200 rounded-lg font-semibold text-sm focus:ring-0 focus:border-amber-400">
+                        <SelectTrigger className="h-9 w-[90px] bg-white border-slate-200 rounded-lg font-semibold text-sm focus:ring-0 focus:border-indigo-400">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-lg border-slate-200 shadow-lg max-h-[200px]">
                             {years.map((year) => (
-                                <SelectItem key={year} value={year.toString()} className="font-medium text-sm hover:bg-amber-50 hover:text-amber-700 focus:bg-amber-50 focus:text-amber-700 cursor-pointer">
+                                <SelectItem key={year} value={year.toString()} className="font-medium text-sm hover:bg-indigo-50 hover:text-indigo-700 focus:bg-indigo-50 focus:text-indigo-700 cursor-pointer">
                                     {year}
                                 </SelectItem>
                             ))}
@@ -103,12 +103,12 @@ export function DatePicker({
                         value={months[getMonth(calendarMonth)]}
                         onValueChange={handleMonthChange}
                     >
-                        <SelectTrigger className="h-9 w-[110px] bg-white border-slate-200 rounded-lg font-semibold text-sm focus:ring-0 focus:border-amber-400">
+                        <SelectTrigger className="h-9 w-[110px] bg-white border-slate-200 rounded-lg font-semibold text-sm focus:ring-0 focus:border-indigo-400">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-lg border-slate-200 shadow-lg">
                             {months.map((month) => (
-                                <SelectItem key={month} value={month} className="font-medium text-sm hover:bg-amber-50 hover:text-amber-700 focus:bg-amber-50 focus:text-amber-700 cursor-pointer">
+                                <SelectItem key={month} value={month} className="font-medium text-sm hover:bg-indigo-50 hover:text-indigo-700 focus:bg-indigo-50 focus:text-indigo-700 cursor-pointer">
                                     {month}
                                 </SelectItem>
                             ))}

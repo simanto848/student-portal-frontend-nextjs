@@ -47,11 +47,11 @@ class SocketService {
     const authToken = config?.authToken || this.getAuthTokenFromStorage();
 
     const socket = io(url, {
-      transports: ["websocket"],
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
+      forceNew: true,
       auth: authToken ? { token: authToken } : undefined,
       query: authToken ? { token: authToken } : undefined,
     });
