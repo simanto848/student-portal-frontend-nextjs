@@ -3,8 +3,9 @@ import { borrowingService } from "@/services/library/borrowing.service";
 import { bookService } from "@/services/library/book.service";
 import { bookCopyService } from "@/services/library/bookCopy.service";
 import { libraryService } from "@/services/library/library.service";
+import { reservationService } from "@/services/library/reservation.service";
 import { libraryApi } from "@/services/library/axios-instance";
-import { BorrowingStatus, LibraryStatus } from "@/services/library/types";
+import { BorrowingStatus, LibraryStatus, Borrowing, Reservation } from "@/services/library/types";
 
 // ==================================== Query Keys ========================================
 export const libraryKeys = {
@@ -184,48 +185,49 @@ export function useBorrowings(params?: {
 }
 
 // Fetch current user's borrowed books
-export function useMyBorrowedBooks(params?: { page?: number; limit?: number }) {
+export function useMyBorrowedBooks(
+  params?: { page?: number; limit?: number },
+  options?: { initialData?: Borrowing[] }
+) {
   return useQuery({
     queryKey: libraryKeys.myBorrowed(),
     queryFn: () => borrowingService.getMyBorrowedBooks(params),
+    initialData: options?.initialData,
   });
 }
 
 // Fetch current user's overdue books
-export function useMyOverdueBooks() {
+export function useMyOverdueBooks(options?: { initialData?: Borrowing[] }) {
   return useQuery({
     queryKey: libraryKeys.myOverdue(),
     queryFn: () => borrowingService.getMyOverdueBooks(),
+    initialData: options?.initialData,
   });
 }
 
 // Fetch current user's borrowing history
-export function useMyBorrowingHistory(params?: {
-  page?: number;
-  limit?: number;
-}) {
+export function useMyBorrowingHistory(
+  params?: { page?: number; limit?: number },
+  options?: { initialData?: Borrowing[] }
+) {
   return useQuery({
     queryKey: libraryKeys.myHistory(params),
     queryFn: () => borrowingService.getMyBorrowingHistory(params),
+    initialData: options?.initialData,
   });
 }
 
 // ==================================== Reservation Queries ========================================
 
 // Fetch current user's active reservations
-export function useMyReservations(params?: {
-  page?: number;
-  limit?: number;
-  status?: string;
-}) {
+export function useMyReservations(
+  params?: { page?: number; limit?: number; status?: string },
+  options?: { initialData?: Reservation[] }
+) {
   return useQuery({
     queryKey: libraryKeys.myReservations(params),
-    queryFn: async () => {
-      // Note: We'll use the getAll with userId filter if a dedicated my-reservations isn't clear, 
-      // but the backend has /library/reservations/my-reservations
-      const response = await libraryApi.get("/library/reservations/my-reservations", { params });
-      return response.data.data;
-    },
+    queryFn: () => reservationService.getMyReservations(params as any),
+    initialData: options?.initialData,
   });
 }
 
@@ -366,17 +368,26 @@ export function useCancelReservation() {
 // =================================== Combined Hooks for Common Use Cases =========================================
 
 // Hook to get all library data for student dashboard
-export function useStudentLibraryDashboard() {
-  const borrowedQuery = useMyBorrowedBooks();
-  const overdueQuery = useMyOverdueBooks();
-  const historyQuery = useMyBorrowingHistory({ limit: 10 });
-  const reservationsQuery = useMyReservations({ status: 'pending' });
+export function useStudentLibraryDashboard(
+  options?: {
+    initialData?: {
+      borrowed: Borrowing[];
+      overdue: Borrowing[];
+      history: Borrowing[];
+      reservations: Reservation[];
+    }
+  }
+) {
+  const borrowedQuery = useMyBorrowedBooks(undefined, { initialData: options?.initialData?.borrowed });
+  const overdueQuery = useMyOverdueBooks({ initialData: options?.initialData?.overdue });
+  const historyQuery = useMyBorrowingHistory({ limit: 10 }, { initialData: options?.initialData?.history });
+  const reservationsQuery = useMyReservations({ status: 'pending' }, { initialData: options?.initialData?.reservations });
 
   return {
     borrowed: borrowedQuery.data ?? [],
     overdue: overdueQuery.data ?? [],
     history: historyQuery.data ?? [],
-    reservations: reservationsQuery.data?.reservations ?? [],
+    reservations: reservationsQuery.data ?? [],
     isLoading:
       borrowedQuery.isLoading ||
       overdueQuery.isLoading ||

@@ -298,11 +298,22 @@ export const teacherNavigation: NavItem[] = [
     icon: Calendar,
   },
   {
+    href: "/dashboard/teacher/library",
+    label: "Library",
+    icon: BookOpen,
+  },
+  {
     href: "/dashboard/teacher/exam-committee",
     label: "Exam Committee",
     icon: Users,
     condition: (user) => isTeacherUser(user) && user.isDepartmentHead,
   },
+  {
+    href: "/dashboard/teacher/department",
+    label: "Department",
+    icon: Building2,
+    condition: (user) => isTeacherUser(user) && user.isDepartmentHead,
+  }
 ];
 
 // ===================== Student Navigation =====================

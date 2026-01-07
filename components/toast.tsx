@@ -18,6 +18,7 @@ const getPath = (obj: any, path: string) => {
 export type ToastType = "success" | "error" | "info" | "warning" | "loading";
 
 interface ToastOptions {
+  id?: string;
   duration?: number;
   position?:
   | "top-left"
@@ -90,7 +91,7 @@ export const notify = (
   type: ToastType = "info",
   options?: ToastOptions
 ) => {
-  const toastId = toast.loading("", { duration: 0 }); // Create a toast ID for dismissal
+  const toastId = options?.id || toast.loading("", { duration: 0 }); // Create a toast ID for dismissal
   const icon = getToastIcon(type, toastId);
   const style = getToastStyle(type);
 

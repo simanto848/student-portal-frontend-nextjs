@@ -18,7 +18,7 @@ export interface ReservationUpdatePayload {
   expiryDate?: string;
 }
 
-const normalizeReservation = (data: unknown): Reservation => {
+export const normalizeReservation = (data: unknown): Reservation => {
   const d = data as Record<string, unknown>;
 
   // Handle populated copyId
@@ -190,6 +190,22 @@ export const reservationService = {
         reason,
       });
       return normalizeReservation(extractLibraryItemData(res));
+    } catch (error) {
+      handleLibraryApiError(error);
+      throw error as Error;
+    }
+  },
+
+  getMyReservations: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: ReservationStatus;
+  }): Promise<Reservation[]> => {
+    try {
+      const res = await libraryApi.get("/library/reservations/my-reservations", { params });
+      const data = res.data as any;
+      const raw = data.data?.reservations ?? data.data ?? [];
+      return Array.isArray(raw) ? raw.map(normalizeReservation) : [];
     } catch (error) {
       handleLibraryApiError(error);
       throw error as Error;
