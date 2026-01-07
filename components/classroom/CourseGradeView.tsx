@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,8 +16,11 @@ import {
   CourseGrade,
 } from "@/services/enrollment/courseGrade.service";
 import { enrollmentService } from "@/services/enrollment/enrollment.service";
-import { Loader2, Calculator, Send, Eye } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2, Calculator, Send, Lock, AlertCircle } from "lucide-react";
+import { notifyError, notifySuccess } from "@/components/toast";
+import { CourseFinalMarksEntry } from "@/components/classroom/CourseFinalMarksEntry";
+import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 interface CourseGradeViewProps {
   courseId: string;
@@ -31,15 +34,12 @@ export function CourseGradeView({
   semester,
 }: CourseGradeViewProps) {
   const [grades, setGrades] = useState<CourseGrade[]>([]);
-  const [students, setStudents] = useState<any[]>([]);
+  const [students, setStudents] = useState<Record<string, unknown>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [workflowStatus, setWorkflowStatus] = useState<string>("draft");
 
-  useEffect(() => {
-    fetchData();
-  }, [courseId, batchId]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Fetch enrolled students
@@ -51,26 +51,41 @@ export function CourseGradeView({
       setStudents(enrollmentsData.enrollments.map((e) => e.student));
 
       // Fetch existing grades
-      const gradesData = await courseGradeService.list({
+      const gradesResponse = await courseGradeService.list({
         batchId,
         courseId,
       });
-      setGrades(gradesData.grades || []);
-    } catch (error) {
-      toast.error("Failed to fetch grade data");
+
+      // Handle both array and object response formats
+      const gradesList = Array.isArray(gradesResponse)
+        ? gradesResponse
+        : gradesResponse?.grades || [];
+      setGrades(gradesList);
+
+      // Determine workflow status from grades
+      if (gradesList && gradesList.length > 0) {
+        const firstGrade = gradesList[0];
+        setWorkflowStatus(firstGrade.status || "draft");
+      }
+    } catch {
+      notifyError("Failed to fetch grade data");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [courseId, batchId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCalculate = async (studentId: string) => {
     setIsCalculating(true);
     try {
       await courseGradeService.calculate({ studentId, courseId, batchId });
-      toast.success("Grade calculated");
+      notifySuccess("Grade calculated");
       fetchData();
-    } catch (error) {
-      toast.error("Failed to calculate grade");
+    } catch {
+      notifyError("Failed to calculate grade");
     } finally {
       setIsCalculating(false);
     }
@@ -85,143 +100,258 @@ export function CourseGradeView({
       return;
     try {
       const gradeIds = grades
-        .filter((g) => g.workflowStatus === "draft")
-        .map((g) => g.id);
+        .filter((g: CourseGrade) => g.status === "pending" || g.status === "calculated")
+        .map((g: CourseGrade) => g.id);
       if (gradeIds.length === 0) {
-        toast.error("No draft grades to submit");
+        notifyError("No pending grades to submit");
         return;
       }
       await Promise.all(
-        gradeIds.map((id) => courseGradeService.submitToCommittee(id))
+        gradeIds.map((id: string) => courseGradeService.submitToCommittee(id))
       );
-      toast.success("Grades submitted to committee");
+      notifySuccess("Grades submitted to committee");
       fetchData();
-    } catch (error) {
-      toast.error("Failed to submit grades");
+    } catch {
+      notifyError("Failed to submit grades");
     }
   };
 
   const getGradeForStudent = (studentId: string) => {
-    return grades.find((g) => g.studentId === studentId);
+    return grades.find((g: CourseGrade) => g.studentId === studentId);
   };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+      case "draft":
+        return "bg-yellow-100 text-yellow-800";
+      case "calculated":
+      case "hand_over":
+        return "bg-blue-100 text-blue-800";
+      case "submitted_to_committee":
+        return "bg-purple-100 text-purple-800";
+      case "committee_approved":
+        return "bg-cyan-100 text-cyan-800";
+      case "published":
+      case "finalized":
+        return "bg-green-100 text-green-800";
+      case "returned_to_teacher":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: "Pending",
+      draft: "Draft",
+      calculated: "Calculated",
+      hand_over: "Handed Over",
+      submitted_to_committee: "Submitted to Committee",
+      committee_approved: "Committee Approved",
+      published: "Published",
+      finalized: "Finalized",
+      returned_to_teacher: "Returned by Committee",
+    };
+    return labels[status] || "Unknown";
+  };
+
+  const isMarksLocked =
+    workflowStatus === "submitted_to_committee" ||
+    workflowStatus === "committee_approved" ||
+    workflowStatus === "published" ||
+    workflowStatus === "finalized";
+
+  if (isLoading) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-medium">Course Grades</CardTitle>
-            <Button
-              onClick={handleSubmitToCommittee}
-              className="bg-[#3e6253] hover:bg-[#2c463b]"
-            >
-              <Send className="mr-2 h-4 w-4" />
-              Submit to Committee
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex h-40 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
-            </div>
+      {/* Status Banner */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`rounded-[2.5rem] border-2 p-6 flex items-center justify-between ${isMarksLocked
+          ? "bg-red-50 border-red-200"
+          : "bg-blue-50 border-blue-200"
+          }`}
+      >
+        <div className="flex items-center gap-3">
+          {isMarksLocked ? (
+            <Lock className="h-6 w-6 text-red-600" />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Student Name</TableHead>
-                  <TableHead>Registration No.</TableHead>
-                  <TableHead>Total Marks</TableHead>
-                  <TableHead>Grade</TableHead>
-                  <TableHead>Point</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.length > 0 ? (
-                  students.map((student, index) => {
-                    const studentKey =
-                      student?.id ||
-                      student?._id ||
-                      student?.registrationNumber ||
-                      `student-${index}`;
-                    const grade = getGradeForStudent(student.id || student._id);
-                    return (
-                      <TableRow key={studentKey}>
-                        <TableCell className="font-medium">
-                          {student.fullName}
-                        </TableCell>
-                        <TableCell>{student.registrationNumber}</TableCell>
-                        <TableCell>
-                          {grade?.totalMarksObtained ?? "-"}
-                        </TableCell>
-                        <TableCell className="font-bold">
-                          {grade?.grade || "-"}
-                        </TableCell>
-                        <TableCell>{grade?.gradePoint || "-"}</TableCell>
-                        <TableCell>
-                          {grade ? (
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                grade.status === "published"
-                                  ? "bg-green-100 text-green-800"
-                                  : grade.workflowStatus === "submitted"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : grade.workflowStatus === "returned"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-gray-100 text-gray-800"
-                              }`}
-                            >
-                              {String(grade.workflowStatus ?? grade.status)
-                                .charAt(0)
-                                .toUpperCase() +
-                                String(
-                                  grade.workflowStatus ?? grade.status
-                                ).slice(1)}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              Not Calculated
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                              handleCalculate(student.id || student._id)
-                            }
-                            disabled={
-                              isCalculating ||
-                              (grade &&
-                                grade.workflowStatus !== "draft" &&
-                                grade.workflowStatus !== "returned")
-                            }
-                          >
-                            <Calculator className="h-4 w-4 mr-2" />
-                            Calculate
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-center py-8 text-muted-foreground"
-                    >
-                      No students enrolled in this course batch.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+            <AlertCircle className="h-6 w-6 text-blue-600" />
           )}
-        </CardContent>
-      </Card>
+          <div>
+            <h3 className="font-black text-slate-900">
+              {isMarksLocked ? "Marks Locked" : "In Progress"}
+            </h3>
+            <p className={`text-sm font-medium ${isMarksLocked
+              ? "text-red-700"
+              : "text-blue-700"
+              }`}>
+              {isMarksLocked
+                ? "Marks have been submitted to the Exam Committee and are now locked from editing."
+                : "You can edit and save draft marks before final submission."}
+            </p>
+          </div>
+        </div>
+        <Badge className={`${getStatusColor(workflowStatus)} text-xs font-black px-4 py-2`}>
+          {getStatusLabel(workflowStatus)}
+        </Badge>
+      </motion.div>
+
+      {/* Course Final Marks Entry Component */}
+      {!isMarksLocked && (
+        <CourseFinalMarksEntry
+          courseId={courseId}
+          batchId={batchId}
+          semester={semester}
+        />
+      )}
+
+      {/* Grade Summary Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-4"
+      >
+        <Card className="border-2 border-slate-100 rounded-[2.5rem] p-0">
+          <CardHeader className="bg-slate-50/50 border-b-2 border-slate-100">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-black text-slate-900">
+                Grade Summary
+              </CardTitle>
+              {!isMarksLocked && (
+                <Button
+                  onClick={handleSubmitToCommittee}
+                  className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  Submit to Committee
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {students.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="font-black text-slate-900">
+                        Student Name
+                      </TableHead>
+                      <TableHead className="font-black text-slate-900">
+                        Registration No.
+                      </TableHead>
+                      <TableHead className="font-black text-slate-900">
+                        Total Marks
+                      </TableHead>
+                      <TableHead className="font-black text-slate-900">
+                        Grade
+                      </TableHead>
+                      <TableHead className="font-black text-slate-900">
+                        Point
+                      </TableHead>
+                      <TableHead className="font-black text-slate-900">
+                        Status
+                      </TableHead>
+                      {!isMarksLocked && (
+                        <TableHead className="text-right font-black text-slate-900">
+                          Actions
+                        </TableHead>
+                      )}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student: unknown, index: number) => {
+                      const studentObj = student as unknown as Record<string, unknown>;
+                      const studentId = String(studentObj?.id || studentObj?._id) || `student-${index}`;
+                      const studentKey = studentId;
+                      const grade = getGradeForStudent(studentId);
+                      const isStudentLocked = isMarksLocked;
+
+                      return (
+                        <TableRow
+                          key={studentKey}
+                          className={
+                            isStudentLocked ? "bg-slate-50 opacity-70" : ""
+                          }
+                        >
+                          <TableCell className="font-medium">
+                            {String(studentObj?.fullName)}
+                          </TableCell>
+                          <TableCell className="text-sm text-slate-600">
+                            {String(studentObj?.registrationNumber)}
+                          </TableCell>
+                          <TableCell className="font-bold">
+                            {grade?.totalMarksObtained ?? "-"}
+                          </TableCell>
+                          <TableCell className="font-black text-indigo-600">
+                            {String((grade as unknown as Record<string, unknown>)?.letterGrade || "-")}
+                          </TableCell>
+                          <TableCell className="text-sm font-bold">
+                            {grade?.gradePoint || "-"}
+                          </TableCell>
+                          <TableCell>
+                            {grade ? (
+                              <Badge
+                                className={`${getStatusColor(
+                                  grade.status
+                                )} text-xs font-bold`}
+                              >
+                                {getStatusLabel(grade.status)}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-xs font-medium">
+                                Not Calculated
+                              </span>
+                            )}
+                          </TableCell>
+                          {!isStudentLocked && (
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                  handleCalculate(studentId)
+                                }
+                                disabled={
+                                  isCalculating ||
+                                  (grade &&
+                                    grade.status !== "pending" &&
+                                    grade.status !== "calculated")
+                                }
+                                className="h-8 px-3 text-[10px] font-bold"
+                              >
+                                <Calculator className="h-4 w-4 mr-1" />
+                                Calculate
+                              </Button>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-12 text-slate-500">
+                <p className="font-medium">
+                  No students enrolled in this course batch.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
