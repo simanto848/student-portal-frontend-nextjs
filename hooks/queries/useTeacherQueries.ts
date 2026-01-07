@@ -146,13 +146,17 @@ export function useCourseInstructors(params?: {
 // ===================================== Grading Workflow Queries =======================================
 
 // Fetch grading workflow items
-export function useGradingWorkflow(params?: Record<string, unknown>) {
+export function useGradingWorkflow(
+  params?: Record<string, unknown>,
+  options?: { initialData?: ResultWorkflow[] },
+) {
   return useQuery({
     queryKey: teacherKeys.gradingWorkflowList(params),
     queryFn: async () => {
       const response = await courseGradeService.getWorkflow(params);
       return (response || []) as ResultWorkflow[];
     },
+    initialData: options?.initialData,
   });
 }
 
@@ -278,8 +282,11 @@ export function useTeacherCourseDashboard(instructorId: string) {
 }
 
 // Hook for grading workflow page
-export function useGradingWorkflowDashboard() {
-  const query = useGradingWorkflow();
+export function useGradingWorkflowDashboard(
+  params?: Record<string, unknown>,
+  options?: { initialData?: ResultWorkflow[] },
+) {
+  const query = useGradingWorkflow(params, options);
 
   const { data, isLoading, isError, error, refetch } = query;
 
