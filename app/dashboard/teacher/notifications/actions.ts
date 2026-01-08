@@ -77,15 +77,24 @@ export async function getNotificationTargetOptions() {
 
         const [instructorAssignments, scope] = await Promise.all([
             batchCourseInstructorService.getInstructorCourses(user.id),
-            notificationService.getMyScope().catch(() => null),
+            notificationService.getMyScope().catch((err) => {
+                console.error("Failed to get my scope:", err);
+                return null;
+            }),
         ]);
+
+        console.log("Notification target options:", {
+            user: { id: user.id, role: user.role, isDepartmentHead: (user as any).isDepartmentHead },
+            assignments: instructorAssignments?.length,
+            scope: scope
+        });
 
         return {
             assignments: instructorAssignments || [],
-            scope: scope || { options: [] }
+            scope: scope || { canSend: false, options: [] }
         };
     } catch (error) {
         console.error("Error fetching target options:", error);
-        return { assignments: [], scope: { options: [] } };
+        return { assignments: [], scope: { canSend: false, options: [] } };
     }
 }

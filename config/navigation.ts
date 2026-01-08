@@ -22,7 +22,8 @@ import {
   CheckCircle,
   Globe,
   Server,
-  FileCheck
+  FileCheck,
+  Megaphone,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { User, UserRole, isTeacherUser } from "@/types/user";
@@ -291,6 +292,12 @@ export const teacherNavigation: NavItem[] = [
     href: "/dashboard/teacher/notifications",
     label: "Notifications",
     icon: Bell,
+  },
+  {
+    href: "/dashboard/teacher/notifications/create-department-notification",
+    label: "Create Broadcast",
+    icon: Megaphone,
+    condition: (user) => (isTeacherUser(user) && user.isDepartmentHead) || user.role === UserRole.DEPARTMENT_HEAD,
   },
   {
     href: "/dashboard/teacher/schedule",

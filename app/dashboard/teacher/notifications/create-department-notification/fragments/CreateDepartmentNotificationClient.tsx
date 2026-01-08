@@ -1,29 +1,29 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
     ArrowLeft,
     Send,
-    Clock,
-    Plus,
     Loader2,
     AlertCircle,
-    BookOpen,
-    GraduationCap,
-    Megaphone,
-    Sparkles,
-    Calendar,
     FileText,
     Target,
     Zap,
+    Megaphone,
+    Sparkles,
     Building2,
-    ChevronRight,
+    Users,
+    GraduationCap,
     Info,
     Mail,
     Smartphone,
-    Check
+    Check,
+    Globe,
+    Shield,
+    UserCheck,
+    Briefcase
 } from "lucide-react";
 import Link from "next/link";
 import { notifySuccess, notifyError, notifyLoading, dismissToast } from "@/components/toast";
@@ -53,26 +53,22 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 
-import { notificationService, CreateNotificationData } from "@/services/notification/notification.service";
+import { notificationService, CreateNotificationData, TargetOption } from "@/services/notification/notification.service";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
+import { searchUsers, UserOption } from "../actions";
+import { AsyncMultiSearchableSelect, Option } from "@/components/ui/async-multi-searchable-select";
 
-interface CourseOption {
-    id: string;
-    type: "course" | "batch" | "department";
-    courseId?: string;
-    batchId?: string;
-    departmentId?: string;
-    courseName?: string;
-    batchCode?: string;
-    departmentName?: string;
-    semester?: number;
-    label: string;
+interface TargetOptionExtended extends TargetOption {
+    icon?: React.ComponentType<{ className?: string }>;
+    description?: string;
+    badge?: string;
 }
 
-interface CreateNotificationClientProps {
+interface CreateDepartmentNotificationClientProps {
     initialTargetOptions: {
-        assignments: any[];
-        scope: any;
+        options: TargetOption[];
+        canSend: boolean;
+        userDepartmentId?: string;
     };
 }
 
@@ -81,78 +77,126 @@ const PRIORITIES = [
     { value: 'medium', label: 'Standard', icon: Zap, color: 'bg-indigo-50 text-indigo-600 border-indigo-100', active: 'bg-indigo-600 text-white' },
     { value: 'high', label: 'Important', icon: Sparkles, color: 'bg-amber-50 text-amber-600 border-amber-100', active: 'bg-amber-600 text-white' },
     { value: 'urgent', label: 'Emergency', icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100', active: 'bg-rose-600 text-white' },
-];
+] as const;
 
-export default function CreateNotificationClient({ initialTargetOptions }: CreateNotificationClientProps) {
+export default function CreateDepartmentNotificationClient({ initialTargetOptions }: CreateDepartmentNotificationClientProps) {
     const router = useRouter();
     const theme = useDashboardTheme();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Form state
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [summary, setSummary] = useState("");
     const [selectedId, setSelectedId] = useState("");
-    const [priority, setPriority] = useState<any>("medium");
+    const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
     const [sendEmail, setSendEmail] = useState(false);
     const [scheduleNotification, setScheduleNotification] = useState(false);
     const [scheduleDate, setScheduleDate] = useState<Date | undefined>(undefined);
     const [scheduleTime, setScheduleTime] = useState("12:00");
     const [schedulePeriod, setSchedulePeriod] = useState<"AM" | "PM">("PM");
 
+    // Custom user targeting
+    const [targetUserIds, setTargetUserIds] = useState<string[]>([]);
+    const [userOptions, setUserOptions] = useState<Option[]>([]);
+    const [isSearchingUsers, setIsSearchingUsers] = useState(false);
+
+    const handleSearchUsers = async (query: string) => {
+        if (!query || query.length < 2) return;
+        setIsSearchingUsers(true);
+        try {
+            const results = await searchUsers(query);
+            setUserOptions(results);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsSearchingUsers(false);
+        }
+    };
+
     const accentPrimary = theme.colors.accent.primary;
     const accentBgSubtle = accentPrimary.replace('text-', 'bg-') + '/10';
 
-    const courseOptions = useMemo(() => {
-        const options: CourseOption[] = [];
-        const addedIds = new Set<string>();
 
-        // Department Options (for department heads)
-        if (initialTargetOptions.scope?.options && initialTargetOptions.scope.canSend) {
-            initialTargetOptions.scope.options.forEach((opt: any) => {
-                if (opt.type === "department" && opt.id && !addedIds.has(opt.id)) {
-                    addedIds.add(opt.id);
-                    options.push({
-                        id: `dept-${opt.id}`,
-                        type: "department",
-                        departmentId: opt.id,
-                        departmentName: opt.label,
-                        label: opt.label,
-                    });
-                }
-            });
-        }
+    const enhancedOptions: TargetOptionExtended[] = useMemo(() => {
+        const optionMap: Record<string, TargetOptionExtended> = {};
 
-        // Assignments
-        const addedBatches = new Set<string>();
-        initialTargetOptions.assignments.forEach((assignment) => {
-            if (assignment.courseId && assignment.batchId) {
-                options.push({
-                    id: `${assignment.courseId}-${assignment.batchId}`,
-                    type: "course",
-                    courseId: assignment.courseId,
-                    batchId: assignment.batchId,
-                    courseName: assignment.course?.name || "Unknown Course",
-                    batchCode: assignment.batch?.code || assignment.batch?.name || "Unknown Batch",
-                    label: `${assignment.course?.name || 'Course'} - ${assignment.batch?.code || 'Batch'}`,
-                });
+        const options = initialTargetOptions?.options || [];
+
+        options.forEach((opt: TargetOption) => {
+            const base: TargetOptionExtended = { ...opt };
+
+            switch (opt.type) {
+                case 'all':
+                    base.icon = Globe;
+                    base.description = "All users in institution";
+                    base.badge = "System-wide";
+                    break;
+                case 'students':
+                    base.icon = GraduationCap;
+                    base.description = "All students across departments";
+                    base.badge = "Institution";
+                    break;
+                case 'teachers':
+                    base.icon = UserCheck;
+                    base.description = "All teachers across departments";
+                    base.badge = "Institution";
+                    break;
+                case 'staff':
+                    base.icon = Briefcase;
+                    base.description = "All staff members";
+                    base.badge = "Institution";
+                    break;
+                case 'department':
+                    base.icon = Building2;
+                    base.description = "All members of this department";
+                    base.badge = "Your Dept";
+                    break;
+                case 'department_students':
+                    base.icon = GraduationCap;
+                    base.description = "Students in your department";
+                    base.badge = "Your Dept";
+                    break;
+                case 'department_teachers':
+                    base.icon = UserCheck;
+                    base.description = "Teachers in your department";
+                    base.badge = "Your Dept";
+                    break;
+                case 'department_staff':
+                    base.icon = Briefcase;
+                    base.description = "Staff in your department";
+                    base.badge = "Your Dept";
+                    break;
+                case 'faculty':
+                case 'faculty_students':
+                case 'faculty_teachers':
+                case 'faculty_staff':
+                    base.icon = Shield;
+                    base.description = "Faculty-level broadcasting";
+                    base.badge = "Faculty";
+                    break;
+                case 'batch':
+
+                    base.icon = Users;
+                    base.description = "Specific batch of students";
+                    base.badge = "Batch";
+                    break;
+                case 'custom':
+                    base.icon = Target;
+                    base.description = "Select specific users";
+                    base.badge = "Custom";
+                    break;
+                default:
+                    base.icon = Megaphone;
             }
-            if (assignment.batchId && !addedBatches.has(assignment.batchId)) {
-                addedBatches.add(assignment.batchId);
-                options.push({
-                    id: `batch-${assignment.batchId}`,
-                    type: "batch",
-                    batchId: assignment.batchId,
-                    batchCode: assignment.batch?.code || assignment.batch?.name || "Unknown Batch",
-                    label: `Batch ${assignment.batch?.code || assignment.batch?.name || 'Students'}`,
-                });
-            }
+
+            const key = `${opt.type}-${opt.id || 'global'}`;
+            optionMap[key] = base;
         });
 
-        return options;
+        return Object.values(optionMap);
     }, [initialTargetOptions]);
 
-    const selectedOption = courseOptions.find((o: any) => o.id === selectedId);
+    const selectedOption = enhancedOptions.find((o: TargetOptionExtended) => `${o.type}-${o.id || 'global'}` === selectedId);
 
     const handleSubmit = async (publishImmediately: boolean) => {
         if (!title || !content || !selectedId) {
@@ -163,23 +207,44 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
         }
 
         setIsSubmitting(true);
-        const toastId = notifyLoading(publishImmediately ? "Broadcasting signal..." : "Saving as draft...");
+        const toastId = notifyLoading(publishImmediately ? "Sending notification..." : "Saving as draft...");
 
         try {
             const data: CreateNotificationData = {
                 title: title.trim(),
                 content: content.trim(),
                 summary: summary.trim() || undefined,
-                targetType: "batch",
-                targetBatchIds: selectedOption?.batchId ? [selectedOption.batchId] : [],
+                targetType: selectedOption?.type || "custom",
                 priority,
                 sendEmail,
                 deliveryChannels: sendEmail ? ["socket", "email"] : ["socket"],
             };
 
-            if (selectedOption?.type === "department") {
-                data.targetType = "department";
-                data.targetDepartmentIds = [selectedOption.departmentId!];
+            if (selectedOption?.type === 'department' ||
+                selectedOption?.type === 'department_students' ||
+                selectedOption?.type === 'department_teachers' ||
+                selectedOption?.type === 'department_staff') {
+                data.targetDepartmentIds = [selectedOption.id!];
+            }
+
+            if (selectedOption?.type === 'faculty' ||
+                selectedOption?.type === 'faculty_students' ||
+                selectedOption?.type === 'faculty_teachers' ||
+                selectedOption?.type === 'faculty_staff') {
+                data.targetFacultyIds = [selectedOption.id!];
+            }
+
+            if (selectedOption?.type === 'batch') {
+                data.targetBatchIds = [selectedOption.id!];
+            }
+
+            if (selectedOption?.type === 'custom') {
+                if (targetUserIds.length === 0) {
+                    notifyError("Please select at least one user");
+                    setIsSubmitting(false);
+                    return;
+                }
+                data.targetUserIds = targetUserIds;
             }
 
             const notification = await notificationService.create(data);
@@ -195,28 +260,46 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
 
                 await notificationService.schedule(notification.id, scheduledAt.toISOString());
                 dismissToast(toastId);
-                notifySuccess("Broadcast scheduled successfully");
+                notifySuccess("Notification scheduled successfully");
             } else if (publishImmediately) {
                 await notificationService.publish(notification.id);
                 dismissToast(toastId);
-                notifySuccess("Broadcast signals sent successfully");
+                notifySuccess("Notification sent successfully");
             } else {
                 dismissToast(toastId);
                 notifySuccess("Draft saved successfully");
             }
 
             setTimeout(() => router.push("/dashboard/teacher/notifications"), 1000);
-        } catch (error: any) {
+        } catch (error: unknown) {
             dismissToast(toastId);
-            notifyError(error.message || "Failed to finalize broadcast");
+            const errorMessage = error instanceof Error ? error.message : "Failed to send notification";
+            notifyError(errorMessage);
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    if (!initialTargetOptions?.canSend) {
+        return (
+            <div className="max-w-4xl mx-auto py-12 px-4">
+                <Card className="rounded-3xl border-rose-200 bg-rose-50">
+                    <CardContent className="p-8 flex items-center gap-4">
+                        <div className="p-3 bg-rose-100 rounded-2xl">
+                            <AlertCircle className="h-6 w-6 text-rose-600" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-rose-900">Access Restricted</h3>
+                            <p className="text-rose-700">You do not have permission to send notifications.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-4xl mx-auto space-y-8 pb-12">
-            {/* Premium Header */}
+        <div className="max-w-5xl mx-auto space-y-8 pb-12">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
                 <div className="flex items-center gap-4">
                     <Link href="/dashboard/teacher/notifications">
@@ -226,10 +309,10 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                     </Link>
                     <div className="space-y-1">
                         <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                            New <span className={accentPrimary}>Broadcast</span>
+                            Department <span className={accentPrimary}>Broadcast</span>
                         </h1>
                         <p className="text-sm font-medium text-slate-500">
-                            Reach your students instantly with critical updates.
+                            Send notifications as Department Head
                         </p>
                     </div>
                 </div>
@@ -255,7 +338,6 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
-                {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-6">
                     <Card className="rounded-[2.5rem] border-slate-200/60 shadow-2xl shadow-indigo-500/5 bg-white overflow-hidden p-0">
                         <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
@@ -270,7 +352,6 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                             </div>
                         </CardHeader>
                         <CardContent className="p-8 space-y-8">
-                            {/* Audience Segment */}
                             <div className="space-y-3">
                                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1 flex items-center gap-2">
                                     <Target className="h-3 w-3" />
@@ -278,33 +359,94 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                 </Label>
                                 <Select value={selectedId} onValueChange={setSelectedId}>
                                     <SelectTrigger className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-6 font-bold text-slate-900 focus:ring-indigo-500/20">
-                                        <SelectValue placeholder="Select target group..." />
+                                        <SelectValue placeholder="Select target audience..." />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-2xl p-2">
                                         <SelectGroup>
-                                            <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Your Assignments</SelectLabel>
-                                            {courseOptions.filter((o: any) => o.type !== 'department').map((opt: any) => (
-                                                <SelectItem key={opt.id} value={opt.id} className="rounded-xl p-3 focus:bg-indigo-50">
-                                                    <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-900">{opt.label}</span>
-                                                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">{opt.type} Access</span>
-                                                    </div>
-                                                </SelectItem>
-                                            ))}
+                                            <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Department Scope</SelectLabel>
+                                            {enhancedOptions.filter((o: TargetOptionExtended) =>
+                                                ['department', 'department_students', 'department_teachers', 'department_staff'].includes(o.type)
+                                            ).map((opt: TargetOptionExtended) => {
+                                                const Icon = opt.icon || Megaphone;
+                                                return (
+                                                    <SelectItem key={`${opt.type}-${opt.id || 'global'}`} value={`${opt.type}-${opt.id || 'global'}`} className="rounded-xl p-3 focus:bg-indigo-50">
+                                                        <div className="flex items-start gap-3">
+                                                            <div className={`p-2 rounded-lg ${accentBgSubtle} ${accentPrimary}`}>
+                                                                <Icon className="h-4 w-4" />
+                                                            </div>
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-bold text-slate-900">{opt.label}</span>
+                                                                    {opt.badge && (
+                                                                        <Badge className="text-[8px] font-black uppercase tracking-widest">{opt.badge}</Badge>
+                                                                    )}
+                                                                </div>
+                                                                {opt.description && (
+                                                                    <span className="text-[10px] text-slate-400">{opt.description}</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectGroup>
-                                        {initialTargetOptions.scope?.canSend && courseOptions.some((o: any) => o.type === 'department') && (
+                                        {enhancedOptions.some((o: TargetOptionExtended) => ['faculty', 'faculty_students', 'faculty_teachers', 'faculty_staff'].includes(o.type)) && (
                                             <>
                                                 <Separator className="my-2" />
                                                 <SelectGroup>
-                                                    <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Admin Scopes</SelectLabel>
-                                                    {courseOptions.filter((o: any) => o.type === 'department').map((opt: any) => (
-                                                        <SelectItem key={opt.id} value={opt.id} className="rounded-xl p-3 focus:bg-indigo-50">
-                                                            <div className="flex flex-col">
-                                                                <span className="font-bold text-slate-900">{opt.label}</span>
-                                                                <span className="text-[10px] text-indigo-500 uppercase tracking-widest font-black">Department Head</span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    ))}
+                                                    <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Faculty Scope</SelectLabel>
+                                                    {enhancedOptions.filter((o: TargetOptionExtended) =>
+                                                        ['faculty', 'faculty_students', 'faculty_teachers', 'faculty_staff'].includes(o.type)
+                                                    ).map((opt: TargetOptionExtended) => {
+                                                        const Icon = opt.icon || Megaphone;
+                                                        return (
+                                                            <SelectItem key={`${opt.type}-${opt.id || 'global'}`} value={`${opt.type}-${opt.id || 'global'}`} className="rounded-xl p-3 focus:bg-indigo-50">
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
+                                                                        <Icon className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-bold text-slate-900">{opt.label}</span>
+                                                                            <Badge className="text-[8px] font-black uppercase tracking-widest bg-purple-100 text-purple-600">{opt.badge}</Badge>
+                                                                        </div>
+                                                                        {opt.description && (
+                                                                            <span className="text-[10px] text-slate-400">{opt.description}</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectGroup>
+                                            </>
+                                        )}
+                                        {enhancedOptions.some((o: TargetOptionExtended) => ['batch'].includes(o.type)) && (
+                                            <>
+                                                <Separator className="my-2" />
+                                                <SelectGroup>
+                                                    <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Batch Scope</SelectLabel>
+                                                    {enhancedOptions.filter((o: TargetOptionExtended) => o.type === 'batch').map((opt: TargetOptionExtended) => {
+                                                        const Icon = opt.icon || Megaphone;
+                                                        return (
+                                                            <SelectItem key={`${opt.type}-${opt.id || 'global'}`} value={`${opt.type}-${opt.id || 'global'}`} className="rounded-xl p-3 focus:bg-indigo-50">
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                                                        <Icon className="h-4 w-4" />
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-bold text-slate-900">{opt.label}</span>
+                                                                            <Badge className="text-[8px] font-black uppercase tracking-widest bg-blue-100 text-blue-600">{opt.badge}</Badge>
+                                                                        </div>
+                                                                        {opt.description && (
+                                                                            <span className="text-[10px] text-slate-400">{opt.description}</span>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectGroup>
                                             </>
                                         )}
@@ -312,7 +454,26 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                 </Select>
                             </div>
 
-                            {/* Title */}
+                            {selectedOption?.type === 'custom' && (
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1 flex items-center gap-2">
+                                        <Users className="h-3 w-3" />
+                                        Select Users
+                                    </Label>
+                                    <AsyncMultiSearchableSelect
+                                        options={userOptions}
+                                        value={targetUserIds}
+                                        onChange={setTargetUserIds}
+                                        onSearch={handleSearchUsers}
+                                        placeholder="Search by name, email or ID..."
+                                        isLoading={isSearchingUsers}
+                                    />
+                                    <p className="text-[10px] text-slate-400 pl-1">
+                                        Search and select specific teachers, students, or staff members.
+                                    </p>
+                                </div>
+                            )}
+
                             <div className="space-y-3">
                                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">
                                     Message Subject
@@ -320,12 +481,23 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                 <Input
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="e.g., Mid-Term Exam Rescheduled"
+                                    placeholder="e.g., Department Meeting Announcement"
                                     className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-6 font-bold text-slate-900 text-lg placeholder:text-slate-300 focus:ring-indigo-500/20"
                                 />
                             </div>
 
-                            {/* Content */}
+                            <div className="space-y-3">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">
+                                    Summary (Optional)
+                                </Label>
+                                <Input
+                                    value={summary}
+                                    onChange={(e) => setSummary(e.target.value)}
+                                    placeholder="Brief summary for notification preview"
+                                    className="h-12 bg-slate-50 border-slate-200 rounded-2xl px-6 font-medium text-slate-700 placeholder:text-slate-300 focus:ring-indigo-500/20"
+                                />
+                            </div>
+
                             <div className="space-y-3">
                                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pl-1">
                                     Detailed Content
@@ -341,24 +513,22 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                     </Card>
                 </div>
 
-                {/* Sidebar Controls */}
                 <div className="space-y-6">
                     <Card className="rounded-[2.5rem] border-slate-200/60 shadow-2xl shadow-indigo-500/5 bg-white overflow-hidden">
                         <CardHeader className="bg-white border-b border-slate-50 p-6">
-                            <CardTitle className="text-sm font-black tracking-tight text-slate-900 uppercase">Signal Config</CardTitle>
+                            <CardTitle className="text-sm font-black tracking-tight text-slate-900 uppercase">Notification Config</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-6">
-                            {/* Priority */}
                             <div className="space-y-4">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Priority Level</Label>
                                 <div className="grid grid-cols-2 gap-3">
-                                    {PRIORITIES.map((p: any) => {
+                                    {PRIORITIES.map((p) => {
                                         const Icon = p.icon;
                                         const isActive = priority === p.value;
                                         return (
                                             <button
                                                 key={p.value}
-                                                onClick={() => setPriority(p.value)}
+                                                onClick={() => setPriority(p.value as "low" | "medium" | "high" | "urgent")}
                                                 className={`flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all gap-2 active:scale-95 ${isActive ? 'border-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'}`}
                                             >
                                                 <Icon className="h-5 w-5" />
@@ -371,7 +541,6 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
 
                             <Separator className="bg-slate-50" />
 
-                            {/* Delivery Channels */}
                             <div className="space-y-4">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Delivery Channels</Label>
                                 <div className="space-y-3">
@@ -398,7 +567,6 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
 
                             <Separator className="bg-slate-50" />
 
-                            {/* Scheduling */}
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between mb-2 px-1">
                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Scheduling</Label>
@@ -454,7 +622,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
 
                                                 <Select
                                                     value={schedulePeriod}
-                                                    onValueChange={(p: any) => setSchedulePeriod(p)}
+                                                    onValueChange={(p: "AM" | "PM") => setSchedulePeriod(p)}
                                                 >
                                                     <SelectTrigger className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-4 font-black text-slate-900 flex-1 hover:bg-white hover:border-indigo-500/30 transition-all">
                                                         <SelectValue placeholder="AM/PM" />
@@ -466,10 +634,10 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                                 </Select>
                                             </div>
                                         </div>
-                                        <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-2">
+                                        <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-2 mt-3">
                                             <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
                                             <p className="text-[10px] font-bold text-amber-800 leading-normal">
-                                                Signal will be stored and automatically released at the specified time.
+                                                Notification will be stored and automatically released at specified time.
                                             </p>
                                         </div>
                                     </motion.div>
@@ -478,7 +646,6 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                         </CardContent>
                     </Card>
 
-                    {/* Quick Preview */}
                     <Card className={`rounded-[2.5rem] border-0 bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 text-white shadow-xl shadow-indigo-600/30 overflow-hidden relative ${!title && 'opacity-50 grayscale'}`}>
                         <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-white/10 rounded-full blur-2xl" />
                         <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
@@ -487,14 +654,19 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                         </h3>
                         <div className="space-y-4 relative z-10">
                             <h4 className="text-xl font-black tracking-tight leading-tight line-clamp-2">
-                                {title || "Signal Title Pending"}
+                                {title || "Notification Title Pending"}
                             </h4>
+                            {summary && (
+                                <p className="text-sm font-medium text-white/90 line-clamp-1 leading-relaxed">
+                                    {summary}
+                                </p>
+                            )}
                             <p className="text-sm font-medium text-white/70 line-clamp-3 leading-relaxed">
-                                {content || "The signal content will appear here once you start typing..."}
+                                {content || "The notification content will appear here once you start typing..."}
                             </p>
                             <div className="flex items-center gap-2 pt-4">
                                 <Badge className="bg-white/20 text-white font-black uppercase text-[8px] tracking-widest border-0">
-                                    {selectedOption?.label || "Segment Pending"}
+                                    {selectedOption?.label || "Audience Pending"}
                                 </Badge>
                             </div>
                         </div>
