@@ -316,6 +316,12 @@ export const teacherNavigation: NavItem[] = [
     condition: (user) => (isTeacherUser(user) && user.isDepartmentHead) || user.role === UserRole.DEPARTMENT_HEAD,
   },
   {
+    href: "/dashboard/teacher/faculties",
+    label: "Manage Faculty",
+    icon: GraduationCap,
+    condition: (user) => (isTeacherUser(user) && user.isDepartmentHead) || user.role === UserRole.DEPARTMENT_HEAD || user.role === UserRole.DEAN || (user as any).isDean,
+  },
+  {
     href: "/dashboard/teacher/department",
     label: "Department",
     icon: Building2,

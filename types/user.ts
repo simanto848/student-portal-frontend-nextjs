@@ -18,6 +18,7 @@ export enum UserRole {
   HOSTEL_SUPERVISOR = "hostel_supervisor",
   MAINTENANCE = "maintenance",
   DEPARTMENT_HEAD = "department_head",
+  DEAN = "dean",
 }
 
 export const ADMIN_ROLES: UserRole[] = [
@@ -81,6 +82,8 @@ export interface TeacherUser extends BaseUser {
   departmentId: string;
   designation: string;
   isDepartmentHead: boolean;
+  isDean?: boolean;
+  facultyId?: string;
   specialization?: string;
   joiningDate?: string;
   qualifications?: string[];
