@@ -29,13 +29,11 @@ class SocketService {
     type: SocketConnectionType = "chat",
     config?: Partial<ConnectionConfig>,
   ): Socket {
-    // Return existing socket if already connected
     const existingSocket = this.sockets.get(type);
     if (existingSocket?.connected) {
       return existingSocket;
     }
 
-    // Default URLs for different connection types
     const defaultUrls: Record<SocketConnectionType, string> = {
       chat: process.env.NEXT_PUBLIC_CHAT_SOCKET_URL || "http://localhost:8004",
       notification:
@@ -52,43 +50,30 @@ class SocketService {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       forceNew: true,
+      withCredentials: true,
+      transports: ["websocket", "polling"],
       auth: authToken ? { token: authToken } : undefined,
       query: authToken ? { token: authToken } : undefined,
     });
 
-    socket.on("connect", () => {
-      console.log(`[${type}] Socket connected:`, socket.id);
-    });
+    socket.on("connect", () => { });
 
-    socket.on("disconnect", (reason) => {
-      console.log(`[${type}] Socket disconnected:`, reason);
-    });
+    socket.on("disconnect", (reason) => { });
 
-    socket.on("connect_error", (error) => {
-      console.error(`[${type}] Socket connection error:`, error.message);
-    });
+    socket.on("connect_error", (error) => { });
 
-    socket.on("reconnect", (attemptNumber) => {
-      console.log(
-        `[${type}] Socket reconnected after ${attemptNumber} attempts`,
-      );
-    });
+    socket.on("reconnect", (attemptNumber) => { });
 
     this.sockets.set(type, socket);
     return socket;
   }
 
-  /**
-   * Get the auth token from storage (localStorage or cookie)
-   */
   private getAuthTokenFromStorage(): string | null {
     if (typeof window === "undefined") return null;
 
-    // Try to get token from localStorage
     const token = localStorage.getItem("accessToken");
     if (token) return token;
 
-    // Try to get from cookies
     const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
       const [name, value] = cookie.trim().split("=");
@@ -115,7 +100,6 @@ class SocketService {
     if (socket) {
       socket.disconnect();
       this.sockets.delete(type);
-      console.log(`[${type}] Socket disconnected`);
     }
   }
 
@@ -125,7 +109,6 @@ class SocketService {
   public disconnectAll(): void {
     this.sockets.forEach((socket, type) => {
       socket.disconnect();
-      console.log(`[${type}] Socket disconnected`);
     });
     this.sockets.clear();
   }
