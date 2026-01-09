@@ -80,6 +80,7 @@ export interface QuizAttempt {
     percentage: number | null;
     isPassed: boolean | null;
     answers: QuizAnswer[];
+    feedback?: string;
 }
 
 export interface StartAttemptResponse {
