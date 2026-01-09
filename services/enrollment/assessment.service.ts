@@ -1,4 +1,4 @@
-import { api, handleApiError } from "../academic/axios-instance";
+import { academicApi as api, handleApiError } from "../academic/axios-instance";
 
 export interface AssessmentType {
   id: string;

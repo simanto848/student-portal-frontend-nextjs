@@ -9,7 +9,15 @@ import { revalidatePath } from "next/cache";
  */
 const transformDepartmentData = (formData: FormData) => {
     const data = Object.fromEntries(formData.entries());
-    return data;
+
+    return {
+        ...data,
+        isActingHead: data.isActingHead,
+        status: data.status,
+        departmentHeadId: data.departmentHeadId === '' ? undefined : data.departmentHeadId,
+        facultyId: data.facultyId === '' ? undefined : data.facultyId,
+        phone: data.phone === '' ? undefined : data.phone,
+    };
 };
 
 /**

@@ -58,8 +58,12 @@ export function useNotifications(params?: NotificationListParams) {
 // Fetch current user's notifications
 export function useMyNotifications(
   params?: Omit<NotificationListParams, "mine">,
+  options?: any
 ) {
-  return useQuery({
+  return useQuery<{
+    notifications: NotificationItem[];
+    pagination?: any;
+  }>({
     queryKey: notificationKeys.myNotifications(params),
     queryFn: async () => {
       const response = await notificationService.list({
@@ -68,9 +72,10 @@ export function useMyNotifications(
       });
       return {
         notifications: extractNotifications(response),
-        pagination: response?.pagination,
+        pagination: (response as any)?.pagination,
       };
     },
+    ...options
   });
 }
 
@@ -205,8 +210,8 @@ export function useNotificationBell() {
 }
 
 // Hook for notification center page
-export function useNotificationCenter(params?: NotificationListParams) {
-  const query = useMyNotifications(params);
+export function useNotificationCenter(params?: NotificationListParams, options?: any) {
+  const query = useMyNotifications(params, options);
   const markReadMutation = useMarkNotificationAsRead();
   const markAllReadMutation = useMarkAllNotificationsAsRead();
 

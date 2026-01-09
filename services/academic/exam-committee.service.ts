@@ -1,5 +1,5 @@
 import {
-  api,
+  academicApi as api,
   handleApiError,
   extractArrayData,
   extractItemData,

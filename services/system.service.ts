@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { academicApi as api } from "@/lib/api";
 
 export interface SystemHealth {
     server: {

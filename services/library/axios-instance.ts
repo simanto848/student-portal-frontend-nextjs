@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { getAuthToken } from "@/lib/authHelper";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -9,15 +10,13 @@ export const libraryApi = axios.create({
   withCredentials: true,
 });
 
-libraryApi.interceptors.request.use((config) => {
-  if (typeof window !== "undefined") {
-    const token = window.localStorage?.getItem("accessToken");
-    if (token) {
-      config.headers = config.headers ?? {};
-      (
-        config.headers as Record<string, string>
-      ).Authorization = `Bearer ${token}`;
-    }
+libraryApi.interceptors.request.use(async (config) => {
+  const token = await getAuthToken();
+  if (token) {
+    config.headers = config.headers ?? {};
+    (
+      config.headers as Record<string, string>
+    ).Authorization = `Bearer ${token}`;
   }
   return config;
 });

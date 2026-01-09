@@ -1,4 +1,4 @@
-import { api, handleApiError } from "@/services/academic/axios-instance";
+import { academicApi as api, handleApiError } from "@/services/academic/axios-instance";
 
 export interface TeacherAddress {
   street?: string;

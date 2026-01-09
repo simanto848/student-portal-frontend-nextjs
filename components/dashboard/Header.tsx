@@ -25,7 +25,7 @@ interface HeaderProps {
 export function Header({ onMenuClick, theme }: HeaderProps) {
   const { user, logout } = useAuth();
   const profilePicture = getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage);
-  const c = theme.colors.header; // Shorthand
+  const c = theme.colors.header;
 
   return (
     <header className={`sticky top-0 z-30 flex h-14 sm:h-16 items-center justify-between gap-4 border-b px-4 sm:px-6 ${c.bg} ${c.border}`}>
@@ -54,20 +54,12 @@ export function Header({ onMenuClick, theme }: HeaderProps) {
           <span className="sr-only">Notifications</span>
         </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`h-9 w-9 sm:h-10 sm:w-10 hidden sm:flex ${c.text} ${theme.colors.sidebar.hover}`}
-        >
-          <HelpCircle className="h-5 w-5" />
-          <span className="sr-only">Help</span>
-        </Button>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full ml-1 sm:ml-2"
+              suppressHydrationWarning
             >
               <Avatar className={`h-9 w-9 sm:h-10 sm:w-10 border-2 ${theme.colors.sidebar.border}`}>
                 <AvatarImage
@@ -92,15 +84,6 @@ export function Header({ onMenuClick, theme }: HeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {user?.role === UserRole.STUDENT ? (
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link href="/dashboard/student/profile">Profile</Link>
-              </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem className="cursor-pointer">
-                Profile
-              </DropdownMenuItem>
-            )}
             <DropdownMenuItem asChild className="cursor-pointer">
               <Link href="/dashboard/settings">Settings</Link>
             </DropdownMenuItem>

@@ -18,14 +18,15 @@ const getPath = (obj: any, path: string) => {
 export type ToastType = "success" | "error" | "info" | "warning" | "loading";
 
 interface ToastOptions {
+  id?: string;
   duration?: number;
   position?:
-    | "top-left"
-    | "top-center"
-    | "top-right"
-    | "bottom-left"
-    | "bottom-center"
-    | "bottom-right";
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
 }
 
 const getToastIcon = (type: ToastType, toastId?: string) => {
@@ -90,7 +91,7 @@ export const notify = (
   type: ToastType = "info",
   options?: ToastOptions
 ) => {
-  const toastId = toast.loading("", { duration: 0 }); // Create a toast ID for dismissal
+  const toastId = options?.id || toast.loading("", { duration: 0 }); // Create a toast ID for dismissal
   const icon = getToastIcon(type, toastId);
   const style = getToastStyle(type);
 
@@ -133,23 +134,23 @@ export const notifySuccessResponse = (successResponse: any) => {
 
 // Convenience methods
 export const notifySuccess = (message: string, options?: ToastOptions) => {
-  notify(message, "success", options);
+  return notify(message, "success", options);
 };
 
 export const notifyError = (message: string, options?: ToastOptions) => {
-  notify(message, "error", options);
+  return notify(message, "error", options);
 };
 
 export const notifyInfo = (message: string, options?: ToastOptions) => {
-  notify(message, "info", options);
+  return notify(message, "info", options);
 };
 
 export const notifyWarning = (message: string, options?: ToastOptions) => {
-  notify(message, "warning", options);
+  return notify(message, "warning", options);
 };
 
 export const notifyLoading = (message: string, options?: ToastOptions) => {
-  notify(message, "loading", options);
+  return notify(message, "loading", options);
 };
 
 // Promise-based toast for async operations
