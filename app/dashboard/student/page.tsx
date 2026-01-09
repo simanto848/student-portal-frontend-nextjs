@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ScheduleList } from "@/components/dashboard/widgets/ScheduleList";
 import { GradeCircle } from "@/components/dashboard/widgets/GradeCircle";
 import { LibraryList } from "@/components/dashboard/widgets/LibraryList";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Megaphone,
   Calendar,
-  CreditCard,
   Sparkles,
   CheckCircle,
   Clock,
@@ -22,6 +22,11 @@ import {
   ClipboardCheck,
   User,
   CalendarDays,
+  ArrowUpRight,
+  TrendingUp,
+  LayoutDashboard,
+  Gamepad2,
+  Rocket
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { courseGradeService } from "@/services/enrollment/courseGrade.service";
@@ -30,6 +35,42 @@ import { borrowingService } from "@/services/library/borrowing.service";
 import { notificationService } from "@/services/notification/notification.service";
 import { scheduleService } from "@/services/academic/schedule.service";
 import { Skeleton } from "@/components/ui/skeleton";
+
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+    },
+  },
+};
+
+const GlassCard = ({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => (
+  <motion.div
+    variants={itemVariants}
+    initial="hidden"
+    animate="visible"
+    transition={{ delay }}
+    whileHover={{ y: -5, transition: { duration: 0.2 } }}
+    className={`relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/40 backdrop-blur-xl shadow-xl shadow-cyan-500/5 ${className}`}
+  >
+    {children}
+  </motion.div>
+);
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -54,29 +95,23 @@ export default function StudentDashboard() {
       const studentId = user.id || (user as any)._id;
       if (!studentId) return;
 
-      // Fetch all data in parallel
       const [cgpaRes, gradeRes, attRes, borrowedRes, notifRes] =
         await Promise.all([
-          courseGradeService
-            .calculateCGPA(studentId)
-            .catch(() => ({ cgpa: 0 })),
+          courseGradeService.calculateCGPA(studentId).catch(() => ({ cgpa: 0 })),
           courseGradeService.list({ studentId }).catch(() => []),
           attendanceService.listAttendance({ studentId }).catch(() => []),
           borrowingService.getMyBorrowedBooks().catch(() => []),
           notificationService.list().catch(() => []),
         ]);
 
-      // Set CGPA
       if (cgpaRes && typeof cgpaRes.cgpa === "number") {
         setCgpa(cgpaRes.cgpa);
       }
 
-      // Process grades
       let gradesList: any[] = Array.isArray(gradeRes)
         ? gradeRes
         : (gradeRes as any)?.grades || (gradeRes as any)?.data || [];
 
-      // Get current semester grades
       const maxSem = Math.max(...gradesList.map((g) => g.semester || 1), 1);
       const currentGrades = gradesList.filter((g) => g.semester === maxSem);
 
@@ -88,18 +123,16 @@ export default function StudentDashboard() {
             g.totalMarks > 0
               ? Math.round((g.totalMarksObtained / g.totalMarks) * 100)
               : 0,
-          color: "#3e6253",
+          color: "#0891b2", // cyan-600
         }))
       );
 
-      // Calculate total credits
       const totalCreds = gradesList.reduce(
         (acc, g) => acc + ((g.course as any)?.credit || 0),
         0
       );
       setCredits(totalCreds);
 
-      // Process attendance
       let attList: any[] = Array.isArray(attRes)
         ? attRes
         : (attRes as any)?.attendance || (attRes as any)?.data || [];
@@ -107,45 +140,32 @@ export default function StudentDashboard() {
       const total = attList.length;
       const present = attList.filter((a) => a.status === "present").length;
       const late = attList.filter((a) => a.status === "late").length;
-      const attPercent =
-        total > 0 ? Math.round(((present + late) / total) * 100) : 100;
+      const attPercent = total > 0 ? Math.round(((present + late) / total) * 100) : 100;
       setAttendance(attPercent);
 
-      // Process library items
       let borrowedList: any[] = Array.isArray(borrowedRes) ? borrowedRes : [];
       setLibraryItems(
         borrowedList.slice(0, 3).map((item) => {
           const bookDetails = item.copy?.book;
           const dueDate = new Date(item.dueDate);
           const today = new Date();
-          const daysLeft = Math.ceil(
-            (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-          );
+          const daysLeft = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
           return {
             id: item.id,
             title: bookDetails?.title || "Unknown Book",
-            dueDate:
-              daysLeft < 0
-                ? `${Math.abs(daysLeft)} days overdue`
-                : `${daysLeft} days`,
-            status:
-              daysLeft < 0
-                ? ("overdue" as const)
-                : daysLeft <= 3
-                  ? ("due_soon" as const)
-                  : ("normal" as const),
+            dueDate: daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days`,
+            status: daysLeft < 0 ? "overdue" : daysLeft <= 3 ? "due_soon" : "normal",
           };
         })
       );
 
-      // Process notifications
       let notifList: any[] = Array.isArray(notifRes)
         ? notifRes
         : (notifRes as any)?.notifications || (notifRes as any)?.data || [];
 
       setNotifications(
-        notifList.slice(0, 3).map((n) => ({
+        notifList.slice(0, 4).map((n) => ({
           id: n.id,
           title: n.title,
           message: n.message,
@@ -154,7 +174,6 @@ export default function StudentDashboard() {
         }))
       );
 
-      // Fetch schedule if batch is available
       let batchId: string | undefined;
       if ('batchId' in user && typeof user.batchId === "string") {
         batchId = user.batchId;
@@ -163,34 +182,16 @@ export default function StudentDashboard() {
       }
 
       if (batchId) {
-        const scheduleData = await scheduleService
-          .getScheduleByBatch(batchId)
-          .catch(() => []);
-
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
+        const scheduleData = await scheduleService.getScheduleByBatch(batchId).catch(() => []);
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         const today = days[new Date().getDay()];
 
         const todaySchedule = scheduleData
           .filter((s) => s.daysOfWeek.includes(today as any))
-          .slice(0, 3)
+          .slice(0, 4)
           .map((s) => {
-            const course =
-              typeof s.sessionCourseId === "object" &&
-                "course" in s.sessionCourseId
-                ? (s.sessionCourseId as any).course
-                : null;
-            const room =
-              typeof s.classroomId === "object"
-                ? (s.classroomId as any)?.roomNumber
-                : "TBA";
+            const course = typeof s.sessionCourseId === "object" && "course" in s.sessionCourseId ? (s.sessionCourseId as any).course : null;
+            const room = typeof s.classroomId === "object" ? (s.classroomId as any)?.roomNumber : "TBA";
 
             return {
               id: s.id,
@@ -211,97 +212,33 @@ export default function StudentDashboard() {
   };
 
   const quickStats = [
-    {
-      label: "Overall GPA",
-      value: cgpa.toFixed(2),
-      trend: cgpa >= 3.5 ? "+Good" : "Improve",
-      detail: "Cumulative",
-      accent: "from-[#3e6253] to-[#7ca38b]",
-    },
-    {
-      label: "Credits Completed",
-      value: credits.toString(),
-      trend: `${credits} earned`,
-      detail: "Total credits",
-      accent: "from-[#2d6a4f] to-[#52b788]",
-    },
-    {
-      label: "Attendance",
-      value: `${attendance}%`,
-      trend: attendance >= 75 ? "Good" : "Low",
-      detail: "Current term",
-      accent: "from-[#31536d] to-[#5fa8d3]",
-    },
+    { label: "Overall GPA", value: cgpa.toFixed(2), icon: Rocket, color: "text-cyan-600", bg: "bg-cyan-50", trend: "+0.2 this term" },
+    { label: "Attendance", value: `${attendance}%`, icon: User, color: "text-sky-600", bg: "bg-sky-50", trend: "Highly regular" },
+    { label: "Total Credits", value: credits.toString(), icon: GraduationCap, color: "text-indigo-600", bg: "bg-indigo-50", trend: "Target: 140" },
   ];
 
-  // Quick Access Cards
-  const quickAccessCards = [
-    {
-      label: "Classrooms",
-      description: "Access your course materials",
-      icon: BookOpen,
-      href: "/dashboard/student/classroom",
-      color: "from-blue-500 to-blue-600",
-    },
-    {
-      label: "Grades",
-      description: "View your academic performance",
-      icon: FileText,
-      href: "/dashboard/student/grades",
-      color: "from-green-500 to-green-600",
-    },
-    {
-      label: "Attendance",
-      description: "Check your attendance records",
-      icon: ClipboardCheck,
-      href: "/dashboard/student/attendances",
-      color: "from-purple-500 to-purple-600",
-    },
-    {
-      label: "Library",
-      description: "Manage borrowed books",
-      icon: Library,
-      href: "/dashboard/student/library",
-      color: "from-orange-500 to-orange-600",
-    },
-    {
-      label: "Schedule",
-      description: "View your class timetable",
-      icon: CalendarDays,
-      href: "/dashboard/student/classes",
-      color: "from-pink-500 to-pink-600",
-    },
-    {
-      label: "Assessments",
-      description: "Manage assignments & exams",
-      icon: CheckCircle,
-      href: "/dashboard/student/assessments",
-      color: "from-teal-500 to-teal-600",
-    },
-    {
-      label: "Enrollments",
-      description: "View enrolled courses",
-      icon: GraduationCap,
-      href: "/dashboard/student/enrollments",
-      color: "from-indigo-500 to-indigo-600",
-    },
-    {
-      label: "Profile",
-      description: "Manage your profile",
-      icon: User,
-      href: "/dashboard/student/profile",
-      color: "from-red-500 to-red-600",
-    },
+  const menuItems = [
+    { label: "Classrooms", icon: BookOpen, href: "/dashboard/student/classroom", color: "text-indigo-300", bg: "bg-indigo-500/20" },
+    { label: "Exams", icon: FileText, href: "/dashboard/student/assessments", color: "text-rose-300", bg: "bg-rose-500/20" },
+    { label: "Library", icon: Library, href: "/dashboard/student/library", color: "text-amber-300", bg: "bg-amber-500/20" },
+    { label: "Grades", icon: Sparkles, href: "/dashboard/student/grades", color: "text-emerald-300", bg: "bg-emerald-500/20" },
+    { label: "Attendance", icon: ClipboardCheck, href: "/dashboard/student/attendances", color: "text-sky-300", bg: "bg-sky-500/20" },
+    { label: "Schedule", icon: CalendarDays, href: "/dashboard/student/classes", color: "text-violet-300", bg: "bg-violet-500/20" },
   ];
 
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="space-y-8">
-          <Skeleton className="h-[300px] w-full rounded-3xl" />
+        <div className="space-y-8 max-w-[1600px] mx-auto p-4 animate-in fade-in duration-500">
+          <Skeleton className="h-[280px] w-full rounded-[2.5rem]" />
+          <div className="grid gap-6 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-32 rounded-[2rem]" />
+            ))}
+          </div>
           <div className="grid gap-6 lg:grid-cols-12">
-            <Skeleton className="h-[400px] lg:col-span-8" />
-            <Skeleton className="h-[400px] lg:col-span-4" />
+            <Skeleton className="h-[500px] lg:col-span-8 rounded-[2rem]" />
+            <Skeleton className="h-[500px] lg:col-span-4 rounded-[2rem]" />
           </div>
         </div>
       </DashboardLayout>
@@ -310,196 +247,262 @@ export default function StudentDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Hero */}
-        <div className="rounded-3xl bg-linear-to-r from-[#0b3b2a] via-[#1f5a44] to-[#3e6253] text-white p-6 md:p-8 shadow-lg relative overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.08),_transparent_40%)]" />
-          <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5" />
-                Daily Snapshot
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="space-y-8 max-w-[1600px] mx-auto pb-12"
+      >
+        {/* Modern Hero Section */}
+        <motion.div
+          variants={itemVariants}
+          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-900 border-cyan-900 via-sky-950 to-cyan-900 p-8 md:p-12 text-white shadow-2xl transition-all duration-700"
+        >
+          {/* Decorative Elements */}
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-cyan-500/20 blur-[100px] opacity-60" />
+          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 h-96 w-96 rounded-full bg-sky-500/10 blur-[100px] opacity-40" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-center gap-8">
+            <div className="space-y-6 text-center lg:text-left">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-cyan-300 text-sm font-semibold tracking-wider uppercase"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span>Student Nexus Platform</span>
+              </motion.div>
+
+              <div className="space-y-2">
+                <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">
+                  Welcome back,<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-sky-200">
+                    {user?.fullName?.split(" ")[0] || "Student"}
+                  </span>
+                </h1>
+                <p className="text-cyan-100/70 max-w-xl text-lg font-medium">
+                  Your academic journey is looking bright. You have <span className="text-white font-bold">{scheduleItems.length} classes</span> today and <span className="text-white font-bold">{notifications.length} new</span> updates to review.
+                </p>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-                Hi {user?.fullName?.split(" ")[0] || "Student"}, let&apos;s
-                crush today.
-              </h1>
-              <p className="text-white/80 max-w-2xl">
-                Stay on top of your classes, grades, and deadlines with a quick
-                glance. Everything you need for the day is right here.
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full md:w-[360px]">
-              {quickStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className={`rounded-2xl bg-linear-to-r ${stat.accent} text-white p-4 shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
+
+              <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+                <Button
+                  className="h-14 px-8 rounded-2xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-lg shadow-xl shadow-cyan-950/20 transition-all active:scale-95"
+                  onClick={() => window.location.href = "/dashboard/student/classroom"}
                 >
-                  <p className="text-xs uppercase tracking-wide text-white/80">
-                    {stat.label}
-                  </p>
-                  <div className="flex items-end justify-between mt-2">
-                    <span className="text-2xl font-bold">{stat.value}</span>
-                    <span className="text-xs font-semibold text-white/80">
-                      {stat.trend}
-                    </span>
+                  Join Classroom
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-14 px-8 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold text-lg backdrop-blur-sm shadow-xl transition-all active:scale-95"
+                  onClick={() => window.location.href = "/dashboard/student/profile"}
+                >
+                  Edit Profile
+                </Button>
+              </div>
+            </div>
+
+            {/* Quick Access Floating Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+              {menuItems.map((item, idx) => (
+                <motion.div
+                  key={item.label}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => window.location.href = item.href}
+                  className="cursor-pointer group flex flex-col items-center justify-center p-4 rounded-3xl bg-white/10 backdrop-blur-md border border-white/10 hover:bg-white/20 transition-all"
+                >
+                  <div className={`p-3 rounded-2xl ${item.bg} ${item.color} mb-2 group-hover:scale-110 transition-transform`}>
+                    <item.icon className="h-6 w-6" />
                   </div>
-                  <p className="text-[11px] text-white/70 mt-1">
-                    {stat.detail}
-                  </p>
-                </div>
+                  <span className="text-sm font-bold tracking-tight text-white/90">{item.label}</span>
+                </motion.div>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Quick Access Grid */}
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-4 lg:grid-cols-4">
-          {quickAccessCards.map((card) => (
-            <Card
-              key={card.label}
-              className="border-none shadow-sm hover:shadow-md transition-all cursor-pointer group"
-              onClick={() => (window.location.href = card.href)}
-            >
-              <CardContent className="p-4 flex flex-col items-center text-center space-y-2">
-                <div
-                  className={`rounded-xl bg-gradient-to-r ${card.color} p-3 text-white group-hover:scale-110 transition-transform`}
-                >
-                  <card.icon className="h-6 w-6" />
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {quickStats.map((stat, i) => (
+            <GlassCard key={i} className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-4 rounded-[1.5rem] ${stat.bg} ${stat.color} shadow-inner`}>
+                  <stat.icon className="h-6 w-6" />
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-[#1a3d32]">
-                    {card.label}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {card.description}
-                  </p>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs font-black uppercase tracking-widest text-slate-400">Trend</span>
+                  <span className="text-xs font-bold text-emerald-500 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> {stat.trend}
+                  </span>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+              <div>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
+                <p className="text-sm font-bold text-slate-500">{stat.label}</p>
+              </div>
+            </GlassCard>
           ))}
         </div>
 
-        {/* Main Grid */}
-        <div className="grid gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-8 space-y-6">
-            {scheduleItems.length > 0 && (
-              <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-[#3e6253]" /> Today&apos;s
-                    Schedule
-                  </CardTitle>
-                  <span className="text-sm text-muted-foreground">
-                    {new Date().toLocaleDateString()}
-                  </span>
-                </CardHeader>
-                <CardContent>
+        {/* Main Grid Content */}
+        <div className="grid gap-8 lg:grid-cols-12">
+          {/* Left Column */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* Schedule Section */}
+            <GlassCard>
+              <div className="p-8 border-b border-cyan-50/50 flex items-center justify-between bg-gradient-to-r from-cyan-50/20 to-transparent">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-2xl bg-cyan-600 shadow-lg shadow-cyan-200">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Daily Itinerary</h2>
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                  </div>
+                </div>
+                <Button variant="ghost" className="rounded-full text-cyan-600 font-bold hover:bg-cyan-50" onClick={() => window.location.href = "/dashboard/student/classes"}>
+                  Full Matrix
+                </Button>
+              </div>
+              <div className="p-6">
+                {scheduleItems.length > 0 ? (
                   <ScheduleList items={scheduleItems} />
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="py-20 text-center flex flex-col items-center">
+                    <div className="h-20 w-20 rounded-[2rem] bg-slate-50 flex items-center justify-center mb-6">
+                      <Calendar className="h-10 w-10 text-slate-200" />
+                    </div>
+                    <p className="font-bold text-slate-400 italic">No scheduled streams for this orbital period.</p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
 
-            {grades.length > 0 && (
-              <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between pb-3">
-                  <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-[#3e6253]" /> Grade
-                    Snapshot
-                  </CardTitle>
-                  <Button
-                    variant="link"
-                    className="text-[#3e6253] font-semibold"
-                    onClick={() =>
-                      (window.location.href = "/dashboard/student/grades")
-                    }
-                  >
-                    View Details
-                  </Button>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Academic Performance Snapshot */}
+            <GlassCard>
+              <div className="p-8 border-b border-cyan-50/50 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-2xl bg-emerald-500 shadow-lg shadow-emerald-200 text-white">
+                    <CheckCircle className="h-6 w-6" />
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Performance Vector</h2>
+                </div>
+                <Button variant="link" className="text-cyan-600 font-bold" onClick={() => window.location.href = "/dashboard/student/grades"}>
+                  Deconstruct Grades <ArrowUpRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+              <div className="p-10">
+                {grades.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-12">
                     {grades.map((grade) => (
                       <GradeCircle key={grade.subject} {...grade} />
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <div className="h-40 flex items-center justify-center text-slate-400 italic font-bold">
+                    Awaiting term evaluations.
+                  </div>
+                )}
+              </div>
+            </GlassCard>
           </div>
 
-          <div className="lg:col-span-4 space-y-6">
-            {notifications.length > 0 && (
-              <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-                    <Bell className="h-4 w-4 text-[#3e6253]" />
-                    Notifications
-                  </CardTitle>
-                  <Button
-                    variant="link"
-                    className="text-xs text-muted-foreground"
-                    onClick={() =>
-                    (window.location.href =
-                      "/dashboard/student/notifications")
-                    }
-                  >
-                    View All
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-5">
-                  {notifications.map((notif) => (
-                    <div
+          {/* Right Column */}
+          <div className="lg:col-span-4 space-y-8">
+            {/* Notifications */}
+            <GlassCard className="h-fit">
+              <div className="p-6 border-b border-cyan-50/50 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-transparent">
+                <div className="flex items-center gap-3">
+                  <Bell className="h-5 w-5 text-cyan-600" />
+                  <h2 className="text-lg font-black text-slate-900 tracking-tight">Signals</h2>
+                </div>
+                <Button variant="ghost" size="sm" className="text-cyan-600 font-bold text-xs" onClick={() => window.location.href = "/dashboard/student/notifications"}>
+                  Clear All
+                </Button>
+              </div>
+              <div className="p-4 space-y-4">
+                {notifications.length > 0 ? (
+                  notifications.map((notif) => (
+                    <motion.div
                       key={notif.id}
-                      className="flex gap-3 rounded-xl border border-gray-100 p-3 hover:bg-gray-50 transition-all duration-200 cursor-pointer"
-                      onClick={() =>
-                      (window.location.href =
-                        "/dashboard/student/notifications")
-                      }
+                      whileHover={{ x: 5 }}
+                      className="group flex gap-4 p-4 rounded-3xl border border-transparent hover:border-cyan-100 hover:bg-white/60 transition-all cursor-pointer"
+                      onClick={() => window.location.href = "/dashboard/student/notifications"}
                     >
-                      <notif.icon className="h-5 w-5 text-[#3e6253] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="font-semibold text-[#1a3d32] text-sm">
-                          {notif.title}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {notif.message}
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-1">
-                          {notif.time}
-                        </p>
+                      <div className="h-10 w-10 shrink-0 rounded-2xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors shadow-sm">
+                        <notif.icon className="h-5 w-5" />
                       </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            )}
+                      <div className="space-y-1">
+                        <p className="text-sm font-black text-slate-800 leading-none">{notif.title}</p>
+                        <p className="text-xs text-slate-500 font-medium line-clamp-2">{notif.message}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{notif.time}</p>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="py-12 text-center text-slate-400 italic text-sm font-bold">
+                    No active signals in range.
+                  </div>
+                )}
+                <Button
+                  className="w-full h-12 rounded-2xl bg-slate-100/50 hover:bg-slate-100 border-0 text-slate-600 font-bold text-xs shadow-none"
+                  onClick={() => window.location.href = "/dashboard/student/notifications"}
+                >
+                  View Broadcast History
+                </Button>
+              </div>
+            </GlassCard>
 
-            {libraryItems.length > 0 && (
-              <Card className="border-none shadow-sm transition-all duration-300 hover:shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg font-bold text-[#1a3d32] flex items-center gap-2">
-                    <Library className="h-4 w-4 text-[#3e6253]" />
-                    Library Due Dates
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <LibraryList items={libraryItems} />
-                  <Button
-                    variant="link"
-                    className="text-[#3e6253] font-semibold w-full mt-2"
-                    onClick={() =>
-                      (window.location.href = "/dashboard/student/library")
-                    }
-                  >
-                    View All Books
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            {/* Library Status */}
+            <GlassCard>
+              <div className="p-6 border-b border-cyan-50/50">
+                <div className="flex items-center gap-3">
+                  <Library className="h-5 w-5 text-cyan-600" />
+                  <h2 className="text-lg font-black text-slate-900 tracking-tight">Knowledge Assets</h2>
+                </div>
+              </div>
+              <div className="p-6">
+                {libraryItems.length > 0 ? (
+                  <>
+                    <LibraryList items={libraryItems} />
+                    <Button
+                      variant="outline"
+                      className="w-full mt-6 h-12 rounded-2xl border-2 border-slate-100 font-black text-xs text-slate-500 hover:border-cyan-200 hover:text-cyan-600 shadow-lg shadow-slate-100/50 transition-all"
+                      onClick={() => window.location.href = "/dashboard/student/library"}
+                    >
+                      Manage Borrowings
+                    </Button>
+                  </>
+                ) : (
+                  <div className="py-8 text-center bg-slate-50/30 rounded-3xl border border-dashed border-slate-200">
+                    <Gamepad2 className="h-8 w-8 text-slate-200 mx-auto mb-3" />
+                    <p className="text-xs font-bold text-slate-400">No assets currently on loan.</p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+
+            {/* Quick Link/Help Card */}
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              className="p-8 rounded-[2rem] bg-cyan-600 text-white shadow-xl shadow-cyan-200 relative overflow-hidden group cursor-pointer"
+            >
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-500">
+                <LayoutDashboard className="h-24 w-24" />
+              </div>
+              <div className="relative z-10 space-y-4">
+                <h3 className="text-xl font-black tracking-tight leading-tight">Need academic assistance?</h3>
+                <p className="text-cyan-100 text-sm font-medium">Connect with faculty advisors or technical support directly from your portal.</p>
+                <Button className="bg-white text-cyan-600 hover:bg-indigo-50 font-black rounded-xl h-10 px-6">
+                  Get Help
+                </Button>
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }
