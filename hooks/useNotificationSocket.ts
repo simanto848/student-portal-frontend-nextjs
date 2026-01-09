@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { socketService } from "@/services/socket.service";
 import { notificationKeys } from "@/hooks/queries/useNotificationQueries";
 import { NotificationItem } from "@/services/notification/notification.service";
+import { toast } from "sonner";
 
 interface UseNotificationSocketOptions {
   enabled?: boolean;
@@ -39,10 +40,16 @@ export function useNotificationSocket(
           );
           if (exists) return oldData;
 
-          // Add new notification at the beginning
+          // Add new notification at the beginning with unread status
+          const unreadNotification = {
+            ...notification,
+            status: "sent" as const,
+            isRead: false
+          };
+
           return {
             ...oldData,
-            notifications: [notification, ...oldData.notifications],
+            notifications: [unreadNotification, ...oldData.notifications],
           };
         },
       );
@@ -55,7 +62,15 @@ export function useNotificationSocket(
         queryKey: notificationKeys.myNotifications(),
       });
       queryClient.invalidateQueries({
+        queryKey: notificationKeys.infiniteMyNotifications(),
+      });
+      queryClient.invalidateQueries({
         queryKey: notificationKeys.unreadCount(),
+      });
+
+      // Show real-time alert
+      toast.info(`Intelligence: ${notification.title}`, {
+        description: notification.content,
       });
 
       // Call the callback if provided

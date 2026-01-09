@@ -1,6 +1,7 @@
 "use client";
 
 import { Bell, HelpCircle, Menu } from "lucide-react";
+import { NotificationDropdown } from "./notifications/NotificationDropdown";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -44,15 +45,19 @@ export function Header({ onMenuClick, theme }: HeaderProps) {
 
       {/* Right side - Actions */}
       <div className="flex items-center gap-1 sm:gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className={`relative ${c.text} ${theme.colors.sidebar.hover} h-9 w-9 sm:h-10 sm:w-10`}
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
-          <span className="sr-only">Notifications</span>
-        </Button>
+        {user?.role === UserRole.STUDENT && <NotificationDropdown />}
+
+        {user?.role !== UserRole.STUDENT && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`relative ${c.text} ${theme.colors.sidebar.hover} h-9 w-9 sm:h-10 sm:w-10`}
+          >
+            <Bell className="h-5 w-5" />
+            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500" />
+            <span className="sr-only">Notifications</span>
+          </Button>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
