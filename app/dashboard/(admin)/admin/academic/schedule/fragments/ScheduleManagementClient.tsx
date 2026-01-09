@@ -9,6 +9,7 @@ import {
     Classroom,
     SessionCourse
 } from "@/services/academic/types";
+import { Teacher } from "@/services/teacher.service";
 import { notifySuccess, notifyError } from "@/components/toast";
 import { CalendarClock, Sparkles, Filter, Clock, MapPin, User, BookOpen } from "lucide-react";
 import { ScheduleFormModal } from "./ScheduleFormModal";
@@ -41,6 +42,7 @@ interface SearchableSchedule extends CourseSchedule {
     searchTeacher: string;
     searchBatch: string;
     searchRoom: string;
+    searchDepartment: string;
     displayDay: string;
     semester?: number;
     session?: any;
@@ -71,8 +73,8 @@ export function ScheduleManagementClient() {
             accessorKey: "sessionCourseId" as any,
             cell: (item: any) => {
                 const sessionCourse = typeof item.sessionCourseId === 'object' ? item.sessionCourseId : null;
-                const courseName = sessionCourse?.course?.name || item.course?.name || "Unknown Course";
-                const sessionName = sessionCourse?.session?.name || item.session?.name || "N/A";
+                const courseName = (typeof sessionCourse?.courseId === 'object' ? sessionCourse.courseId?.name : null) || item.course?.name || "Unknown Course";
+                const sessionName = (typeof sessionCourse?.sessionId === 'object' ? sessionCourse.sessionId?.name : null) || (typeof item.session === 'object' ? item.session?.name : null) || "N/A";
 
                 return (
                     <div className="flex flex-col">
@@ -106,11 +108,37 @@ export function ScheduleManagementClient() {
             header: "Teacher",
             accessorKey: "teacherId",
             cell: (item: any) => {
-                const teacher = typeof item.teacherId === 'object' ? item.teacherId : item.teacher;
+                const teacherObj = typeof item.teacherId === 'object' ? item.teacherId :
+                    (teachers as Teacher[]).find(t => t.id === item.teacherId || (t as any)._id === item.teacherId) || item.teacher;
+                const fullName = (teacherObj as any)?.fullName || (typeof item.searchTeacher === 'string' && item.searchTeacher !== "Unassigned" ? item.searchTeacher : null);
+
                 return (
-                    <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-600">{teacher?.fullName || "Unassigned"}</span>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-slate-400" />
+                            <span className="text-sm font-semibold text-slate-700">{fullName || "Unassigned"}</span>
+                        </div>
+                        {teacherObj?.email && (
+                            <span className="text-[10px] text-slate-400 font-medium ml-6">{teacherObj.email}</span>
+                        )}
+                    </div>
+                );
+            },
+        },
+        {
+            header: "Department",
+            accessorKey: "departmentId" as any,
+            cell: (item: any) => {
+                const batch = typeof item.batchId === 'object' ? item.batchId : null;
+                const sessionCourse = typeof item.sessionCourseId === 'object' ? item.sessionCourseId : null;
+                const department = batch?.departmentId || sessionCourse?.departmentId || (item as any).department;
+
+                return (
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-slate-600">{department?.name || "N/A"}</span>
+                        {department?.shortName && (
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{department.shortName}</span>
+                        )}
                     </div>
                 );
             },
@@ -137,21 +165,25 @@ export function ScheduleManagementClient() {
                 const batch = typeof item.batchId === 'object' ? item.batchId : item.batch;
                 return (
                     <Badge className="bg-slate-900 text-white border-none text-[10px] font-bold px-2.5 py-1">
-                        {batch?.name || "N/A"}
+                        {batch?.code || batch?.name || "N/A"}
                     </Badge>
                 );
             },
         },
-    ], []);
+    ], [batches, sessionCourses, classrooms, teachers]);
 
     const searchableData: SearchableSchedule[] = useMemo(() => {
         return schedules.map(s => {
             const sessionCourse = typeof s.sessionCourseId === 'object' ? (s.sessionCourseId as SessionCourse) : null;
-            const courseName = sessionCourse?.course?.name || (s as any).course?.name || "Unknown Course";
+            const courseName = (typeof sessionCourse?.courseId === 'object' ? (sessionCourse.courseId as any).name : null) || (s as any).course?.name || "Unknown Course";
             const batch = typeof s.batchId === 'object' ? (s.batchId as Batch) : null;
-            const batchName = batch?.name || (s as any).batch?.name || "N/A";
-            const teacherName = s.teacher?.fullName || (s.teacherId as any)?.fullName || "Unassigned";
+            const batchName = batch?.code || batch?.name || (s as any).batch?.name || "N/A";
+            const teacher = typeof s.teacherId === 'object' ? (s.teacherId as any) :
+                (teachers as Teacher[]).find(t => t.id === s.teacherId || (t as any)._id === s.teacherId) || (s as any).teacher;
+            const teacherName = (teacher as any)?.fullName || "Unassigned";
             const roomNumber = s.classroom?.roomNumber || (s.classroomId as any)?.roomNumber || "N/A";
+            const department = batch?.departmentId || sessionCourse?.departmentId || (s as any).department;
+            const departmentName = department?.name || "N/A";
 
             return {
                 ...s,
@@ -159,13 +191,14 @@ export function ScheduleManagementClient() {
                 searchTeacher: teacherName,
                 searchBatch: batchName,
                 searchRoom: roomNumber,
+                searchDepartment: departmentName,
                 displayDay: s.daysOfWeek?.[0] || "N/A",
                 semester: sessionCourse?.semester || (s as any).semester,
-                course: sessionCourse?.course || (s as any).course,
-                session: sessionCourse?.session || (s as any).session
+                course: sessionCourse?.courseId || (s as any).course,
+                session: sessionCourse?.sessionId || (s as any).session
             };
         });
-    }, [schedules]);
+    }, [schedules, teachers]);
 
     const filteredData = useMemo(() => {
         return searchableData.filter((s) => {
@@ -220,19 +253,14 @@ export function ScheduleManagementClient() {
         try {
             const formData = new FormData();
             Object.entries(data).forEach(([key, value]) => {
-                if (key === "dayOfWeek") {
-                    formData.append("daysOfWeek[]", String(value));
+                if (Array.isArray(value)) {
+                    value.forEach(v => formData.append(key, String(v)));
                     return;
                 }
                 if (value !== undefined && value !== null && value !== "") {
                     formData.append(key, String(value));
                 }
             });
-
-            // Ensure semester is passed as a number if needed by the backend
-            if (data.semester) {
-                formData.set("semester", String(Number(data.semester)));
-            }
 
             const result = selectedSchedule
                 ? await updateScheduleAction(selectedSchedule.id, null, formData)
@@ -357,7 +385,7 @@ export function ScheduleManagementClient() {
                 onClose={() => setIsDeleteModalOpen(false)}
                 onConfirm={handleConfirmDelete}
                 scheduleTitle={selectedSchedule ? (
-                    (typeof selectedSchedule.sessionCourseId === 'object' ? (selectedSchedule.sessionCourseId as any).course?.name : null) ||
+                    (typeof selectedSchedule.sessionCourseId === 'object' ? (typeof (selectedSchedule.sessionCourseId as any).courseId === 'object' ? (selectedSchedule.sessionCourseId as any).courseId?.name : null) : null) ||
                     (selectedSchedule as any).course?.name ||
                     "this class"
                 ) + ` (${selectedSchedule.startTime})` : undefined}

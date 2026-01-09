@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { TimePicker } from "@/components/ui/time-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check, ChevronsUpDown, X } from "lucide-react";
@@ -42,6 +43,7 @@ interface GenericFormModalProps {
     fields: FormField[];
     initialData?: FormDataType;
     isSubmitting?: boolean;
+    onFieldChange?: (name: string, value: any) => void;
 }
 
 function FormContent({
@@ -50,19 +52,22 @@ function FormContent({
     onSubmit,
     onClose,
     isSubmitting,
+    onFieldChange,
 }: {
     fields: FormField[];
     initialData: FormDataType;
     onSubmit: (data: FormDataType) => void;
     onClose: () => void;
     isSubmitting: boolean;
+    onFieldChange?: (name: string, value: any) => void;
 }) {
     const theme = useDashboardTheme();
     const [formData, setFormData] = useState<FormDataType>(initialData);
 
     const handleChange = useCallback((name: string, value: any) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
-    }, []);
+        onFieldChange?.(name, value);
+    }, [onFieldChange]);
 
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -157,13 +162,13 @@ function FormContent({
                                         <Command>
                                             <CommandInput placeholder="Search..." className="h-11 border-none focus:ring-0" />
                                             <CommandEmpty>No item found.</CommandEmpty>
-                                            <CommandGroup className="max-h-[200px] overflow-auto p-1">
-                                                <CommandList>
+                                            <CommandGroup className="p-1">
+                                                <CommandList className="max-h-[250px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                                                     {field.options?.map((option) => (
                                                         <CommandItem
                                                             key={option.value}
                                                             value={option.label}
-                                                            className="rounded-lg m-1 font-medium"
+                                                            className="rounded-lg m-1 font-medium cursor-pointer transition-colors aria-selected:bg-indigo-50 aria-selected:text-indigo-600 hover:bg-slate-50"
                                                             onSelect={() => {
                                                                 const current = Array.isArray(formData[field.name]) ? formData[field.name] : [];
                                                                 const isSelected = current.includes(option.value);
@@ -190,6 +195,13 @@ function FormContent({
                                     </PopoverContent>
                                 </Popover>
                             </div>
+                        ) : field.type === "time" ? (
+                            <TimePicker
+                                value={formData[field.name] || ""}
+                                onChange={(value) => handleChange(field.name, value)}
+                                placeholder={field.placeholder}
+                                disabled={isSubmitting}
+                            />
                         ) : field.type === "textarea" ? (
                             <textarea
                                 id={field.name}
@@ -251,6 +263,7 @@ export function GenericFormModal({
     fields,
     initialData = {},
     isSubmitting = false,
+    onFieldChange,
 }: GenericFormModalProps) {
     const theme = useDashboardTheme();
     const formKey = JSON.stringify(initialData);
@@ -275,6 +288,7 @@ export function GenericFormModal({
                         onSubmit={onSubmit}
                         onClose={onClose}
                         isSubmitting={isSubmitting}
+                        onFieldChange={onFieldChange}
                     />
                 )}
             </DialogContent>

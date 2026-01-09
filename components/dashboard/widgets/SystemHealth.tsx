@@ -3,7 +3,7 @@
 import { CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useMemo, useState } from "react";
-import { api as apiClient } from "@/services/academic/axios-instance";
+import { academicApi as apiClient } from "@/services/academic/axios-instance";
 import { Button } from "@/components/ui/button";
 
 type ServiceStatus = "operational" | "degraded" | "down";
@@ -215,11 +215,10 @@ export function SystemHealth() {
               key={service.key}
               type="button"
               onClick={() => loadInspectAndLogs(service.key)}
-              className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition-colors ${
-                selectedKey === service.key
+              className={`flex items-center justify-between p-3 bg-gray-50 rounded-lg text-left hover:bg-gray-100 transition-colors ${selectedKey === service.key
                   ? "ring-2 ring-offset-2 ring-gray-200"
                   : ""
-              }`}
+                }`}
             >
               <div className="flex items-center gap-2">
                 {getStatusIcon(service.status)}
@@ -229,8 +228,8 @@ export function SystemHealth() {
                 {typeof service.responseTimeMs === "number"
                   ? `${service.responseTimeMs}ms`
                   : service.status === "down"
-                  ? "Down"
-                  : "Checking..."}
+                    ? "Down"
+                    : "Checking..."}
               </span>
             </button>
           ))}

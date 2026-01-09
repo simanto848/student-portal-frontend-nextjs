@@ -244,33 +244,43 @@ export const courseScheduleSchema = z
     batchId: z.string().min(1, "Please select a batch"),
     sessionCourseId: z.string().min(1, "Please select a session course"),
     teacherId: z.string().optional().or(z.literal("")),
-    daysOfWeek: z
-      .array(
-        z.enum([
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ]),
-      )
-      .min(1, "Please select at least one day"),
+    daysOfWeek: z.preprocess(
+      (val) => (Array.isArray(val) ? val : val ? [val] : []),
+      z
+        .array(
+          z.enum([
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ]),
+        )
+        .min(1, "Please select at least one day"),
+    ),
     startTime: z.string().min(1, "Start time is required"),
     endTime: z.string().min(1, "End time is required"),
     classroomId: z.string().optional().or(z.literal("")),
     building: z.string().optional().or(z.literal("")),
-    isRecurring: booleanStringSchema,
-    startDate: z.string().min(1, "Start date is required"),
-    endDate: z.string().optional().or(z.literal("")),
+    isRecurring: booleanStringSchema.default(true),
+    startDate: z
+      .string()
+      .min(1, "Start date is required")
+      .transform((val) => new Date(val).toISOString()),
+    endDate: z
+      .string()
+      .optional()
+      .or(z.literal(""))
+      .transform((val) => (val ? new Date(val).toISOString() : undefined)),
     classType: z.enum(
       ["Lecture", "Tutorial", "Lab", "Seminar", "Workshop", "Other"],
       {
         message: "Please select a class type",
       },
     ),
-    isActive: booleanStringSchema,
+    isActive: booleanStringSchema.default(true),
   })
   .refine((data) => data.startTime < data.endTime, {
     message: "End time must be after start time",
@@ -380,10 +390,10 @@ export const assessmentSchema = z.object({
     message: "Please select a status",
   }),
 })
-.refine((data) => data.passingMarks <= data.totalMarks, {
-  message: "Passing marks cannot exceed total marks",
-  path: ["passingMarks"],
-});
+  .refine((data) => data.passingMarks <= data.totalMarks, {
+    message: "Passing marks cannot exceed total marks",
+    path: ["passingMarks"],
+  });
 
 export type AssessmentFormData = z.input<typeof assessmentSchema>;
 export type AssessmentSubmitData = z.output<typeof assessmentSchema>;
@@ -440,7 +450,7 @@ export function getFirstError(result: {
   error?: { issues?: Array<{ message: string }> };
 }): string | null {
   if (result.success) return null;
-  
+
   if (
     result.error &&
     "issues" in result.error &&

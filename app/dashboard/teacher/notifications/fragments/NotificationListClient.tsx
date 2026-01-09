@@ -186,7 +186,7 @@ export default function NotificationListClient({
                         <div className="flex gap-2">
                             <Button
                                 variant="outline"
-                                onClick={() => markAllAsRead()}
+                                onClick={() => markAllAsRead.mutate()}
                                 disabled={unreadCount === 0 || isMarkingAllRead}
                                 className="flex-1 h-12 border-slate-200 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50"
                             >
@@ -277,7 +277,7 @@ export default function NotificationListClient({
                                         key={n.id}
                                         notification={n}
                                         index={idx}
-                                        onMarkAsRead={() => markAsRead(n.id)}
+                                        onMarkAsRead={() => markAsRead.mutate(n.id)}
                                         isMarkingRead={isMarkingRead}
                                         themeAccent={accentPrimary}
                                     />

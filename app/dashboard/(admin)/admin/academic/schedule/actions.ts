@@ -2,6 +2,7 @@
 
 import { createFormAction } from "@/lib/formAction";
 import { revalidatePath } from "next/cache";
+import { courseScheduleSchema } from "@/lib/validations/academic";
 
 const revalidateSchedule = () => {
     revalidatePath("/dashboard/admin/academic/schedule");
@@ -13,6 +14,7 @@ export async function createScheduleAction(state: any, formData: FormData) {
         {
             method: "post",
             endpoint: "/academic/schedules",
+            schema: courseScheduleSchema,
             onSuccess: revalidateSchedule,
         },
         state,
@@ -25,6 +27,7 @@ export async function updateScheduleAction(id: string, state: any, formData: For
         {
             method: "patch",
             endpoint: `/academic/schedules/${id}`,
+            schema: courseScheduleSchema,
             onSuccess: revalidateSchedule,
         },
         state,

@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: ScheduleDetailsPageProps): Pr
     try {
         const schedule = await academicService.getScheduleById(id);
         const sessionCourse = typeof schedule.sessionCourseId === 'object' ? (schedule.sessionCourseId as any) : null;
-        const courseName = sessionCourse?.course?.name || (schedule as any).course?.name || "Schedule";
+        const courseName = sessionCourse?.courseId?.name || (schedule as any).course?.name || "Schedule";
 
         return {
             title: `${courseName} Details | Admin Dashboard`,

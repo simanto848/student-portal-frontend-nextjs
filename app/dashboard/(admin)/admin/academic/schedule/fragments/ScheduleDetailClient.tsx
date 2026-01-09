@@ -36,10 +36,12 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
     const router = useRouter();
 
     const sessionCourse = typeof schedule.sessionCourseId === 'object' ? (schedule.sessionCourseId as SessionCourse) : null;
-    const course = sessionCourse?.course || (schedule as any).course;
-    const session = sessionCourse?.session || (schedule as any).session;
+    const course = typeof sessionCourse?.courseId === 'object' ? (sessionCourse.courseId as any) : (schedule as any).course;
+    const session = typeof sessionCourse?.sessionId === 'object' ? (sessionCourse.sessionId as any) : (schedule as any).session;
     const batch = typeof schedule.batchId === 'object' ? (schedule.batchId as Batch) : (schedule as any).batch;
-    const teacher = teacherProp || schedule.teacher || (schedule.teacherId as any);
+    const teacher = teacherProp || (typeof schedule.teacherId === 'object' ? (schedule.teacherId as any) : schedule.teacher);
+    const classroom = typeof schedule.classroomId === 'object' ? (schedule.classroomId as any) : (schedule as any).classroom;
+    const department = batch?.departmentId || sessionCourse?.departmentId || (schedule as any).department;
 
     const getName = (item: any): string => {
         if (!item) return "N/A";
@@ -137,7 +139,7 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                                     <Building2 className="w-3 h-3" /> Department
                                 </p>
-                                <p className="text-sm font-bold truncate">CSE / Engineering</p>
+                                <p className="text-sm font-bold truncate">{department?.name || "N/A"}</p>
                             </div>
                         </div>
                     </div>
@@ -201,8 +203,8 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
                             <div className="flex items-center gap-3">
                                 <Building2 className="w-8 h-8 text-blue-400" />
                                 <div>
-                                    <p className="text-2xl font-black text-slate-900 tracking-tighter">Room {schedule.classroom?.roomNumber || "N/A"}</p>
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{schedule.classroom?.buildingName || "Main Campus Building"}</p>
+                                    <p className="text-2xl font-black text-slate-900 tracking-tighter">Room {classroom?.roomNumber || "N/A"}</p>
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{classroom?.buildingName || "Main Campus Building"}</p>
                                 </div>
                             </div>
                         </div>
