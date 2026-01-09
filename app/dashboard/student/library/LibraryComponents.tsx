@@ -1,9 +1,11 @@
 "use client";
 
-import { Clock, BookOpen, User, MapPin, AlertCircle } from "lucide-react";
+import { Clock, BookOpen, User, MapPin, AlertCircle, Bookmark, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Borrowing, Book, Reservation } from "@/services/library/types";
+import { GlassCard } from "@/components/dashboard/shared/GlassCard";
+import { motion } from "framer-motion";
 
 // --- Book Card (Catalog) ---
 export function BookCard({
@@ -15,49 +17,57 @@ export function BookCard({
     onReserve?: (book: Book) => void;
     isReserving?: boolean;
 }) {
+    const isAvailable = book.availableCopies && book.availableCopies > 0;
+
     return (
-        <div className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-all duration-200">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold dashboard-title">
-                            {book.title}
+        <GlassCard className="p-6 group hover:shadow-cyan-500/10 transition-all duration-500">
+            <div className="flex items-start justify-between gap-6">
+                <div className="flex-1 space-y-4">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <h4 className="text-lg font-black text-slate-800 leading-tight group-hover:text-cyan-600 transition-colors">
+                                {book.title}
+                            </h4>
+                            <StatusBadge
+                                status={isAvailable ? "active" : "failed"}
+                                label={isAvailable ? "Available" : "Unavailable"}
+                            />
+                        </div>
+                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest leading-none">
+                            {book.author}
                         </p>
-                        <StatusBadge
-                            status={book.availableCopies && book.availableCopies > 0 ? "active" : "failed"}
-                            label={book.availableCopies && book.availableCopies > 0 ? "Available" : "Unavailable"}
-                        />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {book.author} • {book.category}
-                    </p>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="flex items-center gap-2 text-slate-400">
+                            <BookOpen className="h-3.5 w-3.5 text-cyan-500" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{book.category}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-400">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-cyan-500" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{book.availableCopies || 0} Units</span>
+                        </div>
+                    </div>
+
                     {book.publisher && (
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                            {book.publisher} {book.publicationYear ? `(${book.publicationYear})` : ''}
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                            Published by {book.publisher} {book.publicationYear ? `(${book.publicationYear})` : ''}
                         </p>
                     )}
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span className="font-medium text-[#1a3d32]">
-                            Copies Available: {book.availableCopies || 0}
-                        </span>
-                        {book.language && (
-                            <span>Language: {book.language}</span>
-                        )}
-                    </div>
                 </div>
-                {onReserve && book.availableCopies && book.availableCopies > 0 && (
+
+                {onReserve && isAvailable && (
                     <Button
                         size="sm"
-                        variant="outline"
-                        className="text-[#1a3d32] border-[#3e6253] hover:bg-[#3e6253]/10"
+                        className="rounded-xl border border-cyan-100 bg-white text-cyan-600 hover:bg-cyan-600 hover:text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 shadow-sm shadow-cyan-100 transition-all active:scale-95"
                         onClick={() => onReserve(book)}
                         disabled={isReserving}
                     >
-                        {isReserving ? "Reserving..." : "Reserve"}
+                        {isReserving ? "Processing..." : "Reserve"}
                     </Button>
                 )}
             </div>
-        </div>
+        </GlassCard>
     );
 }
 
@@ -92,51 +102,55 @@ export function BorrowedBookCard({
     };
 
     return (
-        <div className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-all duration-200">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold dashboard-title">
-                            {bookDetails?.title || "Unknown Book"}
+        <GlassCard className={`p-6 border-2 transition-all duration-500 ${isOverdue ? 'border-rose-400/30' : 'border-transparent'}`}>
+            <div className="flex items-start justify-between gap-6">
+                <div className="flex-1 space-y-4">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <h4 className="text-lg font-black text-slate-800 leading-tight">
+                                {bookDetails?.title || "Unknown Asset"}
+                            </h4>
+                            <StatusBadge status={getStatus()} label={getStatusLabel()} />
+                        </div>
+                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest leading-none">
+                            {bookDetails?.author || "Unknown Operator"} • ISBN: {bookDetails?.isbn || "N/A"}
                         </p>
-                        <StatusBadge status={getStatus()} label={getStatusLabel()} />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {bookDetails?.author || "Unknown Author"} •{" "}
-                        {bookDetails?.isbn || "N/A"}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Borrowed: {new Date(item.borrowDate).toLocaleDateString()}
-                        </span>
-                        <span
-                            className={`flex items-center gap-1 ${isOverdue
-                                ? "text-red-600 font-semibold"
-                                : daysLeft <= 3
-                                    ? "text-yellow-700 font-semibold"
-                                    : ""
-                                }`}
-                        >
-                            <Clock className="h-3 w-3" />
-                            Due: {dueDate.toLocaleDateString()}
-                            {!isOverdue && ` (${daysLeft} days left)`}
-                        </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100/50">
+                            <Clock className="h-4 w-4 text-cyan-500" />
+                            <div>
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Due Date</p>
+                                <p className={`text-xs font-black ${isOverdue ? 'text-rose-500' : 'text-slate-700'}`}>
+                                    {dueDate.toLocaleDateString()} {!isOverdue && `(${daysLeft}d left)`}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100/50">
+                            <Bookmark className="h-4 w-4 text-cyan-500" />
+                            <div>
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Borrow Date</p>
+                                <p className="text-xs font-black text-slate-700">
+                                    {new Date(item.borrowDate).toLocaleDateString()}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 {onReturn && (
                     <Button
                         size="sm"
-                        variant="outline"
-                        className="text-[#1a3d32] border-[#3e6253] hover:bg-[#3e6253]/10"
+                        className="rounded-xl bg-slate-900 text-white hover:bg-cyan-600 font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-xl shadow-slate-200 transition-all active:scale-95"
                         onClick={() => onReturn(item.id)}
                         disabled={isReturning}
                     >
-                        {isReturning ? "Returning..." : "Return"}
+                        {isReturning ? "Syncing..." : "Return Asset"}
                     </Button>
                 )}
             </div>
-        </div>
+        </GlassCard>
     );
 }
 
@@ -156,101 +170,97 @@ export function ReservationCard({
     const isExpired = expiryDate < today;
 
     return (
-        <div className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-all duration-200">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold dashboard-title">
-                            {bookDetails?.title || "Unknown Book"}
+        <GlassCard className="p-6">
+            <div className="flex items-start justify-between gap-6">
+                <div className="flex-1 space-y-4">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-3">
+                            <h4 className="text-lg font-black text-slate-800 leading-tight">
+                                {bookDetails?.title || "Pending Allocation"}
+                            </h4>
+                            <StatusBadge status={item.status === 'pending' ? 'active' : item.status} label={item.status.toUpperCase()} />
+                        </div>
+                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest">
+                            {bookDetails?.author || "Internal System"} • Copy Index: {item.copy?.copyNumber || "N/A"}
                         </p>
-                        <StatusBadge status={item.status === 'pending' ? 'active' : item.status} label={item.status.toUpperCase()} />
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {bookDetails?.author || "Unknown Author"} • Copy: {item.copy?.copyNumber || "N/A"}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            Reserved: {new Date(item.reservationDate).toLocaleDateString()}
-                        </span>
-                        <span className={`flex items-center gap-1 ${isExpired ? "text-red-600 font-semibold" : ""}`}>
-                            <Clock className="h-3 w-3" />
-                            Expires: {expiryDate.toLocaleString()}
-                        </span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100/50">
+                            <Clock className="h-4 w-4 text-cyan-500" />
+                            <div>
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Expiry Horizon</p>
+                                <p className={`text-xs font-black ${isExpired ? 'text-rose-500' : 'text-slate-700'}`}>
+                                    {expiryDate.toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+                        {item.copy?.location && (
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-cyan-50 border border-cyan-100/50">
+                                <MapPin className="h-4 w-4 text-cyan-600" />
+                                <div>
+                                    <p className="text-[8px] font-black text-cyan-500 uppercase tracking-widest leading-none mb-1">Pickup Vector</p>
+                                    <p className="text-xs font-black text-cyan-700">{item.copy.location}</p>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                    {item.copy?.location && (
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> Pickup Location: {item.copy.location}
-                        </p>
-                    )}
                 </div>
+
                 {onCancel && item.status === 'pending' && (
                     <Button
                         size="sm"
-                        variant="outline"
-                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        variant="ghost"
+                        className="rounded-xl border border-rose-100 text-rose-500 hover:bg-rose-50 font-black uppercase tracking-widest text-[10px] h-10 px-6 transition-all"
                         onClick={() => onCancel(item.id)}
                         disabled={isCancelling}
                     >
-                        {isCancelling ? "Cancelling..." : "Cancel"}
+                        {isCancelling ? "Purging..." : "Cancel"}
                     </Button>
                 )}
             </div>
-        </div>
+        </GlassCard>
     );
 }
 
 // --- History Card (Unified Borrowing & Reservation) ---
 export function LibraryHistoryCard({ item }: { item: Borrowing | Reservation }) {
-    // Determine if it's a borrowing or reservation
     const isBorrowing = (item as Borrowing).borrowDate !== undefined;
     const bookDetails = item.copy?.book;
-
     const status = item.status;
-    const statusLabel = status.toUpperCase();
 
     return (
-        <div className="rounded-xl border border-gray-100 p-4 hover:bg-gray-50 transition-all duration-200">
-            <div className="flex items-start justify-between">
-                <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold dashboard-title">
-                            {bookDetails?.title || "Unknown Book"}
-                        </p>
-                        <StatusBadge
-                            status={status === 'returned' || status === 'fulfilled' ? 'success' : status}
-                            label={statusLabel}
-                        />
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium">
-                            {isBorrowing ? "Borrowing" : "Reservation"}
-                        </span>
+        <div className="group relative p-4 rounded-2xl border border-slate-100 hover:border-cyan-100 hover:bg-cyan-50/30 transition-all duration-300">
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4 flex-1">
+                    <div className={`p-2 rounded-xl ${isBorrowing ? 'bg-slate-100 text-slate-500' : 'bg-cyan-100 text-cyan-500'}`}>
+                        {isBorrowing ? <BookOpen className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {bookDetails?.author || "Unknown Author"}
-                    </p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        {isBorrowing ? (
-                            <>
-                                <span>Borrowed: {new Date((item as Borrowing).borrowDate).toLocaleDateString()}</span>
-                                {(item as Borrowing).returnDate && (
-                                    <span>Returned: {new Date((item as Borrowing).returnDate as string).toLocaleDateString()}</span>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <span>Reserved: {(item as Reservation).reservationDate ? new Date((item as Reservation).reservationDate).toLocaleDateString() : 'N/A'}</span>
-                                {item.status === 'fulfilled' && (item as Reservation).fulfilledAt && (
-                                    <span>Fulfilled: {new Date((item as Reservation).fulfilledAt!).toLocaleDateString()}</span>
-                                )}
-                            </>
-                        )}
+                    <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                            <span className="text-sm font-black text-slate-800">{bookDetails?.title || "Archived Asset"}</span>
+                            <StatusBadge
+                                status={status === 'returned' || status === 'fulfilled' ? 'success' : status}
+                                label={status.toUpperCase()}
+                            />
+                        </div>
+                        <div className="flex items-center gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span>{isBorrowing ? "Borrowing Loop" : "Reservation Sequence"}</span>
+                            <span>•</span>
+                            <span>{bookDetails?.author}</span>
+                        </div>
+                    </div>
+                </div>
 
-                        {(item as Borrowing).fineAmount !== undefined && (item as Borrowing).fineAmount > 0 && (
-                            <span className="text-red-600 font-semibold">
-                                Fine: ${((item as Borrowing).fineAmount).toFixed(2)}
-                            </span>
-                        )}
-                    </div>
+                <div className="text-right">
+                    <p className="text-[10px] font-black text-slate-900 mb-0.5">
+                        {isBorrowing ? new Date((item as Borrowing).borrowDate).toLocaleDateString() : new Date((item as Reservation).reservationDate).toLocaleDateString()}
+                    </p>
+                    {(item as Borrowing).fineAmount !== undefined && (item as Borrowing).fineAmount > 0 && (
+                        <p className="text-[9px] font-black text-rose-500 uppercase tracking-tight">
+                            Fine: ${((item as Borrowing).fineAmount).toFixed(2)}
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

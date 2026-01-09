@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tanstack/react-query";
 import {
   notificationService,
   NotificationItem,
@@ -18,6 +18,8 @@ export const notificationKeys = {
     [...notificationKeys.all, "detail", id] as const,
   myNotifications: (params?: NotificationListParams) =>
     [...notificationKeys.all, "mine", params] as const,
+  infiniteMyNotifications: (params?: NotificationListParams) =>
+    [...notificationKeys.all, "mine", "infinite", params] as const,
   unreadCount: () => [...notificationKeys.all, "unread-count"] as const,
 };
 
@@ -32,6 +34,9 @@ function extractNotifications(response: unknown): NotificationItem[] {
     const obj = response as Record<string, unknown>;
     if (Array.isArray(obj.notifications)) {
       return obj.notifications as NotificationItem[];
+    }
+    if (Array.isArray(obj.items)) {
+      return obj.items as NotificationItem[];
     }
     if (Array.isArray(obj.data)) {
       return obj.data as NotificationItem[];
@@ -79,6 +84,36 @@ export function useMyNotifications(
   });
 }
 
+// Fetch current user's notifications with infinite scrolling
+export function useInfiniteMyNotifications(
+  params?: Omit<NotificationListParams, "mine" | "page">,
+  options?: any
+) {
+  return useInfiniteQuery({
+    queryKey: notificationKeys.infiniteMyNotifications(params),
+    queryFn: async ({ pageParam = 1 }) => {
+      const response = await notificationService.list({
+        ...params,
+        mine: true,
+        page: pageParam as number,
+      });
+      return {
+        notifications: extractNotifications(response),
+        pagination: (response as any)?.pagination || response,
+      };
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const pagination = lastPage.pagination as any;
+      if (!pagination) return undefined;
+      const current = (pagination.page as number) || 1;
+      const total = (pagination.pages as number) || 1;
+      return current < total ? current + 1 : undefined;
+    },
+    ...options
+  });
+}
+
 // Fetch a single notification by ID
 export function useNotification(id: string) {
   return useQuery({
@@ -115,21 +150,15 @@ export function useMarkNotificationAsRead() {
   return useMutation({
     mutationFn: (id: string) => notificationService.markRead(id),
     onSuccess: (_, id) => {
-      // Update the specific notification in cache
-      queryClient.setQueryData<NotificationItem>(
-        notificationKeys.notification(id),
-        (old) =>
-          old
-            ? { ...old, status: "read", readAt: new Date().toISOString() }
-            : old,
-      );
-
       // Invalidate lists to refresh
       queryClient.invalidateQueries({
         queryKey: notificationKeys.notifications(),
       });
       queryClient.invalidateQueries({
         queryKey: notificationKeys.myNotifications(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.infiniteMyNotifications(),
       });
       queryClient.invalidateQueries({
         queryKey: notificationKeys.unreadCount(),
@@ -164,6 +193,32 @@ export function useMarkAllNotificationsAsRead() {
       });
       queryClient.invalidateQueries({
         queryKey: notificationKeys.myNotifications(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.infiniteMyNotifications(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.unreadCount(),
+      });
+    },
+  });
+}
+
+// Delete notification mutation
+export function useDeleteNotification() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => notificationService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.notifications(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.myNotifications(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.infiniteMyNotifications(),
       });
       queryClient.invalidateQueries({
         queryKey: notificationKeys.unreadCount(),
@@ -211,19 +266,24 @@ export function useNotificationBell() {
 
 // Hook for notification center page
 export function useNotificationCenter(params?: NotificationListParams, options?: any) {
-  const query = useMyNotifications(params, options);
+  const query = useInfiniteMyNotifications(params, options);
   const markReadMutation = useMarkNotificationAsRead();
   const markAllReadMutation = useMarkAllNotificationsAsRead();
+  const deleteMutation = useDeleteNotification();
 
   return {
-    notifications: query.data?.notifications ?? [],
-    pagination: query.data?.pagination,
+    notifications: query.data?.pages.flatMap((page) => page.notifications) ?? [],
+    pagination: query.data?.pages[query.data.pages.length - 1].pagination,
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,
     refetch: query.refetch,
-    markAsRead: markReadMutation.mutate,
-    markAllAsRead: markAllReadMutation.mutate,
+    fetchNextPage: query.fetchNextPage,
+    hasNextPage: query.hasNextPage,
+    isFetchingNextPage: query.isFetchingNextPage,
+    markAsRead: markReadMutation,
+    markAllAsRead: markAllReadMutation,
+    deleteNotification: deleteMutation,
     isMarkingRead: markReadMutation.isPending,
     isMarkingAllRead: markAllReadMutation.isPending,
   };
@@ -244,7 +304,7 @@ export function useNotificationStats() {
 
   const stats = {
     total: notifications.length,
-    unread: notifications.filter((n) => n.status === "sent").length,
+    unread: notifications.filter((n) => n.status !== "read").length,
     read: notifications.filter((n) => n.status === "read").length,
     scheduled: notifications.filter((n) => n.status === "scheduled").length,
   };
@@ -253,5 +313,6 @@ export function useNotificationStats() {
     stats,
     isLoading: allQuery.isLoading,
     isError: allQuery.isError,
+    refetch: allQuery.refetch,
   };
 }

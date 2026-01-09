@@ -44,6 +44,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { getImageUrl } from "@/lib/utils";
 
 interface ChatInterfaceProps {
   chatGroupId: string;
@@ -340,6 +341,7 @@ export function ChatInterface({
                                     <div key={msg.id} className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm space-y-2">
                                       <div className="flex items-center gap-2">
                                         <Avatar className="h-6 w-6">
+                                          <AvatarImage src={getImageUrl(msg.sender?.avatar)} alt={msg.sender?.fullName} />
                                           <AvatarFallback className="text-[10px] bg-slate-100 text-slate-600">{msg.sender?.fullName?.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <span className="font-black text-xs text-slate-900">{msg.sender?.fullName}</span>
@@ -397,6 +399,7 @@ export function ChatInterface({
                   <div key={msg.id || idx} className={`flex gap-3 group ${isMe ? "justify-end" : "justify-start"} ${isContinuous ? "mt-1.5" : "mt-6"}`}>
                     {!isMe && !isContinuous && (
                       <Avatar className="h-10 w-10 mt-1 border-2 border-white shadow-sm ring-1 ring-slate-100">
+                        <AvatarImage src={getImageUrl(msg.sender?.avatar)} alt={msg.sender?.fullName} />
                         <AvatarFallback className="bg-slate-100 text-slate-600 font-bold text-xs">
                           {msg.sender?.fullName?.substring(0, 1).toUpperCase()}
                         </AvatarFallback>
