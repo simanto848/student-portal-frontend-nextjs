@@ -11,16 +11,33 @@ import { Smartphone, Laptop, Eye, EyeOff, ShieldCheck, KeyRound, Clock, MapPin, 
 import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
-import { motion } from "framer-motion";
+import { useAuth } from "@/contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 interface SecurityTabProps {
   user: User | null;
   refreshUser: () => Promise<void>;
 }
 
+interface UserSession {
+  id: string;
+  isCurrent?: boolean;
+  device: {
+    browser: string;
+    os: string;
+    deviceType: string;
+  };
+  ipAddress: string;
+  location: string;
+  lastActive: string;
+  createdAt: string;
+}
+
 export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
   const theme = useDashboardTheme();
+  const { logout } = useAuth();
 
   // Password State
   const [currentPassword, setCurrentPassword] = useState("");
@@ -36,7 +53,50 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
   const [enableOtpRequested, setEnableOtpRequested] = useState(false);
   const [disablePassword, setDisablePassword] = useState("");
 
+  // Sessions State
+  const [sessions, setSessions] = useState<UserSession[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(true);
+
   const twoFactorEnabled = Boolean((user as any)?.twoFactorEnabled);
+
+  // Fetch Session Data
+  const fetchSessions = async () => {
+    try {
+      const data = await settingsService.getSessions();
+      setSessions(data || []);
+    } catch (error) {
+      console.error("Failed to fetch sessions", error);
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const handleRevokeSession = async (session: UserSession) => {
+    try {
+      if (session.isCurrent) {
+        const confirmSelf = window.confirm("You are revoking your CURRENT session. You will be logged out immediately. Continue?");
+        if (!confirmSelf) return;
+      }
+
+      await notifyPromise(settingsService.revokeSession(session.id), {
+        loading: "Revoking session...",
+        success: "Session revoked",
+        error: "Failed to revoke session",
+      });
+
+      if (session.isCurrent) {
+        logout();
+      } else {
+        fetchSessions();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // Password Logic
   const canSubmitPassword = useMemo(() => {
@@ -357,47 +417,60 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div className="p-5 rounded-2xl bg-slate-50/50 border border-slate-100/50 flex items-center justify-between group">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
-                  <Laptop className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-slate-800">Chrome on MacOS</p>
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                    <MapPin className="h-3 w-3" />
-                    New York, US • Active Now
+            {isLoadingSessions ? (
+              <div className="col-span-full py-12 flex flex-col items-center justify-center space-y-3 opacity-50">
+                <Clock className="h-8 w-8 animate-pulse text-slate-400" />
+                <p className="text-sm font-bold text-slate-400">Loading active sessions...</p>
+              </div>
+            ) : sessions.length === 0 ? (
+              <div className="col-span-full py-12 flex flex-col items-center justify-center space-y-3 opacity-50">
+                <ShieldCheck className="h-8 w-8 text-slate-400" />
+                <p className="text-sm font-bold text-slate-400">No active sessions found.</p>
+              </div>
+            ) : (
+              sessions.map((session) => (
+                <div key={session.id} className="p-5 rounded-2xl bg-slate-50/50 border border-slate-100/50 flex items-center justify-between group">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
+                      {session.device.deviceType === 'mobile' ? (
+                        <Smartphone className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                      ) : session.device.deviceType === 'tablet' ? (
+                        <Tablet className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                      ) : (
+                        <Laptop className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-800 truncate max-w-[120px]">
+                        {session.device.browser.split('/')[0]} on {session.device.os}
+                      </p>
+                      <div className="flex flex-col gap-0.5 text-[10px] font-bold text-slate-400">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-2.5 w-2.5" />
+                          {session.ipAddress}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-2.5 w-2.5" />
+                          {new Date(session.lastActive).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
                   </div>
+                  {session.isCurrent && (
+                    <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter mr-2">
+                      Current
+                    </Badge>
+                  )}
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleRevokeSession(session)}
+                    className="h-8 px-3 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[10px] font-black uppercase tracking-widest"
+                  >
+                    {session.isCurrent ? "Revoke Current" : "Revoke"}
+                  </Button>
                 </div>
-              </div>
-              <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100 px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-tighter">Current</Badge>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50/50 border border-slate-100/50 flex items-center justify-between group opacity-70 hover:opacity-100 transition-opacity">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
-                  <Smartphone className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-slate-800">Safari on iPhone</p>
-                  <p className="text-[10px] font-bold text-slate-400 italic mt-0.5">Last active 2 hrs ago</p>
-                </div>
-              </div>
-              <Button variant="ghost" className="h-8 px-3 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[10px] font-black uppercase tracking-widest">Revoke</Button>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-slate-50/50 border border-slate-100/50 flex items-center justify-between group opacity-70 hover:opacity-100 transition-opacity">
-              <div className="flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
-                  <Tablet className="h-5 w-5 text-slate-400 group-hover:text-amber-500 transition-colors" />
-                </div>
-                <div>
-                  <p className="text-sm font-black text-slate-800">App on iPad</p>
-                  <p className="text-[10px] font-bold text-slate-400 italic mt-0.5">Last active yesterday</p>
-                </div>
-              </div>
-              <Button variant="ghost" className="h-8 px-3 text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[10px] font-black uppercase tracking-widest">Revoke</Button>
-            </div>
+              ))
+            )}
           </div>
         </GlassCard>
       </motion.div>

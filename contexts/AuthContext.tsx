@@ -25,7 +25,9 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: LoginCredentials, role: UserRole) => Promise<void>;
+  login: (credentials: LoginCredentials, role: UserRole) => Promise<void | { twoFactorRequired: boolean; tempToken: string }>;
+  verify2FA: (tempToken: string, otp: string) => Promise<void>;
+  resend2FA: (tempToken: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   hasRole: (role: UserRole | UserRole[]) => boolean;
@@ -168,7 +170,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const response = await api.post(endpoint, credentials);
         const data: LoginResponse = response.data?.data;
 
-        if (!data || !data.user || !data.accessToken) {
+        if (data.twoFactorRequired && data.tempToken) {
+          return { twoFactorRequired: true, tempToken: data.tempToken };
+        }
+
+        if (!data || !data.user || !data.accessToken || !data.refreshToken) {
           throw new Error("Invalid login response");
         }
 
@@ -202,6 +208,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     },
     [router],
+  );
+
+  const resend2FA = useCallback(async (tempToken: string) => {
+    try {
+      await api.post("/user/auth/resend-2fa", { tempToken });
+    } catch (error) {
+      console.error("Resend 2FA failed", error);
+      throw error;
+    }
+  }, []);
+
+  const verify2FA = useCallback(
+    async (tempToken: string, otp: string) => {
+      setIsLoading(true);
+      try {
+        const response = await api.post("/user/auth/verify-2fa", {
+          tempToken,
+          otp
+        });
+        const data: LoginResponse = response.data?.data;
+
+        if (!data || !data.user || !data.accessToken || !data.refreshToken) {
+          throw new Error("Invalid 2FA verification response");
+        }
+
+        const userRole = (data.user.role || "student").toLowerCase() as UserRole;
+        const normalizedUser = {
+          ...data.user,
+          role: userRole
+        };
+
+        setUser(normalizedUser);
+        setIsAuthenticated(true);
+
+        localStorage.setItem(
+          AUTH_CONFIG.USER_STORAGE_KEY,
+          JSON.stringify(normalizedUser),
+        );
+        localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
+        localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
+
+        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
+        const redirectPath = getRedirectPath(userRole);
+        router.push(redirectPath);
+
+      } catch (error) {
+        console.error("2FA Verification failed", error);
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router]
   );
 
   const logout = useCallback(async () => {
@@ -238,6 +300,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isAuthenticated,
     isLoading,
     login,
+    verify2FA,
+    resend2FA,
     logout,
     refreshUser,
     hasRole,

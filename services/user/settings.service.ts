@@ -66,4 +66,22 @@ export const settingsService = {
       return handleApiError(e);
     }
   },
+
+  getSessions: async (): Promise<any[]> => {
+    try {
+      const res = await api.get("/user/auth/sessions");
+      return extractItemData(res as any);
+    } catch (e) {
+      return handleApiError(e);
+    }
+  },
+
+  revokeSession: async (sessionId: string): Promise<{ message: string }> => {
+    try {
+      const res = await api.delete(`/user/auth/sessions/${sessionId}`);
+      return extractItemData(res as any);
+    } catch (e) {
+      return handleApiError(e);
+    }
+  },
 };

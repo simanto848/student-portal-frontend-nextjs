@@ -124,9 +124,12 @@ export interface LoginCredentials {
 
 // Login response interface
 export interface LoginResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
+  user?: User;
+  accessToken?: string;
+  refreshToken?: string;
+  twoFactorRequired?: boolean;
+  tempToken?: string;
+  message?: string;
 }
 
 // Password reset interfaces
