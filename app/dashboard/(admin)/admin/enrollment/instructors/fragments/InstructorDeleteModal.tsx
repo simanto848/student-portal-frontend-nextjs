@@ -2,26 +2,26 @@
 
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 
-interface AssessmentDeleteModalProps {
+interface InstructorDeleteModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
     isDeleting: boolean;
 }
 
-export function AssessmentDeleteModal({
+export function InstructorDeleteModal({
     isOpen,
     onClose,
     onConfirm,
     isDeleting,
-}: AssessmentDeleteModalProps) {
+}: InstructorDeleteModalProps) {
     return (
         <DeleteModal
             isOpen={isOpen}
             onClose={onClose}
             onConfirm={onConfirm}
-            title="Delete Assessment"
-            description="Are you sure you want to delete this assessment? This action cannot be undone."
+            title="Remove Assignment"
+            description="Are you sure you want to remove this instructor assignment? This will unassign the teacher from the selected course batch."
             isDeleting={isDeleting}
         />
     );

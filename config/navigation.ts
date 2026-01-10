@@ -139,12 +139,8 @@ export const adminNavigation: NavItem[] = [
     label: "Enrollment Management",
     icon: ClipboardList,
     children: [
-      { href: "/dashboard/admin/enrollment", label: "Overview" },
       { href: "/dashboard/admin/enrollment/enrollments", label: "Enrollments" },
-      { href: "/dashboard/admin/enrollment/instructors", label: "Instructors" },
-      { href: "/dashboard/admin/enrollment/assessments", label: "Assessments" },
-      { href: "/dashboard/admin/enrollment/grades/workflow", label: "Grade Workflow" },
-      { href: "/dashboard/admin/enrollment/attendance", label: "Attendance" },
+      { href: "/dashboard/admin/enrollment/instructors", label: "Instructors" }
     ],
   },
   {

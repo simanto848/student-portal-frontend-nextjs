@@ -32,6 +32,26 @@ export interface AssignInstructorDto {
   status?: "active" | "completed" | "reassigned";
 }
 
+const normalize = (a: any): BatchCourseInstructor => ({
+  id: a?.id || a?._id,
+  batchId: a?.batchId,
+  courseId: a?.courseId,
+  instructorId: a?.instructorId,
+  sessionId: a?.sessionId,
+  semester: a?.semester,
+  status: a?.status || "active",
+  assignedDate: a?.assignedDate,
+  assignedBy: a?.assignedBy,
+  batch: a?.batch,
+  course: a?.course,
+  instructor: a?.instructor ? {
+    id: a.instructor.id || a.instructor._id,
+    fullName: a.instructor.fullName,
+    email: a.instructor.email,
+    registrationNumber: a.instructor.registrationNumber,
+  } : undefined,
+});
+
 export const batchCourseInstructorService = {
   assignInstructor: async (
     data: AssignInstructorDto
@@ -41,7 +61,7 @@ export const batchCourseInstructorService = {
         "/enrollment/batch-course-instructors",
         data
       );
-      return response.data.data;
+      return normalize(response.data.data);
     } catch (error) {
       return handleApiError(error);
     }
@@ -57,7 +77,15 @@ export const batchCourseInstructorService = {
       const response = await api.get("/enrollment/batch-course-instructors", {
         params,
       });
-      return response.data.data;
+      const resData = response.data?.data || response.data;
+      const assignments = Array.isArray(resData.assignments)
+        ? resData.assignments.map(normalize)
+        : (Array.isArray(resData.data) ? resData.data.map(normalize) : (Array.isArray(resData) ? resData.map(normalize) : []));
+
+      return {
+        assignments,
+        pagination: resData.pagination || { total: assignments.length }
+      };
     } catch (error) {
       return handleApiError(error);
     }
@@ -114,7 +142,7 @@ export const batchCourseInstructorService = {
       const response = await api.get(
         `/enrollment/batch-course-instructors/${id}`
       );
-      const assignment = response.data.data;
+      const assignment = normalize(response.data.data);
 
       // Enrich with course and batch details
       try {
@@ -141,7 +169,7 @@ export const batchCourseInstructorService = {
         `/enrollment/batch-course-instructors/${id}`,
         data
       );
-      return response.data.data;
+      return normalize(response.data.data);
     } catch (error) {
       return handleApiError(error);
     }

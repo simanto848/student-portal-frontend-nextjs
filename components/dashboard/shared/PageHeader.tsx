@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Plus, LucideIcon } from "lucide-react";
+import { Plus, ArrowLeft, LucideIcon } from "lucide-react";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 import { motion } from "framer-motion";
 
@@ -10,11 +10,12 @@ interface PageHeaderProps {
     subtitle?: string;
     actionLabel?: string;
     onAction?: () => void;
+    onBack?: () => void;
     icon?: LucideIcon;
     extraActions?: React.ReactNode;
 }
 
-export function PageHeader({ title, subtitle, actionLabel, onAction, icon: Icon, extraActions }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, actionLabel, onAction, onBack, icon: Icon, extraActions }: PageHeaderProps) {
     const theme = useDashboardTheme();
 
     return (
@@ -24,6 +25,16 @@ export function PageHeader({ title, subtitle, actionLabel, onAction, icon: Icon,
             className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b ${theme.colors.sidebar.borderSubtle}`}
         >
             <div className="flex items-center gap-3">
+                {onBack && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onBack}
+                        className="h-10 w-10 rounded-xl hover:bg-white/50 border border-transparent hover:border-slate-200 transition-all shadow-sm active:scale-95 sm:mr-2"
+                    >
+                        <ArrowLeft className="h-5 w-5 text-slate-600" />
+                    </Button>
+                )}
                 {Icon && (
                     <motion.div
                         whileHover={{ scale: 1.05 }}
