@@ -3,6 +3,7 @@ import { staffProfileService } from "@/services/user/staffProfile.service";
 import { departmentService } from "@/services/academic/department.service";
 import { StaffFormClient } from "../../fragments/StaffFormClient";
 import { notFound } from "next/navigation";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 interface EditStaffPageProps {
   params: Promise<{ id: string }>;
@@ -23,11 +24,13 @@ export default async function EditStaffPage({ params }: EditStaffPageProps) {
     }
 
     return (
-      <StaffFormClient
-        staff={staff}
-        profile={profile}
-        departments={Array.isArray(departments) ? departments : []}
-      />
+      <DashboardLayout>
+        <StaffFormClient
+          staff={staff}
+          profile={profile}
+          departments={Array.isArray(departments) ? departments : []}
+        />
+      </DashboardLayout>
     );
   } catch (error) {
     return notFound();
