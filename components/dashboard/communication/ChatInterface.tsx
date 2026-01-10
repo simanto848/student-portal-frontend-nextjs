@@ -762,7 +762,7 @@ export function ChatInterface({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-10 w-10 text-slate-300 hover:text-slate-600 rounded-xl"
+                  className="h-10 w-10 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-xl transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Paperclip className="h-5 w-5" />
