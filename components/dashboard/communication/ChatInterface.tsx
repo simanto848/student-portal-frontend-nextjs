@@ -86,10 +86,15 @@ export function ChatInterface({
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Pinned Banner State
+  const [activePinnedMessage, setActivePinnedMessage] = useState<Message | null>(null);
+  const [showPinnedBanner, setShowPinnedBanner] = useState(true);
+
   useEffect(() => {
     if (chatGroupId) {
       setLoading(true);
       fetchMessages();
+      fetchActivePinnedMessage();
 
       const socket = socketService.connect("chat");
       socket.emit("join_chat", chatGroupId);
@@ -130,6 +135,15 @@ export function ChatInterface({
                 : m
             )
           );
+
+          if (pinnedMessage.isPinned) {
+            setActivePinnedMessage(pinnedMessage);
+            setShowPinnedBanner(true);
+          } else if (activePinnedMessage?.id === pinnedMessage.id) {
+            // If the currently shown pinned message is unpinned, fetch the next one
+            fetchActivePinnedMessage();
+          }
+
           if (isInfoOpen && infoTab === "pinned") fetchInfoMessages();
         }
       });
@@ -163,6 +177,12 @@ export function ChatInterface({
     }
   }, [messages, searchQuery, editingMessageId]);
 
+  useEffect(() => {
+    if (isInfoOpen) {
+      fetchInfoMessages();
+    }
+  }, [isInfoOpen, infoTab, chatGroupId]);
+
   const scrollToBottom = () => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -195,6 +215,19 @@ export function ChatInterface({
       console.error("Fetch info error:", error);
     } finally {
       setLoadingInfo(false);
+    }
+  };
+
+  const fetchActivePinnedMessage = async () => {
+    try {
+      const data = await chatService.getMessages(chatGroupId, 1, 0, "", "pinned");
+      if (data && data.length > 0) {
+        setActivePinnedMessage(data[0]);
+      } else {
+        setActivePinnedMessage(null);
+      }
+    } catch (error) {
+      console.error("Fetch pinned error", error);
     }
   };
 
@@ -299,6 +332,41 @@ export function ChatInterface({
             />
           </form>
         </div>
+
+        {activePinnedMessage && showPinnedBanner && (
+          <div
+            className="absolute top-[72px] left-6 right-6 z-10 bg-indigo-50/90 backdrop-blur-md border border-indigo-100 shadow-sm rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-indigo-100/90 transition-colors animate-in slide-in-from-top-2"
+            onClick={() => {
+              setIsInfoOpen(true);
+              setInfoTab("pinned");
+            }}
+          >
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="h-8 w-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+                <Pin className="h-4 w-4 fill-indigo-600" />
+              </div>
+              <div className="flex flex-col overflow-hidden">
+                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-500">
+                  Pinned by {activePinnedMessage.pinnedBy === user?.id ? "You" : "Instructor"}
+                </span>
+                <span className="text-xs font-bold text-slate-700 truncate w-full">
+                  {activePinnedMessage.content}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-slate-400 hover:text-slate-600 -mr-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPinnedBanner(false);
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <Sheet open={isInfoOpen} onOpenChange={setIsInfoOpen}>
@@ -543,6 +611,6 @@ export function ChatInterface({
           </form>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
