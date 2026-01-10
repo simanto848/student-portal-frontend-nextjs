@@ -43,7 +43,7 @@ interface GenericFormModalProps {
     fields: FormField[];
     initialData?: FormDataType;
     isSubmitting?: boolean;
-    onFieldChange?: (name: string, value: any) => void;
+    onFieldChange?: (name: string, value: any, setValue: (name: string, value: any) => void) => void;
 }
 
 function FormContent({
@@ -59,14 +59,15 @@ function FormContent({
     onSubmit: (data: FormDataType) => void;
     onClose: () => void;
     isSubmitting: boolean;
-    onFieldChange?: (name: string, value: any) => void;
+    onFieldChange?: (name: string, value: any, setValue: (name: string, value: any) => void) => void;
 }) {
     const theme = useDashboardTheme();
     const [formData, setFormData] = useState<FormDataType>(initialData);
 
     const handleChange = useCallback((name: string, value: any) => {
-        setFormData((prev) => ({ ...prev, [name]: value }));
-        onFieldChange?.(name, value);
+        const setValue = (n: string, v: any) => setFormData(prev => ({ ...prev, [n]: v }));
+        setValue(name, value);
+        onFieldChange?.(name, value, setValue);
     }, [onFieldChange]);
 
     const handleFormSubmit = (e: React.FormEvent) => {

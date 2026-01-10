@@ -8,6 +8,8 @@ import {
     SessionCourse,
     CourseSchedule
 } from "@/services/academic/types";
+import { academicService } from "@/services/academic.service";
+import { batchCourseInstructorService, BatchCourseInstructor } from "@/services/enrollment/batchCourseInstructor.service";
 import { Teacher } from "@/services/teacher.service";
 
 interface ScheduleFormModalProps {
@@ -34,6 +36,7 @@ export function ScheduleFormModal({
     isSubmitting,
 }: ScheduleFormModalProps) {
     const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+    const [batchAssignments, setBatchAssignments] = useState<BatchCourseInstructor[]>([]);
 
     useEffect(() => {
         if (isOpen) {
@@ -46,9 +49,41 @@ export function ScheduleFormModal({
         }
     }, [isOpen, initialData]);
 
-    const handleFieldChange = (name: string, value: any) => {
+    useEffect(() => {
+        const fetchAssignments = async () => {
+            if (selectedBatchId) {
+                try {
+                    const assignments = await batchCourseInstructorService.getCourseInstructors({ batchId: selectedBatchId });
+                    setBatchAssignments(assignments);
+                } catch (error) {
+                    console.error("Failed to fetch batch course instructors:", error);
+                }
+            } else {
+                setBatchAssignments([]);
+            }
+        };
+        fetchAssignments();
+    }, [selectedBatchId]);
+
+    const handleFieldChange = (name: string, value: any, setValue: (name: string, value: any) => void) => {
         if (name === "batchId") {
             setSelectedBatchId(value);
+        }
+
+        if (name === "sessionCourseId" && value) {
+            const sc = sessionCourses.find(item => item.id === value);
+            if (sc) {
+                const courseId = typeof sc.courseId === 'object' ? (sc.courseId as any).id || (sc.courseId as any)._id : sc.courseId;
+                const assignment = batchAssignments.find(a =>
+                    a.courseId === courseId &&
+                    a.semester === sc.semester &&
+                    a.batchId === selectedBatchId
+                );
+
+                if (assignment?.instructorId) {
+                    setValue("teacherId", assignment.instructorId);
+                }
+            }
         }
     };
 
@@ -85,17 +120,32 @@ export function ScheduleFormModal({
             label: "Course Assignment",
             type: "searchable-select" as const,
             placeholder: selectedBatchId ? "Select course" : "Select batch first",
-            options: sessionCourses
-                .filter(sc => {
+            options: (() => {
+                const filtered = sessionCourses.filter(sc => {
                     if (!selectedBatchId) return true;
                     const batch = batches.find(b => b.id === selectedBatchId);
-                    return !batch || sc.semester === batch.currentSemester;
-                })
-                .map((sc: any) => ({
-                    label: `${sc.courseId?.name || "Unknown"}`,
-                    value: sc.id,
-                    description: `${sc.sessionId?.name || "N/A"} - Sem ${sc.semester}`
-                })),
+                    if (!batch) return true;
+
+                    const batchDeptId = typeof batch.departmentId === 'object' ? (batch.departmentId as any).id || (batch.departmentId as any)._id : batch.departmentId;
+                    const scDeptId = typeof sc.departmentId === 'object' ? (sc.departmentId as any).id || (sc.departmentId as any)._id : sc.departmentId;
+
+                    return sc.semester === batch.currentSemester && scDeptId === batchDeptId;
+                });
+
+                const seenCourseIds = new Set();
+                return filtered
+                    .filter(sc => {
+                        const courseId = typeof sc.courseId === 'object' ? (sc.courseId as any).id || (sc.courseId as any)._id : sc.courseId;
+                        if (seenCourseIds.has(courseId)) return false;
+                        seenCourseIds.add(courseId);
+                        return true;
+                    })
+                    .map((sc: any) => ({
+                        label: `${sc.courseId?.name || "Unknown"}`,
+                        value: sc.id,
+                        description: `${sc.sessionId?.name || "N/A"} - Sem ${sc.semester}`
+                    }));
+            })(),
             validation: { required: "Course assignment is required" },
         },
         {
