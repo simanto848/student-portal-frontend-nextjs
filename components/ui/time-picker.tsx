@@ -9,7 +9,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface TimePickerProps {
     value?: string; // "HH:mm"
@@ -26,6 +26,7 @@ export function TimePicker({
     className,
     disabled = false,
 }: TimePickerProps) {
+    const theme = useDashboardTheme();
     const [open, setOpen] = React.useState(false);
 
     // Initial parsing
@@ -92,13 +93,14 @@ export function TimePicker({
                     variant="outline"
                     role="combobox"
                     className={cn(
-                        "h-11 w-full justify-start text-left font-medium px-4 rounded-xl bg-slate-50 border-slate-200/60 hover:bg-white hover:border-indigo-300 hover:text-indigo-600 transition-all",
+                        "h-11 w-full justify-start text-left font-medium px-4 rounded-xl bg-slate-50 border-slate-200/60 transition-all",
+                        `hover:bg-white ${theme.colors.accent.primary.replace('text-', 'hover:border-').replace('600', '300')} ${theme.colors.accent.primary.replace('text-', 'hover:text-')}`,
                         !value && "text-slate-400",
                         className
                     )}
                     disabled={disabled}
                 >
-                    <Clock className="mr-2 h-4 w-4 text-slate-400 group-hover:text-indigo-500" />
+                    <Clock className={cn("mr-2 h-4 w-4 text-slate-400 transition-colors", value && theme.colors.accent.primary)} />
                     {value ? (
                         <span>{`${selectedHour}:${selectedMinute} ${selectedPeriod}`}</span>
                     ) : (
@@ -109,59 +111,71 @@ export function TimePicker({
             <PopoverContent className="w-auto p-0 rounded-2xl border-slate-200 shadow-2xl bg-white/95 backdrop-blur-xl overflow-hidden" align="start">
                 <div className="flex bg-white h-72">
                     {/* Hours */}
-                    <ScrollArea className="w-20 border-r border-slate-100 h-full">
+                    <div
+                        className="w-24 border-r border-slate-100 overflow-y-auto h-full custom-scrollbar hover:scrollbar-thumb-slate-300 transition-colors"
+                        onWheel={(e) => e.stopPropagation()}
+                    >
                         <div className="p-2 space-y-1">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-2 px-1">Hour</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-2 px-1 sticky top-0 bg-white/90 backdrop-blur-sm pb-1 z-10">Hour</div>
                             {hours.map((h) => (
                                 <button
                                     key={h}
+                                    type="button"
                                     onClick={() => handleTimeChange("hour", h)}
                                     className={cn(
-                                        "w-full py-2 text-sm font-bold rounded-lg transition-all",
+                                        "w-full py-2.5 text-sm font-bold rounded-lg transition-all",
                                         selectedHour === h
-                                            ? "bg-indigo-500 text-white shadow-lg shadow-indigo-200"
-                                            : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
+                                            ? `${theme.colors.accent.secondary} text-white shadow-md shadow-slate-100`
+                                            : `text-slate-600 hover:${theme.colors.sidebar.active} hover:${theme.colors.sidebar.activeText}`
                                     )}
                                 >
                                     {h}
                                 </button>
                             ))}
                         </div>
-                    </ScrollArea>
+                    </div>
 
                     {/* Minutes */}
-                    <ScrollArea className="w-20 border-r border-slate-100 h-full">
+                    <div
+                        className="w-24 border-r border-slate-100 overflow-y-auto h-full custom-scrollbar hover:scrollbar-thumb-slate-300 transition-colors"
+                        onWheel={(e) => e.stopPropagation()}
+                    >
                         <div className="p-2 space-y-1">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-2 px-1">Min</div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-2 px-1 sticky top-0 bg-white/90 backdrop-blur-sm pb-1 z-10">Min</div>
                             {minutes.map((m) => (
                                 <button
                                     key={m}
+                                    type="button"
                                     onClick={() => handleTimeChange("minute", m)}
                                     className={cn(
-                                        "w-full py-2 text-sm font-bold rounded-lg transition-all",
+                                        "w-full py-2.5 text-sm font-bold rounded-lg transition-all",
                                         selectedMinute === m
-                                            ? "bg-indigo-500 text-white shadow-lg shadow-indigo-200"
-                                            : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
+                                            ? `${theme.colors.accent.secondary} text-white shadow-md shadow-slate-100`
+                                            : `text-slate-600 hover:${theme.colors.sidebar.active} hover:${theme.colors.sidebar.activeText}`
                                     )}
                                 >
                                     {m}
                                 </button>
                             ))}
                         </div>
-                    </ScrollArea>
+                    </div>
 
                     {/* Period */}
-                    <div className="w-20 p-2 space-y-1 bg-slate-50/50">
+                    <div
+                        className="w-20 p-2 space-y-1 bg-slate-50/50"
+                        onWheel={(e) => e.stopPropagation()}
+                    >
                         <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-2 px-1">AM/PM</div>
                         {periods.map((p) => (
                             <button
                                 key={p}
+                                type="button"
                                 onClick={() => handleTimeChange("period", p)}
                                 className={cn(
                                     "w-full py-2 text-sm font-bold rounded-lg transition-all",
                                     selectedPeriod === p
-                                        ? "bg-indigo-500 text-white shadow-lg shadow-indigo-200"
-                                        : "text-slate-600 hover:bg-indigo-50 hover:text-indigo-600"
+                                        ? `${theme.colors.accent.secondary} text-white shadow-md shadow-slate-100`
+                                        : `text-slate-600 hover:${theme.colors.sidebar.active} hover:${theme.colors.sidebar.activeText}`
                                 )}
                             >
                                 {p}

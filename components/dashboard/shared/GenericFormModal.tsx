@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { TimePicker } from "@/components/ui/time-picker";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check, ChevronsUpDown, X } from "lucide-react";
@@ -130,11 +131,18 @@ function FormContent({
                                                     animate={{ opacity: 1, scale: 1 }}
                                                     exit={{ opacity: 0, scale: 0.8 }}
                                                 >
-                                                    <Badge className={`bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 hover:bg-amber-100 rounded-lg px-2 py-1 font-bold flex items-center gap-1`}>
+                                                    <Badge
+                                                        className={cn(
+                                                            "ring-1 ring-inset font-bold flex items-center gap-1 transition-all rounded-lg px-2 py-1",
+                                                            theme.colors.sidebar.active,
+                                                            theme.colors.sidebar.activeText,
+                                                            theme.colors.sidebar.borderSubtle.replace('border-', 'ring-')
+                                                        )}
+                                                    >
                                                         {option?.label || val}
                                                         <button
                                                             type="button"
-                                                            className="ml-1 text-amber-400 hover:text-amber-600 transition-colors"
+                                                            className={cn("ml-1 transition-colors opacity-60 hover:opacity-100", theme.colors.sidebar.activeText)}
                                                             onClick={() => {
                                                                 const current = Array.isArray(formData[field.name]) ? formData[field.name] : [];
                                                                 handleChange(field.name, current.filter((v: string) => v !== val));
@@ -153,13 +161,16 @@ function FormContent({
                                         <Button
                                             variant="outline"
                                             role="combobox"
-                                            className="w-full justify-between bg-slate-50 border-slate-200 h-11 text-slate-700 font-medium rounded-xl hover:bg-slate-100"
+                                            className={cn(
+                                                "w-full justify-between bg-slate-50 border-slate-200 h-11 text-slate-700 font-medium rounded-xl transition-all group",
+                                                `hover:bg-slate-100 ${theme.colors.accent.primary.replace('text-', 'hover:text-')} ${theme.colors.accent.primary.replace('text-', 'hover:border-').replace('600', '300')}`
+                                            )}
                                         >
                                             {field.placeholder || "Select items..."}
-                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <ChevronsUpDown className={cn("ml-2 h-4 w-4 shrink-0 opacity-50 transition-colors", theme.colors.accent.primary.replace('text-', 'group-hover:text-'))} />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-full p-0 bg-white border-slate-200 shadow-xl rounded-xl">
+                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 bg-white border-slate-200 shadow-xl rounded-xl">
                                         <Command>
                                             <CommandInput placeholder="Search..." className="h-11 border-none focus:ring-0" />
                                             <CommandEmpty>No item found.</CommandEmpty>
@@ -169,7 +180,10 @@ function FormContent({
                                                         <CommandItem
                                                             key={option.value}
                                                             value={option.label}
-                                                            className="rounded-lg m-1 font-medium cursor-pointer transition-colors aria-selected:bg-indigo-50 aria-selected:text-indigo-600 hover:bg-slate-50"
+                                                            className={cn(
+                                                                "rounded-lg m-1 font-medium cursor-pointer transition-colors",
+                                                                `aria-selected:${theme.colors.sidebar.active} aria-selected:${theme.colors.sidebar.activeText} hover:${theme.colors.sidebar.active} hover:${theme.colors.sidebar.activeText}`
+                                                            )}
                                                             onSelect={() => {
                                                                 const current = Array.isArray(formData[field.name]) ? formData[field.name] : [];
                                                                 const isSelected = current.includes(option.value);
@@ -183,7 +197,7 @@ function FormContent({
                                                                 className={cn(
                                                                     "mr-2 h-4 w-4",
                                                                     Array.isArray(formData[field.name]) && formData[field.name].includes(option.value)
-                                                                        ? "opacity-100 text-amber-600"
+                                                                        ? `transition-all opacity-100 ${theme.colors.accent.primary}`
                                                                         : "opacity-0"
                                                                 )}
                                                             />
@@ -196,6 +210,21 @@ function FormContent({
                                     </PopoverContent>
                                 </Popover>
                             </div>
+                        ) : field.type === "date" ? (
+                            <DatePicker
+                                date={formData[field.name] ? new Date(formData[field.name]) : undefined}
+                                onChange={(date: Date | undefined) => {
+                                    if (date) {
+                                        // Store as YYYY-MM-DD string for form compatibility
+                                        const dateStr = date.toISOString().split('T')[0];
+                                        handleChange(field.name, dateStr);
+                                    } else {
+                                        handleChange(field.name, undefined);
+                                    }
+                                }}
+                                placeholder={field.placeholder}
+                                className="h-11 rounded-xl bg-slate-50 border-slate-200/60 font-medium"
+                            />
                         ) : field.type === "time" ? (
                             <TimePicker
                                 value={formData[field.name] || ""}
