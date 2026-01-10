@@ -190,7 +190,7 @@ export default function StudentDashboard() {
           .filter((s) => s.daysOfWeek.includes(today as any))
           .slice(0, 4)
           .map((s) => {
-            const course = typeof s.sessionCourseId === "object" && "course" in s.sessionCourseId ? (s.sessionCourseId as any).course : null;
+            const course = typeof s.sessionCourseId === "object" && "courseId" in s.sessionCourseId ? (s.sessionCourseId as any).courseId : null;
             const room = typeof s.classroomId === "object" ? (s.classroomId as any)?.roomNumber : "TBA";
 
             return {
