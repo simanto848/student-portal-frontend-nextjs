@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import { downloadBlob } from "@/lib/download";
 import { motion, AnimatePresence } from "framer-motion";
+import { MaterialFolderCard } from "@/components/classroom/MaterialFolderCard";
 
 export default function ClassroomDetailsClient() {
     const params = useParams();
@@ -325,53 +326,15 @@ export default function ClassroomDetailsClient() {
 
                                     {materials.length > 0 && (
                                         <div className="space-y-4">
-                                            <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest pl-2">Intel & Documentation</h3>
+                                            <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest pl-2">Materials & Resources</h3>
                                             <div className="grid gap-4">
                                                 {materials.map((material) => (
-                                                    <GlassCard key={material.id} className="p-6 group hover:border-slate-300 transition-all duration-300">
-                                                        <div className="flex items-start gap-5">
-                                                            <div className="h-12 w-12 rounded-[1.25rem] bg-slate-100 text-slate-600 flex items-center justify-center shadow-inner group-hover:bg-cyan-50 group-hover:text-cyan-600 transition-all duration-300">
-                                                                {material.type === 'link' ? <LinkIcon className="h-6 w-6" /> :
-                                                                    material.type === 'file' ? <File className="h-6 w-6" /> :
-                                                                        <BookOpen className="h-6 w-6" />}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center justify-between mb-1">
-                                                                    <h4 className="font-black text-slate-800 tracking-tight group-hover:text-cyan-600 transition-colors uppercase text-sm">{material.title}</h4>
-                                                                    <Badge variant="secondary" className="text-[8px] font-black uppercase tracking-widest bg-slate-100 group-hover:bg-cyan-100 group-hover:text-cyan-700 h-4">{material.type}</Badge>
-                                                                </div>
-                                                                {material.type === 'text' && <p className="text-xs text-slate-500 leading-relaxed mt-2">{material.content}</p>}
-
-                                                                {material.type === 'link' && material.content ? (
-                                                                    <a
-                                                                        href={material.content}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="inline-flex items-center gap-2 mt-4 text-[10px] font-black text-cyan-600 uppercase tracking-widest hover:text-cyan-700"
-                                                                    >
-                                                                        <ExternalLink className="h-3 w-3" />
-                                                                        Establish External Link
-                                                                    </a>
-                                                                ) : null}
-
-                                                                {material.type === 'file' && material.attachments?.length ? (
-                                                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                                        {material.attachments.map((att, idx) => (
-                                                                            <Button
-                                                                                key={att.id || `${material.id}-${idx}`}
-                                                                                variant="outline"
-                                                                                className="h-10 rounded-xl justify-start text-slate-600 border-slate-100 hover:bg-slate-50 hover:text-cyan-600 hover:border-cyan-200 transition-all group/att"
-                                                                                onClick={() => handleDownloadMaterialAttachment(material, idx)}
-                                                                            >
-                                                                                <Download className="mr-2 h-3 w-3" />
-                                                                                <span className="truncate text-[10px] font-black uppercase tracking-tighter">{att.name}</span>
-                                                                            </Button>
-                                                                        ))}
-                                                                    </div>
-                                                                ) : null}
-                                                            </div>
-                                                        </div>
-                                                    </GlassCard>
+                                                    <MaterialFolderCard
+                                                        key={material.id}
+                                                        material={material}
+                                                        variant="student"
+                                                        onDownload={handleDownloadMaterialAttachment}
+                                                    />
                                                 ))}
                                             </div>
                                         </div>

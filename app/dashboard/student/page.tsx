@@ -297,7 +297,7 @@ export default function StudentDashboard() {
                   className="h-14 px-8 rounded-2xl bg-white/5 border-white/10 hover:bg-white/10 text-white font-bold text-lg backdrop-blur-sm shadow-xl transition-all active:scale-95"
                   onClick={() => window.location.href = "/dashboard/student/profile"}
                 >
-                  Edit Profile
+                  Profile
                 </Button>
               </div>
             </div>
@@ -410,78 +410,6 @@ export default function StudentDashboard() {
 
           {/* Right Column */}
           <div className="lg:col-span-4 space-y-8">
-            {/* Notifications */}
-            <GlassCard className="h-fit">
-              <div className="p-6 border-b border-cyan-50/50 flex items-center justify-between bg-gradient-to-br from-slate-50/50 to-transparent">
-                <div className="flex items-center gap-3">
-                  <Bell className="h-5 w-5 text-cyan-600" />
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight">Signals</h2>
-                </div>
-                <Button variant="ghost" size="sm" className="text-cyan-600 font-bold text-xs" onClick={() => window.location.href = "/dashboard/student/notifications"}>
-                  Clear All
-                </Button>
-              </div>
-              <div className="p-4 space-y-4">
-                {notifications.length > 0 ? (
-                  notifications.map((notif) => (
-                    <motion.div
-                      key={notif.id}
-                      whileHover={{ x: 5 }}
-                      className="group flex gap-4 p-4 rounded-3xl border border-transparent hover:border-cyan-100 hover:bg-white/60 transition-all cursor-pointer"
-                      onClick={() => window.location.href = "/dashboard/student/notifications"}
-                    >
-                      <div className="h-10 w-10 shrink-0 rounded-2xl bg-cyan-50 border border-cyan-100 flex items-center justify-center text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors shadow-sm">
-                        <notif.icon className="h-5 w-5" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-black text-slate-800 leading-none">{notif.title}</p>
-                        <p className="text-xs text-slate-500 font-medium line-clamp-2">{notif.message}</p>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{notif.time}</p>
-                      </div>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="py-12 text-center text-slate-400 italic text-sm font-bold">
-                    No active signals in range.
-                  </div>
-                )}
-                <Button
-                  className="w-full h-12 rounded-2xl bg-slate-100/50 hover:bg-slate-100 border-0 text-slate-600 font-bold text-xs shadow-none"
-                  onClick={() => window.location.href = "/dashboard/student/notifications"}
-                >
-                  View Broadcast History
-                </Button>
-              </div>
-            </GlassCard>
-
-            {/* Library Status */}
-            <GlassCard>
-              <div className="p-6 border-b border-cyan-50/50">
-                <div className="flex items-center gap-3">
-                  <Library className="h-5 w-5 text-cyan-600" />
-                  <h2 className="text-lg font-black text-slate-900 tracking-tight">Knowledge Assets</h2>
-                </div>
-              </div>
-              <div className="p-6">
-                {libraryItems.length > 0 ? (
-                  <>
-                    <LibraryList items={libraryItems} />
-                    <Button
-                      variant="outline"
-                      className="w-full mt-6 h-12 rounded-2xl border-2 border-slate-100 font-black text-xs text-slate-500 hover:border-cyan-200 hover:text-cyan-600 shadow-lg shadow-slate-100/50 transition-all"
-                      onClick={() => window.location.href = "/dashboard/student/library"}
-                    >
-                      Manage Borrowings
-                    </Button>
-                  </>
-                ) : (
-                  <div className="py-8 text-center bg-slate-50/30 rounded-3xl border border-dashed border-slate-200">
-                    <Gamepad2 className="h-8 w-8 text-slate-200 mx-auto mb-3" />
-                    <p className="text-xs font-bold text-slate-400">No assets currently on loan.</p>
-                  </div>
-                )}
-              </div>
-            </GlassCard>
 
             {/* Quick Link/Help Card */}
             <motion.div

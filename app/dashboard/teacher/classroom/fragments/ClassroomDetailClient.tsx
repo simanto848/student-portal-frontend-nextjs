@@ -36,6 +36,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { StreamItemCard } from "./StreamItemCard";
 import { ClassworkCard } from "./ClassworkCard";
 import { StudentRow } from "./StudentRow";
+import { MaterialFolderCard } from "@/components/classroom/MaterialFolderCard";
 
 interface ClassroomDetailClientProps {
     id: string;
@@ -267,32 +268,53 @@ export function ClassroomDetailClient({
                                     </p>
                                 </Card>
                             ) : (
-                                <div className="grid gap-4 max-w-4xl">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
-                                            General Content
-                                        </h3>
-                                        <div className="flex-1 h-px bg-slate-100" />
-                                    </div>
-                                    {assignments.map((assignment, index) => (
-                                        <ClassworkCard
-                                            key={`asgn-${assignment.id || index}`}
-                                            item={assignment}
-                                            type="assignment"
-                                            onEdit={() => { }}
-                                            onDelete={handleDeleteAssignment}
-                                        />
-                                    ))}
-                                    {materials.map((material, index) => (
-                                        <ClassworkCard
-                                            key={`mat-${material.id || index}`}
-                                            item={material}
-                                            type="material"
-                                            onEdit={() => { }}
-                                            onDelete={handleDeleteMaterial}
-                                            onDownload={handleDownloadMaterialAttachment}
-                                        />
-                                    ))}
+                                <div className="grid gap-8 max-w-4xl">
+                                    {/* Assignments Section */}
+                                    {assignments.length > 0 && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                                                    Assignments
+                                                </h3>
+                                                <div className="flex-1 h-px bg-slate-100" />
+                                            </div>
+                                            <div className="grid gap-4">
+                                                {assignments.map((assignment, index) => (
+                                                    <ClassworkCard
+                                                        key={`asgn-${assignment.id || index}`}
+                                                        item={assignment}
+                                                        type="assignment"
+                                                        onEdit={() => { }}
+                                                        onDelete={handleDeleteAssignment}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Materials Section - Folder Style */}
+                                    {materials.length > 0 && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
+                                                    Materials & Resources
+                                                </h3>
+                                                <div className="flex-1 h-px bg-slate-100" />
+                                            </div>
+                                            <div className="grid gap-4">
+                                                {materials.map((material, index) => (
+                                                    <MaterialFolderCard
+                                                        key={`mat-${material.id || index}`}
+                                                        material={material}
+                                                        variant="teacher"
+                                                        onDownload={handleDownloadMaterialAttachment}
+                                                        onEdit={() => { }}
+                                                        onDelete={handleDeleteMaterial}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </motion.div>
