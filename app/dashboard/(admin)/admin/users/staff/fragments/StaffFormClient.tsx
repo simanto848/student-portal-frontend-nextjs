@@ -211,8 +211,6 @@ export function StaffFormClient({ staff, profile, departments }: StaffFormClient
             };
 
             let dataToSend: any = payload;
-
-            // If we have a file or need to send complex payload with file
             const formData = new FormData();
             if (profilePicture) {
                 formData.append('profilePicture', profilePicture);
@@ -231,16 +229,9 @@ export function StaffFormClient({ staff, profile, departments }: StaffFormClient
                 toast.success("New staff member added");
             }
 
-            // Handle Profile Creation/Update if needed
-            // The staffService might handle profile creation if passed in payload, 
-            // but the original code did it separately.
             if (profileForm.firstName || addresses.length > 0) {
                 try {
-                    if (isEdit && profile) {
-                        await staffProfileService.upsert(staffId, profileData);
-                    } else if (!isEdit || !profile) {
-                        await staffProfileService.create(staffId, profileData);
-                    }
+                    await staffProfileService.upsert(staffId, profileData);
                 } catch (profileError) {
                     console.error("Profile sync error:", profileError);
                     toast.warning("Staff saved but profile synchronization failed.");
