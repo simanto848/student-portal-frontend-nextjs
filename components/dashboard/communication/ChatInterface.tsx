@@ -24,6 +24,7 @@ import {
   Smile,
   Reply,
   MessageSquare,
+  Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,6 +68,7 @@ export function ChatInterface({
   const [loading, setLoading] = useState(initialMessages.length === 0);
   const [searchQuery, setSearchQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Context colors
   const accentPrimary = theme.colors.accent.primary;
@@ -76,6 +78,7 @@ export function ChatInterface({
   // Action States
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null);
+  const [pendingAttachment, setPendingAttachment] = useState<{ url: string; filename: string; mimetype: string } | null>(null);
 
   // Sidebar States
   const [isInfoOpen, setIsInfoOpen] = useState(false);
@@ -255,7 +258,7 @@ export function ChatInterface({
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!newMessage.trim() || sending) return;
+    if ((!newMessage.trim() && !pendingAttachment) || sending) return;
 
     setSending(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
@@ -274,6 +277,7 @@ export function ChatInterface({
           chatGroupId,
           chatGroupType,
           content: newMessage,
+          attachments: pendingAttachment ? [pendingAttachment.url] : undefined,
         });
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev;
@@ -281,11 +285,32 @@ export function ChatInterface({
         });
       }
       setNewMessage("");
+      setPendingAttachment(null);
     } catch (error) {
       console.error("Send message error:", error);
       toast.error(editingMessageId ? "Failed to update" : "Failed to send");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input
+    e.target.value = "";
+
+    const toastId = toast.loading("Uploading file...");
+
+    try {
+      const uploaded = await chatService.uploadFile(file);
+
+      setPendingAttachment(uploaded);
+      toast.success("File uploaded, ready to send", { id: toastId });
+    } catch (error) {
+      console.error("File upload error", error);
+      toast.error("Failed to upload file", { id: toastId });
     }
   };
 
@@ -424,11 +449,45 @@ export function ChatInterface({
                                 <div className="text-center text-slate-400 py-20 italic text-sm">No media shared</div>
                               ) : (
                                 <div className="grid grid-cols-2 gap-3">
-                                  {mediaMessages.map(msg => msg.attachments?.map((att, i) => (
-                                    <div key={`${msg.id}-${i}`} className="aspect-square bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 group hover:border-indigo-200 transition-all cursor-pointer">
-                                      <ImageIcon className="h-8 w-8 text-slate-200 group-hover:text-indigo-400 transition-colors" />
-                                    </div>
-                                  )))}
+                                  {mediaMessages.map(msg => msg.attachments?.map((att, i) => {
+                                    const fullUrl = att.startsWith("http") ? att : `http://localhost:8004${att}`;
+                                    const isImage = att.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+
+                                    if (isImage) {
+                                      return (
+                                        <div key={`${msg.id}-${i}`} className="aspect-square bg-slate-50 rounded-2xl border border-slate-200 group relative overflow-hidden">
+                                          <img
+                                            src={fullUrl}
+                                            alt="Media"
+                                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                          />
+                                          <a
+                                            href={fullUrl}
+                                            download
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
+                                          >
+                                            <Download className="h-6 w-6" />
+                                          </a>
+                                        </div>
+                                      );
+                                    }
+
+                                    return (
+                                      <div key={`${msg.id}-${i}`} className="aspect-square bg-slate-50 rounded-2xl flex flex-col items-center justify-center border border-slate-200 group hover:border-indigo-200 transition-all p-3 text-center gap-2 relative">
+                                        <FileText className="h-8 w-8 text-slate-300 group-hover:text-indigo-400 transition-colors" />
+                                        <span className="text-[10px] text-slate-500 font-medium truncate w-full">{att.split('/').pop()}</span>
+                                        <a
+                                          href={fullUrl}
+                                          download
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="absolute inset-0"
+                                        />
+                                      </div>
+                                    );
+                                  }))}
                                 </div>
                               )
                             )}
@@ -485,7 +544,11 @@ export function ChatInterface({
                           </div>
                         </motion.div>
                       ) : (
-                        <div className={`relative px-5 py-3 shadow-sm transition-all duration-200 ${isMe ? `${accentSecondary} text-white rounded-[1.8rem] rounded-tr-[0.5rem] shadow-indigo-200/20` : "bg-white border border-slate-100 text-slate-800 rounded-[1.8rem] rounded-tl-[0.5rem]"
+                        <div className={`relative transition-all duration-200 ${(!msg.content || msg.content.startsWith("Sent an attachment:")) && msg.attachments?.some(a => a.match(/\.(jpeg|jpg|gif|png|webp)$/i))
+                          ? "p-0 bg-transparent border-none shadow-none"
+                          : isMe
+                            ? `${accentSecondary} text-white rounded-[1.8rem] rounded-tr-[0.5rem] shadow-sm shadow-indigo-200/20 px-5 py-3`
+                            : "bg-white border border-slate-100 text-slate-800 rounded-[1.8rem] rounded-tl-[0.5rem] px-5 py-3"
                           } ${msg.isPinned ? "border-indigo-200 border-2 ring-2 ring-indigo-50" : ""}`}>
 
                           {msg.isPinned && (
@@ -500,9 +563,79 @@ export function ChatInterface({
                             </p>
                           )}
 
-                          <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
-                            {msg.content}
-                          </p>
+                          {msg.content && !msg.content.startsWith("Sent an attachment:") && (
+                            <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
+                          )}
+
+                          {msg.attachments && msg.attachments.length > 0 && (
+                            <div className={(!msg.content || msg.content.startsWith("Sent an attachment:")) && msg.attachments.some(a => a.match(/\.(jpeg|jpg|gif|png|webp)$/i)) ? "" : "mt-2 space-y-2"}>
+                              {msg.attachments.map((url, i) => {
+                                const fullUrl = url.startsWith("http") ? url : `${process.env.NEXT_PUBLIC_COMMUNICATION_URL}${url}`;
+                                const isImage = url.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+
+                                if (isImage) {
+                                  const isImageOnly = !msg.content || msg.content.startsWith("Sent an attachment:");
+                                  return (
+                                    <div
+                                      key={i}
+                                      className={`relative group/image overflow-hidden ${isImageOnly
+                                        ? "rounded-2xl shadow-lg ring-1 ring-black/5"
+                                        : "rounded-xl border border-slate-200/60 mt-2"
+                                        }`}
+                                    >
+                                      <img
+                                        src={fullUrl}
+                                        alt="Attachment"
+                                        className="w-full h-auto max-h-[320px] object-cover block"
+                                      />
+                                      {/* Premium hover overlay with gradient */}
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover/image:opacity-100 transition-all duration-300" />
+                                      {/* Download button with glassmorphism */}
+                                      <a
+                                        href={fullUrl}
+                                        download
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute bottom-3 right-3 bg-white/15 backdrop-blur-xl text-white p-2.5 rounded-xl opacity-0 group-hover/image:opacity-100 transition-all duration-300 hover:bg-white/30 hover:scale-105 shadow-xl ring-1 ring-white/20"
+                                        title="Download"
+                                      >
+                                        <Download className="h-5 w-5" />
+                                      </a>
+                                      {/* Subtle time badge for image-only messages */}
+                                      {isImageOnly && (
+                                        <div className="absolute bottom-3 left-3 bg-black/40 backdrop-blur-sm text-white/90 text-[10px] font-bold px-2.5 py-1 rounded-lg opacity-0 group-hover/image:opacity-100 transition-all duration-300">
+                                          {format(new Date(msg.createdAt), "h:mm a")}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div key={i} className="flex items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 mt-2">
+                                    <div className="flex items-center gap-2 overflow-hidden">
+                                      <FileText className="h-8 w-8 text-indigo-400 shrink-0" />
+                                      <div className="flex flex-col overflow-hidden">
+                                        <span className="text-xs font-bold text-slate-700 truncate">Attachment</span>
+                                        <span className="text-[10px] text-slate-500 truncate">{url.split('/').pop()}</span>
+                                      </div>
+                                    </div>
+                                    <a
+                                      href={fullUrl}
+                                      download
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="h-8 w-8 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                    >
+                                      <Download className="h-4 w-4" />
+                                    </a>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
 
                           <div className={`text-[9px] font-black uppercase tracking-widest mt-1.5 flex items-center justify-end gap-1.5 ${isMe ? "text-white/60" : "text-slate-400"}`}>
                             {format(new Date(msg.createdAt), "h:mm a")}
@@ -565,6 +698,37 @@ export function ChatInterface({
             )}
           </AnimatePresence>
 
+          <AnimatePresence>
+            {pendingAttachment && (
+              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="flex items-center justify-between px-4 py-3 bg-slate-50 rounded-2xl border border-slate-200 mb-2">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  {pendingAttachment.mimetype?.startsWith('image/') || pendingAttachment.filename?.match(/\.(jpeg|jpg|gif|png|webp)$/i) ? (
+                    <div className="h-16 w-16 bg-slate-100 rounded-lg overflow-hidden shrink-0 border border-slate-200">
+                      <img
+                        src={pendingAttachment.url.startsWith('http') ? pendingAttachment.url : `http://localhost:8004${pendingAttachment.url}`}
+                        alt="Preview"
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="h-10 w-10 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
+                        <FileText className="h-5 w-5 text-indigo-500" />
+                      </div>
+                      <div className="flex flex-col overflow-hidden">
+                        <span className="text-xs font-bold text-slate-700 truncate max-w-[200px]">{pendingAttachment.filename}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">Ready to send</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl" onClick={() => setPendingAttachment(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {typingUsers.length > 0 && (
             <div className="flex items-center gap-1.5 px-4">
               <div className="flex space-x-1">
@@ -588,7 +752,19 @@ export function ChatInterface({
                 disabled={sending}
               />
               <div className="absolute right-4 bottom-3 flex items-center gap-2">
-                <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-slate-300 hover:text-slate-600 rounded-xl">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 text-slate-300 hover:text-slate-600 rounded-xl"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <Paperclip className="h-5 w-5" />
                 </Button>
               </div>

@@ -105,6 +105,7 @@ export const chatService = {
     chatGroupId: string;
     chatGroupType: string;
     content: string;
+    attachments?: string[];
   }): Promise<Message> => {
     try {
       const response = await api.post("/communication/chats/send", data);
@@ -139,6 +140,22 @@ export const chatService = {
       const response = await api.patch(
         `/communication/chats/messages/${messageId}/pin`
       );
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  uploadFile: async (file: File): Promise<{ url: string; filename: string; mimetype: string }> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await api.post("/communication/chats/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
       return response.data.data;
     } catch (error) {
       return handleApiError(error);
