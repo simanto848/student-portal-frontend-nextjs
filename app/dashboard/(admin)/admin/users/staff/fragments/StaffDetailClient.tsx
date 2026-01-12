@@ -39,7 +39,8 @@ import {
     ShieldAlert,
     UserPlus,
     ShieldCheck,
-    Plus
+    Plus,
+    FileText
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { notifySuccess, notifyError } from "@/components/toast";
@@ -56,6 +57,7 @@ const roleLabel: Record<StaffRole, string> = {
     admission: "Admission",
     library: "Library",
     it: "IT Specialist",
+    exam_controller: "Exam Controller",
 };
 
 export function StaffDetailClient({ staff: initialStaff, profile }: StaffDetailClientProps) {
@@ -157,6 +159,7 @@ export function StaffDetailClient({ staff: initialStaff, profile }: StaffDetailC
         admission: UserPlus,
         library: Zap,
         it: ShieldAlert,
+        exam_controller: FileText,
     };
     const RoleIcon = roleIconMap[staff.role] || Briefcase;
 

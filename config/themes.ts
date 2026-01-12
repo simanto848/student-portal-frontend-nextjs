@@ -198,6 +198,34 @@ export const ROLE_THEMES: Record<string, DashboardTheme> = {
             },
         },
     },
+    [UserRole.EXAM_CONTROLLER]: {
+        name: "Exam Controller",
+        colors: {
+            sidebar: {
+                bg: "bg-white",
+                text: "text-slate-600",
+                hover: "hover:bg-violet-100 hover:text-violet-900",
+                active: "bg-violet-50",
+                activeBgSubtle: "bg-violet-50/50",
+                activeText: "text-violet-700",
+                border: "border-slate-200",
+                borderSubtle: "border-violet-100",
+                iconBg: "bg-violet-100",
+            },
+            header: {
+                bg: "bg-white",
+                text: "text-slate-800",
+                border: "border-slate-200",
+            },
+            main: {
+                bg: "bg-slate-50",
+            },
+            accent: {
+                primary: "text-violet-600",
+                secondary: "bg-violet-600",
+            },
+        },
+    },
 
     default: {
         name: "Default",

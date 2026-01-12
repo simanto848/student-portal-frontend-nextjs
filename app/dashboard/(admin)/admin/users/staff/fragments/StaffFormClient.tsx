@@ -61,6 +61,7 @@ const roleLabel: Record<StaffRole, string> = {
     admission: "Admission",
     library: "Library",
     it: "IT Specialist",
+    exam_controller: "Exam Controller",
 };
 
 export function StaffFormClient({ staff, profile, departments }: StaffFormClientProps) {

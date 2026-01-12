@@ -315,6 +315,7 @@ export const teacherNavigation: NavItem[] = [
     href: "/dashboard/teacher/faculties",
     label: "Manage Faculty",
     icon: GraduationCap,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     condition: (user) => (isTeacherUser(user) && user.isDepartmentHead) || user.role === UserRole.DEPARTMENT_HEAD || user.role === UserRole.DEAN || (user as any).isDean,
   },
   {
@@ -414,6 +415,29 @@ export const librarianNavigation: NavItem[] = [
   },
 ];
 
+export const examControllerNavigation: NavItem[] = [
+  {
+    href: "/dashboard/staff/exam-controller",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/staff/exam-controller/exam-schedules",
+    label: "Exam Schedules",
+    icon: Calendar,
+  },
+  {
+    href: "/dashboard/staff/exam-controller/results",
+    label: "Results",
+    icon: FileText,
+  },
+  {
+    href: "/dashboard/staff/exam-controller/settings",
+    label: "Settings",
+    icon: Settings,
+  },
+];
+
 export const defaultStaffNavigation: NavItem[] = [
   {
     href: "/dashboard/staff",
@@ -442,6 +466,7 @@ export const navigationConfig: Record<string, NavItem[]> = {
   [UserRole.LIBRARY]: librarianNavigation,
   [UserRole.STAFF]: defaultStaffNavigation,
   [UserRole.DEPARTMENT_HEAD]: teacherNavigation,
+  [UserRole.EXAM_CONTROLLER]: examControllerNavigation,
 };
 
 // ===================== Helper Functions =====================
@@ -510,6 +535,7 @@ export function getDashboardTitle(role: UserRole): string {
     [UserRole.PROGRAM_CONTROLLER]: "Program Controller",
     [UserRole.LIBRARY]: "Library Panel",
     [UserRole.STAFF]: "Staff Panel",
+    [UserRole.EXAM_CONTROLLER]: "Exam Controller",
   };
 
   return titles[role] || "Dashboard";
@@ -525,6 +551,7 @@ export function getRoleDisplayName(role: UserRole): string {
     [UserRole.PROGRAM_CONTROLLER]: "Program Controller",
     [UserRole.LIBRARY]: "Librarian",
     [UserRole.STAFF]: "Staff",
+    [UserRole.EXAM_CONTROLLER]: "Exam Controller",
   };
 
   return (

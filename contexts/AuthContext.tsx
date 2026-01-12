@@ -56,8 +56,21 @@ const getLoginEndpoint = (role: UserRole): string => {
 };
 
 const getRedirectPath = (role: UserRole, requestedRole?: UserRole): string => {
-  if (requestedRole === "staff" && STAFF_ROLE_ROUTES[role]) {
-    return STAFF_ROLE_ROUTES[role];
+  // Normalize role to handle potential hyphen vs underscore mismatches
+  const normalizedRole = role.toString().replace(/-/g, '_');
+
+  if (requestedRole === "staff" && (STAFF_ROLE_ROUTES[role] || STAFF_ROLE_ROUTES[normalizedRole])) {
+    return STAFF_ROLE_ROUTES[role] || STAFF_ROLE_ROUTES[normalizedRole];
+  }
+
+  // Try to find route with normalized role if direct lookup fails
+  if (STAFF_ROLE_ROUTES[normalizedRole]) {
+    return STAFF_ROLE_ROUTES[normalizedRole];
+  }
+
+  // Fallback: Hardcoded checks for specific roles that might be failing lookup
+  if (normalizedRole === 'exam_controller') {
+    return '/dashboard/staff/exam-controller';
   }
 
   return getDashboardPath(role);
@@ -197,6 +210,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
         const isSecure = window.location.protocol === "https:";
         document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
+        // Explicitly handle exam_controller role variations if necessary, though standard flow should catch it via STAFF_ROLE_ROUTES
+        // We trust the backend returning the correct role enum value (with underscore)
+
+        console.log("LOGIN DEBUG:", {
+          receivedUserRole: data.user.role,
+          computedUserRole: userRole,
+          requestedRole: role,
+          mappedRoute: STAFF_ROLE_ROUTES[userRole],
+          allStaffRoutes: STAFF_ROLE_ROUTES
+        });
 
         const redirectPath = getRedirectPath(userRole, role);
         router.push(redirectPath);

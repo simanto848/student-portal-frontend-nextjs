@@ -1,6 +1,6 @@
 import { academicApi as api, handleApiError } from "@/services/academic/axios-instance";
 
-export type StaffRole = "program_controller" | "admission" | "library" | "it";
+export type StaffRole = "program_controller" | "admission" | "library" | "it" | "exam_controller";
 
 interface Department {
   id?: string;

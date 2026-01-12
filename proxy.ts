@@ -46,6 +46,7 @@ export async function proxy(request: NextRequest) {
         "hr",
         "it",
         "maintenance",
+        "exam_controller",
       ].includes(role)
     ) {
       targetPath = `/dashboard/staff/${role.replace(/_/g, "-")}`;

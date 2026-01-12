@@ -19,6 +19,7 @@ export enum UserRole {
   MAINTENANCE = "maintenance",
   DEPARTMENT_HEAD = "department_head",
   DEAN = "dean",
+  EXAM_CONTROLLER = "exam_controller",
 }
 
 export const ADMIN_ROLES: UserRole[] = [
@@ -31,6 +32,7 @@ export const STAFF_ROLE_ROUTES: Record<string, string> = {
   program_controller: "/dashboard/staff/program-controller",
   admission: "/dashboard/staff/admission",
   exam: "/dashboard/staff/exam",
+  exam_controller: "/dashboard/staff/exam-controller",
   finance: "/dashboard/staff/finance",
   library: "/dashboard/staff/library",
   transport: "/dashboard/staff/transport",
