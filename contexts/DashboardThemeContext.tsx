@@ -23,7 +23,7 @@ export function DashboardThemeProvider({ children }: { children: React.ReactNode
 export function useDashboardTheme() {
     const context = useContext(DashboardThemeContext);
     if (context === undefined) {
-        throw new Error("useDashboardTheme must be used within a DashboardThemeProvider");
+        return ROLE_THEMES.default;
     }
     return context;
 }

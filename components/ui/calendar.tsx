@@ -6,6 +6,7 @@ import { DayPicker } from "react-day-picker";
 
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -15,6 +16,8 @@ function Calendar({
     showOutsideDays = true,
     ...props
 }: CalendarProps) {
+    const theme = useDashboardTheme();
+
     return (
         <DayPicker
             showOutsideDays={showOutsideDays}
@@ -27,11 +30,13 @@ function Calendar({
                 nav: "flex items-center gap-1",
                 button_previous: cn(
                     buttonVariants({ variant: "outline" }),
-                    "absolute left-0 h-7 w-7 bg-white p-0 border border-slate-200 rounded-lg hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 transition-all"
+                    "absolute left-0 h-7 w-7 bg-white p-0 border border-slate-200 rounded-lg transition-all",
+                    `hover:${theme.colors.sidebar.active} ${theme.colors.sidebar.hover}`
                 ),
                 button_next: cn(
                     buttonVariants({ variant: "outline" }),
-                    "absolute right-0 h-7 w-7 bg-white p-0 border border-slate-200 rounded-lg hover:bg-amber-50 hover:text-amber-600 hover:border-amber-300 transition-all"
+                    "absolute right-0 h-7 w-7 bg-white p-0 border border-slate-200 rounded-lg transition-all",
+                    `hover:${theme.colors.sidebar.active} ${theme.colors.sidebar.hover}`
                 ),
                 month_grid: "w-full border-collapse",
                 weekdays: "flex w-full",
@@ -40,11 +45,11 @@ function Calendar({
                 day: "flex-1 flex justify-center py-1",
                 day_button: cn(
                     "h-9 w-9 p-0 font-medium rounded-lg text-slate-700 transition-all flex items-center justify-center",
-                    "hover:bg-amber-100 hover:text-amber-700",
-                    "focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    `hover:${theme.colors.sidebar.iconBg} ${theme.colors.sidebar.hover}`,
+                    `focus:outline-none focus:ring-2 focus:ring-${theme.colors.accent.secondary.replace("bg-", "")}/30`
                 ),
-                selected: "bg-amber-500 text-white font-bold shadow-md hover:bg-amber-600",
-                today: "text-amber-600 font-bold underline underline-offset-4",
+                selected: `${theme.colors.accent.secondary} text-white font-bold shadow-md hover:opacity-90`,
+                today: `${theme.colors.accent.primary} font-bold underline underline-offset-4`,
                 outside: "day-outside text-slate-300",
                 disabled: "text-slate-300 opacity-50",
                 hidden: "invisible",
@@ -53,9 +58,9 @@ function Calendar({
             components={{
                 Chevron: ({ orientation }) => {
                     if (orientation === "left") {
-                        return <ChevronLeft className="h-4 w-4" />;
+                        return <ChevronLeft className={`h-4 w-4 ${theme.colors.accent.primary}`} />;
                     }
-                    return <ChevronRight className="h-4 w-4" />;
+                    return <ChevronRight className={`h-4 w-4 ${theme.colors.accent.primary}`} />;
                 },
             }}
             {...props}

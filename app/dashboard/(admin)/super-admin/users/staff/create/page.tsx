@@ -140,6 +140,7 @@ export default function CreateStaffPage() {
     admission: "Admission",
     library: "Library",
     it: "IT",
+    exam_controller: "Exam Controller",
   };
 
   const generateRegistrationNumber = () => {

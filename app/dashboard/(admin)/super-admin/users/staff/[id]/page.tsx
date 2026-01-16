@@ -33,6 +33,7 @@ const roleLabel: Record<StaffRole, string> = {
   admission: "Admission",
   library: "Library",
   it: "IT",
+  exam_controller: "Exam Controller",
 };
 
 export default function StaffDetailsPage() {

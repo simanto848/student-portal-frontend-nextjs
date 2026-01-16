@@ -98,6 +98,7 @@ export default function EditStaffPage() {
     admission: "Admission",
     library: "Library",
     it: "IT",
+    exam_controller: "Exam Controller",
   };
 
   const fetchAll = async () => {

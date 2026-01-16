@@ -87,7 +87,7 @@ export function DatePicker({
                         value={getYear(calendarMonth).toString()}
                         onValueChange={handleYearChange}
                     >
-                        <SelectTrigger className="h-9 w-[90px] bg-white border-slate-200 rounded-lg font-semibold text-sm focus:ring-0 focus:border-indigo-400">
+                        <SelectTrigger className="h-9 w-[90px] bg-white border-slate-200 rounded-lg font-semibold text-sm focus:ring-0 focus:border-violet-400">
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-lg border-slate-200 shadow-lg max-h-[200px]">

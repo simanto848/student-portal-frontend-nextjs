@@ -160,4 +160,104 @@ export const enrollmentService = {
       return handleApiError(error);
     }
   },
+
+  // Exam Schedule Methods
+  getExamSchedules: async (params?: any): Promise<any> => {
+    try {
+      const response = await api.get('/enrollment/exam-schedules', { params });
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  createExamSchedule: async (data: any): Promise<any> => {
+    try {
+      const response = await api.post('/enrollment/exam-schedules', data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  updateExamSchedule: async (id: string, data: any): Promise<any> => {
+    try {
+      const response = await api.put(`/enrollment/exam-schedules/${id}`, data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  deleteExamSchedule: async (id: string): Promise<void> => {
+    try {
+      await api.delete(`/enrollment/exam-schedules/${id}`);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  // Result Workflow Methods
+  getResultWorkflows: async (params?: any): Promise<any> => {
+    try {
+      const response = await api.get('/enrollment/result-workflow', { params });
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  submitResultToCommittee: async (data: any): Promise<any> => {
+    try {
+      const response = await api.post('/enrollment/result-workflow/submit', data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  approveResultByCommittee: async (id: string, data: { comment?: string; otp: string }): Promise<any> => {
+    try {
+      const response = await api.post(`/enrollment/result-workflow/${id}/approve`, data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  returnResultToTeacher: async (id: string, data: { comment: string; otp: string }): Promise<any> => {
+    try {
+      const response = await api.post(`/enrollment/result-workflow/${id}/return-to-teacher`, data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  publishResult: async (id: string, data: { otp: string }): Promise<any> => {
+    try {
+      const response = await api.post(`/enrollment/result-workflow/${id}/publish`, data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  requestReturn: async (id: string, data: { comment: string; otp: string }): Promise<any> => {
+    try {
+      const response = await api.post(`/enrollment/result-workflow/${id}/request-return`, data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
+  approveReturn: async (id: string, data: { otp: string }): Promise<any> => {
+    try {
+      const response = await api.post(`/enrollment/result-workflow/${id}/approve-return`, data);
+      return response.data.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
 };

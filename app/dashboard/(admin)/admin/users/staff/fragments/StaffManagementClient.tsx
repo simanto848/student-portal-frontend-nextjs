@@ -46,6 +46,7 @@ const roleBadge = (role: StaffRole) => {
         admission: { label: "Admission", className: "bg-emerald-100 text-emerald-700 border-emerald-200", Icon: UserPlus },
         library: { label: "Library", className: "bg-blue-100 text-blue-700 border-blue-200", Icon: Zap },
         it: { label: "IT Specialist", className: "bg-cyan-100 text-cyan-700 border-cyan-200", Icon: ShieldAlert },
+        exam_controller: { label: "Exam Controller", className: "bg-violet-100 text-violet-700 border-violet-200", Icon: ShieldAlert },
     };
     const { label, className, Icon } = map[role] || { label: role || "Unknown", className: "bg-slate-100 text-slate-700 border-slate-200", Icon: Briefcase };
     return (
@@ -257,12 +258,13 @@ export function StaffManagementClient({
                         <h3 className="text-4xl font-black text-slate-900 mt-1">{statistics.total}</h3>
                     </CardContent>
                 </Card>
-                {["program_controller", "admission", "library", "it"].map((role, index) => {
+                {["program_controller", "admission", "library", "it", "exam_controller"].map((role, index) => {
                     const map: any = {
                         program_controller: { icon: Cpu, label: "Controllers" },
                         admission: { icon: UserPlus, label: "Admission" },
                         library: { icon: Zap, label: "Library" },
-                        it: { icon: ShieldAlert, label: "IT Special" }
+                        it: { icon: ShieldAlert, label: "IT Special" },
+                        exam_controller: { icon: ShieldAlert, label: "Exam Control" }
                     };
                     const { icon: Icon, label } = map[role];
                     const count = statistics.byRole[role] || 0;
@@ -306,7 +308,7 @@ export function StaffManagementClient({
 
                     {activeTab === "active" && (
                         <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-200 overflow-x-auto no-scrollbar max-w-full">
-                            {["all", "program_controller", "admission", "library", "it"].map((role) => (
+                            {["all", "program_controller", "admission", "library", "it", "exam_controller"].map((role) => (
                                 <button
                                     key={role}
                                     onClick={() => setFilterRole(role as StaffRole | "all")}

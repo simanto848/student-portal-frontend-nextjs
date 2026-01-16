@@ -18,6 +18,7 @@ const roleLabel: Record<StaffRole, string> = {
   admission: "Admission",
   library: "Library",
   it: "IT",
+  exam_controller: "Exam Controller",
 };
 
 const roleColor: Record<StaffRole, string> = {
@@ -25,6 +26,7 @@ const roleColor: Record<StaffRole, string> = {
   admission: "bg-blue-500",
   library: "bg-green-500",
   it: "bg-cyan-500",
+  exam_controller: "bg-violet-500",
 };
 
 export default function StaffPage() {
