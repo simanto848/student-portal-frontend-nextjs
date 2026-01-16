@@ -7,6 +7,18 @@ import { libraryService } from "@/services/library/library.service";
 import type { LibraryCreatePayload, LibraryStatus } from "@/services/library";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2, Building2 } from "lucide-react";
 
 export default function CreateLibraryPage() {
   const router = useRouter();
@@ -26,7 +38,7 @@ export default function CreateLibraryPage() {
     setSubmitting(true);
     try {
       const created = await libraryService.create(payload);
-      toast.success("Library created");
+      toast.success("Library created successfully");
       router.push(`/dashboard/staff/library/libraries/${created.id}`);
     } catch {
       toast.error("Failed to create library");
@@ -37,118 +49,170 @@ export default function CreateLibraryPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-semibold">Create Library</h1>
-        <Card className="bg-white border-none shadow-sm">
-          <CardHeader>
-            <CardTitle>Library Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm mb-1">Name</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.name}
-                    onChange={(e) =>
-                      setPayload({ ...payload, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Code</label>
-                  <input
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.code}
-                    onChange={(e) =>
-                      setPayload({ ...payload, code: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Status</label>
-                  <select
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.status}
-                    onChange={(e) =>
-                      setPayload({
-                        ...payload,
-                        status: e.target.value as LibraryStatus,
-                      })
-                    }
-                  >
-                    <option value="active">active</option>
-                    <option value="inactive">inactive</option>
-                    <option value="maintenance">maintenance</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Max Borrow Limit</label>
-                  <input
-                    type="number"
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.maxBorrowLimit ?? 0}
-                    onChange={(e) =>
-                      setPayload({
-                        ...payload,
-                        maxBorrowLimit: Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">
-                    Borrow Duration (days)
-                  </label>
-                  <input
-                    type="number"
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.borrowDuration ?? 0}
-                    onChange={(e) =>
-                      setPayload({
-                        ...payload,
-                        borrowDuration: Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Fine Per Day</label>
-                  <input
-                    type="number"
-                    className="w-full border rounded px-3 py-2"
-                    value={payload.finePerDay ?? 0}
-                    onChange={(e) =>
-                      setPayload({
-                        ...payload,
-                        finePerDay: Number(e.target.value),
-                      })
-                    }
-                  />
-                </div>
+      <div className="space-y-6 max-w-4xl mx-auto pb-10">
+        {/* Header */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            className="h-10 w-10 rounded-full hover:bg-teal-50 hover:text-teal-600"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Create Library</h1>
+            <p className="text-sm text-slate-500">Add a new library branch to the system</p>
+          </div>
+        </div>
+
+        <form onSubmit={onSubmit} className="space-y-6">
+          <Card className="border-none shadow-sm border-l-4 border-l-teal-500">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <Building2 className="h-5 w-5 text-teal-600" />
+                Library Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Library Name</Label>
+                <Input
+                  id="name"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.name}
+                  onChange={(e) =>
+                    setPayload({ ...payload, name: e.target.value })
+                  }
+                  required
+                  placeholder="e.g. Central Library"
+                />
               </div>
-              <div>
-                <label className="block text-sm mb-1">Description</label>
-                <textarea
-                  className="w-full border rounded px-3 py-2"
+              <div className="space-y-2">
+                <Label htmlFor="code">Library Code</Label>
+                <Input
+                  id="code"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.code}
+                  onChange={(e) =>
+                    setPayload({ ...payload, code: e.target.value })
+                  }
+                  required
+                  placeholder="e.g. CLIB"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={payload.status}
+                  onValueChange={(value) =>
+                    setPayload({
+                      ...payload,
+                      status: value as LibraryStatus,
+                    })
+                  }
+                >
+                  <SelectTrigger className="border-slate-200 focus:border-teal-500 focus:ring-teal-500">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="maxBorrowLimit">Max Borrow Limit</Label>
+                <Input
+                  id="maxBorrowLimit"
+                  type="number"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.maxBorrowLimit ?? 0}
+                  onChange={(e) =>
+                    setPayload({
+                      ...payload,
+                      maxBorrowLimit: Number(e.target.value),
+                    })
+                  }
+                />
+                <p className="text-xs text-slate-500">Maximum books per user</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="borrowDuration">Borrow Duration (days)</Label>
+                <Input
+                  id="borrowDuration"
+                  type="number"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.borrowDuration ?? 0}
+                  onChange={(e) =>
+                    setPayload({
+                      ...payload,
+                      borrowDuration: Number(e.target.value),
+                    })
+                  }
+                />
+                <p className="text-xs text-slate-500">Standard loan period</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="finePerDay">Fine Per Day</Label>
+                <Input
+                  id="finePerDay"
+                  type="number"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.finePerDay ?? 0}
+                  onChange={(e) =>
+                    setPayload({
+                      ...payload,
+                      finePerDay: Number(e.target.value),
+                    })
+                  }
+                />
+                <p className="text-xs text-slate-500">Late fee per day</p>
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500 h-24 resize-none"
                   value={payload.description ?? ""}
                   onChange={(e) =>
                     setPayload({ ...payload, description: e.target.value })
                   }
+                  placeholder="Brief description of the library..."
                 />
               </div>
-              <button
-                disabled={submitting}
-                className="px-4 py-2 rounded bg-[#344e41] text-white"
-              >
-                {submitting ? "Creating..." : "Create"}
-              </button>
-            </form>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 min-w-[150px] shadow-lg"
+              disabled={submitting}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Create Library
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
       </div>
     </DashboardLayout>
   );

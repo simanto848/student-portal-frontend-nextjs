@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Building2, MapPin, Settings } from "lucide-react";
 
 export default function EditLibraryPage() {
   const router = useRouter();
@@ -79,7 +79,7 @@ export default function EditLibraryPage() {
     return (
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#588157]" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
         </div>
       </DashboardLayout>
     );
@@ -106,26 +106,30 @@ export default function EditLibraryPage() {
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="h-10 w-10 rounded-full hover:bg-gray-100"
+            className="h-10 w-10 rounded-full hover:bg-teal-50 hover:text-teal-600"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-[#344e41]">Edit Library</h1>
-            <p className="text-sm text-gray-500">Update library details and configuration</p>
+            <h1 className="text-2xl font-bold text-slate-800">Edit Library</h1>
+            <p className="text-sm text-slate-500">Update library details and configuration</p>
           </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm border-l-4 border-l-teal-500">
             <CardHeader>
-              <CardTitle className="text-lg">General Information</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <Building2 className="h-5 w-5 text-teal-600" />
+                General Information
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Library Name</Label>
                 <Input
                   id="name"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.name ?? ""}
                   onChange={(e) => setPayload({ ...payload, name: e.target.value })}
                   required
@@ -136,6 +140,7 @@ export default function EditLibraryPage() {
                 <Label htmlFor="code">Library Code</Label>
                 <Input
                   id="code"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.code ?? ""}
                   onChange={(e) => setPayload({ ...payload, code: e.target.value })}
                   required
@@ -146,10 +151,10 @@ export default function EditLibraryPage() {
                 <Label htmlFor="description">Description</Label>
                 <Textarea
                   id="description"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500 h-24 resize-none"
                   value={payload.description ?? ""}
                   onChange={(e) => setPayload({ ...payload, description: e.target.value })}
                   placeholder="Brief description of the library..."
-                  className="h-24 resize-none"
                 />
               </div>
               <div className="space-y-2">
@@ -160,7 +165,7 @@ export default function EditLibraryPage() {
                     setPayload({ ...payload, status: value as LibraryStatus })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-slate-200 focus:border-teal-500 focus:ring-teal-500">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -173,15 +178,19 @@ export default function EditLibraryPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm border-l-4 border-l-cyan-500">
             <CardHeader>
-              <CardTitle className="text-lg">Contact Information</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <MapPin className="h-5 w-5 text-cyan-600" />
+                Contact Information
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.address ?? ""}
                   onChange={(e) => setPayload({ ...payload, address: e.target.value })}
                   placeholder="Full address..."
@@ -191,6 +200,7 @@ export default function EditLibraryPage() {
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.phone ?? ""}
                   onChange={(e) => setPayload({ ...payload, phone: e.target.value })}
                   placeholder="+1 (555) 000-0000"
@@ -201,6 +211,7 @@ export default function EditLibraryPage() {
                 <Input
                   id="email"
                   type="email"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.email ?? ""}
                   onChange={(e) => setPayload({ ...payload, email: e.target.value })}
                   placeholder="library@university.edu"
@@ -209,9 +220,12 @@ export default function EditLibraryPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-none shadow-sm">
+          <Card className="border-none shadow-sm border-l-4 border-l-sky-500">
             <CardHeader>
-              <CardTitle className="text-lg">Rules & Configuration</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <Settings className="h-5 w-5 text-sky-600" />
+                Rules & Configuration
+              </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -220,12 +234,13 @@ export default function EditLibraryPage() {
                   id="maxBorrowLimit"
                   type="number"
                   min="0"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.maxBorrowLimit ?? 0}
                   onChange={(e) =>
                     setPayload({ ...payload, maxBorrowLimit: Number(e.target.value) })
                   }
                 />
-                <p className="text-xs text-gray-500">Maximum books a user can borrow at once</p>
+                <p className="text-xs text-slate-500">Maximum books a user can borrow at once</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="borrowDuration">Borrow Duration (Days)</Label>
@@ -233,12 +248,13 @@ export default function EditLibraryPage() {
                   id="borrowDuration"
                   type="number"
                   min="1"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.borrowDuration ?? 0}
                   onChange={(e) =>
                     setPayload({ ...payload, borrowDuration: Number(e.target.value) })
                   }
                 />
-                <p className="text-xs text-gray-500">Standard loan period in days</p>
+                <p className="text-xs text-slate-500">Standard loan period in days</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="finePerDay">Fine Per Day ($)</Label>
@@ -247,12 +263,13 @@ export default function EditLibraryPage() {
                   type="number"
                   min="0"
                   step="0.01"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.finePerDay ?? 0}
                   onChange={(e) =>
                     setPayload({ ...payload, finePerDay: Number(e.target.value) })
                   }
                 />
-                <p className="text-xs text-gray-500">Late fee amount per day</p>
+                <p className="text-xs text-slate-500">Late fee amount per day</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="reservationHoldDays">Reservation Hold (Days)</Label>
@@ -260,12 +277,13 @@ export default function EditLibraryPage() {
                   id="reservationHoldDays"
                   type="number"
                   min="1"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.reservationHoldDays ?? 0}
                   onChange={(e) =>
                     setPayload({ ...payload, reservationHoldDays: Number(e.target.value) })
                   }
                 />
-                <p className="text-xs text-gray-500">Days to hold a reserved book</p>
+                <p className="text-xs text-slate-500">Days to hold a reserved book</p>
               </div>
             </CardContent>
           </Card>
@@ -281,7 +299,7 @@ export default function EditLibraryPage() {
             </Button>
             <Button
               type="submit"
-              className="bg-[#344e41] hover:bg-[#2a3f34] min-w-[150px]"
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 min-w-[150px] shadow-lg"
               disabled={submitting}
             >
               {submitting ? (

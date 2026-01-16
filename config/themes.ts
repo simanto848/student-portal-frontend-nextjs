@@ -226,6 +226,35 @@ export const ROLE_THEMES: Record<string, DashboardTheme> = {
             },
         },
     },
+    [UserRole.LIBRARY]: {
+        name: "Library Hub",
+        colors: {
+            sidebar: {
+                bg: "bg-gradient-to-b from-slate-900 via-slate-800 to-teal-900",
+                text: "text-slate-300",
+                hover: "hover:bg-teal-500/20 hover:text-teal-300",
+                active: "bg-teal-500/25",
+                activeBgSubtle: "bg-teal-500/15",
+                activeText: "text-teal-400",
+                border: "border-teal-800/50",
+                borderSubtle: "border-teal-600/30",
+                iconBg: "bg-teal-500/20",
+            },
+            header: {
+                bg: "bg-white",
+                text: "text-slate-800",
+                border: "border-slate-200",
+            },
+            main: {
+                bg: "bg-gradient-to-br from-slate-50 to-teal-50/50",
+            },
+            accent: {
+                primary: "text-teal-600",
+                secondary: "bg-teal-600",
+            },
+        },
+    },
+
 
     default: {
         name: "Default",
