@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { ArrowLeft, Save, Loader2, User, BookOpen, FileText } from "lucide-react";
+import { ArrowLeft, Save, Loader2, User, BookOpen, FileText, CalendarClock, Sparkles } from "lucide-react";
 import type { Library, BookCopy } from "@/services/library";
 
 export default function CreateReservationPage() {
@@ -122,7 +122,7 @@ export default function CreateReservationPage() {
     return (
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600" />
         </div>
       </DashboardLayout>
     );
@@ -130,42 +130,55 @@ export default function CreateReservationPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-4xl mx-auto pb-10">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => router.back()}
-            className="h-10 w-10 rounded-full hover:bg-gray-100"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-[#344e41]">New Reservation</h1>
-            <p className="text-sm text-gray-500">Create a new book reservation</p>
+      <div className="space-y-8 max-w-4xl mx-auto pb-10">
+        {/* Header Section - Teal Gradient */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-teal-800 to-cyan-700 p-6 text-white shadow-xl">
+          <div className="relative z-10 flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white border-0"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/10 rounded-lg backdrop-blur">
+                <CalendarClock className="h-6 w-6 text-cyan-300" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">New Reservation</h1>
+                <p className="text-cyan-100 text-sm">Create a new book reservation</p>
+              </div>
+            </div>
           </div>
+          {/* Decorative elements */}
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-white/5 to-transparent skew-x-12 transform translate-x-12" />
+          <div className="absolute right-10 bottom-0 h-20 w-20 rounded-full bg-cyan-400/20 blur-2xl" />
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-8">
+        <form onSubmit={onSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Borrower Info */}
-            <Card className="border-none shadow-sm h-full">
-              <CardHeader className="border-b bg-gray-50/50 pb-4">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <User className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-teal-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="border-b bg-gradient-to-r from-slate-50/50 to-teal-50/30 py-4">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-teal-50 rounded-lg">
+                    <User className="h-4 w-4 text-teal-600" />
+                  </div>
                   Borrower Details
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
+              <CardContent className="py-6 space-y-4">
                 <div className="space-y-2">
-                  <Label>User Type <span className="text-red-500">*</span></Label>
+                  <Label className="text-slate-700">User Type <span className="text-rose-500">*</span></Label>
                   <Select
                     value={payload.userType}
                     onValueChange={(val) =>
                       setPayload({ ...payload, userType: val, userId: "" })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-slate-200 focus:ring-teal-500 focus:border-teal-500">
                       <SelectValue placeholder="Select user type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -177,7 +190,7 @@ export default function CreateReservationPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Borrower <span className="text-red-500">*</span></Label>
+                  <Label className="text-slate-700">Borrower <span className="text-rose-500">*</span></Label>
                   <SearchableSelect
                     options={borrowers}
                     value={payload.userId}
@@ -190,16 +203,18 @@ export default function CreateReservationPage() {
             </Card>
 
             {/* Book & Library Info */}
-            <Card className="border-none shadow-sm h-full">
-              <CardHeader className="border-b bg-gray-50/50 pb-4">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-cyan-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="border-b bg-gradient-to-r from-slate-50/50 to-cyan-50/30 py-4">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-cyan-50 rounded-lg">
+                    <BookOpen className="h-4 w-4 text-cyan-600" />
+                  </div>
                   Book & Library
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-4">
+              <CardContent className="py-6 space-y-4">
                 <div className="space-y-2">
-                  <Label>Library <span className="text-red-500">*</span></Label>
+                  <Label className="text-slate-700">Library <span className="text-rose-500">*</span></Label>
                   <SearchableSelect
                     options={libraries.map(l => ({ label: l.name, value: l.id }))}
                     value={payload.libraryId}
@@ -208,7 +223,7 @@ export default function CreateReservationPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Book Copy <span className="text-red-500">*</span></Label>
+                  <Label className="text-slate-700">Book Copy <span className="text-rose-500">*</span></Label>
                   <SearchableSelect
                     options={copies.map(c => ({
                       label: `${c.book?.title} (${c.copyNumber})`,
@@ -224,14 +239,16 @@ export default function CreateReservationPage() {
           </div>
 
           {/* Notes */}
-          <Card className="border-none shadow-sm">
-            <CardHeader className="border-b bg-gray-50/50 pb-4">
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#588157]" />
+          <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-sky-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+            <CardHeader className="border-b bg-gradient-to-r from-slate-50/50 to-sky-50/30 py-4">
+              <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                <div className="p-1.5 bg-sky-50 rounded-lg">
+                  <FileText className="h-4 w-4 text-sky-600" />
+                </div>
                 Notes
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="py-6">
               <Textarea
                 value={payload.notes}
                 onChange={(e) =>
@@ -239,7 +256,7 @@ export default function CreateReservationPage() {
                 }
                 rows={4}
                 placeholder="Add any additional notes..."
-                className="resize-none"
+                className="resize-none border-slate-200 focus:ring-teal-500 focus:border-teal-500"
               />
             </CardContent>
           </Card>
@@ -250,13 +267,14 @@ export default function CreateReservationPage() {
               variant="outline"
               onClick={() => router.back()}
               disabled={submitting}
+              className="border-slate-200 hover:bg-slate-50 text-slate-700"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={submitting}
-              className="bg-[#344e41] hover:bg-[#2a3f34] min-w-[120px]"
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 min-w-[140px] shadow-lg text-white"
             >
               {submitting ? (
                 <>

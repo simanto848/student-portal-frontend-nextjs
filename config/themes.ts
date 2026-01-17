@@ -241,12 +241,12 @@ export const ROLE_THEMES: Record<string, DashboardTheme> = {
                 iconBg: "bg-teal-500/20",
             },
             header: {
-                bg: "bg-white",
+                bg: "bg-gradient-to-r from-white via-teal-50/50 to-cyan-50/30",
                 text: "text-slate-800",
-                border: "border-slate-200",
+                border: "border-teal-100",
             },
             main: {
-                bg: "bg-gradient-to-br from-slate-50 to-teal-50/50",
+                bg: "bg-gradient-to-br from-teal-50/40 via-slate-50 to-cyan-50/30",
             },
             accent: {
                 primary: "text-teal-600",

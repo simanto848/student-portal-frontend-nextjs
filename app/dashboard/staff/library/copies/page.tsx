@@ -17,8 +17,8 @@ export default function CopiesPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
-        <p className="text-gray-500">Redirecting to Books...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+        <p className="text-slate-500">Redirecting to Books...</p>
       </div>
     </DashboardLayout>
   );

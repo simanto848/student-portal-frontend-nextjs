@@ -60,13 +60,13 @@ function ReservationsContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>;
+        return <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pending</Badge>;
       case "fulfilled":
-        return <Badge variant="secondary" className="bg-green-100 text-green-800 hover:bg-green-100">Fulfilled</Badge>;
+        return <Badge variant="secondary" className="bg-teal-100 text-teal-800 hover:bg-teal-100">Fulfilled</Badge>;
       case "expired":
-        return <Badge variant="destructive">Expired</Badge>;
+        return <Badge variant="destructive" className="bg-rose-100 text-rose-700 hover:bg-rose-100">Expired</Badge>;
       case "cancelled":
-        return <Badge variant="outline">Cancelled</Badge>;
+        return <Badge variant="outline" className="bg-slate-100 text-slate-700">Cancelled</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -77,37 +77,40 @@ function ReservationsContent() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-800">
               Reservations {status ? `(${status})` : ""}
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               Manage book reservations
             </p>
           </div>
           <Link href="/dashboard/staff/library/reservations/create">
-            <Button className="bg-[#344e41] hover:bg-[#344e41]/90">
+            <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg">
               <Plus className="mr-2 h-4 w-4" />
               New Reservation
             </Button>
           </Link>
         </div>
 
-        <Card className="bg-white border-none shadow-sm">
-          <CardHeader>
-            <CardTitle>All Reservations</CardTitle>
+        <Card className="bg-white/80 backdrop-blur-sm border-none shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-teal-50/30">
+            <CardTitle className="text-slate-800">All Reservations</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="py-8 text-center text-muted-foreground">Loading...</div>
+              <div className="py-8 text-center text-slate-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mx-auto mb-4" />
+                Loading...
+              </div>
             ) : items.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
+              <div className="py-8 text-center text-slate-500">
                 No reservations found
               </div>
             ) : (
-              <div className="rounded-md border overflow-hidden">
+              <div className="rounded-md border border-slate-200 overflow-hidden">
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader className="bg-muted/50">
+                    <TableHeader className="bg-slate-50/50">
                       <TableRow>
                         <TableHead className="min-w-[200px]">Book</TableHead>
                         <TableHead className="whitespace-nowrap">Copy</TableHead>
@@ -122,19 +125,19 @@ function ReservationsContent() {
                     </TableHeader>
                     <TableBody>
                       {items.map((r) => (
-                        <TableRow key={r.id} className="hover:bg-muted/5">
+                        <TableRow key={r.id} className="hover:bg-teal-50/30">
                           <TableCell>
                             <div className="flex flex-col gap-1">
                               <span className="font-medium line-clamp-2" title={r.copy?.book?.title}>
                                 {r.copy?.book?.title || "Unknown Book"}
                               </span>
-                              <span className="text-xs text-muted-foreground line-clamp-1">
+                              <span className="text-xs text-slate-500 line-clamp-1">
                                 {r.copy?.book?.author}
                               </span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="font-mono text-xs whitespace-nowrap">
+                            <Badge variant="outline" className="font-mono text-xs whitespace-nowrap bg-teal-50 text-teal-700 border-teal-200">
                               {r.copy?.copyNumber || r.copyId}
                             </Badge>
                           </TableCell>
@@ -144,12 +147,12 @@ function ReservationsContent() {
                                 {r.user?.fullName || "Unknown User"}
                               </span>
                               {r.user?.email && (
-                                <span className="text-xs text-muted-foreground truncate max-w-[180px]" title={r.user.email}>
+                                <span className="text-xs text-slate-500 truncate max-w-[180px]" title={r.user.email}>
                                   {r.user.email}
                                 </span>
                               )}
                               {!r.user && (
-                                <span className="font-mono text-[10px] text-muted-foreground">
+                                <span className="font-mono text-[10px] text-slate-500">
                                   ID: {r.userId.substring(0, 8)}...
                                 </span>
                               )}
@@ -160,9 +163,9 @@ function ReservationsContent() {
                               variant="secondary"
                               className={cn(
                                 "capitalize whitespace-nowrap",
-                                r.userType === 'student' && "bg-blue-100 text-blue-800 hover:bg-blue-100",
-                                r.userType === 'teacher' && "bg-purple-100 text-purple-800 hover:bg-purple-100",
-                                r.userType === 'staff' && "bg-orange-100 text-orange-800 hover:bg-orange-100",
+                                r.userType === 'student' && "bg-cyan-100 text-cyan-800 hover:bg-cyan-100",
+                                r.userType === 'teacher' && "bg-violet-100 text-violet-800 hover:bg-violet-100",
+                                r.userType === 'staff' && "bg-amber-100 text-amber-800 hover:bg-amber-100",
                               )}
                             >
                               {r.userType}
@@ -174,11 +177,11 @@ function ReservationsContent() {
                                 {r.user.departmentName}
                               </span>
                             ) : r.user?.departmentId ? (
-                              <span className="font-mono text-xs text-muted-foreground" title={r.user.departmentId}>
+                              <span className="font-mono text-xs text-slate-500" title={r.user.departmentId}>
                                 {r.user.departmentId.substring(0, 8)}...
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
+                              <span className="text-slate-400 text-xs">-</span>
                             )}
                           </TableCell>
                           <TableCell>
@@ -187,20 +190,20 @@ function ReservationsContent() {
                                 {r.user.registrationNumber}
                               </span>
                             ) : (
-                              <span className="text-muted-foreground text-xs">-</span>
+                              <span className="text-slate-400 text-xs">-</span>
                             )}
                           </TableCell>
                           <TableCell>
                             <div className="text-xs space-y-1 min-w-[140px]">
                               <div className="flex justify-between gap-2">
-                                <span className="text-muted-foreground">Reserved:</span>
+                                <span className="text-slate-500">Reserved:</span>
                                 <span className="font-medium">{new Date(r.reservationDate).toLocaleDateString()}</span>
                               </div>
                               <div className="flex justify-between gap-2">
-                                <span className="text-muted-foreground">Expires:</span>
+                                <span className="text-slate-500">Expires:</span>
                                 <span className={cn(
                                   "font-medium",
-                                  new Date() > new Date(r.expiryDate) && r.status === 'pending' ? "text-red-600" : ""
+                                  new Date() > new Date(r.expiryDate) && r.status === 'pending' ? "text-rose-600" : ""
                                 )}>
                                   {new Date(r.expiryDate).toLocaleDateString()}
                                 </span>
@@ -210,12 +213,12 @@ function ReservationsContent() {
                           <TableCell>{getStatusBadge(r.status)}</TableCell>
                           <TableCell className="text-right">
                             <Link href={`/dashboard/staff/library/reservations/${r.id}/edit`}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </Link>
                             <Link href={`/dashboard/staff/library/reservations/${r.id}`}>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900 hover:bg-gray-100">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-teal-700 hover:bg-teal-50">
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </Link>
@@ -239,7 +242,7 @@ export default function ReservationsPage() {
     <Suspense fallback={
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
         </div>
       </DashboardLayout>
     }>

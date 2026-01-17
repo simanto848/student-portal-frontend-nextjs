@@ -10,19 +10,18 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
-  Calendar,
   User,
   BookOpen,
   RotateCcw,
   Edit,
   AlertTriangle,
-  CheckCircle,
   Clock,
   FileText,
-  DollarSign
+  DollarSign,
+  BookUp,
+  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -69,11 +68,11 @@ export default function ViewBorrowingPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "borrowed": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "returned": return "bg-green-100 text-green-700 border-green-200";
-      case "overdue": return "bg-red-100 text-red-700 border-red-200";
-      case "lost": return "bg-gray-100 text-gray-700 border-gray-200";
-      default: return "bg-gray-100 text-gray-700";
+      case "borrowed": return "bg-teal-100 text-teal-800 border-teal-200";
+      case "returned": return "bg-cyan-100 text-cyan-800 border-cyan-200";
+      case "overdue": return "bg-rose-100 text-rose-800 border-rose-200";
+      case "lost": return "bg-slate-100 text-slate-700 border-slate-200";
+      default: return "bg-slate-100 text-slate-700";
     }
   };
 
@@ -81,7 +80,7 @@ export default function ViewBorrowingPage() {
     return (
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#344e41]" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600" />
         </div>
       </DashboardLayout>
     );
@@ -91,9 +90,14 @@ export default function ViewBorrowingPage() {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-          <AlertTriangle className="h-12 w-12 text-yellow-500" />
-          <h2 className="text-xl font-semibold">Borrowing Record Not Found</h2>
-          <Button onClick={() => router.back()} variant="outline">Go Back</Button>
+          <div className="p-4 bg-amber-50 rounded-full">
+            <AlertTriangle className="h-12 w-12 text-amber-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-slate-800">Borrowing Record Not Found</h2>
+          <p className="text-slate-500">The record you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => router.back()} variant="outline" className="border-slate-200 hover:bg-slate-50">
+            Go Back
+          </Button>
         </div>
       </DashboardLayout>
     );
@@ -101,77 +105,87 @@ export default function ViewBorrowingPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-5xl mx-auto pb-10">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.back()}
-              className="h-10 w-10 rounded-full hover:bg-gray-100"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-[#344e41]">Borrowing Details</h1>
-                <Badge className={cn("capitalize", getStatusColor(item.status))}>
-                  {item.status}
-                </Badge>
+      <div className="space-y-8 max-w-5xl mx-auto pb-10">
+        {/* Header Section - Teal Gradient */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-teal-800 to-cyan-700 p-6 text-white shadow-xl">
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => router.back()}
+                className="h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white border-0"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <div className="flex items-center gap-3 mb-1">
+                  <div className="p-2 bg-white/10 rounded-lg backdrop-blur">
+                    <BookUp className="h-5 w-5 text-cyan-300" />
+                  </div>
+                  <h1 className="text-2xl font-bold tracking-tight">Borrowing Details</h1>
+                  <Badge className={cn("capitalize ml-2", getStatusColor(item.status))}>
+                    {item.status}
+                  </Badge>
+                </div>
+                <p className="text-cyan-100 text-sm font-mono pl-12">ID: {item.id}</p>
               </div>
-              <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
-                <span className="font-mono">ID: {item.id}</span>
-              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap justify-end">
+              {(item.status === "borrowed" || item.status === "overdue") && (
+                <Button
+                  onClick={handleReturn}
+                  disabled={isReturning}
+                  className="bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white gap-2 shadow-lg"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {isReturning ? "Returning..." : "Return Book"}
+                </Button>
+              )}
+              <Link href={`/dashboard/staff/library/borrowings/${id}/edit`}>
+                <Button className="bg-white/10 border border-white/20 text-white hover:bg-white/20 gap-2">
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </Button>
+              </Link>
             </div>
           </div>
-          <div className="flex gap-3">
-            {(item.status === "borrowed" || item.status === "overdue") && (
-              <Button
-                onClick={handleReturn}
-                disabled={isReturning}
-                className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
-              >
-                <RotateCcw className="h-4 w-4" />
-                {isReturning ? "Returning..." : "Return Book"}
-              </Button>
-            )}
-            <Link href={`/dashboard/staff/library/borrowings/${id}/edit`}>
-              <Button variant="outline" className="gap-2">
-                <Edit className="h-4 w-4" />
-                Edit Details
-              </Button>
-            </Link>
-          </div>
+          {/* Decorative elements */}
+          <div className="absolute right-0 top-0 h-full w-1/3 bg-gradient-to-l from-white/5 to-transparent skew-x-12 transform translate-x-12" />
+          <div className="absolute right-10 bottom-0 h-24 w-24 rounded-full bg-cyan-400/20 blur-2xl" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Book Details */}
-            <Card className="border-none shadow-sm">
-              <CardHeader className="pb-3 border-b bg-gray-50/50">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <BookOpen className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-cyan-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="py-4 border-b bg-gradient-to-r from-slate-50/50 to-cyan-50/30">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-cyan-50 rounded-lg">
+                    <BookOpen className="h-4 w-4 text-cyan-600" />
+                  </div>
                   Book Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="py-6">
                 <div className="flex items-start gap-4">
-                  <div className="h-16 w-12 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                    <BookOpen className="h-6 w-6 text-gray-400" />
+                  <div className="h-16 w-12 bg-gradient-to-br from-cyan-100 to-teal-100 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <BookOpen className="h-6 w-6 text-teal-600" />
                   </div>
                   <div className="space-y-1">
-                    <h3 className="font-semibold text-lg text-gray-900">{item.copy?.book?.title || "Unknown Title"}</h3>
-                    <p className="text-gray-500">{item.copy?.book?.author || "Unknown Author"}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm">
-                      <div className="flex items-center gap-1.5 text-gray-600">
-                        <span className="font-medium">Copy Number:</span>
-                        <span className="font-mono bg-gray-100 px-1.5 rounded">{item.copy?.copyNumber || item.copyId}</span>
+                    <h3 className="font-semibold text-lg text-slate-900">{item.copy?.book?.title || "Unknown Title"}</h3>
+                    <p className="text-slate-500">{item.copy?.book?.author || "Unknown Author"}</p>
+                    <div className="flex items-center gap-4 mt-3 text-sm flex-wrap">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500">Copy Number:</span>
+                        <Badge variant="outline" className="font-mono bg-teal-50 text-teal-700 border-teal-200">
+                          {item.copy?.copyNumber || item.copyId}
+                        </Badge>
                       </div>
-                      <div className="flex items-center gap-1.5 text-gray-600">
-                        <span className="font-medium">ISBN:</span>
-                        <span className="font-mono">{item.copy?.book?.isbn || "N/A"}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-slate-500">ISBN:</span>
+                        <span className="font-mono text-slate-700">{item.copy?.book?.isbn || "N/A"}</span>
                       </div>
                     </div>
                   </div>
@@ -180,49 +194,64 @@ export default function ViewBorrowingPage() {
             </Card>
 
             {/* Borrower Details */}
-            <Card className="border-none shadow-sm">
-              <CardHeader className="pb-3 border-b bg-gray-50/50">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <User className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-teal-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="py-4 border-b bg-gradient-to-r from-slate-50/50 to-teal-50/30">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-teal-50 rounded-lg">
+                    <User className="h-4 w-4 text-teal-600" />
+                  </div>
                   Borrower Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium text-gray-900">{item.borrower?.fullName || "Unknown"}</p>
+                    <p className="text-sm text-slate-500">Full Name</p>
+                    <p className="font-medium text-slate-900">{item.borrower?.fullName || "Unknown"}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500">User Type</p>
-                    <Badge variant="outline" className="capitalize">{item.userType}</Badge>
+                    <p className="text-sm text-slate-500">User Type</p>
+                    <Badge
+                      variant="secondary"
+                      className={cn(
+                        "capitalize",
+                        item.userType === 'student' && "bg-cyan-100 text-cyan-800",
+                        item.userType === 'teacher' && "bg-violet-100 text-violet-800",
+                        item.userType === 'staff' && "bg-amber-100 text-amber-800",
+                        item.userType === 'admin' && "bg-slate-100 text-slate-800"
+                      )}
+                    >
+                      {item.userType}
+                    </Badge>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500">Department</p>
-                    <p className="font-medium text-gray-900">{item.borrower?.departmentName || "-"}</p>
+                    <p className="text-sm text-slate-500">Department</p>
+                    <p className="font-medium text-slate-900">{item.borrower?.departmentName || "—"}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500">ID / Registration</p>
-                    <p className="font-mono text-gray-900">{item.borrower?.registrationNumber || item.borrowerId}</p>
+                    <p className="text-sm text-slate-500">ID / Registration</p>
+                    <p className="font-mono text-slate-900">{item.borrower?.registrationNumber || item.borrowerId}</p>
                   </div>
                   <div className="space-y-1 md:col-span-2">
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="text-gray-900">{item.borrower?.email || "-"}</p>
+                    <p className="text-sm text-slate-500">Email</p>
+                    <p className="text-slate-900">{item.borrower?.email || "—"}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
             {/* Notes */}
-            <Card className="border-none shadow-sm">
-              <CardHeader className="pb-3 border-b bg-gray-50/50">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-sky-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="py-4 border-b bg-gradient-to-r from-slate-50/50 to-sky-50/30">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-sky-50 rounded-lg">
+                    <FileText className="h-4 w-4 text-sky-600" />
+                  </div>
                   Notes
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
-                <p className="text-gray-700 whitespace-pre-wrap">{item.notes || "No notes recorded."}</p>
+              <CardContent className="py-6">
+                <p className="text-slate-700 whitespace-pre-wrap">{item.notes || "No notes recorded."}</p>
               </CardContent>
             </Card>
           </div>
@@ -230,29 +259,33 @@ export default function ViewBorrowingPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Timeline */}
-            <Card className="border-none shadow-sm">
-              <CardHeader className="pb-3 border-b bg-gray-50/50">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-orange-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="py-4 border-b bg-gradient-to-r from-slate-50/50 to-orange-50/30">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-orange-50 rounded-lg">
+                    <Clock className="h-4 w-4 text-orange-600" />
+                  </div>
                   Timeline
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="relative pl-4 border-l-2 border-gray-100 space-y-6">
+              <CardContent className="py-6 space-y-6">
+                <div className="relative pl-5 border-l-2 border-slate-100 space-y-6">
                   <div className="relative">
-                    <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-blue-500 border-2 border-white ring-1 ring-gray-100" />
-                    <p className="text-sm text-gray-500 mb-0.5">Borrowed On</p>
-                    <p className="font-medium text-gray-900">{new Date(item.borrowDate).toLocaleDateString()}</p>
-                    <p className="text-xs text-gray-400">{new Date(item.borrowDate).toLocaleTimeString()}</p>
+                    <div className="absolute -left-[22px] top-1 h-3.5 w-3.5 rounded-full bg-teal-500 border-2 border-white ring-2 ring-teal-100" />
+                    <p className="text-sm text-slate-500 mb-0.5">Borrowed On</p>
+                    <p className="font-medium text-slate-900">{new Date(item.borrowDate).toLocaleDateString()}</p>
+                    <p className="text-xs text-slate-400">{new Date(item.borrowDate).toLocaleTimeString()}</p>
                   </div>
 
                   <div className="relative">
-                    <div className={cn("absolute -left-[21px] top-1 h-3 w-3 rounded-full border-2 border-white ring-1 ring-gray-100",
-                      new Date() > new Date(item.dueDate) && item.status === 'borrowed' ? "bg-red-500" : "bg-gray-300"
+                    <div className={cn("absolute -left-[22px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white ring-2",
+                      new Date() > new Date(item.dueDate) && item.status === 'borrowed'
+                        ? "bg-rose-500 ring-rose-100"
+                        : "bg-amber-400 ring-amber-100"
                     )} />
-                    <p className="text-sm text-gray-500 mb-0.5">Due Date</p>
+                    <p className="text-sm text-slate-500 mb-0.5">Due Date</p>
                     <p className={cn("font-medium",
-                      new Date() > new Date(item.dueDate) && item.status === 'borrowed' ? "text-red-600" : "text-gray-900"
+                      new Date() > new Date(item.dueDate) && item.status === 'borrowed' ? "text-rose-600" : "text-slate-900"
                     )}>
                       {new Date(item.dueDate).toLocaleDateString()}
                     </p>
@@ -260,10 +293,10 @@ export default function ViewBorrowingPage() {
 
                   {item.returnDate && (
                     <div className="relative">
-                      <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full bg-green-500 border-2 border-white ring-1 ring-gray-100" />
-                      <p className="text-sm text-gray-500 mb-0.5">Returned On</p>
-                      <p className="font-medium text-gray-900">{new Date(item.returnDate).toLocaleDateString()}</p>
-                      <p className="text-xs text-gray-400">{new Date(item.returnDate).toLocaleTimeString()}</p>
+                      <div className="absolute -left-[22px] top-1 h-3.5 w-3.5 rounded-full bg-cyan-500 border-2 border-white ring-2 ring-cyan-100" />
+                      <p className="text-sm text-slate-500 mb-0.5">Returned On</p>
+                      <p className="font-medium text-slate-900">{new Date(item.returnDate).toLocaleDateString()}</p>
+                      <p className="text-xs text-slate-400">{new Date(item.returnDate).toLocaleTimeString()}</p>
                     </div>
                   )}
                 </div>
@@ -271,24 +304,26 @@ export default function ViewBorrowingPage() {
             </Card>
 
             {/* Fines */}
-            <Card className="border-none shadow-sm">
-              <CardHeader className="pb-3 border-b bg-gray-50/50">
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-[#588157]" />
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-rose-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="py-4 border-b bg-gradient-to-r from-slate-50/50 to-rose-50/30">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-rose-50 rounded-lg">
+                    <DollarSign className="h-4 w-4 text-rose-600" />
+                  </div>
                   Fines & Fees
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-6">
+              <CardContent className="py-6">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-600">Fine Amount</span>
-                  <span className="font-bold text-lg text-gray-900">${item.fineAmount?.toFixed(2) || "0.00"}</span>
+                  <span className="text-slate-600">Fine Amount</span>
+                  <span className="font-bold text-lg text-slate-900">${item.fineAmount?.toFixed(2) || "0.00"}</span>
                 </div>
                 {item.fineAmount > 0 && (
                   <div className="mt-4">
                     <Badge
                       variant={item.finePaid ? "outline" : "destructive"}
-                      className={cn("w-full justify-center py-1",
-                        item.finePaid ? "text-green-600 border-green-200 bg-green-50" : ""
+                      className={cn("w-full justify-center py-1.5",
+                        item.finePaid ? "text-teal-600 border-teal-200 bg-teal-50" : ""
                       )}
                     >
                       {item.finePaid ? "PAID" : "UNPAID"}
@@ -296,7 +331,27 @@ export default function ViewBorrowingPage() {
                   </div>
                 )}
                 {item.fineAmount === 0 && (
-                  <p className="text-sm text-gray-500 text-center mt-2">No fines applied</p>
+                  <p className="text-sm text-slate-500 text-center mt-2">No fines applied</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Library Info */}
+            <Card className="bg-white/80 backdrop-blur-sm border-l-4 border-l-violet-500 border-t-0 border-r-0 border-b-0 shadow-sm hover:shadow-md transition-all p-0">
+              <CardHeader className="py-4 border-b bg-gradient-to-r from-slate-50/50 to-violet-50/30">
+                <CardTitle className="text-base font-semibold flex items-center gap-2 text-slate-800">
+                  <div className="p-1.5 bg-violet-50 rounded-lg">
+                    <Library className="h-4 w-4 text-violet-600" />
+                  </div>
+                  Library
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="py-6">
+                <p className="font-medium text-slate-900">{item.library?.name || "Unknown Library"}</p>
+                {item.library?.code && (
+                  <Badge variant="outline" className="mt-2 font-mono bg-violet-50 text-violet-700 border-violet-200">
+                    {item.library.code}
+                  </Badge>
                 )}
               </CardContent>
             </Card>

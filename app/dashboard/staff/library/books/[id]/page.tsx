@@ -84,17 +84,17 @@ export default function ViewBookPage() {
   const getCopyStatusColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-green-100 text-green-700 hover:bg-green-100/80";
+        return "bg-teal-100 text-teal-700 hover:bg-teal-100/80";
       case "borrowed":
-        return "bg-blue-100 text-blue-700 hover:bg-blue-100/80";
+        return "bg-cyan-100 text-cyan-700 hover:bg-cyan-100/80";
       case "maintenance":
-        return "bg-orange-100 text-orange-700 hover:bg-orange-100/80";
+        return "bg-amber-100 text-amber-700 hover:bg-amber-100/80";
       case "lost":
-        return "bg-red-100 text-red-700 hover:bg-red-100/80";
+        return "bg-rose-100 text-rose-700 hover:bg-rose-100/80";
       case "reserved":
-        return "bg-yellow-100 text-yellow-700 hover:bg-yellow-100/80";
+        return "bg-sky-100 text-sky-700 hover:bg-sky-100/80";
       default:
-        return "bg-gray-100 text-gray-700 hover:bg-gray-100/80";
+        return "bg-slate-100 text-slate-700 hover:bg-slate-100/80";
     }
   };
 
@@ -102,7 +102,7 @@ export default function ViewBookPage() {
     return (
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#588157]" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500" />
         </div>
       </DashboardLayout>
     );
@@ -112,7 +112,7 @@ export default function ViewBookPage() {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-[50vh] space-y-4">
-          <AlertCircle className="h-12 w-12 text-red-500" />
+          <AlertCircle className="h-12 w-12 text-rose-500" />
           <h2 className="text-xl font-semibold">Book Not Found</h2>
           <Button onClick={() => router.back()} variant="outline">
             Go Back
@@ -132,25 +132,24 @@ export default function ViewBookPage() {
               variant="ghost"
               size="icon"
               onClick={() => router.back()}
-              className="h-10 w-10 rounded-full hover:bg-gray-100"
+              className="h-10 w-10 rounded-full hover:bg-teal-50 hover:text-teal-600"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-[#344e41]">{item.title}</h1>
+                <h1 className="text-2xl font-bold text-slate-800">{item.title}</h1>
                 <Badge
-                  variant={item.status === "active" ? "default" : "secondary"}
                   className={
                     item.status === "active"
-                      ? "bg-green-100 text-green-700 hover:bg-green-100"
-                      : "bg-gray-100 text-gray-700"
+                      ? "bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0"
+                      : "bg-slate-100 text-slate-700 border-0"
                   }
                 >
                   {item.status}
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+              <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                 <span className="flex items-center gap-1">
                   <User className="h-3.5 w-3.5" />
                   {item.author}
@@ -165,7 +164,7 @@ export default function ViewBookPage() {
           </div>
           <div className="flex gap-3">
             <Link href={`/dashboard/staff/library/books/${id}/edit`}>
-              <Button className="bg-[#344e41] hover:bg-[#2a3f34] gap-2">
+              <Button className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 gap-2 shadow-lg">
                 <Edit className="h-4 w-4" />
                 Edit Book
               </Button>
@@ -174,7 +173,7 @@ export default function ViewBookPage() {
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="gap-2 bg-red-50 text-red-600 hover:bg-red-100 border-red-100"
+              className="gap-2 bg-rose-50 text-rose-600 hover:bg-rose-100 border-rose-100"
             >
               <Trash2 className="h-4 w-4" />
               {isDeleting ? "Deleting..." : "Delete"}
@@ -186,17 +185,17 @@ export default function ViewBookPage() {
           {/* Main Info Column */}
           <div className="lg:col-span-2 space-y-6">
             {/* General Information */}
-            <Card className="border-none shadow-sm">
+            <Card className="border-none shadow-sm border-l-4 border-l-teal-500">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
-                  <Info className="h-5 w-5 text-[#588157]" />
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <Info className="h-5 w-5 text-teal-600" />
                   Book Overview
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-1">Description</h3>
-                  <p className="text-gray-700 leading-relaxed">
+                  <h3 className="text-sm font-medium text-slate-500 mb-1">Description</h3>
+                  <p className="text-slate-700 leading-relaxed">
                     {item.description || "No description provided."}
                   </p>
                 </div>
@@ -206,47 +205,47 @@ export default function ViewBookPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <Tag className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <Tag className="h-5 w-5 text-teal-500 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">ISBN</h3>
-                        <p className="text-sm text-gray-500 font-mono">{item.isbn || "N/A"}</p>
+                        <h3 className="text-sm font-medium text-slate-900">ISBN</h3>
+                        <p className="text-sm text-slate-500 font-mono">{item.isbn || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <BookOpen className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <BookOpen className="h-5 w-5 text-teal-500 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Publisher</h3>
-                        <p className="text-sm text-gray-500">{item.publisher || "N/A"}</p>
+                        <h3 className="text-sm font-medium text-slate-900">Publisher</h3>
+                        <p className="text-sm text-slate-500">{item.publisher || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <Calendar className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <Calendar className="h-5 w-5 text-teal-500 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Publication Year</h3>
-                        <p className="text-sm text-gray-500">{item.publicationYear || "N/A"}</p>
+                        <h3 className="text-sm font-medium text-slate-900">Publication Year</h3>
+                        <p className="text-sm text-slate-500">{item.publicationYear || "N/A"}</p>
                       </div>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <Layers className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <Layers className="h-5 w-5 text-cyan-500 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Edition</h3>
-                        <p className="text-sm text-gray-500">{item.edition || "N/A"}</p>
+                        <h3 className="text-sm font-medium text-slate-900">Edition</h3>
+                        <p className="text-sm text-slate-500">{item.edition || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <Globe className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <Globe className="h-5 w-5 text-cyan-500 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Language</h3>
-                        <p className="text-sm text-gray-500">{item.language || "English"}</p>
+                        <h3 className="text-sm font-medium text-slate-900">Language</h3>
+                        <p className="text-sm text-slate-500">{item.language || "English"}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <FileText className="h-5 w-5 text-gray-400 mt-0.5" />
+                      <FileText className="h-5 w-5 text-cyan-500 mt-0.5" />
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900">Pages</h3>
-                        <p className="text-sm text-gray-500">{item.pages || "N/A"}</p>
+                        <h3 className="text-sm font-medium text-slate-900">Pages</h3>
+                        <p className="text-sm text-slate-500">{item.pages || "N/A"}</p>
                       </div>
                     </div>
                   </div>
@@ -255,14 +254,14 @@ export default function ViewBookPage() {
             </Card>
 
             {/* Copies Section */}
-            <Card className="border-none shadow-sm">
+            <Card className="border-none shadow-sm border-l-4 border-l-cyan-500">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
-                  <Layers className="h-5 w-5 text-[#588157]" />
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <Layers className="h-5 w-5 text-cyan-600" />
                   Book Copies ({copies.length})
                 </CardTitle>
                 <Link href={`/dashboard/staff/library/copies/create?bookId=${id}`}>
-                  <Button size="sm" className="bg-[#344e41] hover:bg-[#2a3f34] gap-2">
+                  <Button size="sm" className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 gap-2 shadow-md">
                     <Plus className="h-4 w-4" />
                     Add Copy
                   </Button>
@@ -270,14 +269,14 @@ export default function ViewBookPage() {
               </CardHeader>
               <CardContent>
                 {copies.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-dashed">
+                  <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200">
                     No copies available for this book.
                   </div>
                 ) : (
-                  <div className="rounded-md border">
+                  <div className="rounded-md border border-slate-200">
                     <Table>
                       <TableHeader>
-                        <TableRow>
+                        <TableRow className="bg-slate-50/50">
                           <TableHead>Copy Number</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead>Condition</TableHead>
@@ -287,8 +286,8 @@ export default function ViewBookPage() {
                       </TableHeader>
                       <TableBody>
                         {copies.map((copy) => (
-                          <TableRow key={copy.id}>
-                            <TableCell className="font-medium">
+                          <TableRow key={copy.id} className="hover:bg-teal-50/30">
+                            <TableCell className="font-medium font-mono">
                               {copy.copyNumber}
                             </TableCell>
                             <TableCell>
@@ -311,9 +310,9 @@ export default function ViewBookPage() {
                                     variant="ghost"
                                     size="icon"
                                     title="View Details"
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 hover:bg-teal-50 hover:text-teal-600"
                                   >
-                                    <Eye className="h-4 w-4 text-gray-500" />
+                                    <Eye className="h-4 w-4 text-slate-500" />
                                   </Button>
                                 </Link>
                                 <Link
@@ -323,9 +322,9 @@ export default function ViewBookPage() {
                                     variant="ghost"
                                     size="icon"
                                     title="Edit Copy"
-                                    className="h-8 w-8"
+                                    className="h-8 w-8 hover:bg-teal-50 hover:text-teal-600"
                                   >
-                                    <Edit className="h-4 w-4 text-gray-500" />
+                                    <Edit className="h-4 w-4 text-slate-500" />
                                   </Button>
                                 </Link>
                               </div>
@@ -343,54 +342,54 @@ export default function ViewBookPage() {
           {/* Side Column */}
           <div className="space-y-6">
             {/* Availability Card */}
-            <Card className="border-none shadow-sm bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9]">
+            <Card className="border-none shadow-sm bg-gradient-to-br from-slate-50 to-teal-50/30">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2 text-gray-800">
-                  <CheckCircle className="h-5 w-5 text-[#588157]" />
+                <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                  <CheckCircle className="h-5 w-5 text-teal-600" />
                   Availability
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-green-50 rounded-lg text-green-600">
+                    <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
                       <BookOpen className="h-5 w-5" />
                     </div>
-                    <span className="font-medium text-gray-700">Available Copies</span>
+                    <span className="font-medium text-slate-700">Available Copies</span>
                   </div>
                   <div className="pl-12">
-                    <p className="text-2xl font-bold text-gray-900">
+                    <p className="text-2xl font-bold text-slate-900">
                       {copies.filter((c) => c.status === "available").length}
                     </p>
-                    <p className="text-xs text-gray-500">Currently in library</p>
+                    <p className="text-xs text-slate-500">Currently in library</p>
                   </div>
                 </div>
 
                 {item.library && (
-                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="p-2 bg-blue-50 rounded-lg text-blue-600">
+                      <div className="p-2 bg-cyan-50 rounded-lg text-cyan-600">
                         <LibraryIcon className="h-5 w-5" />
                       </div>
-                      <span className="font-medium text-gray-700">Library Branch</span>
+                      <span className="font-medium text-slate-700">Library Branch</span>
                     </div>
                     <div className="pl-12">
-                      <p className="text-lg font-semibold text-gray-900">{item.library.name}</p>
-                      <p className="text-xs text-gray-500 font-mono">{item.library.code}</p>
+                      <p className="text-lg font-semibold text-slate-900">{item.library.name}</p>
+                      <p className="text-xs text-slate-500 font-mono">{item.library.code}</p>
                     </div>
                   </div>
                 )}
 
                 {item.price && (
-                  <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
                         <DollarSign className="h-5 w-5" />
                       </div>
-                      <span className="font-medium text-gray-700">Price</span>
+                      <span className="font-medium text-slate-700">Price</span>
                     </div>
                     <div className="pl-12">
-                      <p className="text-xl font-bold text-gray-900">{item.price} TK</p>
+                      <p className="text-xl font-bold text-slate-900">{item.price} TK</p>
                     </div>
                   </div>
                 )}

@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, BookOpen, Info } from "lucide-react";
 
 export default function CreateBookPage() {
   const router = useRouter();
@@ -88,55 +88,61 @@ export default function CreateBookPage() {
             variant="ghost"
             size="icon"
             onClick={() => router.back()}
-            className="h-10 w-10 rounded-full hover:bg-gray-100"
+            className="h-10 w-10 rounded-full hover:bg-teal-50 hover:text-teal-600"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-[#344e41]">Add New Book</h1>
-            <p className="text-gray-500 text-sm">Enter the details of the new book</p>
+            <h1 className="text-2xl font-bold text-slate-800">Add New Book</h1>
+            <p className="text-slate-500 text-sm">Enter the details of the new book</p>
           </div>
         </div>
 
-        <Card className="border-none shadow-sm">
+        <Card className="border-none shadow-sm border-l-4 border-l-teal-500">
           <CardHeader>
-            <CardTitle className="text-lg text-gray-800">Book Information</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+              <BookOpen className="h-5 w-5 text-teal-600" />
+              Book Information
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="title">Title <span className="text-rose-500">*</span></Label>
                   <Input
                     id="title"
                     placeholder="e.g. The Great Gatsby"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.title}
                     onChange={(e) => setPayload({ ...payload, title: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="author">Author <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="author">Author <span className="text-rose-500">*</span></Label>
                   <Input
                     id="author"
                     placeholder="e.g. F. Scott Fitzgerald"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.author}
                     onChange={(e) => setPayload({ ...payload, author: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="category">Category <span className="text-rose-500">*</span></Label>
                   <Input
                     id="category"
                     placeholder="e.g. Fiction, Science, History"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.category}
                     onChange={(e) => setPayload({ ...payload, category: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="library">Library Branch <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="library">Library Branch <span className="text-rose-500">*</span></Label>
                   <SearchableSelect
                     options={libraryOptions}
                     value={payload.libraryId}
@@ -150,6 +156,7 @@ export default function CreateBookPage() {
                   <Input
                     id="isbn"
                     placeholder="e.g. 978-3-16-148410-0"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.isbn}
                     onChange={(e) => setPayload({ ...payload, isbn: e.target.value })}
                   />
@@ -159,6 +166,7 @@ export default function CreateBookPage() {
                   <Input
                     id="publisher"
                     placeholder="e.g. Penguin Books"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.publisher}
                     onChange={(e) => setPayload({ ...payload, publisher: e.target.value })}
                   />
@@ -169,6 +177,7 @@ export default function CreateBookPage() {
                     id="publicationYear"
                     type="number"
                     placeholder="e.g. 1925"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.publicationYear || ""}
                     onChange={(e) => setPayload({ ...payload, publicationYear: e.target.value ? parseInt(e.target.value) : undefined })}
                   />
@@ -178,6 +187,7 @@ export default function CreateBookPage() {
                   <Input
                     id="edition"
                     placeholder="e.g. 1st Edition"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.edition}
                     onChange={(e) => setPayload({ ...payload, edition: e.target.value })}
                   />
@@ -187,6 +197,7 @@ export default function CreateBookPage() {
                   <Input
                     id="language"
                     placeholder="e.g. English"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.language}
                     onChange={(e) => setPayload({ ...payload, language: e.target.value })}
                   />
@@ -197,6 +208,7 @@ export default function CreateBookPage() {
                     id="pages"
                     type="number"
                     placeholder="e.g. 218"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.pages || ""}
                     onChange={(e) => setPayload({ ...payload, pages: e.target.value ? parseInt(e.target.value) : undefined })}
                   />
@@ -207,6 +219,7 @@ export default function CreateBookPage() {
                     id="price"
                     type="number"
                     placeholder="e.g. 500"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                     value={payload.price || ""}
                     onChange={(e) => setPayload({ ...payload, price: e.target.value ? parseFloat(e.target.value) : undefined })}
                   />
@@ -217,7 +230,7 @@ export default function CreateBookPage() {
                     value={payload.status}
                     onValueChange={(value: BookStatus) => setPayload({ ...payload, status: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-slate-200 focus:border-teal-500 focus:ring-teal-500">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -234,7 +247,7 @@ export default function CreateBookPage() {
                 <Textarea
                   id="description"
                   placeholder="Enter book description..."
-                  className="min-h-[120px]"
+                  className="min-h-[120px] border-slate-200 focus:border-teal-500 focus:ring-teal-500"
                   value={payload.description}
                   onChange={(e) => setPayload({ ...payload, description: e.target.value })}
                 />
@@ -244,7 +257,7 @@ export default function CreateBookPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-[#344e41] hover:bg-[#2a3f34] text-white gap-2 min-w-[150px]"
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white gap-2 min-w-[150px] shadow-lg"
                 >
                   <Save className="h-4 w-4" />
                   {submitting ? "Creating..." : "Create Book"}
