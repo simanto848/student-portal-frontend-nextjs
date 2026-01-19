@@ -224,10 +224,10 @@ export default function TeacherDashboard() {
               </motion.div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-3 leading-tight">
-                  Shalom, {user?.fullName?.split(' ')[0]}!
+                  Welcome Back, {user?.fullName?.split(' ')[0]}!
                 </h1>
                 <p className="text-indigo-100/80 max-w-xl text-lg font-medium leading-relaxed">
-                  Your academic trajectory for <span className="text-white font-bold">{today}</span> involves <span className="text-white font-bold">{todaySchedules.length} active sessions</span> and <span className="text-white font-bold">{pendingGradesCount} pending</span> evaluations.
+                  Your academic activities for <span className="text-white font-bold">{today}</span> include <span className="text-white font-bold">{todaySchedules.length} classes</span> and <span className="text-white font-bold">{pendingGradesCount} pending</span> evaluations.
                 </p>
               </div>
             </div>
@@ -236,7 +236,7 @@ export default function TeacherDashboard() {
                 className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white border-0 shadow-xl shadow-indigo-950/20 font-black tracking-tight transition-all active:scale-95"
                 onClick={() => router.push("/dashboard/teacher/attendance")}
               >
-                Mark Presence
+                Mark Attendance
               </Button>
               <Button
                 variant="outline"
@@ -252,9 +252,9 @@ export default function TeacherDashboard() {
         {/* Quick Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
-            { label: "Active Streams", value: activeCoursesCount, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Induced Students", value: totalStudents, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Pending Evaluations", value: pendingGradesCount, icon: FileCheck, color: "text-indigo-600", bg: "bg-indigo-50" }
+            { label: "Active Courses", value: activeCoursesCount, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Enrolled Students", value: totalStudents, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
+            { label: "Pending Grades", value: pendingGradesCount, icon: FileCheck, color: "text-indigo-600", bg: "bg-indigo-50" }
           ].map((stat, i) => (
             <motion.div key={i} variants={itemVariants} className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/40 border border-slate-100 hover:shadow-2xl hover:border-indigo-100 transition-all group">
               <div className="flex items-center justify-between">
@@ -280,9 +280,9 @@ export default function TeacherDashboard() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Stream Portfolio</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Course Portfolio</span>
                   </div>
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Streams</h2>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Courses</h2>
                 </div>
                 <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 font-bold" onClick={() => router.push('/dashboard/teacher/courses')}>
                   View All <ArrowRight className="ml-1 h-4 w-4" />
@@ -328,7 +328,7 @@ export default function TeacherDashboard() {
               ) : (
                 <Card className="border-dashed border-2 rounded-[2rem] shadow-none bg-slate-50/50">
                   <CardContent className="py-16 text-center text-slate-400 font-bold italic">
-                    No active streams detected in your sector.
+                    No active courses detected in your sector.
                   </CardContent>
                 </Card>
               )}
@@ -340,9 +340,9 @@ export default function TeacherDashboard() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Evaluation Pipeline</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Grading Pipeline</span>
                   </div>
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pending Tasks</h2>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pending Grades</h2>
                 </div>
               </div>
 
@@ -353,7 +353,7 @@ export default function TeacherDashboard() {
                       <div className="inline-flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-50 mb-6">
                         <FileCheck className="h-10 w-10 text-slate-200" />
                       </div>
-                      <p className="font-bold">Evaluation pipeline clear. No pending tasks.</p>
+                      <p className="font-bold">Grading pipeline clear. No pending tasks.</p>
                     </div>
                   ) : (
                     <div className="divide-y-2 divide-slate-50">
@@ -380,7 +380,7 @@ export default function TeacherDashboard() {
                             variant="outline"
                             onClick={() => router.push(`/dashboard/teacher/courses/${wf.grade?.courseId || ""}`)}
                           >
-                            Execute
+                            View
                           </Button>
                         </div>
                       ))}
@@ -388,7 +388,7 @@ export default function TeacherDashboard() {
                   )}
                   <div className="p-4 bg-slate-50/80 border-t-2 border-slate-100 text-center">
                     <Button variant="link" size="sm" className="text-slate-500 font-black uppercase tracking-widest text-[10px] hover:text-indigo-600" onClick={() => router.push("/dashboard/teacher/grading")}>
-                      View Full Pipeline
+                      View All <ArrowRight className="ml-1 h-4 w-4" />
                     </Button>
                   </div>
                 </CardContent>
@@ -404,7 +404,7 @@ export default function TeacherDashboard() {
             <motion.section variants={itemVariants}>
               <div className="flex items-center gap-2 mb-6">
                 <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Tactical Actions</h2>
+                <h2 className="text-xl font-black text-slate-900 tracking-tight">Quick Actions</h2>
               </div>
               <div className="space-y-4">
                 {actionItems.map((item) => (
@@ -431,14 +431,14 @@ export default function TeacherDashboard() {
                     className="h-20 rounded-2xl border-2 border-slate-100 hover:border-indigo-500/30 font-black tracking-tight text-slate-600 hover:text-indigo-600 transition-all shadow-lg shadow-slate-200/40"
                     onClick={() => router.push("/dashboard/teacher/notifications")}
                   >
-                    Alerts
+                    Notifications
                   </Button>
                   <Button
                     variant="outline"
                     className="h-20 rounded-2xl border-2 border-slate-100 hover:border-indigo-500/30 font-black tracking-tight text-slate-600 hover:text-indigo-600 transition-all shadow-lg shadow-slate-200/40"
                     onClick={() => router.push("/dashboard/teacher/communication")}
                   >
-                    Signals
+                    Communication's
                   </Button>
                 </div>
               </div>
@@ -449,7 +449,7 @@ export default function TeacherDashboard() {
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Session Matrix</h2>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Today's Schedule</h2>
                 </div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1.5 rounded-full">{today}</span>
               </div>
@@ -463,7 +463,7 @@ export default function TeacherDashboard() {
                         <Calendar className="h-8 w-8 text-slate-200" />
                       </div>
                       <p className="text-slate-400 font-bold italic text-sm">
-                        Matrix clear. No sessions<br />scheduled for orbital period.
+                        No sessions scheduled for today.
                       </p>
                     </div>
                   )}
