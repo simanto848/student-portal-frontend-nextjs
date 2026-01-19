@@ -40,8 +40,7 @@ export default function ViewBorrowingPage() {
 
   const fetchBorrowing = async () => {
     try {
-      const list = await borrowingService.getAll({ limit: 100 });
-      const found = list.borrowings.find((b) => b.id === id) ?? null;
+      const found = await borrowingService.getById(id);
       setItem(found);
     } catch {
       toast.error("Failed to load borrowing details");

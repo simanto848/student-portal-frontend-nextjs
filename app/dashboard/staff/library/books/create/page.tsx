@@ -38,6 +38,9 @@ export default function CreateBookPage() {
     pages: undefined,
     price: undefined,
     description: "",
+    numberOfCopies: 0,
+    copyCondition: "excellent",
+    copyLocation: "",
   });
   const [submitting, setSubmitting] = useState(false);
   const [libraries, setLibraries] = useState<Library[]>([]);
@@ -240,6 +243,51 @@ export default function CreateBookPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="numberOfCopies">Number of Copies</Label>
+                  <Input
+                    id="numberOfCopies"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 5"
+                    className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                    value={payload.numberOfCopies || ""}
+                    onChange={(e) => setPayload({ ...payload, numberOfCopies: e.target.value ? parseInt(e.target.value) : 0 })}
+                  />
+                  <p className="text-xs text-slate-500">Automatically generate this many copies</p>
+                </div>
+                {payload.numberOfCopies! > 0 && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="copyCondition">Initial Copy Condition</Label>
+                      <Select
+                        value={payload.copyCondition}
+                        onValueChange={(value) => setPayload({ ...payload, copyCondition: value })}
+                      >
+                        <SelectTrigger className="border-slate-200 focus:border-teal-500 focus:ring-teal-500">
+                          <SelectValue placeholder="Select condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="excellent">Excellent</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="fair">Fair</SelectItem>
+                          <SelectItem value="poor">Poor</SelectItem>
+                          <SelectItem value="damaged">Damaged</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="copyLocation">Initial Copy Location</Label>
+                      <Input
+                        id="copyLocation"
+                        placeholder="e.g. Shelf A-1"
+                        className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                        value={payload.copyLocation}
+                        onChange={(e) => setPayload({ ...payload, copyLocation: e.target.value })}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="space-y-2">

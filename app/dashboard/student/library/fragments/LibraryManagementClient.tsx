@@ -20,7 +20,6 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import {
     useStudentLibraryDashboard,
-    useReturnBook,
     useInfiniteAvailableBooks,
     useReserveBook,
     useCancelReservation,
@@ -33,6 +32,7 @@ import {
     LibraryHistoryCard
 } from "../LibraryComponents";
 import { toast } from "sonner";
+import { notifyInfo } from "@/components/toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LibraryManagementClient() {
@@ -61,7 +61,6 @@ export default function LibraryManagementClient() {
 
     const availableBooks = infiniteCatalog?.pages.flatMap((page) => page.books) || [];
 
-    const returnBookMutation = useReturnBook();
     const reserveBookMutation = useReserveBook();
     const cancelReservationMutation = useCancelReservation();
 
@@ -86,23 +85,14 @@ export default function LibraryManagementClient() {
         );
     }, [history, searchQuery]);
 
-    const handleReturnBook = async (borrowingId: string) => {
-        const confirmed = window.confirm("Initiate return sequence for this asset?");
-        if (!confirmed) return;
-
-        returnBookMutation.mutate(
-            { id: borrowingId, data: {} },
-            {
-                onSuccess: () => {
-                    toast.success("Asset returned to central repository");
-                    refetch();
-                },
-                onError: (err: any) => {
-                    toast.error(err.message || "Protocol failure: Return failed");
-                }
-            },
-        );
+    const handleReturnInfo = () => {
+        notifyInfo("Please visit the library physically to return this asset. A librarian will process your return and update the system.", {
+            duration: 6000,
+            position: "bottom-center"
+        });
     };
+
+
 
     const handleReserveBook = async (book: Book) => {
         if (!book.libraryId) {
@@ -262,8 +252,7 @@ export default function LibraryManagementClient() {
                                     >
                                         <BorrowedBookCard
                                             item={item}
-                                            onReturn={handleReturnBook}
-                                            isReturning={returnBookMutation.isPending}
+                                            onReturn={handleReturnInfo}
                                         />
                                     </motion.div>
                                 ))

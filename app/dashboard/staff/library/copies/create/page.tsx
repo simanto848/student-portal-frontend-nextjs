@@ -35,7 +35,7 @@ function CreateCopyContent() {
     status: "available",
     bookId: prefilledBookId || "",
     libraryId: "",
-    condition: "new",
+    condition: "excellent",
     location: "",
     notes: "",
   });
@@ -108,7 +108,7 @@ function CreateCopyContent() {
     return (
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
         </div>
       </DashboardLayout>
     );
@@ -118,17 +118,17 @@ function CreateCopyContent() {
     <DashboardLayout>
       <div className="space-y-6 max-w-5xl mx-auto pb-10">
         {/* Breadcrumbs */}
-        <nav className="flex items-center text-sm text-gray-500">
-          <Link href="/dashboard/staff" className="hover:text-[#344e41] flex items-center gap-1">
+        <nav className="flex items-center text-sm text-slate-500">
+          <Link href="/dashboard/staff" className="hover:text-teal-600 flex items-center gap-1">
             <Home className="h-4 w-4" />
             Dashboard
           </Link>
           <ChevronRight className="h-4 w-4 mx-2" />
-          <Link href="/dashboard/staff/library/books" className="hover:text-[#344e41]">
+          <Link href="/dashboard/staff/library/books" className="hover:text-teal-600">
             Library
           </Link>
           <ChevronRight className="h-4 w-4 mx-2" />
-          <span className="font-medium text-gray-900">Create Copy</span>
+          <span className="font-medium text-slate-900">Create Copy</span>
         </nav>
 
         <div className="flex items-center justify-between">
@@ -142,8 +142,8 @@ function CreateCopyContent() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-[#344e41]">Create Book Copy</h1>
-              <p className="text-sm text-gray-500">Add a new physical copy to the library inventory</p>
+              <h1 className="text-2xl font-bold text-slate-800">Create Book Copy</h1>
+              <p className="text-sm text-slate-500">Add a new physical copy to the library inventory</p>
             </div>
           </div>
         </div>
@@ -167,7 +167,7 @@ function CreateCopyContent() {
                         placeholder="Select book..."
                         disabled={!!prefilledBookId}
                       />
-                      <p className="text-xs text-gray-500">Select the book title this copy belongs to.</p>
+                      <p className="text-xs text-slate-500">Select the book title this copy belongs to.</p>
                     </div>
 
                     <div className="space-y-2">
@@ -178,13 +178,13 @@ function CreateCopyContent() {
                         onChange={(val) => setPayload({ ...payload, libraryId: val })}
                         placeholder="Select library..."
                       />
-                      <p className="text-xs text-gray-500">The physical location where this copy is stored.</p>
+                      <p className="text-xs text-slate-500">The physical location where this copy is stored.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="copyNumber" className="text-sm font-medium text-gray-700">Copy Number</Label>
+                      <Label htmlFor="copyNumber" className="text-sm font-medium text-slate-700">Copy Number</Label>
                       <Input
                         id="copyNumber"
                         value={payload.copyNumber}
@@ -197,7 +197,7 @@ function CreateCopyContent() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
+                      <Label htmlFor="status" className="text-sm font-medium text-slate-700">Status</Label>
                       <Select
                         value={payload.status}
                         onValueChange={(val) =>
@@ -234,10 +234,11 @@ function CreateCopyContent() {
                           <SelectValue placeholder="Select condition" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="excellent">Excellent</SelectItem>
                           <SelectItem value="good">Good</SelectItem>
                           <SelectItem value="fair">Fair</SelectItem>
                           <SelectItem value="poor">Poor</SelectItem>
+                          <SelectItem value="damaged">Damaged</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -280,7 +281,7 @@ function CreateCopyContent() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-[#344e41] hover:bg-[#2a3f34] min-w-[120px]"
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 min-w-[120px] text-white"
                 >
                   {submitting ? (
                     <>
@@ -308,7 +309,7 @@ export default function CreateCopyPage() {
     <Suspense fallback={
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
         </div>
       </DashboardLayout>
     }>

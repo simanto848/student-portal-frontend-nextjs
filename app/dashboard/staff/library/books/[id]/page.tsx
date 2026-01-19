@@ -39,6 +39,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select as SelectUI,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function ViewBookPage() {
   const params = useParams();
@@ -47,6 +64,13 @@ export default function ViewBookPage() {
   const [copies, setCopies] = useState<BookCopy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [generateData, setGenerateData] = useState({
+    count: 1,
+    location: "",
+    condition: "excellent",
+  });
+  const [isGenerating, setIsGenerating] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -78,6 +102,30 @@ export default function ViewBookPage() {
       toast.error(error.message || "Failed to delete book");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleGenerateCopies = async () => {
+    setIsGenerating(true);
+    try {
+      await bookService.generateCopies(
+        id,
+        generateData.count,
+        generateData.condition,
+        generateData.location
+      );
+      toast.success(`${generateData.count} copies generated successfully`);
+      setIsGenerateModalOpen(false);
+      // Reset state
+      setGenerateData({ count: 1, location: "", condition: "excellent" });
+
+      // Refresh copies list
+      const copiesRes = await bookCopyService.getAll({ bookId: id, limit: 100 });
+      setCopies(copiesRes.bookCopies);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to generate copies");
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -169,6 +217,14 @@ export default function ViewBookPage() {
                 Edit Book
               </Button>
             </Link>
+            <Button
+              variant="outline"
+              onClick={() => setIsGenerateModalOpen(true)}
+              className="gap-2 border-teal-200 text-teal-700 hover:bg-teal-50"
+            >
+              <Layers className="h-4 w-4" />
+              Generate Copies
+            </Button>
             <Button
               variant="destructive"
               onClick={handleDelete}
@@ -398,6 +454,80 @@ export default function ViewBookPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={isGenerateModalOpen} onOpenChange={setIsGenerateModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Generate Book Copies</DialogTitle>
+            <DialogDescription>
+              Automatically create multiple copies of this book.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="count" className="text-right">
+                Count
+              </Label>
+              <Input
+                id="count"
+                type="number"
+                min="1"
+                className="col-span-3"
+                value={generateData.count}
+                onChange={(e) => setGenerateData({ ...generateData, count: parseInt(e.target.value) || 1 })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="location" className="text-right">
+                Location
+              </Label>
+              <Input
+                id="location"
+                placeholder="e.g. Shelf A-1"
+                className="col-span-3"
+                value={generateData.location}
+                onChange={(e) => setGenerateData({ ...generateData, location: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="condition" className="text-right">
+                Condition
+              </Label>
+              <SelectUI
+                value={generateData.condition}
+                onValueChange={(value) => setGenerateData({ ...generateData, condition: value })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select condition" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="excellent">Excellent</SelectItem>
+                  <SelectItem value="good">Good</SelectItem>
+                  <SelectItem value="fair">Fair</SelectItem>
+                  <SelectItem value="poor">Poor</SelectItem>
+                  <SelectItem value="damaged">Damaged</SelectItem>
+                </SelectContent>
+              </SelectUI>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsGenerateModalOpen(false)}
+              disabled={isGenerating}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerateCopies}
+              disabled={isGenerating || generateData.count < 1}
+              className="bg-gradient-to-r from-teal-600 to-cyan-600 text-white"
+            >
+              {isGenerating ? "Generating..." : "Generate Now"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

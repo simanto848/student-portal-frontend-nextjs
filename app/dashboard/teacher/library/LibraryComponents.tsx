@@ -175,11 +175,10 @@ export function BorrowedBookCard({
                             <Button
                                 size="sm"
                                 onClick={() => onReturn(item.id)}
-                                disabled={isReturning}
-                                variant="ghost"
-                                className="h-12 w-12 rounded-2xl flex items-center justify-center hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors"
+                                variant="outline"
+                                className="h-10 px-4 rounded-xl font-black uppercase text-[9px] tracking-widest border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all"
                             >
-                                <ArrowRight className="h-5 w-5" />
+                                How to Return
                             </Button>
                         )}
                     </div>

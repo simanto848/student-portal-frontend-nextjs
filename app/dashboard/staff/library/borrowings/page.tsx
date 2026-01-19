@@ -49,11 +49,24 @@ export default function BorrowingsPage() {
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const fetchBorrowings = async () => {
     try {
-      const res = await borrowingService.getAll({ limit: 100 });
+      setIsLoading(true);
+      const res = await borrowingService.getAll({
+        limit: 100,
+        search: debouncedSearch || undefined,
+        status: statusFilter !== 'all' ? (statusFilter as any) : undefined
+      });
       setItems(res.borrowings);
       setFilteredItems(res.borrowings);
     } catch {
@@ -65,28 +78,11 @@ export default function BorrowingsPage() {
 
   useEffect(() => {
     fetchBorrowings();
-  }, []);
+  }, [debouncedSearch, statusFilter]);
 
   useEffect(() => {
-    let result = items;
-
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(
-        (item) =>
-          item.copy?.book?.title.toLowerCase().includes(query) ||
-          item.borrower?.fullName?.toLowerCase().includes(query) ||
-          item.borrowerId.toLowerCase().includes(query) ||
-          item.copy?.copyNumber.toLowerCase().includes(query)
-      );
-    }
-
-    if (statusFilter !== "all") {
-      result = result.filter((item) => item.status === statusFilter);
-    }
-
-    setFilteredItems(result);
-  }, [searchQuery, statusFilter, items]);
+    setFilteredItems(items);
+  }, [items]);
 
   const handleReturnClick = (borrowing: Borrowing) => {
     setSelectedBorrowing(borrowing);

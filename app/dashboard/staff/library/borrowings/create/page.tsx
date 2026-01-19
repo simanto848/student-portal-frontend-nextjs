@@ -14,14 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Badge } from "@/components/ui/badge";
 import { DatePicker } from "@/components/ui/date-picker";
 import { borrowingService } from "@/services/library/borrowing.service";
-import { bookCopyService } from "@/services/library/bookCopy.service";
-import { libraryService } from "@/services/library/library.service";
 import { bookService } from "@/services/library/book.service";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Loader2, Calendar, BookOpen, User, BookUp, FileText } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
+import { ArrowLeft, Save, Loader2, Calendar, BookOpen, User, BookUp, FileText, Search, UserCheck, Info } from "lucide-react";
 
 import { studentService } from "@/services/user/student.service";
 import { teacherService } from "@/services/user/teacher.service";
@@ -33,69 +34,73 @@ export default function IssueBookPage() {
   const [payload, setPayload] = useState({
     userType: "student" as "student" | "teacher" | "staff" | "admin",
     borrowerId: "",
-    copyId: "",
-    libraryId: "",
+    bookId: "",
     dueDate: "",
     notes: "",
   });
 
   const [books, setBooks] = useState<{ label: string; value: string }[]>([]);
   const [selectedBookId, setSelectedBookId] = useState<string>("");
-  const [copies, setCopies] = useState<{ label: string; value: string; libraryId?: string }[]>([]);
-  const [libraries, setLibraries] = useState<{ label: string; value: string }[]>([]);
-  const [borrowers, setBorrowers] = useState<{ label: string; value: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadingCopies, setLoadingCopies] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Date picker state
   const [dueDate, setDueDate] = useState<Date | undefined>();
+  const [regNo, setRegNo] = useState("");
+  const [searchingUser, setSearchingUser] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [bookStats, setBookStats] = useState<{ totalCopies: number; availableCopies: number; reservationCount: number } | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
-    if (payload.userType) {
-      fetchBorrowers(payload.userType);
-    }
+    // Reset user info when userType changes if needed
   }, [payload.userType]);
 
-  const fetchBorrowers = async (type: string) => {
+  const handleUserSearch = async () => {
+    if (!regNo.trim()) return;
+    setSearchingUser(true);
+    setSelectedUser(null);
     try {
-      let data: any[] = [];
-      switch (type) {
-        case 'student':
-          const sRes = await studentService.getAll({ limit: 100 });
-          data = sRes.students || [];
+      const types: ("student" | "teacher" | "staff" | "admin")[] = ['student', 'teacher', 'staff', 'admin'];
+      let foundUser = null;
+      let foundType: "student" | "teacher" | "staff" | "admin" = 'student';
+
+      for (const type of types) {
+        let res: any;
+        if (type === 'student') res = await studentService.getAll({ search: regNo });
+        else if (type === 'teacher') res = await teacherService.getAll({ search: regNo });
+        else if (type === 'staff') res = await staffService.getAll({ search: regNo });
+        else if (type === 'admin') res = await adminService.getAll({ search: regNo });
+
+        const items = res.students || res.teachers || res.staff || res.admins || res;
+        const user = Array.isArray(items) ? items.find((u: any) => u.registrationNumber === regNo) : null;
+
+        if (user) {
+          foundUser = user;
+          foundType = type;
           break;
-        case 'teacher':
-          const tRes = await teacherService.getAll({ limit: 100 });
-          data = tRes.teachers || [];
-          break;
-        case 'staff':
-          const stRes = await staffService.getAll({ limit: 100 });
-          data = stRes.staff || [];
-          break;
-        case 'admin':
-          const aRes = await adminService.getAll({ limit: 100 });
-          data = aRes.admins || [];
-          break;
+        }
       }
-      setBorrowers(data?.map(u => ({
-        label: `${u.fullName} (${u.email || u.username})`,
-        value: u.id
-      })) || []);
+
+      if (foundUser) {
+        setSelectedUser(foundUser);
+        setPayload((prev: any) => ({ ...prev, userType: foundType, borrowerId: foundUser.id }));
+        toast.success(`User found: ${foundUser.fullName}`);
+      } else {
+        toast.error("No user found with this registration number");
+      }
     } catch (error) {
-      console.error("Failed to fetch borrowers", error);
-      toast.error("Failed to load borrower list");
+      toast.error("Failed to search user");
+    } finally {
+      setSearchingUser(false);
     }
   };
 
-  // Initial data fetch: books and libraries
+  // Initial data fetch: books
   useEffect(() => {
     (async () => {
       try {
-        const [booksRes, librariesRes] = await Promise.all([
-          bookService.getAll({ limit: 100 }),
-          libraryService.getAll({ limit: 100 }),
-        ]);
+        const booksRes = await bookService.getAll({ limit: 100 });
 
         setBooks(
           booksRes.books.map((b) => ({
@@ -103,66 +108,42 @@ export default function IssueBookPage() {
             value: b.id,
           }))
         );
-
-        setLibraries(
-          librariesRes.libraries.map((l) => ({
-            label: `${l.name} (${l.code})`,
-            value: l.id,
-          }))
-        );
       } catch {
-        toast.error("Failed to load form data");
+        toast.error("Failed to load books");
       } finally {
         setIsLoading(false);
       }
     })();
   }, []);
 
-  // Fetch copies when a book is selected
+  // Fetch stats when a book is selected
   useEffect(() => {
-    if (!selectedBookId) {
-      setCopies([]);
-      return;
-    }
+    if (!selectedBookId) return;
 
     (async () => {
-      setLoadingCopies(true);
+      setLoadingStats(true);
       try {
-        const copiesRes = await bookCopyService.getAvailableCopiesByBook(selectedBookId);
-        const availableCopies = copiesRes.map(c => ({
-          label: `Copy: ${c.copyNumber} (${c.location || 'No Location'})`,
-          value: c.id,
-          libraryId: c.libraryId
-        }));
-        setCopies(availableCopies);
+        const statsRes = await bookService.getStats(selectedBookId);
+        setBookStats(statsRes);
+        setPayload((prev: any) => ({ ...prev, bookId: selectedBookId }));
       } catch {
-        toast.error("Failed to load book copies");
+        toast.error("Failed to load book statistics");
       } finally {
-        setLoadingCopies(false);
+        setLoadingStats(false);
       }
     })();
   }, [selectedBookId]);
 
-  // Reset copy selection and fetch when book changes
+  // Reset and fetch when book changes
   const handleBookChange = (bookId: string) => {
     setSelectedBookId(bookId);
-    setPayload(prev => ({ ...prev, copyId: "", libraryId: "" }));
+    setPayload((prev: any) => ({ ...prev, bookId }));
   };
-
-  // Auto-select library when copy is selected
-  useEffect(() => {
-    if (payload.copyId) {
-      const selectedCopy = copies.find(c => c.value === payload.copyId);
-      if (selectedCopy && selectedCopy.libraryId) {
-        setPayload(prev => ({ ...prev, libraryId: selectedCopy.libraryId! }));
-      }
-    }
-  }, [payload.copyId, copies]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!payload.copyId || !payload.libraryId || !payload.borrowerId) {
-      toast.error("Please fill in all required fields");
+    if (!payload.bookId || !payload.borrowerId) {
+      toast.error("Please select a user and a book");
       return;
     }
 
@@ -229,37 +210,78 @@ export default function IssueBookPage() {
                   Borrower Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="py-6 space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-slate-700">User Type <span className="text-rose-500">*</span></Label>
-                  <Select
-                    value={payload.userType}
-                    onValueChange={(val) =>
-                      setPayload({ ...payload, userType: val as any, borrowerId: "" })
-                    }
-                  >
-                    <SelectTrigger className="border-slate-200 focus:ring-teal-500 focus:border-teal-500">
-                      <SelectValue placeholder="Select user type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="teacher">Teacher</SelectItem>
-                      <SelectItem value="staff">Staff</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <CardContent className="py-6 space-y-6">
+                <div className="space-y-4">
+                  <Label className="text-slate-700 font-medium">Search by Registration Number</Label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        placeholder="Enter unique registration number..."
+                        value={regNo}
+                        onChange={(e) => setRegNo(e.target.value)}
+                        className="pl-9 border-slate-200 focus:ring-teal-500"
+                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleUserSearch())}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleUserSearch}
+                      disabled={searchingUser || !regNo}
+                      className="bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
+                    >
+                      {searchingUser ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-700">Borrower <span className="text-rose-500">*</span></Label>
-                  <SearchableSelect
-                    options={borrowers}
-                    value={payload.borrowerId}
-                    onChange={(val) => setPayload({ ...payload, borrowerId: val })}
-                    placeholder="Select borrower..."
-                    disabled={!payload.userType}
-                  />
-                  <p className="text-xs text-slate-500">Search by name or email.</p>
-                </div>
+
+                {selectedUser ? (
+                  <div className="relative overflow-hidden rounded-xl border border-teal-100 bg-gradient-to-br from-teal-50/50 to-white p-4 shadow-inner">
+                    <div className="flex items-start gap-4">
+                      <div className="h-20 w-20 rounded-lg overflow-hidden border-2 border-white shadow-md bg-slate-200 flex-shrink-0">
+                        {selectedUser.profile?.profilePicture ? (
+                          <img
+                            src={getImageUrl(selectedUser.profile.profilePicture)}
+                            alt={selectedUser.fullName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center bg-slate-100 text-slate-400">
+                            <User className="h-10 w-10" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-800">{selectedUser.fullName}</h3>
+                          <Badge className="bg-teal-100 text-teal-700 hover:bg-teal-100 border-teal-200 uppercase text-[10px]">
+                            {payload.userType}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-slate-600 flex items-center gap-1.5">
+                          <FileText className="h-3.5 w-3.5 text-slate-400" />
+                          {selectedUser.registrationNumber}
+                        </p>
+                        <p className="text-xs text-slate-500 truncate max-w-[200px]">{selectedUser.email}</p>
+                        {selectedUser.department?.name && (
+                          <p className="text-xs font-medium text-teal-700 bg-teal-50/50 inline-block px-1.5 py-0.5 rounded">
+                            {selectedUser.department.name}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="absolute top-2 right-2">
+                      <div className="p-1 bg-teal-100 rounded-full">
+                        <UserCheck className="h-4 w-4 text-teal-600" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-8 text-center border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/30">
+                    <User className="h-8 w-8 text-slate-200 mx-auto mb-2" />
+                    <p className="text-xs text-slate-400">Search for a borrower to see their details here.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -273,40 +295,42 @@ export default function IssueBookPage() {
                   Book Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="py-6 space-y-4">
+              <CardContent className="py-6 space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-slate-700">Select Book <span className="text-rose-500">*</span></Label>
+                  <Label className="text-slate-700 font-medium">Select Book <span className="text-rose-500">*</span></Label>
                   <SearchableSelect
                     options={books}
                     value={selectedBookId}
                     onChange={handleBookChange}
-                    placeholder="Search books..."
+                    placeholder="Search books by title or author..."
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-700 flex items-center gap-2">
-                    Select Book Copy <span className="text-rose-500">*</span>
-                    {loadingCopies && <Loader2 className="h-3 w-3 animate-spin text-teal-600" />}
-                  </Label>
-                  <SearchableSelect
-                    options={copies}
-                    value={payload.copyId}
-                    onChange={(val) => setPayload({ ...payload, copyId: val })}
-                    placeholder={selectedBookId ? "Search available copies..." : "Select a book first"}
-                    disabled={!selectedBookId || loadingCopies}
-                  />
-                  <p className="text-xs text-slate-500">Only available copies are shown.</p>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-slate-700">Library Branch <span className="text-rose-500">*</span></Label>
-                  <SearchableSelect
-                    options={libraries}
-                    value={payload.libraryId}
-                    onChange={(val) => setPayload({ ...payload, libraryId: val })}
-                    placeholder="Select library..."
-                    disabled={!!payload.copyId}
-                  />
-                </div>
+
+                {bookStats && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl border border-cyan-100 bg-cyan-50/50 space-y-1">
+                      <p className="text-[10px] uppercase tracking-wider text-cyan-600 font-bold">Availability</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-cyan-700">{bookStats.availableCopies}</span>
+                        <span className="text-[10px] text-cyan-500">/ {bookStats.totalCopies} copies</span>
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-xl border border-amber-100 bg-amber-50/50 space-y-1">
+                      <p className="text-[10px] uppercase tracking-wider text-amber-600 font-bold">Reservations</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-amber-700">{bookStats.reservationCount}</span>
+                        <span className="text-[10px] text-amber-500">active</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
+                {!selectedBookId && (
+                  <div className="p-4 border border-dashed rounded-xl bg-slate-50 text-center">
+                    <p className="text-xs text-slate-400">Select a book to automatically pick an available copy.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

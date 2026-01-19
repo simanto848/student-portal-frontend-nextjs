@@ -93,6 +93,7 @@ export const reservationService = {
     status?: ReservationStatus;
     userId?: string;
     libraryId?: string;
+    search?: string;
   }): Promise<{
     reservations: Reservation[];
     pagination?: { page: number; limit: number; total: number; pages: number };

@@ -98,7 +98,7 @@ export default function EditCopyPage() {
     return (
       <DashboardLayout>
         <div className="flex h-[50vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-[#344e41]" />
+          <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
         </div>
       </DashboardLayout>
     );
@@ -108,21 +108,22 @@ export default function EditCopyPage() {
     <DashboardLayout>
       <div className="space-y-6 max-w-5xl mx-auto pb-10">
         {/* Breadcrumbs */}
-        <nav className="flex items-center text-sm text-gray-500">
-          <Link href="/dashboard/staff" className="hover:text-[#344e41] flex items-center gap-1">
+        <nav className="flex items-center text-sm text-slate-500">
+          <Link href="/dashboard/staff" className="hover:text-teal-600 flex items-center gap-1">
             <Home className="h-4 w-4" />
             Dashboard
           </Link>
           <ChevronRight className="h-4 w-4 mx-2" />
-          <Link href="/dashboard/staff/library/books" className="hover:text-[#344e41]">
+          <ChevronRight className="h-4 w-4 mx-2" />
+          <Link href="/dashboard/staff/library/books" className="hover:text-teal-600">
             Library
           </Link>
           <ChevronRight className="h-4 w-4 mx-2" />
-          <Link href={`/dashboard/staff/library/copies/${id}`} className="hover:text-[#344e41]">
+          <Link href={`/dashboard/staff/library/copies/${id}`} className="hover:text-teal-600">
             Copy Details
           </Link>
           <ChevronRight className="h-4 w-4 mx-2" />
-          <span className="font-medium text-gray-900">Edit Copy</span>
+          <span className="font-medium text-slate-900">Edit Copy</span>
         </nav>
 
         <div className="flex items-center justify-between">
@@ -136,8 +137,8 @@ export default function EditCopyPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-[#344e41]">Edit Book Copy</h1>
-              <p className="text-sm text-gray-500">Update details for this physical copy</p>
+              <h1 className="text-2xl font-bold text-slate-800">Edit Book Copy</h1>
+              <p className="text-sm text-slate-500">Update details for this physical copy</p>
             </div>
           </div>
         </div>
@@ -160,7 +161,7 @@ export default function EditCopyPage() {
                         onChange={(val) => setPayload({ ...payload, bookId: val })}
                         placeholder="Select book..."
                       />
-                      <p className="text-xs text-gray-500">The book title this copy belongs to.</p>
+                      <p className="text-xs text-slate-500">The book title this copy belongs to.</p>
                     </div>
 
                     <div className="space-y-2">
@@ -171,13 +172,13 @@ export default function EditCopyPage() {
                         onChange={(val) => setPayload({ ...payload, libraryId: val })}
                         placeholder="Select library..."
                       />
-                      <p className="text-xs text-gray-500">The physical location where this copy is stored.</p>
+                      <p className="text-xs text-slate-500">The physical location where this copy is stored.</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="copyNumber" className="text-sm font-medium text-gray-700">Copy Number</Label>
+                      <Label htmlFor="copyNumber" className="text-sm font-medium text-slate-700">Copy Number</Label>
                       <Input
                         id="copyNumber"
                         value={payload.copyNumber || ""}
@@ -189,7 +190,7 @@ export default function EditCopyPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="status" className="text-sm font-medium text-gray-700">Status</Label>
+                      <Label htmlFor="status" className="text-sm font-medium text-slate-700">Status</Label>
                       <Select
                         value={payload.status}
                         onValueChange={(val) =>
@@ -215,7 +216,7 @@ export default function EditCopyPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="condition" className="text-sm font-medium text-gray-700">Condition</Label>
+                      <Label htmlFor="condition" className="text-sm font-medium text-slate-700">Condition</Label>
                       <Select
                         value={payload.condition}
                         onValueChange={(val) =>
@@ -226,15 +227,16 @@ export default function EditCopyPage() {
                           <SelectValue placeholder="Select condition" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
+                          <SelectItem value="excellent">Excellent</SelectItem>
                           <SelectItem value="good">Good</SelectItem>
                           <SelectItem value="fair">Fair</SelectItem>
                           <SelectItem value="poor">Poor</SelectItem>
+                          <SelectItem value="damaged">Damaged</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="location" className="text-sm font-medium text-gray-700">Shelf Location</Label>
+                      <Label htmlFor="location" className="text-sm font-medium text-slate-700">Shelf Location</Label>
                       <Input
                         id="location"
                         value={payload.location || ""}
@@ -247,7 +249,7 @@ export default function EditCopyPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="notes" className="text-sm font-medium text-gray-700">Notes</Label>
+                    <Label htmlFor="notes" className="text-sm font-medium text-slate-700">Notes</Label>
                     <Input
                       id="notes"
                       value={payload.notes || ""}
@@ -272,7 +274,7 @@ export default function EditCopyPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="bg-[#344e41] hover:bg-[#2a3f34] min-w-[120px]"
+                  className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 min-w-[120px] text-white"
                 >
                   {submitting ? (
                     <>

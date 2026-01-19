@@ -253,12 +253,7 @@ export default function EditReservationPage() {
                         Pending
                       </div>
                     </SelectItem>
-                    <SelectItem value="fulfilled">
-                      <div className="flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-teal-500"></span>
-                        Fulfilled
-                      </div>
-                    </SelectItem>
+
                     <SelectItem value="expired">
                       <div className="flex items-center gap-2">
                         <span className="h-2 w-2 rounded-full bg-rose-500"></span>

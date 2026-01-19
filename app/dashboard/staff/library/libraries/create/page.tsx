@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2, Building2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Building2, MapPin, Settings } from "lucide-react";
 
 export default function CreateLibraryPage() {
   const router = useRouter();
@@ -26,10 +26,14 @@ export default function CreateLibraryPage() {
     name: "",
     code: "",
     status: "active",
+    address: "",
+    phone: "",
+    email: "",
     maxBorrowLimit: 3,
     borrowDuration: 14,
     finePerDay: 0,
     reservationHoldDays: 2,
+    description: "",
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -67,11 +71,12 @@ export default function CreateLibraryPage() {
         </div>
 
         <form onSubmit={onSubmit} className="space-y-6">
+          {/* General Information */}
           <Card className="border-none shadow-sm border-l-4 border-l-teal-500">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
                 <Building2 className="h-5 w-5 text-teal-600" />
-                Library Details
+                General Information
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -101,6 +106,18 @@ export default function CreateLibraryPage() {
                   placeholder="e.g. CLIB"
                 />
               </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500 h-24 resize-none"
+                  value={payload.description ?? ""}
+                  onChange={(e) =>
+                    setPayload({ ...payload, description: e.target.value })
+                  }
+                  placeholder="Brief description of the library..."
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
                 <Select
@@ -122,6 +139,67 @@ export default function CreateLibraryPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Contact Information */}
+          <Card className="border-none shadow-sm border-l-4 border-l-cyan-500">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <MapPin className="h-5 w-5 text-cyan-600" />
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="address">Address</Label>
+                <Input
+                  id="address"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.address ?? ""}
+                  onChange={(e) =>
+                    setPayload({ ...payload, address: e.target.value })
+                  }
+                  placeholder="Full address..."
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.phone ?? ""}
+                  onChange={(e) =>
+                    setPayload({ ...payload, phone: e.target.value })
+                  }
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.email ?? ""}
+                  onChange={(e) =>
+                    setPayload({ ...payload, email: e.target.value })
+                  }
+                  placeholder="library@university.edu"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Rules & Configuration */}
+          <Card className="border-none shadow-sm border-l-4 border-l-sky-500">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <Settings className="h-5 w-5 text-sky-600" />
+                Rules & Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="maxBorrowLimit">Max Borrow Limit</Label>
                 <Input
@@ -170,17 +248,22 @@ export default function CreateLibraryPage() {
                 />
                 <p className="text-xs text-slate-500">Late fee per day</p>
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500 h-24 resize-none"
-                  value={payload.description ?? ""}
+              <div className="space-y-2">
+                <Label htmlFor="reservationHoldDays">Reservation Hold (Days)</Label>
+                <Input
+                  id="reservationHoldDays"
+                  type="number"
+                  min="1"
+                  className="border-slate-200 focus:border-teal-500 focus:ring-teal-500"
+                  value={payload.reservationHoldDays ?? 0}
                   onChange={(e) =>
-                    setPayload({ ...payload, description: e.target.value })
+                    setPayload({
+                      ...payload,
+                      reservationHoldDays: Number(e.target.value),
+                    })
                   }
-                  placeholder="Brief description of the library..."
                 />
+                <p className="text-xs text-slate-500">Days to hold a reserved book</p>
               </div>
             </CardContent>
           </Card>

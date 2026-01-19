@@ -22,6 +22,9 @@ export interface BookCreatePayload {
   price?: number;
   status?: BookStatus;
   libraryId: string;
+  numberOfCopies?: number;
+  copyCondition?: string;
+  copyLocation?: string;
 }
 
 export interface BookUpdatePayload {
@@ -166,6 +169,22 @@ export const bookService = {
     try {
       const res = await libraryApi.post(`/library/books/${id}/restore`);
       return normalizeBook(extractLibraryItemData(res));
+    } catch (error: unknown) {
+      return handleLibraryApiError(error);
+    }
+  },
+  generateCopies: async (id: string, numberOfCopies: number, condition?: string, location?: string): Promise<any> => {
+    try {
+      const res = await libraryApi.post(`/library/books/${id}/generate-copies`, { numberOfCopies, condition, location });
+      return res.data.data;
+    } catch (error: unknown) {
+      return handleLibraryApiError(error);
+    }
+  },
+  getStats: async (id: string): Promise<{ totalCopies: number; availableCopies: number; reservationCount: number }> => {
+    try {
+      const res = await libraryApi.get(`/library/books/${id}/stats`);
+      return res.data?.data || res.data;
     } catch (error: unknown) {
       return handleLibraryApiError(error);
     }

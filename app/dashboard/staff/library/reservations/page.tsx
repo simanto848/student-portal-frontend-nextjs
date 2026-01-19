@@ -18,8 +18,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Plus, Edit } from "lucide-react";
+import { Eye, Plus, Edit, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
@@ -41,12 +42,24 @@ function ReservationsContent() {
     ? (statusParam as ReservationStatus)
     : undefined;
 
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   useEffect(() => {
     (async () => {
       try {
+        setIsLoading(true);
         const res = await reservationService.getAll({
           limit: 50,
           status,
+          search: debouncedSearch || undefined,
         });
         setItems(res.reservations);
       } catch {
@@ -55,18 +68,57 @@ function ReservationsContent() {
         setIsLoading(false);
       }
     })();
-  }, [status]);
+  }, [status, debouncedSearch]);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, expiryDate?: string) => {
+    const now = new Date();
+    const isExpired = expiryDate && now > new Date(expiryDate);
+
+    if (status === "pending" && isExpired) {
+      return (
+        <Badge
+          variant="destructive"
+          className="bg-rose-100 text-rose-700 hover:bg-rose-100"
+        >
+          Expired
+        </Badge>
+      );
+    }
+
     switch (status) {
       case "pending":
-        return <Badge variant="secondary" className="bg-amber-100 text-amber-800 hover:bg-amber-100">Pending</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-amber-100 text-amber-800 hover:bg-amber-100"
+          >
+            Pending
+          </Badge>
+        );
       case "fulfilled":
-        return <Badge variant="secondary" className="bg-teal-100 text-teal-800 hover:bg-teal-100">Fulfilled</Badge>;
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-teal-100 text-teal-800 hover:bg-teal-100"
+          >
+            Fulfilled
+          </Badge>
+        );
       case "expired":
-        return <Badge variant="destructive" className="bg-rose-100 text-rose-700 hover:bg-rose-100">Expired</Badge>;
+        return (
+          <Badge
+            variant="destructive"
+            className="bg-rose-100 text-rose-700 hover:bg-rose-100"
+          >
+            Expired
+          </Badge>
+        );
       case "cancelled":
-        return <Badge variant="outline" className="bg-slate-100 text-slate-700">Cancelled</Badge>;
+        return (
+          <Badge variant="outline" className="bg-slate-100 text-slate-700">
+            Cancelled
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -94,7 +146,18 @@ function ReservationsContent() {
 
         <Card className="bg-white/80 backdrop-blur-sm border-none shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-teal-50/30">
-            <CardTitle className="text-slate-800">All Reservations</CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <CardTitle className="text-slate-800">All Reservations</CardTitle>
+              <div className="relative max-w-sm w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search book, borrower or reg no..."
+                  className="pl-9 bg-white/50 border-slate-200 focus:bg-white transition-all shadow-sm"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -210,7 +273,7 @@ function ReservationsContent() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{getStatusBadge(r.status)}</TableCell>
+                          <TableCell>{getStatusBadge(r.status, r.expiryDate)}</TableCell>
                           <TableCell className="text-right">
                             <Link href={`/dashboard/staff/library/reservations/${r.id}/edit`}>
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50">

@@ -142,11 +142,10 @@ export function BorrowedBookCard({
                 {onReturn && (
                     <Button
                         size="sm"
-                        className="rounded-xl bg-slate-900 text-white hover:bg-cyan-600 font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-xl shadow-slate-200 transition-all active:scale-95"
+                        className="rounded-xl bg-slate-100 text-slate-600 hover:bg-cyan-600 hover:text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-sm transition-all active:scale-95"
                         onClick={() => onReturn(item.id)}
-                        disabled={isReturning}
                     >
-                        {isReturning ? "Syncing..." : "Return Asset"}
+                        How to Return
                     </Button>
                 )}
             </div>

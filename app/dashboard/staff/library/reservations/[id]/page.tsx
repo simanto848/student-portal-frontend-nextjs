@@ -43,8 +43,7 @@ export default function ViewReservationPage() {
 
   const fetchReservation = async () => {
     try {
-      const list = await reservationService.getAll({ limit: 100 });
-      const found = list.reservations.find((r) => r.id === id) ?? null;
+      const found = await reservationService.getById(id);
       setItem(found);
     } catch {
       toast.error("Failed to load reservation details");
@@ -67,23 +66,11 @@ export default function ViewReservationPage() {
     }
   };
 
-  const handleFulfill = async () => {
-    if (!confirm("Are you sure you want to fulfill this reservation?")) return;
-    setIsProcessing(true);
-    try {
-      await reservationService.fulfill(id);
-      toast.success("Reservation fulfilled");
-      fetchReservation();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fulfill reservation");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+
 
   const handleConvertToBorrowing = async () => {
     if (!item) return;
-    if (!confirm("This will create a new borrowing record and fulfill this reservation. Continue?")) return;
+    if (!confirm("This will fulfill the reservation and issue the book to the user. Continue?")) return;
 
     setIsProcessing(true);
     try {
@@ -189,29 +176,19 @@ export default function ViewReservationPage() {
                   className="bg-gradient-to-r from-orange-500 to-rose-500 hover:from-orange-600 hover:to-rose-600 text-white gap-2 shadow-lg"
                 >
                   <BookUp className="h-4 w-4" />
-                  {isProcessing ? "Processing..." : "Issue Book"}
+                  {isProcessing ? "Processing..." : "Fulfill & Issue Asset"}
                 </Button>
               )}
 
               {item.status === "pending" && (
-                <>
-                  <Button
-                    onClick={handleFulfill}
-                    disabled={isProcessing}
-                    className="bg-white/10 border border-white/20 text-white hover:bg-white/20 gap-2"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    Fulfill
-                  </Button>
-                  <Button
-                    onClick={handleCancel}
-                    disabled={isProcessing}
-                    className="bg-rose-500/20 border border-rose-300/30 text-rose-100 hover:bg-rose-500/30 gap-2"
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Cancel
-                  </Button>
-                </>
+                <Button
+                  onClick={handleCancel}
+                  disabled={isProcessing}
+                  className="bg-rose-500/20 border border-rose-300/30 text-rose-100 hover:bg-rose-500/30 gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancel
+                </Button>
               )}
               <Link href={`/dashboard/staff/library/reservations/${id}/edit`}>
                 <Button className="bg-white/10 border border-white/20 text-white hover:bg-white/20 gap-2">
@@ -392,6 +369,6 @@ export default function ViewReservationPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 }

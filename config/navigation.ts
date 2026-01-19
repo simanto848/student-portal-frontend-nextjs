@@ -402,7 +402,6 @@ export const librarianNavigation: NavItem[] = [
     children: [
       { href: "/dashboard/staff/library/libraries", label: "Libraries" },
       { href: "/dashboard/staff/library/books", label: "Books" },
-      { href: "/dashboard/staff/library/copies", label: "Book Copies" },
     ],
   },
   {

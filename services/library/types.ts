@@ -127,3 +127,22 @@ export type ReservationStatus =
   | "fulfilled"
   | "expired"
   | "cancelled";
+export interface BookCreatePayload {
+  title: string;
+  author: string;
+  isbn?: string;
+  publisher?: string;
+  publicationYear?: number;
+  edition?: string;
+  category: string;
+  subject?: string;
+  description?: string;
+  language?: string;
+  pages?: number;
+  price?: number;
+  status: "active" | "inactive" | "archived";
+  libraryId: string;
+  numberOfCopies?: number;
+  copyCondition?: string;
+  copyLocation?: string;
+}

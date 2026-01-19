@@ -27,7 +27,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     useStudentLibraryDashboard,
-    useReturnBook,
     useInfiniteAvailableBooks,
     useReserveBook,
     useCancelReservation
@@ -40,7 +39,7 @@ import {
     ReservationCard,
     HistoryCard
 } from "../LibraryComponents";
-import { notifySuccess, notifyError, notifyLoading, dismissToast } from "@/components/toast";
+import { notifySuccess, notifyError, notifyLoading, dismissToast, notifyInfo } from "@/components/toast";
 
 type TabType = "borrowed" | "reservations" | "history" | "catalog";
 
@@ -81,7 +80,6 @@ export default function LibraryClient({ initialData }: LibraryClientProps) {
 
     const availableBooks = infiniteCatalog?.pages.flatMap((page) => page.books) || [];
 
-    const returnBookMutation = useReturnBook();
     const reserveBookMutation = useReserveBook();
     const cancelReservationMutation = useCancelReservation();
 
@@ -112,21 +110,14 @@ export default function LibraryClient({ initialData }: LibraryClientProps) {
         );
     }, [activityHistory, searchQuery]);
 
-    const handleReturnBook = async (borrowingId: string) => {
-        const toastId = notifyLoading("Recording return signal...");
-        returnBookMutation.mutate(
-            { id: borrowingId, data: {} },
-            {
-                onSuccess: () => {
-                    notifySuccess("Book returned to vault", { id: toastId });
-                    refetch();
-                },
-                onError: (err: any) => {
-                    notifyError(err.message || "Return failed", { id: toastId });
-                }
-            }
-        );
+    const handleReturnInfo = () => {
+        notifyInfo("Please visit the library physically to return this asset. A librarian will process your return.", {
+            duration: 6000,
+            position: "bottom-center"
+        });
     };
+
+
 
     const handleReserveBook = async (book: Book) => {
         const toastId = notifyLoading(`Securing "${book.title}"...`);
@@ -287,8 +278,7 @@ export default function LibraryClient({ initialData }: LibraryClientProps) {
                                             key={item.id || `borrowed-${idx}`}
                                             item={item}
                                             index={idx}
-                                            onReturn={handleReturnBook}
-                                            isReturning={returnBookMutation.isPending}
+                                            onReturn={handleReturnInfo}
                                         />
                                     ))
                                 ) : (

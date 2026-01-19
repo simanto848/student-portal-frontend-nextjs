@@ -130,6 +130,7 @@ export const borrowingService = {
     status?: BorrowingStatus;
     borrowerId?: string;
     libraryId?: string;
+    search?: string;
   }): Promise<{
     borrowings: Borrowing[];
     pagination?: { page: number; limit: number; total: number; pages: number };
@@ -147,6 +148,16 @@ export const borrowingService = {
         borrowings,
         pagination: data.data?.pagination,
       };
+    } catch (error) {
+      handleLibraryApiError(error);
+      throw error as Error;
+    }
+  },
+
+  getById: async (id: string): Promise<Borrowing> => {
+    try {
+      const res = await libraryApi.get(`/library/borrowings/${id}`);
+      return normalizeBorrowing(extractLibraryItemData(res));
     } catch (error) {
       handleLibraryApiError(error);
       throw error as Error;
@@ -185,8 +196,9 @@ export const borrowingService = {
   borrow: async (payload: {
     userType: string;
     borrowerId: string;
-    copyId: string;
-    libraryId: string;
+    copyId?: string;
+    bookId?: string;
+    libraryId?: string;
     dueDate?: string;
     notes?: string;
   }): Promise<Borrowing> => {
