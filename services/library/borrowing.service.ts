@@ -116,7 +116,7 @@ export const borrowingService = {
         params,
       });
       const data = res.data as any;
-      const raw = data.data?.borrowings ?? data.data ?? [];
+      const raw = data.data?.history ?? data.data?.borrowings ?? data.data ?? [];
       return Array.isArray(raw) ? raw.map(normalizeBorrowing) : [];
     } catch (error) {
       handleLibraryApiError(error);
