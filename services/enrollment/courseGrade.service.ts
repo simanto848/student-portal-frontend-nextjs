@@ -150,7 +150,7 @@ export const courseGradeService = {
     // Workflow Operations
     getWorkflow: async (params?: any): Promise<ResultWorkflow[]> => {
         try {
-            const response = await api.get('/enrollment/grades/workflow', { params });
+            const response = await api.get('/enrollment/result-workflow', { params });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -162,7 +162,7 @@ export const courseGradeService = {
             const payload = typeof data === 'string'
                 ? { gradeId: data }
                 : data;
-            const response = await api.post('/enrollment/grades/workflow/submit', payload);
+            const response = await api.post('/enrollment/result-workflow/submit', payload);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -171,7 +171,7 @@ export const courseGradeService = {
 
     approveByCommittee: async (id: string, data: { comment?: string, otp: string } | any = {}): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/approve`, data);
+            const response = await api.post(`/enrollment/result-workflow/${id}/approve`, data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -180,7 +180,7 @@ export const courseGradeService = {
 
     returnToTeacher: async (id: string, data: { comment: string, otp: string } | any): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/return`, data);
+            const response = await api.post(`/enrollment/result-workflow/${id}/return-to-teacher`, data);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -189,7 +189,7 @@ export const courseGradeService = {
 
     requestReturn: async (id: string, reason: string): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/request-return`, { reason });
+            const response = await api.post(`/enrollment/result-workflow/${id}/request-return`, { reason });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -198,7 +198,7 @@ export const courseGradeService = {
 
     approveReturnRequest: async (id: string): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/approve-return`);
+            const response = await api.post(`/enrollment/result-workflow/${id}/approve-return`);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
@@ -207,7 +207,7 @@ export const courseGradeService = {
 
     publishResult: async (id: string, otp: string): Promise<any> => {
         try {
-            const response = await api.post(`/enrollment/grades/workflow/${id}/publish`, { otp });
+            const response = await api.post(`/enrollment/result-workflow/${id}/publish`, { otp });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
