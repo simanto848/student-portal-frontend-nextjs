@@ -1,6 +1,5 @@
 import { requireUser } from "@/lib/auth/userAuth";
 import { UserRole } from "@/types/user";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import CourseDetailClient from "../fragments/CourseDetailClient";
 
 export default async function CourseDetailsPage({
@@ -12,8 +11,6 @@ export default async function CourseDetailsPage({
   const { id } = await params;
 
   return (
-    <DashboardLayout>
-      <CourseDetailClient id={id} />
-    </DashboardLayout>
+    <CourseDetailClient id={id} />
   );
 }

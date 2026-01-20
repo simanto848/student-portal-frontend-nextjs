@@ -44,6 +44,22 @@ import { CourseGradeView } from "@/components/classroom/CourseGradeView";
 import { DashboardSkeleton } from "@/components/dashboard/shared";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
+const container = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.2,
+        },
+    },
+};
+
+const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 },
+};
+
 interface CourseDetailClientProps {
     id: string;
 }
@@ -162,7 +178,7 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                                 Semester {assignment.semester}
                             </Badge>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
                             {assignment.course?.name}
                         </h1>
                     </div>
@@ -197,7 +213,12 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                 <TabsContent value="overview" className="mt-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Quick Stats Grid */}
-                        <div className="md:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <motion.div
+                            variants={container}
+                            initial="hidden"
+                            animate="show"
+                            className="md:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-4"
+                        >
                             {[
                                 { label: 'Students', value: students.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
                                 { label: 'Attendance Records', value: stats.attendanceCount, icon: Calendar, color: 'text-green-600', bg: 'bg-green-50' },
@@ -206,9 +227,8 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                             ].map((stat, i) => (
                                 <motion.div
                                     key={i}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: i * 0.1 }}
+                                    variants={item}
+                                    whileHover={{ y: -5, scale: 1.02 }}
                                     className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col items-center text-center group hover:shadow-md transition-all"
                                 >
                                     <div className={`h-12 w-12 ${stat.bg} ${stat.color} rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
@@ -218,7 +238,7 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">{stat.label}</span>
                                 </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
 
                         {/* Course Information Card */}
                         <Card className="rounded-[2.5rem] border-slate-200/60 shadow-sm overflow-hidden md:col-span-2 p-0">
@@ -323,7 +343,8 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
-                            <div className="overflow-x-auto">
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-x-auto">
                                 <Table>
                                     <TableHeader className="bg-slate-50/10">
                                         <TableRow className="hover:bg-transparent border-slate-100">
@@ -362,13 +383,52 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell className="px-8 py-5 text-right">
-                                                        <Button variant="ghost" size="sm" className={`font-black text-[10px] uppercase tracking-widest rounded-lg hover:${theme.colors.accent.primary.replace('text-', 'bg-')}/5 hover:${theme.colors.accent.primary}`}>View Profile</Button>
+                                                        <Button variant="ghost" size="sm" className={`font-black text-[10px] uppercase tracking-widest rounded-lg text-slate-500 hover:bg-slate-50 hover:text-[#2dd4bf] hover:shadow-sm transition-all`}>View Profile</Button>
                                                     </TableCell>
                                                 </TableRow>
                                             ))
                                         )}
                                     </TableBody>
                                 </Table>
+                            </div>
+
+                            {/* Mobile Card View */}
+                            <div className="md:hidden p-4 space-y-3">
+                                {students.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-10 text-slate-400 border border-dashed border-slate-200 rounded-2xl">
+                                        <Users className="h-8 w-8 mb-2 opacity-20" />
+                                        <p className="text-sm font-bold uppercase tracking-widest">No students enrolled</p>
+                                    </div>
+                                ) : (
+                                    students.map((enrollment, index) => (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            key={enrollment.id || index}
+                                            className="p-4 bg-white border border-slate-100 rounded-2xl shadow-sm space-y-3"
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-black text-slate-500 border border-slate-200">
+                                                        {enrollment.student?.fullName?.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-900">{enrollment.student?.fullName}</p>
+                                                        <p className="text-xs font-semibold text-slate-500">{enrollment.student?.registrationNumber}</p>
+                                                    </div>
+                                                </div>
+                                                <Badge variant="outline" className={`font-black text-[9px] uppercase tracking-wider rounded-lg px-2 py-0.5 ${enrollment.status === 'active' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-slate-50 text-slate-400 border-slate-200'
+                                                    }`}>
+                                                    {enrollment.status}
+                                                </Badge>
+                                            </div>
+                                            <Button variant="outline" size="sm" className={`w-full font-black text-[10px] uppercase tracking-widest rounded-xl h-9 text-slate-500 border-slate-200 hover:bg-slate-50 hover:text-[#2dd4bf] hover:border-[#2dd4bf]/30 transition-all`}>
+                                                View Profile
+                                            </Button>
+                                        </motion.div>
+                                    ))
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -394,7 +454,7 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                             </p>
                             <Button
                                 onClick={() => router.push(`/dashboard/teacher/attendance?courseId=${assignment.courseId}&batchId=${assignment.batchId}`)}
-                                className={`w-full ${theme.colors.accent.secondary} hover:opacity-90 text-white shadow-xl shadow-indigo-600/20 rounded-2xl h-14 font-black uppercase text-sm tracking-widest transition-all active:scale-95`}
+                                className={`w-full shadow-md rounded-xl h-11 font-bold uppercase text-xs tracking-wider transition-all active:scale-95 group-hover:shadow-lg bg-[#2dd4bf] hover:bg-[#25b0a0] text-white border-transparent hover:shadow-teal-500/20 cursor-pointer`}
                             >
                                 Mark Today&apos;s Attendance
                             </Button>

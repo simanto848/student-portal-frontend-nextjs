@@ -67,23 +67,27 @@ function MarkInputField({
     error?: string;
 }) {
     return (
-        <div className="flex flex-col">
-            <Input
-                type="number"
-                min="0"
-                max={maxValue}
-                value={value ?? ""}
-                onChange={(e) =>
-                    onChange(e.target.value ? parseInt(e.target.value) : undefined)
-                }
-                className={`h-10 rounded-lg border-2 text-center font-bold ${error
-                    ? "border-red-500 bg-red-50"
-                    : "border-slate-200 focus:border-indigo-500"
-                    }`}
-                placeholder="—"
-            />
+        <div className="flex flex-col items-center group">
+            <div className="relative w-20">
+                <Input
+                    type="number"
+                    min="0"
+                    max={maxValue}
+                    value={value ?? ""}
+                    onChange={(e) =>
+                        onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                    }
+                    className={`h-11 rounded-xl text-center font-bold text-lg transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${error
+                        ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
+                        : "border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#2dd4bf]/50 focus:border-[#2dd4bf] focus:ring-4 focus:ring-[#2dd4bf]/10 focus:bg-white text-slate-700 placeholder:text-slate-200"
+                        }`}
+                    placeholder="-"
+                />
+            </div>
             {error && (
-                <span className="text-red-600 text-[10px] font-bold mt-1">{error}</span>
+                <span className="text-red-500 text-[10px] font-bold mt-1.5 animate-in fade-in slide-in-from-top-1">
+                    {error}
+                </span>
             )}
         </div>
     );
@@ -402,7 +406,7 @@ export function CourseFinalMarksEntry({
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[2.5rem] border-2 border-slate-100 p-8 shadow-lg"
+                className="bg-white rounded-[2.5rem] border border-slate-200/60 p-8 shadow-sm"
             >
                 <div className="mb-6">
                     <h3 className="text-2xl font-black text-slate-900 mb-2">
@@ -437,7 +441,7 @@ export function CourseFinalMarksEntry({
                                                 Attendance (10)
                                             </TableHead>
                                             <TableHead className="font-black text-slate-900">
-                                                Continuous (20)
+                                                Assessment (20)
                                             </TableHead>
                                             <TableHead className="font-black text-slate-900">
                                                 Theory Total
@@ -550,7 +554,7 @@ export function CourseFinalMarksEntry({
                                                         error={errors.get(`${student.id}.theory.continuous`)}
                                                     />
                                                 </TableCell>
-                                                <TableCell className="font-black bg-indigo-50 text-indigo-700">
+                                                <TableCell className="font-black bg-[#2dd4bf]/10 text-[#2dd4bf]">
                                                     {calculateTheoryTotal(student.id)}/100
                                                 </TableCell>
                                             </>
@@ -633,7 +637,7 @@ export function CourseFinalMarksEntry({
                                                         error={errors.get(`${student.id}.lab.final`)}
                                                     />
                                                 </TableCell>
-                                                <TableCell className="font-black bg-green-50 text-green-700">
+                                                <TableCell className="font-black bg-[#2dd4bf]/10 text-[#2dd4bf]">
                                                     {calculateLabTotal(student.id)}/50
                                                 </TableCell>
                                             </>
@@ -649,7 +653,7 @@ export function CourseFinalMarksEntry({
                         onClick={handleSaveDraft}
                         disabled={isSaving || isSubmitting}
                         variant="outline"
-                        className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border-2"
+                        className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 text-slate-500 hover:text-[#2dd4bf] hover:border-[#2dd4bf] hover:bg-[#2dd4bf]/5 transition-all"
                     >
                         {isSaving ? (
                             <>
@@ -666,7 +670,7 @@ export function CourseFinalMarksEntry({
                     <Button
                         onClick={handleSubmitToCommittee}
                         disabled={isSaving || isSubmitting}
-                        className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700"
+                        className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white transition-all active:scale-95"
                     >
                         {isSubmitting ? (
                             <>

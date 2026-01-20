@@ -129,16 +129,16 @@ export function CourseGradeView({
       case "hand_over":
         return "bg-blue-100 text-blue-800";
       case "submitted_to_committee":
-        return "bg-purple-100 text-purple-800";
+        return "bg-[#2dd4bf]/10 text-[#2dd4bf] border-[#2dd4bf]/20";
       case "committee_approved":
-        return "bg-cyan-100 text-cyan-800";
+        return "bg-teal-100 text-teal-800";
       case "published":
       case "finalized":
-        return "bg-green-100 text-green-800";
+        return "bg-emerald-100 text-emerald-800";
       case "returned_to_teacher":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-slate-100 text-slate-800";
     }
   };
 
@@ -177,16 +177,18 @@ export function CourseGradeView({
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-[2.5rem] border-2 p-6 flex items-center justify-between ${isMarksLocked
-          ? "bg-red-50 border-red-200"
-          : "bg-blue-50 border-blue-200"
+        className={`rounded-[2.5rem] border p-6 flex items-center justify-between shadow-sm ${isMarksLocked
+          ? "bg-red-50/50 border-red-100"
+          : "bg-[#2dd4bf]/5 border-[#2dd4bf]/20"
           }`}
       >
         <div className="flex items-center gap-3">
           {isMarksLocked ? (
             <Lock className="h-6 w-6 text-red-600" />
           ) : (
-            <AlertCircle className="h-6 w-6 text-blue-600" />
+            <div className="h-10 w-10 rounded-xl bg-[#2dd4bf]/10 flex items-center justify-center">
+              <AlertCircle className="h-6 w-6 text-[#2dd4bf]" />
+            </div>
           )}
           <div>
             <h3 className="font-black text-slate-900">
@@ -194,7 +196,7 @@ export function CourseGradeView({
             </h3>
             <p className={`text-sm font-medium ${isMarksLocked
               ? "text-red-700"
-              : "text-blue-700"
+              : "text-[#2dd4bf]"
               }`}>
               {isMarksLocked
                 ? "Marks have been submitted to the Exam Committee and are now locked from editing."
@@ -222,8 +224,8 @@ export function CourseGradeView({
         animate={{ opacity: 1, y: 0 }}
         className="space-y-4"
       >
-        <Card className="border-2 border-slate-100 rounded-[2.5rem] p-0">
-          <CardHeader className="bg-slate-50/50 border-b-2 border-slate-100">
+        <Card className="border border-slate-200/60 shadow-sm rounded-[2.5rem] overflow-hidden p-0">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 px-8 py-6">
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-black text-slate-900">
                 Grade Summary
@@ -231,7 +233,7 @@ export function CourseGradeView({
               {!isMarksLocked && (
                 <Button
                   onClick={handleSubmitToCommittee}
-                  className="bg-indigo-600 hover:bg-indigo-700 rounded-xl h-10 px-6 font-black text-[10px] uppercase tracking-widest"
+                  className="bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white rounded-xl h-10 px-6 font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95"
                 >
                   <Send className="mr-2 h-4 w-4" />
                   Submit to Committee
@@ -244,11 +246,11 @@ export function CourseGradeView({
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="font-black text-slate-900">
+                    <TableRow className="hover:bg-transparent border-slate-100">
+                      <TableHead className="px-8 py-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">
                         Student Name
                       </TableHead>
-                      <TableHead className="font-black text-slate-900">
+                      <TableHead className="py-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">
                         Registration No.
                       </TableHead>
                       <TableHead className="font-black text-slate-900">
@@ -260,11 +262,11 @@ export function CourseGradeView({
                       <TableHead className="font-black text-slate-900">
                         Point
                       </TableHead>
-                      <TableHead className="font-black text-slate-900">
+                      <TableHead className="py-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">
                         Status
                       </TableHead>
                       {!isMarksLocked && (
-                        <TableHead className="text-right font-black text-slate-900">
+                        <TableHead className="px-8 py-5 text-right font-black text-slate-400 text-[10px] uppercase tracking-widest">
                           Actions
                         </TableHead>
                       )}
@@ -285,7 +287,7 @@ export function CourseGradeView({
                             isStudentLocked ? "bg-slate-50 opacity-70" : ""
                           }
                         >
-                          <TableCell className="font-medium">
+                          <TableCell className="px-8 py-5 font-black text-slate-900">
                             {String(studentObj?.fullName)}
                           </TableCell>
                           <TableCell className="text-sm text-slate-600">
@@ -294,7 +296,7 @@ export function CourseGradeView({
                           <TableCell className="font-bold">
                             {grade?.totalMarksObtained ?? "-"}
                           </TableCell>
-                          <TableCell className="font-black text-indigo-600">
+                          <TableCell className="px-8 py-5 font-bold text-slate-900">
                             {String((grade as unknown as Record<string, unknown>)?.letterGrade || "-")}
                           </TableCell>
                           <TableCell className="text-sm font-bold">
@@ -316,7 +318,7 @@ export function CourseGradeView({
                             )}
                           </TableCell>
                           {!isStudentLocked && (
-                            <TableCell className="text-right">
+                            <TableCell className="px-8 py-5 text-right">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -329,7 +331,7 @@ export function CourseGradeView({
                                     grade.status !== "pending" &&
                                     grade.status !== "calculated")
                                 }
-                                className="h-8 px-3 text-[10px] font-bold"
+                                className="h-8 px-4 text-[10px] font-bold uppercase tracking-widest rounded-lg text-slate-500 hover:bg-slate-50 hover:text-[#2dd4bf] hover:shadow-sm transition-all"
                               >
                                 <Calculator className="h-4 w-4 mr-1" />
                                 Calculate

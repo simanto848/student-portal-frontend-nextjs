@@ -1,479 +1,387 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { ScheduleList } from "@/components/dashboard/widgets/ScheduleList";
-import { CourseCard } from "@/components/dashboard/widgets/CourseCard";
-import { ActionList } from "@/components/dashboard/widgets/ActionList";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { scheduleService } from "@/services/academic/schedule.service";
 import { batchCourseInstructorService } from "@/services/enrollment/batchCourseInstructor.service";
-import { CourseSchedule } from "@/services/academic/types";
 import { BatchCourseInstructor } from "@/services/enrollment/batchCourseInstructor.service";
 import {
   courseGradeService,
   ResultWorkflow,
 } from "@/services/enrollment/courseGrade.service";
 import { toast } from "sonner";
-import { format } from "date-fns";
-import { useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/badge";
-import { motion, Variants } from "framer-motion";
 import {
-  BookOpen,
-  Users,
-  FileCheck,
-  Calendar,
+  Search,
+  Bell,
+  Activity,
+  MessageCircle,
+  Code,
+  Terminal,
   ArrowRight,
-  GraduationCap,
-  Building2
+  CheckCircle,
+  FileText,
+  FlaskConical,
+  Pencil,
+  PlusCircle,
+  Megaphone,
+  CalendarCheck,
+  FolderOpen
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { notificationService, NotificationItem } from "@/services/notification/notification.service";
+import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
-  const router = useRouter();
-  const [schedules, setSchedules] = useState<CourseSchedule[]>([]);
   const [courses, setCourses] = useState<BatchCourseInstructor[]>([]);
   const [workflows, setWorkflows] = useState<ResultWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDeptHead, setIsDeptHead] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchDashboardData();
-    }
-  }, [user?.id]);
+    setIsMounted(true);
+  }, []);
 
-  const fetchDashboardData = async () => {
+  // Notifications
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchDashboardData = useCallback(async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
       const promises: Promise<any>[] = [
-        scheduleService.getScheduleByTeacher(user!.id),
-        batchCourseInstructorService.getInstructorCourses(user!.id),
+        batchCourseInstructorService.getInstructorCourses(user.id),
         courseGradeService.getWorkflow({ mine: true }),
+        notificationService.list({ page: 1, limit: 10 })
       ];
-
-      // Check if department head
-      if (user && 'departmentId' in user && user.departmentId) {
-        const deptId = (user as any).departmentId;
-        promises.push(
-          import("@/services/academic/department.service")
-            .then(m => m.departmentService.getDepartmentById(deptId))
-            .then(dept => {
-              if (dept.departmentHeadId === user!.id) {
-                setIsDeptHead(true);
-              }
-            })
-            .catch(err => console.error("Failed to check dept head status", err))
-        );
-      }
 
       const results = await Promise.allSettled(promises);
 
-      const scheduleResult = results[0];
-      const coursesResult = results[1];
-      const workflowResult = results[2];
-
-      if (scheduleResult.status === 'fulfilled') setSchedules(scheduleResult.value);
-      else console.error("Failed to fetch schedule", scheduleResult.reason);
+      const coursesResult = results[0];
+      const workflowResult = results[1];
+      const notificationsResult = results[2];
 
       if (coursesResult.status === 'fulfilled') setCourses(coursesResult.value);
-      else console.error("Failed to fetch courses", coursesResult.reason);
-
       if (workflowResult.status === 'fulfilled') setWorkflows(workflowResult.value || []);
-      else console.error("Failed to fetch workflows", workflowResult.reason);
+
+      if (notificationsResult.status === 'fulfilled') {
+        const notifData = notificationsResult.value;
+        const items = notifData.items || notifData.notifications || [];
+        setNotifications(items);
+        const unread = items.filter((n: NotificationItem) => !n.isRead).length;
+        setUnreadCount(unread);
+      }
     } catch (error) {
       toast.error("Failed to load dashboard data");
     } finally {
       setLoading(false);
     }
+  }, [user?.id]);
+
+  const handleMarkAllRead = () => {
+    setNotifications(current => current.map(n => ({ ...n, isRead: true })));
+    setUnreadCount(0);
   };
 
-  const today = format(new Date(), "EEEE");
-  const todaySchedules = schedules
-    .filter((s) => s.daysOfWeek.includes(today as any))
-    .map((s) => {
-      // Safe extraction of course name
-      const courseName = (typeof s.sessionCourseId === 'object' && s.sessionCourseId !== null)
-        ? ((s.sessionCourseId as any).course?.name || (s.sessionCourseId as any).courseId?.name || "Untitled Course")
-        : "Untitled Course";
-
-      // Safe extraction of location
-      let location = "TBD";
-      if (typeof s.classroom === 'object' && s.classroom !== null) {
-        const room = (s.classroom as any).roomNumber;
-        const building = (s.classroom as any).buildingName;
-        if (room && building) location = `${building}, Room ${room}`;
-        else if (room) location = `Room ${room}`;
-        else if (building) location = building;
-      }
-
-      // Normalize type
-      const type = (s.classType || 'lecture').toLowerCase() as "lecture" | "lab" | "meeting";
-
-      return {
-        id: s.id,
-        title: courseName,
-        time: `${s.startTime} - ${s.endTime}`,
-        location: location,
-        type: type,
-      };
-    });
-
-  const pendingWorkflows = workflows.filter((w) => ["draft", "submitted", "returned"].includes(w.status)).slice(0, 4);
-
-  const totalStudents = courses.reduce((acc, curr) => acc + (curr.batch?.currentStudents || 0), 0);
-  const activeCoursesCount = courses.length;
-  const pendingGradesCount = pendingWorkflows.length;
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { type: "spring", stiffness: 100 }
-    }
-  };
-
-  const statusBadge = (status: string) => {
-    switch (status) {
-      case "approved": return <Badge className="bg-emerald-500/15 text-emerald-600 hover:bg-emerald-500/25 border-emerald-200">Approved</Badge>;
-      case "submitted": return <Badge className="bg-indigo-500/15 text-indigo-600 hover:bg-indigo-500/25 border-indigo-200">Submitted</Badge>;
-      case "returned": return <Badge className="bg-rose-500/15 text-rose-600 hover:bg-rose-500/25 border-rose-200">Returned</Badge>;
-      case "draft": return <Badge variant="secondary" className="bg-slate-100 text-slate-600">Draft</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
-  const actionItems = [
-    {
-      id: "1",
-      type: "form" as const,
-      title: "Mark Attendance",
-      subtitle: "For today's classes",
-      actionLabel: "Go to Attendance",
-      onClick: () => router.push("/dashboard/teacher/attendance"),
-      icon: <Calendar className="h-5 w-5 text-indigo-600" />
-    },
-    {
-      id: "2",
-      type: "nav" as const,
-      title: "Grade Workflow",
-      subtitle: "Submit/track grades",
-      actionLabel: "Open Grading",
-      onClick: () => router.push("/dashboard/teacher/grading"),
-      icon: <FileCheck className="h-5 w-5 text-indigo-600" />
-    },
-    {
-      id: "3",
-      type: "nav" as const,
-      title: "Manage Courses",
-      subtitle: "See enrolled students",
-      actionLabel: "My Courses",
-      onClick: () => router.push("/dashboard/teacher/courses"),
-      icon: <BookOpen className="h-5 w-5 text-indigo-600" />
-    },
-    ...(isDeptHead ? [{
-      id: "4",
-      type: "nav" as const,
-      title: "Department",
-      subtitle: "Manage Batches",
-      actionLabel: "View Batches",
-      onClick: () => router.push("/dashboard/teacher/department"),
-      icon: <Building2 className="h-5 w-5 text-indigo-600" />
-    }] : []),
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   return (
-    <DashboardLayout>
-      <motion.div
-        className="space-y-8 max-w-7xl mx-auto pb-10"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Hero Section */}
-        <motion.div
-          variants={itemVariants}
-          className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 p-8 md:p-12 text-white shadow-2xl"
-        >
-          <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-indigo-500/20 blur-[100px] opacity-50" />
-          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-96 w-96 rounded-full bg-indigo-600/10 blur-[100px] opacity-30" />
+    <div className="flex flex-col gap-6 font-display animate-in fade-in duration-500">
 
-          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8">
-            <div className="space-y-4">
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-indigo-200 text-sm font-bold uppercase tracking-widest"
-              >
-                <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                <GraduationCap className="h-4 w-4" />
-                <span>Academic Intelligence Hub</span>
-              </motion.div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-3 leading-tight">
-                  Welcome Back, {user?.fullName?.split(' ')[0]}!
-                </h1>
-                <p className="text-indigo-100/80 max-w-xl text-lg font-medium leading-relaxed">
-                  Your academic activities for <span className="text-white font-bold">{today}</span> include <span className="text-white font-bold">{todaySchedules.length} classes</span> and <span className="text-white font-bold">{pendingGradesCount} pending</span> evaluations.
-                </p>
-              </div>
+      {/* Header */}
+      <header className="glass-panel rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+            Welcome Back, {user?.fullName?.split(' ')[0] || "Teacher"}! 👋
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            You have <span className="text-[#2dd4bf] font-semibold">{courses.length} classes</span> and <span className="text-orange-500 font-semibold">{workflows.length} papers</span> to grade today.
+          </p>
+        </div>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <div className="relative flex-1 md:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input
+              type="text"
+              className="w-full bg-white/50 dark:bg-slate-800/50 border-0 ring-1 ring-slate-200 dark:ring-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#2dd4bf] placeholder-slate-400 transition-all shadow-sm outline-none"
+              placeholder="Search students, courses, or files..."
+            />
+          </div>
+
+          {isMounted ? (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  suppressHydrationWarning
+                  className="p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-[#2dd4bf] ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm relative transition-all cursor-pointer"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-0 mr-4" align="end" sideOffset={8}>
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
+                  <h3 className="font-semibold text-sm">Notifications</h3>
+                  <span className="text-xs text-[#2dd4bf] cursor-pointer hover:underline" onClick={handleMarkAllRead}>Mark all as read</span>
+                </div>
+                <div className="max-h-[350px] overflow-y-auto">
+                  {notifications.length > 0 ? notifications.map(n => (
+                    <div key={n.id} className={`px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-800/50 last:border-0 ${!n.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
+                      <div className="flex justify-between items-start mb-1">
+                        <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-1">{n.title}</h4>
+                        <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">
+                          {n.createdAt ? formatDistanceToNow(new Date(n.createdAt), { addSuffix: true }) : ''}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2" dangerouslySetInnerHTML={{ __html: n.content }} />
+                    </div>
+                  )) : (
+                    <div className="p-8 text-center text-slate-400 text-xs">No notifications</div>
+                  )}
+                </div>
+                <div className="p-2 border-t border-slate-100 dark:border-slate-700 text-center bg-slate-50/50 dark:bg-slate-800/50 rounded-b-md">
+                  <button className="text-xs font-medium text-slate-500 hover:text-[#2dd4bf] transition-colors">View all notifications</button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <button className="p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-[#2dd4bf] ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm relative transition-all cursor-pointer">
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        {/* Weekly Overview - Spans 3 columns on large screens */}
+        <div className="glass-panel rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                <Activity className="text-[#2dd4bf] w-5 h-5" />
+                Weekly Overview
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Student engagement over the last 7 days</p>
             </div>
-            <div className="flex gap-4 flex-wrap">
-              <Button
-                className="h-14 px-8 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white border-0 shadow-xl shadow-indigo-950/20 font-black tracking-tight transition-all active:scale-95"
-                onClick={() => router.push("/dashboard/teacher/attendance")}
-              >
-                Mark Attendance
-              </Button>
-              <Button
-                variant="outline"
-                className="h-14 px-8 rounded-2xl bg-white/5 text-white border-white/10 hover:bg-white/10 backdrop-blur-sm shadow-xl font-black tracking-tight transition-all active:scale-95"
-                onClick={() => router.push("/dashboard/teacher/classroom")}
-              >
-                Virtual Room
-              </Button>
+            <select className="bg-transparent border-none text-sm font-medium text-slate-500 dark:text-slate-400 focus:ring-0 cursor-pointer outline-none">
+              <option>This Week</option>
+              <option>Last Week</option>
+            </select>
+          </div>
+
+          <div className="h-64 w-full relative">
+            {/* Chart Graphic (SVG) */}
+            <div className="absolute inset-0 flex items-end justify-between px-2 gap-2">
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                <div className="w-full border-t border-slate-400 border-dashed"></div>
+                <div className="w-full border-t border-slate-400 border-dashed"></div>
+                <div className="w-full border-t border-slate-400 border-dashed"></div>
+                <div className="w-full border-t border-slate-400 border-dashed"></div>
+                <div className="w-full border-t border-slate-400 border-dashed"></div>
+              </div>
+              <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="gradientLine" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.5"></stop>
+                    <stop offset="100%" stopColor="#2dd4bf" stopOpacity="0"></stop>
+                  </linearGradient>
+                </defs>
+                <path className="drop-shadow-lg" d="M0,200 C50,150 100,180 150,100 C200,20 250,80 300,60 C350,40 400,120 450,140 C500,160 550,100 600,80 C650,60 700,20 750,40 C800,60 850,100 1200,80" fill="none" stroke="#2dd4bf" strokeWidth="4" vectorEffect="non-scaling-stroke"></path>
+                <path d="M0,200 C50,150 100,180 150,100 C200,20 250,80 300,60 C350,40 400,120 450,140 C500,160 550,100 600,80 C650,60 700,20 750,40 C800,60 850,100 1200,80 V300 H0 Z" fill="url(#gradientLine)" opacity="0.3"></path>
+              </svg>
+              <div className="w-full flex justify-between absolute -bottom-6 text-xs text-slate-400 font-medium">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
             </div>
           </div>
-        </motion.div>
-
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { label: "Active Courses", value: activeCoursesCount, icon: BookOpen, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Enrolled Students", value: totalStudents, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
-            { label: "Pending Grades", value: pendingGradesCount, icon: FileCheck, color: "text-indigo-600", bg: "bg-indigo-50" }
-          ].map((stat, i) => (
-            <motion.div key={i} variants={itemVariants} className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-200/40 border border-slate-100 hover:shadow-2xl hover:border-indigo-100 transition-all group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.label}</p>
-                  <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{stat.value}</h3>
-                </div>
-                <div className={`p-4 rounded-2xl ${stat.bg} group-hover:scale-110 transition-transform duration-300`}>
-                  <stat.icon className={`h-7 w-7 ${stat.color}`} />
-                </div>
-              </div>
-            </motion.div>
-          ))}
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-12">
-          {/* Main Content Area */}
-          <div className="lg:col-span-8 space-y-10">
-
-            {/* My Courses Section */}
-            <motion.section variants={itemVariants}>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Course Portfolio</span>
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Active Courses</h2>
-                </div>
-                <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-700 font-bold" onClick={() => router.push('/dashboard/teacher/courses')}>
-                  View All <ArrowRight className="ml-1 h-4 w-4" />
-                </Button>
-              </div>
-
-              {loading ? (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {[1, 2].map(i => <div key={i} className="h-48 bg-slate-50 rounded-[2rem] animate-pulse" />)}
-                </div>
-              ) : courses.length > 0 ? (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {courses.slice(0, 4).map((c, idx) => {
-                    const relatedWorkflows = workflows.filter(
-                      (w) => w.grade?.courseId === c.courseId
-                    );
-                    const approvedCount = relatedWorkflows.filter(
-                      (w) => w.status === "approved"
-                    ).length;
-                    const totalWorkflows = relatedWorkflows.length || 1;
-
-                    return (
-                      <motion.div
-                        key={idx}
-                        whileHover={{ y: -8 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <CourseCard
-                          title={c.course?.name || "Unknown Course"}
-                          code={c.course?.code}
-                          batchName={c.batch?.name}
-                          studentCount={c.batch?.currentStudents || 0}
-                          progress={{
-                            current: approvedCount,
-                            total: totalWorkflows,
-                            label: "Evaluation Progress",
-                          }}
-                        />
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <Card className="border-dashed border-2 rounded-[2rem] shadow-none bg-slate-50/50">
-                  <CardContent className="py-16 text-center text-slate-400 font-bold italic">
-                    No active courses detected in your sector.
-                  </CardContent>
-                </Card>
-              )}
-            </motion.section>
-
-            {/* Grading Workflow Section */}
-            <motion.section variants={itemVariants}>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Grading Pipeline</span>
-                  </div>
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pending Grades</h2>
-                </div>
-              </div>
-
-              <Card className="border-2 border-slate-100 shadow-xl shadow-slate-200/40 rounded-[2.5rem] overflow-hidden bg-white/80 backdrop-blur-xl">
-                <CardContent className="p-0">
-                  {pendingWorkflows.length === 0 ? (
-                    <div className="p-16 text-center text-slate-400">
-                      <div className="inline-flex h-20 w-20 items-center justify-center rounded-[2rem] bg-slate-50 mb-6">
-                        <FileCheck className="h-10 w-10 text-slate-200" />
-                      </div>
-                      <p className="font-bold">Grading pipeline clear. No pending tasks.</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y-2 divide-slate-50">
-                      {pendingWorkflows.map((wf) => (
-                        <div
-                          key={wf.id}
-                          className="flex items-center justify-between p-6 hover:bg-slate-50/50 transition-all group"
-                        >
-                          <div className="flex items-center gap-6">
-                            <div className="h-12 w-12 rounded-2xl bg-indigo-50 flex items-center justify-center border border-indigo-100 group-hover:scale-110 transition-transform">
-                              <span className="text-indigo-700 font-black text-xs uppercase">{wf.grade?.course?.code?.substring(0, 3)}</span>
-                            </div>
-                            <div>
-                              <p className="font-black text-slate-800 tracking-tight">{wf.grade?.course?.name}</p>
-                              <div className="flex items-center gap-3 mt-1.5">
-                                {statusBadge(wf.status)}
-                                <div className="h-1 w-1 rounded-full bg-slate-300" />
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{format(new Date(wf.actionAt), 'MMM d, yyyy')}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            className="h-10 rounded-xl bg-white border-2 border-slate-100 hover:border-indigo-500/30 hover:text-indigo-600 font-bold transition-all shadow-lg shadow-slate-200/40"
-                            variant="outline"
-                            onClick={() => router.push(`/dashboard/teacher/courses/${wf.grade?.courseId || ""}`)}
-                          >
-                            View
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div className="p-4 bg-slate-50/80 border-t-2 border-slate-100 text-center">
-                    <Button variant="link" size="sm" className="text-slate-500 font-black uppercase tracking-widest text-[10px] hover:text-indigo-600" onClick={() => router.push("/dashboard/teacher/grading")}>
-                      View All <ArrowRight className="ml-1 h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.section>
-
+        {/* Messages Panel */}
+        <div className="glass-panel rounded-3xl p-6 col-span-1 md:col-span-1 lg:col-span-1 shadow-sm flex flex-col h-96 lg:h-auto hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <MessageCircle className="text-blue-500 w-5 h-5" />
+              Messages
+            </h2>
+            <span className="bg-[#2dd4bf] text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
           </div>
-
-          {/* Right Sidebar */}
-          <div className="lg:col-span-4 space-y-10">
-
-            {/* Quick Actions */}
-            <motion.section variants={itemVariants}>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                <h2 className="text-xl font-black text-slate-900 tracking-tight">Quick Actions</h2>
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
+            {/* Dummy Messages */}
+            <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
+              <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                <img src="https://ui-avatars.com/api/?name=Aditi+Sharma&background=random" alt="Student" className="w-full h-full object-cover" />
+                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
               </div>
-              <div className="space-y-4">
-                {actionItems.map((item) => (
-                  <motion.button
-                    key={item.id}
-                    whileHover={{ scale: 1.02, backgroundColor: "rgba(248, 250, 252, 1)" }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={item.onClick}
-                    className="w-full flex items-center gap-5 p-5 rounded-[1.5rem] bg-white border-2 border-slate-100 shadow-lg shadow-slate-200/40 text-left transition-all hover:border-indigo-500/30 group"
-                  >
-                    <div className="p-3.5 rounded-2xl bg-slate-50 group-hover:bg-indigo-50 transition-colors">
-                      {item.icon}
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">Aditi Sharma</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Sir, regarding the assignment...</p>
+              </div>
+              <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0"></span>
+            </div>
+
+            <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
+              <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                <img src="https://ui-avatars.com/api/?name=Rahul+Verma&background=random" alt="Student" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">Rahul Verma</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Can I get an extension?</p>
+              </div>
+              <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0"></span>
+            </div>
+
+            <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
+              <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                <img src="https://ui-avatars.com/api/?name=Priya+Singh&background=random" alt="Student" className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">Priya Singh</h4>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Thank you for the feedback!</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Courses & Assignments Grid */}
+        <div className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {courses.length > 0 ? courses.slice(0, 2).map((courseItem: any, index: number) => (
+            <div key={courseItem.id} className="glass-panel rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
+              <div className={`h-32 rounded-2xl bg-linear-to-br ${index % 2 === 0 ? 'from-violet-500 to-purple-600' : 'from-blue-500 to-cyan-500'} mb-4 relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-black/10"></div>
+                <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded-lg border border-white/20">
+                  {courseItem.course?.code || "CS-101"}
+                </span>
+                <div className="absolute bottom-3 right-3 text-white/90">
+                  {index % 2 === 0 ? <Code className="w-10 h-10 opacity-50" /> : <Terminal className="w-10 h-10 opacity-50" />}
+                </div>
+              </div>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-1 truncate">
+                {courseItem.course?.name || "Untitled Course"}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+                {courseItem.batch?.shift?.toLowerCase() === "day" ? "D" : courseItem.batch?.shift?.toLowerCase() === "evening" ? "E" : courseItem.batch?.shift}-{courseItem.batch?.name || "Batch Name"} • {courseItem.course?.credit} Credits
+              </p>
+              <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <Link href={`/dashboard/teacher/courses/${courseItem.id}`}>
+                  <button className={`${index % 2 === 0 ? 'bg-[#2dd4bf] hover:bg-teal-400 text-white' : 'bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white'} p-2 rounded-xl border border-transparent dark:border-slate-600 transition-colors shadow-lg shadow-teal-500/10`}>
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </Link>
+              </div>
+            </div>
+          )) : (
+            <div className="col-span-2 glass-panel rounded-3xl p-6 text-center flex flex-col items-center justify-center text-slate-400">
+              <p>No courses assigned.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Grading Queue */}
+        <div className="glass-panel rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-2 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <CheckCircle className="text-orange-400 w-5 h-5" />
+              Grading Queue
+            </h2>
+            <button className="text-xs text-[#2dd4bf] font-medium hover:underline">View All</button>
+          </div>
+          <div className="flex flex-col gap-3">
+            {workflows.length > 0 ? workflows.slice(0, 3).map((workflow, idx) => (
+              <div key={workflow.id} className="flex items-center justify-between p-3 rounded-2xl bg-white/40 dark:bg-slate-700/30 border border-white/50 dark:border-slate-600/50 hover:border-[#2dd4bf]/50 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl ${idx === 0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-500' : idx === 1 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-500'} flex items-center justify-center`}>
+                    {idx === 0 ? <FileText className="w-5 h-5" /> : idx === 1 ? <FlaskConical className="w-5 h-5" /> : <Code className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white">{workflow.grade?.course?.name || "Assignment"}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{workflow.grade?.course?.code || "Code"} • {workflow.status}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-bold ${idx === 0 ? 'text-orange-500 bg-orange-100' : 'text-blue-500 bg-blue-100'} dark:bg-opacity-20 px-2 py-1 rounded-lg`}>
+                    {workflow.status === 'PUBLISHED' ? 'Completed' : 'Pending'}
+                  </span>
+                  <button className="p-2 text-slate-400 hover:text-[#2dd4bf] transition-colors">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )) : (
+              <div className="p-4 text-center text-slate-400">No pending grading tasks.</div>
+            )}
+
+            {/* Fallback Static Items if no data (for demo purposes if array is empty but we want to show UI) */}
+            {workflows.length === 0 && loading === false && (
+              <>
+                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 dark:bg-slate-700/30 border border-white/50 dark:border-slate-600/50 hover:border-[#2dd4bf]/50 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500">
+                      <FileText className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="font-black text-slate-800 tracking-tight leading-none mb-1.5">{item.title}</p>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{item.subtitle}</p>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white">Mid-Term Algorithms</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">CS-101 • 12 Pending</p>
                     </div>
-                  </motion.button>
-                ))}
-
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                  <Button
-                    variant="outline"
-                    className="h-20 rounded-2xl border-2 border-slate-100 hover:border-indigo-500/30 font-black tracking-tight text-slate-600 hover:text-indigo-600 transition-all shadow-lg shadow-slate-200/40"
-                    onClick={() => router.push("/dashboard/teacher/notifications")}
-                  >
-                    Notifications
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-20 rounded-2xl border-2 border-slate-100 hover:border-indigo-500/30 font-black tracking-tight text-slate-600 hover:text-indigo-600 transition-all shadow-lg shadow-slate-200/40"
-                    onClick={() => router.push("/dashboard/teacher/communication")}
-                  >
-                    Communication's
-                  </Button>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-900/40 px-2 py-1 rounded-lg">High Priority</span>
+                    <button className="p-2 text-slate-400 hover:text-[#2dd4bf] transition-colors"><Pencil className="w-4 h-4" /></button>
+                  </div>
                 </div>
-              </div>
-            </motion.section>
-
-            {/* Today's Schedule */}
-            <motion.section variants={itemVariants}>
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Today's Schedule</h2>
-                </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1.5 rounded-full">{today}</span>
-              </div>
-              <Card className="border-2 border-slate-100 shadow-xl shadow-slate-200/40 rounded-[2.5rem] bg-white overflow-hidden">
-                <CardContent className="p-0">
-                  {todaySchedules.length > 0 ? (
-                    <ScheduleList items={todaySchedules} />
-                  ) : (
-                    <div className="p-16 text-center bg-slate-50/20">
-                      <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-6">
-                        <Calendar className="h-8 w-8 text-slate-200" />
-                      </div>
-                      <p className="text-slate-400 font-bold italic text-sm">
-                        No sessions scheduled for today.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.section>
-
+              </>
+            )}
           </div>
         </div>
-      </motion.div>
-    </DashboardLayout>
+
+      </div>
+
+      {/* Quick Actions (Bottom) */}
+      <div className="mt-auto grid grid-cols-2 md:grid-cols-4 gap-4">
+        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+          <div className="bg-teal-100 dark:bg-teal-900/30 p-2 rounded-lg text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
+            <PlusCircle className="w-6 h-6" />
+          </div>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">New Assignment</span>
+        </button>
+        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+          <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-lg text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+            <Megaphone className="w-6 h-6" />
+          </div>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Announcement</span>
+        </button>
+        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+          <div className="bg-rose-100 dark:bg-rose-900/30 p-2 rounded-lg text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
+            <CalendarCheck className="w-6 h-6" />
+          </div>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Mark Attendance</span>
+        </button>
+        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
+          <div className="bg-amber-100 dark:bg-amber-900/30 p-2 rounded-lg text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+            <FolderOpen className="w-6 h-6" />
+          </div>
+          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Course Materials</span>
+        </button>
+      </div>
+    </div>
   );
 }

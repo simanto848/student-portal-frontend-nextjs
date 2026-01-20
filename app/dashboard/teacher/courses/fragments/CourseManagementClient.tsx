@@ -34,7 +34,8 @@ const container = {
     show: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.1,
+            staggerChildren: 0.08,
+            delayChildren: 0.1,
         },
     },
 };
@@ -124,7 +125,12 @@ export default function CourseManagementClient() {
                 >
                     {filteredCourses.length > 0 ? (
                         filteredCourses.map((assignment) => (
-                            <motion.div key={assignment.id} variants={item}>
+                            <motion.div
+                                key={assignment.id}
+                                variants={item}
+                                layout
+                                transition={{ duration: 0.3 }}
+                            >
                                 <CourseCard
                                     assignment={assignment}
                                     theme={theme}
@@ -199,89 +205,95 @@ function CourseCard({
     const accentBgMuted = accentPrimary.replace('text-', 'bg-') + '/10';
 
     return (
-        <Card className={`group h-full flex flex-col bg-white border-slate-200/60 shadow-sm hover:shadow-xl hover:${accentPrimary.replace('text-', 'border-')}/20 transition-all duration-300 overflow-hidden rounded-3xl`}>
-            <CardHeader className="p-0">
-                <div className={`relative h-2 ${accentSecondary}`}>
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                </div>
-                <div className="px-6 pt-6 pb-4">
-                    <div className="flex justify-between items-start mb-3">
-                        <Badge variant="outline" className={`${accentBgSubtle} ${accentPrimary} border-indigo-100 font-bold tracking-tight px-2.5 py-0.5 rounded-lg text-xs uppercase`}>
-                            {assignment.course?.code || "N/A"}
-                        </Badge>
-                        <div className={`p-2 bg-slate-50 rounded-xl group-hover:${accentBgMuted} transition-colors`}>
-                            <BookOpen className={`h-4 w-4 text-slate-400 group-hover:${accentPrimary}`} />
-                        </div>
+        <motion.div
+            whileHover={{ y: -5, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+            className="h-full"
+        >
+            <Card className={`group h-full flex flex-col bg-white border-slate-200/60 shadow-sm hover:shadow-xl hover:${accentPrimary.replace('text-', 'border-')}/20 transition-all duration-300 overflow-hidden rounded-3xl`}>
+                <CardHeader className="p-0">
+                    <div className={`relative h-2 ${accentSecondary}`}>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                     </div>
-                    <CardTitle className={`text-xl font-black text-slate-900 leading-tight line-clamp-2 min-h-[3rem] group-hover:${accentPrimary} transition-colors`}>
-                        {assignment.course?.name || "Unknown Course"}
-                    </CardTitle>
-                </div>
-            </CardHeader>
-
-            <CardContent className="px-6 py-4 flex-1">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100/50 group-hover:bg-white transition-colors">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Users className={`h-3.5 w-3.5 ${accentPrimary}`} />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Batch</span>
-                        </div>
-                        <p className="text-sm font-bold text-slate-900 truncate">
-                            {formatBatchName(assignment.batch)}
-                        </p>
-                    </div>
-                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100/50 group-hover:bg-white transition-colors">
-                        <div className="flex items-center gap-2 mb-1">
-                            <Calendar className={`h-3.5 w-3.5 ${accentPrimary}`} />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Semester</span>
-                        </div>
-                        <p className="text-sm font-bold text-slate-900">
-                            {assignment.semester || "1"}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="mt-4 flex items-center justify-between px-1">
-                    <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${accentSecondary}`} />
-                        <span className="text-xs font-semibold text-slate-600">
-                            {assignment.studentsCount || 0} Students Enrolled
-                        </span>
-                    </div>
-                    <div className="flex -space-x-2">
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center overflow-hidden">
-                                <Users className="h-3 w-3 text-slate-400" />
+                    <div className="px-6 pt-6 pb-4">
+                        <div className="flex justify-between items-start mb-3">
+                            <Badge variant="outline" className={`${accentBgSubtle} ${accentPrimary} border-indigo-100 font-bold tracking-tight px-2.5 py-0.5 rounded-lg text-xs uppercase`}>
+                                {assignment.course?.code || "N/A"}
+                            </Badge>
+                            <div className={`p-2 bg-slate-50 rounded-xl group-hover:${accentBgMuted} transition-colors`}>
+                                <BookOpen className={`h-4 w-4 text-slate-400 group-hover:${accentPrimary}`} />
                             </div>
-                        ))}
+                        </div>
+                        <CardTitle className={`text-xl font-black text-slate-900 leading-tight line-clamp-2 min-h-[3rem] group-hover:${accentPrimary} transition-colors`}>
+                            {assignment.course?.name || "Unknown Course"}
+                        </CardTitle>
                     </div>
-                </div>
-            </CardContent>
+                </CardHeader>
 
-            <CardFooter className="px-6 pb-6 pt-2 grid grid-cols-4 gap-2">
-                <Button
-                    className={`col-span-2 ${accentSecondary} hover:opacity-90 text-white shadow-md rounded-xl h-11 font-bold uppercase text-xs tracking-wider transition-all active:scale-95 group-hover:shadow-lg`}
-                    onClick={onViewClass}
-                >
-                    View Class
-                </Button>
-                <Button
-                    variant="outline"
-                    className={`bg-white border-slate-200 text-slate-600 hover:${accentBgSubtle} hover:${accentPrimary} hover:${accentPrimary.replace('text-', 'border-')}/30 rounded-xl h-11 transition-all`}
-                    title="Attendance"
-                    onClick={onViewAttendance}
-                >
-                    <ClipboardList className="h-5 w-5" />
-                </Button>
-                <Button
-                    variant="outline"
-                    className={`bg-white border-slate-200 text-slate-600 hover:${accentBgSubtle} hover:${accentPrimary} hover:${accentPrimary.replace('text-', 'border-')}/30 rounded-xl h-11 transition-all`}
-                    title="Grades"
-                    onClick={onViewGrades}
-                >
-                    <BarChart3 className="h-5 w-5" />
-                </Button>
-            </CardFooter>
-        </Card>
+                <CardContent className="px-6 py-4 flex-1">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100/50 group-hover:bg-white transition-colors">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Users className={`h-3.5 w-3.5 ${accentPrimary}`} />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Batch</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-900 truncate">
+                                {formatBatchName(assignment.batch)}
+                            </p>
+                        </div>
+                        <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100/50 group-hover:bg-white transition-colors">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Calendar className={`h-3.5 w-3.5 ${accentPrimary}`} />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Semester</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-900">
+                                {assignment.semester || "1"}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between px-1">
+                        <div className="flex items-center gap-2">
+                            <div className={`h-2 w-2 rounded-full ${accentSecondary}`} />
+                            <span className="text-xs font-semibold text-slate-600">
+                                {assignment.studentsCount || 0} Students Enrolled
+                            </span>
+                        </div>
+                        <div className="flex -space-x-2">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center overflow-hidden">
+                                    <Users className="h-3 w-3 text-slate-400" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </CardContent>
+
+                <CardFooter className="px-6 pb-6 pt-2 grid grid-cols-4 gap-2">
+                    <Button
+                        className={`col-span-2 shadow-md rounded-xl h-11 font-bold uppercase text-xs tracking-wider transition-all active:scale-95 group-hover:shadow-lg bg-[#2dd4bf] hover:bg-[#25b0a0] text-white border-transparent hover:shadow-teal-500/20`}
+                        onClick={onViewClass}
+                    >
+                        View Class
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className={`bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#2dd4bf] hover:border-[#2dd4bf]/30 rounded-xl h-11 transition-all group-hover:border-slate-300`}
+                        title="Attendance"
+                        onClick={onViewAttendance}
+                    >
+                        <ClipboardList className="h-5 w-5" />
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className={`bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#2dd4bf] hover:border-[#2dd4bf]/30 rounded-xl h-11 transition-all group-hover:border-slate-300`}
+                        title="Grades"
+                        onClick={onViewGrades}
+                    >
+                        <BarChart3 className="h-5 w-5" />
+                    </Button>
+                </CardFooter>
+            </Card>
+        </motion.div>
     );
 }
