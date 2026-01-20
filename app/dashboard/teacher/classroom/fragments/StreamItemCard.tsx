@@ -5,12 +5,14 @@ import { FileText, MessageSquare, Clock } from "lucide-react";
 import { StreamItem } from "@/services/classroom/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface StreamItemCardProps {
     item: StreamItem;
 }
 
 export function StreamItemCard({ item }: StreamItemCardProps) {
+    const theme = useDashboardTheme();
     const isAssignment = item.type === "assignment";
 
     return (
@@ -19,11 +21,11 @@ export function StreamItemCard({ item }: StreamItemCardProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
         >
-            <Card className="group border-2 border-slate-50 bg-white hover:border-indigo-500/20 hover:shadow-xl hover:shadow-slate-200/40 transition-all rounded-3xl overflow-hidden">
+            <Card className={`group border border-slate-200 bg-white hover:${theme.colors.accent.primary.replace('text-', 'border-')}/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all rounded-3xl overflow-hidden`}>
                 <CardContent className="p-6">
                     <div className="flex gap-5">
                         <div className={`h-12 w-12 rounded-2xl shrink-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${isAssignment
-                            ? "bg-indigo-50 text-indigo-600 border border-indigo-100"
+                            ? `${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary} border border-${theme.colors.accent.primary.replace('text-', '')}/20`
                             : "bg-amber-50 text-amber-600 border border-amber-100"
                             }`}>
                             {isAssignment ? (
@@ -36,7 +38,7 @@ export function StreamItemCard({ item }: StreamItemCardProps) {
                         <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between gap-4">
                                 <p className="text-sm font-black text-slate-800 tracking-tight">
-                                    <span className="text-indigo-600">{item.actorName}</span>
+                                    <span className={theme.colors.accent.primary}>{item.actorName}</span>
                                     <span className="text-slate-400 font-bold mx-2">posted a new</span>
                                     <span className="uppercase text-[10px] tracking-widest px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 font-black">
                                         {item.type}

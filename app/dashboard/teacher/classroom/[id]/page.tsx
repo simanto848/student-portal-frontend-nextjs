@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { workspaceService } from "@/services/classroom/workspace.service";
 import { streamService } from "@/services/classroom/stream.service";
 import { assignmentService } from "@/services/classroom/assignment.service";
@@ -101,31 +100,27 @@ export default function TeacherClassroomDetailPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex h-[70vh] items-center justify-center">
-          <div className="relative">
-            <div className="h-16 w-16 rounded-full border-t-4 border-indigo-600 animate-spin" />
-            <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-indigo-200 animate-pulse" />
-          </div>
+      <div className="flex h-[70vh] items-center justify-center">
+        <div className="relative">
+          <div className="h-16 w-16 rounded-full border-t-4 border-indigo-600 animate-spin" />
+          <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-indigo-200 animate-pulse" />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (!workspace) return null;
 
   return (
-    <DashboardLayout>
-      <ClassroomDetailClient
-        id={id}
-        workspace={workspace}
-        assignments={assignments}
-        materials={materials}
-        stream={stream}
-        students={students}
-        teachers={teachers}
-        onRefresh={fetchData}
-      />
-    </DashboardLayout>
+    <ClassroomDetailClient
+      id={id}
+      workspace={workspace}
+      assignments={assignments}
+      materials={materials}
+      stream={stream}
+      students={students}
+      teachers={teachers}
+      onRefresh={fetchData}
+    />
   );
 }

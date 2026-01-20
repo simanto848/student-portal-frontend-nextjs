@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import {
     quizService,
     questionService,
@@ -45,28 +44,24 @@ export default function EditQuizPage() {
 
     if (isLoading) {
         return (
-            <DashboardLayout>
-                <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
-                    <div className="relative">
-                        <div className="h-20 w-20 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin" />
-                        <Loader2 className="h-8 w-8 text-indigo-600 animate-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                    </div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">
-                        Loading Evaluation Framework
-                    </p>
+            <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
+                <div className="relative">
+                    <div className="h-20 w-20 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin" />
+                    <Loader2 className="h-8 w-8 text-indigo-600 animate-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                 </div>
-            </DashboardLayout>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">
+                    Loading Evaluation Framework
+                </p>
+            </div>
         );
     }
 
     return (
-        <DashboardLayout>
-            <QuizCreateClient
-                workspaceId={workspaceId}
-                quizId={quizId}
-                initialQuiz={quiz}
-                initialQuestions={questions}
-            />
-        </DashboardLayout>
+        <QuizCreateClient
+            workspaceId={workspaceId}
+            quizId={quizId}
+            initialQuiz={quiz}
+            initialQuestions={questions}
+        />
     );
 }

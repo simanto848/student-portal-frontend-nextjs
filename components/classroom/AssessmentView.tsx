@@ -71,7 +71,7 @@ export function AssessmentView({ courseId, batchId }: AssessmentViewProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-medium">Assessments</CardTitle>
-            <Button className="bg-[#3e6253] hover:bg-[#2c463b]">
+            <Button className="h-12 px-8 rounded-xl bg-[#2dd4bf] hover:bg-[#25b0a0] text-white font-bold text-xs uppercase tracking-widest shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95">
               <Plus className="mr-2 h-4 w-4" />
               Create Assessment
             </Button>
@@ -107,13 +107,12 @@ export function AssessmentView({ courseId, batchId }: AssessmentViewProps) {
                       <TableCell>{assessment.weightPercentage}%</TableCell>
                       <TableCell>
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            assessment.status === "published"
-                              ? "bg-green-100 text-green-800"
-                              : assessment.status === "draft"
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${assessment.status === "published"
+                            ? "bg-green-100 text-green-800"
+                            : assessment.status === "draft"
                               ? "bg-gray-100 text-gray-800"
                               : "bg-blue-100 text-blue-800"
-                          }`}
+                            }`}
                         >
                           {assessment.status.charAt(0).toUpperCase() +
                             assessment.status.slice(1)}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { studentService, Student } from "@/services/user/student.service";
 import { studentProfileService, StudentProfile } from "@/services/user/studentProfile.service";
 import { departmentService } from "@/services/academic/department.service";
@@ -68,38 +67,32 @@ export default function StudentProfilePage() {
 
   if (loading) {
     return (
-      <DashboardLayout>
-        <div className="flex h-[70vh] items-center justify-center">
-          <div className="relative">
-            <div className="h-16 w-16 rounded-full border-t-4 border-indigo-600 animate-spin" />
-            <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-indigo-200 animate-pulse" />
-          </div>
+      <div className="flex h-[70vh] items-center justify-center">
+        <div className="relative">
+          <div className="h-16 w-16 rounded-full border-t-4 border-indigo-600 animate-spin" />
+          <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-indigo-200 animate-pulse" />
         </div>
-      </DashboardLayout>
+      </div>
     );
   }
 
   if (!student) {
     return (
-      <DashboardLayout>
-        <div className="bg-white border text-center p-20 rounded-3xl">
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Student data not found</p>
-        </div>
-      </DashboardLayout>
+      <div className="bg-white border text-center p-20 rounded-3xl">
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Student data not found</p>
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <StudentDetailClient
-        student={student}
-        profile={profile}
-        departments={departments}
-        programs={programs}
-        batches={batches}
-        sessions={sessions}
-        classroomId={classroomId}
-      />
-    </DashboardLayout>
+    <StudentDetailClient
+      student={student}
+      profile={profile}
+      departments={departments}
+      programs={programs}
+      batches={batches}
+      sessions={sessions}
+      classroomId={classroomId}
+    />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { assignmentService } from "@/services/classroom/assignment.service";
 import { materialService } from "@/services/classroom/material.service";
+import { batchService } from "@/services/academic/batch.service";
 import {
     Workspace,
     Assignment,
@@ -37,6 +38,7 @@ import { StreamItemCard } from "./StreamItemCard";
 import { ClassworkCard } from "./ClassworkCard";
 import { StudentRow } from "./StudentRow";
 import { MaterialFolderCard } from "@/components/classroom/MaterialFolderCard";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface ClassroomDetailClientProps {
     id: string;
@@ -60,7 +62,29 @@ export function ClassroomDetailClient({
     onRefresh,
 }: ClassroomDetailClientProps) {
     const router = useRouter();
+    const theme = useDashboardTheme();
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+    const [batchDetails, setBatchDetails] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchBatchDetails = async () => {
+            if (workspace.batchId) {
+                try {
+                    const batch = await batchService.getBatchById(workspace.batchId);
+                    setBatchDetails(batch);
+                } catch (error) {
+                    console.error("Failed to fetch batch details", error);
+                }
+            }
+        };
+        fetchBatchDetails();
+    }, [workspace.batchId]);
+
+    const getBatchDisplayName = () => {
+        if (!batchDetails) return workspace.batchName;
+        const prefix = batchDetails.shift === "day" ? "D" : batchDetails.shift === "evening" ? "E" : "";
+        return prefix ? `${prefix} ${batchDetails.name}` : batchDetails.name;
+    };
 
     const handleDeleteAssignment = async (assignmentId: string) => {
         if (!confirm("Are you sure you want to delete this assignment?")) return;
@@ -102,36 +126,40 @@ export function ClassroomDetailClient({
     };
 
     return (
-        <div className="space-y-10 pb-20 max-w-7xl mx-auto">
+        <div className="space-y-6 pb-20 w-full">
             {/* Modern Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                    <button
-                        onClick={() => router.push("/dashboard/teacher/classroom")}
-                        className="h-14 w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-indigo-600 hover:border-indigo-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
-                    >
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                    </button>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200">
+                <div className="flex items-center gap-5">
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => router.push("/dashboard/teacher/classroom")}
+                            className={`h-12 w-12 rounded-2xl bg-white border border-slate-200 shadow-sm hover:${theme.colors.accent.primary.replace('text-', 'bg-')}/5 hover:${theme.colors.accent.primary} transition-all`}
+                        >
+                            <ArrowLeft className="w-6 h-6" />
+                        </Button>
+                    </motion.div>
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <Badge className="bg-indigo-100 text-indigo-700 border-none px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                            <Badge className={`${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary} border-none px-3 py-1 rounded-full flex items-center gap-2 shadow-sm`}>
                                 <Sparkles className="w-3 h-3" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-700">
+                                <span className="text-[10px] font-black uppercase tracking-widest">
                                     Classroom Hub
                                 </span>
                             </Badge>
-                            <span className="text-slate-300 font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                            <span className="text-slate-400 font-black text-xs uppercase tracking-widest flex items-center gap-2">
                                 <Layers className="w-3.5 h-3.5" />
                                 {workspace.courseCode}
                             </span>
                         </div>
-                        <h1 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">
+                        <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
                             {workspace.title}
                         </h1>
                         <p className="text-slate-500 font-bold mt-2 flex items-center gap-2">
                             {workspace.courseName}
                             <span className="text-slate-300 mx-1">•</span>
-                            {workspace.batchName}
+                            {getBatchDisplayName()}
                         </p>
                     </div>
                 </div>
@@ -142,9 +170,9 @@ export function ClassroomDetailClient({
                         trigger={
                             <Button
                                 variant="outline"
-                                className="h-12 px-6 rounded-xl border-2 border-slate-100 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
+                                className={`h-12 px-6 rounded-xl border-slate-200 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 hover:${theme.colors.accent.primary} hover:border-${theme.colors.accent.primary.replace('text-', '')}/30 transition-all active:scale-95`}
                             >
-                                <BookOpen className="w-4 h-4 mr-2 text-indigo-500" />
+                                <BookOpen className="w-4 h-4 mr-2" />
                                 Add Material
                             </Button>
                         }
@@ -153,7 +181,7 @@ export function ClassroomDetailClient({
                         workspaceId={id}
                         onSuccess={onRefresh}
                         trigger={
-                            <Button className="h-12 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-widest shadow-xl shadow-indigo-600/20 transition-all active:scale-95">
+                            <Button className={`h-12 px-8 rounded-xl bg-[#2dd4bf] hover:bg-[#25b0a0] text-white font-bold text-xs uppercase tracking-widest shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95`}>
                                 <FileText className="w-4 h-4 mr-2" />
                                 Create Task
                             </Button>
@@ -163,22 +191,24 @@ export function ClassroomDetailClient({
             </div>
 
             <Tabs defaultValue="stream" className="w-full">
-                <TabsList className="bg-slate-100/50 p-1.5 rounded-4xl gap-2 mb-10 overflow-x-auto inline-flex whitespace-nowrap scrollbar-hide">
-                    {["Stream", "Classwork", "Quizzes", "People", "Assessments", "Grades"].map(
-                        (tab) => (
-                            <TabsTrigger
-                                key={tab}
-                                value={tab.toLowerCase()}
-                                className="px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-2xl data-[state=active]:shadow-indigo-600/40 transition-all"
-                            >
-                                {tab}
-                            </TabsTrigger>
-                        ),
-                    )}
-                </TabsList>
+                <div className="flex overflow-x-auto pb-2 mb-4 scrollbar-hide">
+                    <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max">
+                        {["Stream", "Classwork", "Quizzes", "People", "Assessments", "Grades"].map(
+                            (tab) => (
+                                <TabsTrigger
+                                    key={tab}
+                                    value={tab.toLowerCase()}
+                                    className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
+                                >
+                                    {tab}
+                                </TabsTrigger>
+                            ),
+                        )}
+                    </TabsList>
+                </div>
 
                 <AnimatePresence mode="wait">
-                    <TabsContent value="stream" key="stream" className="mt-0 outline-none">
+                    <TabsContent value="stream" key="stream" className="mt-6 outline-none">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -191,7 +221,7 @@ export function ClassroomDetailClient({
                                         <StreamItemCard key={`stream-${item.id || index}`} item={item} />
                                     ))
                                 ) : (
-                                    <Card className="border-2 border-dashed border-slate-100 rounded-[3rem] p-20 text-center bg-white">
+                                    <Card className="border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center bg-white">
                                         <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 mb-6">
                                             <Sparkles className="h-8 w-8" />
                                         </div>
@@ -206,9 +236,9 @@ export function ClassroomDetailClient({
                             </div>
 
                             <aside className="lg:col-span-4 space-y-8">
-                                <Card className="border-2 border-slate-100 rounded-[3rem] shadow-xl shadow-slate-200/40 p-10 bg-white">
-                                    <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                                        <GraduationCap className="h-5 w-5 text-indigo-500" />
+                                <Card className="border border-slate-200 rounded-[2.5rem] shadow-sm p-10 bg-white">
+                                    <h3 className={`text-xl font-black text-slate-900 mb-6 flex items-center gap-3`}>
+                                        <GraduationCap className={`h-5 w-5 ${theme.colors.accent.primary}`} />
                                         Quick Insights
                                     </h3>
                                     <div className="space-y-6">
@@ -230,24 +260,11 @@ export function ClassroomDetailClient({
                                         </div>
                                     </div>
                                 </Card>
-
-                                <Card className="bg-slate-900 text-white border-none rounded-[3rem] p-10 shadow-2xl overflow-hidden relative group">
-                                    <div className="absolute -bottom-10 -right-10 opacity-10 group-hover:rotate-12 transition-transform duration-700">
-                                        <BookOpen className="h-40 w-40" />
-                                    </div>
-                                    <h3 className="text-lg font-black tracking-tight mb-4 relative z-10">
-                                        Academic Excellence
-                                    </h3>
-                                    <p className="text-slate-400 text-sm font-medium leading-relaxed relative z-10">
-                                        Engage your students through collaborative stream posts and timely
-                                        feedback on their academic tasks.
-                                    </p>
-                                </Card>
                             </aside>
                         </motion.div>
                     </TabsContent>
 
-                    <TabsContent value="classwork" key="classwork" className="mt-0 outline-none">
+                    <TabsContent value="classwork" key="classwork" className="mt-6 outline-none">
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -255,7 +272,7 @@ export function ClassroomDetailClient({
                             className="space-y-6"
                         >
                             {assignments.length === 0 && materials.length === 0 ? (
-                                <Card className="border-2 border-dashed border-slate-100 rounded-[3rem] p-24 text-center bg-white">
+                                <Card className="border-2 border-dashed border-slate-200 rounded-[3rem] p-24 text-center bg-white">
                                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 mb-6">
                                         <Layers className="h-8 w-8" />
                                     </div>
@@ -268,7 +285,7 @@ export function ClassroomDetailClient({
                                     </p>
                                 </Card>
                             ) : (
-                                <div className="grid gap-8 max-w-4xl">
+                                <div className="grid gap-8 w-full">
                                     {/* Assignments Section */}
                                     {assignments.length > 0 && (
                                         <div className="space-y-4">
@@ -276,7 +293,7 @@ export function ClassroomDetailClient({
                                                 <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
                                                     Assignments
                                                 </h3>
-                                                <div className="flex-1 h-px bg-slate-100" />
+                                                <div className="flex-1 h-px bg-slate-200" />
                                             </div>
                                             <div className="grid gap-4">
                                                 {assignments.map((assignment, index) => (
@@ -299,7 +316,7 @@ export function ClassroomDetailClient({
                                                 <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
                                                     Materials & Resources
                                                 </h3>
-                                                <div className="flex-1 h-px bg-slate-100" />
+                                                <div className="flex-1 h-px bg-slate-200" />
                                             </div>
                                             <div className="grid gap-4">
                                                 {materials.map((material, index) => (
@@ -320,7 +337,7 @@ export function ClassroomDetailClient({
                         </motion.div>
                     </TabsContent>
 
-                    <TabsContent value="people" key="people" className="mt-0 outline-none">
+                    <TabsContent value="people" key="people" className="mt-6 outline-none">
                         <motion.div
                             initial={{ opacity: 0, x: 10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -328,50 +345,17 @@ export function ClassroomDetailClient({
                             className="space-y-12"
                         >
                             <section>
-                                <div className="flex items-center gap-3 mb-8">
-                                    <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                                        Academic Mentors
-                                    </h3>
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">
-                                        {teachers.length} ACTIVE
-                                    </span>
-                                </div>
-                                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                    {teachers.map((teacher, index) => (
-                                        <Card
-                                            key={`teacher-${teacher.id || index}`}
-                                            className="border-2 border-slate-50 p-6 rounded-4xl flex items-center gap-4 bg-white shadow-lg shadow-slate-200/30"
-                                        >
-                                            <div className="h-14 w-14 rounded-2xl bg-indigo-50 border-2 border-white overflow-hidden flex items-center justify-center text-indigo-600 font-black text-xl shadow-sm">
-                                                {(teacher.fullName || teacher.email || "T")
-                                                    .substring(0, 1)
-                                                    .toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-slate-900">
-                                                    {teacher.fullName || "Faculty Member"}
-                                                </p>
-                                                <p className="text-xs font-bold text-slate-400 italic">
-                                                    {teacher.email}
-                                                </p>
-                                            </div>
-                                        </Card>
-                                    ))}
-                                </div>
-                            </section>
-
-                            <section>
                                 <div className="flex items-center justify-between mb-8">
                                     <div className="flex items-center gap-3">
                                         <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                                            Student Scholars
+                                            Student List
                                         </h3>
                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">
                                             {students.length} ENROLLED
                                         </span>
                                     </div>
                                 </div>
-                                <div className="grid gap-4 max-w-4xl">
+                                <div className="grid gap-4 w-full">
                                     {students.map((stu, index) => (
                                         <StudentRow
                                             key={`stu-${stu.id || index}`}
@@ -386,7 +370,7 @@ export function ClassroomDetailClient({
                         </motion.div>
                     </TabsContent>
 
-                    <TabsContent value="quizzes" key="quizzes" className="mt-0 outline-none">
+                    <TabsContent value="quizzes" key="quizzes" className="mt-6 outline-none">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -402,16 +386,16 @@ export function ClassroomDetailClient({
                                     </p>
                                 </div>
                                 <Button
-                                    className="h-12 px-8 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl"
+                                    className="h-12 px-8 rounded-xl bg-[#2dd4bf] hover:bg-[#25b0a0] text-white font-bold text-xs uppercase tracking-widest shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95"
                                     onClick={() => router.push(`/dashboard/teacher/classroom/${id}/quiz`)}
                                 >
                                     Launch Manager
                                 </Button>
                             </div>
 
-                            <Card className="border-2 border-dashed border-slate-100 rounded-[3rem] p-20 text-center bg-white overflow-hidden relative">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-amber-400 via-rose-400 to-indigo-400" />
-                                <div className="inline-flex h-20 w-20 items-center justify-center rounded-4xl bg-slate-50 text-slate-200 mb-8">
+                            <Card className="border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center bg-white overflow-hidden relative">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 via-emerald-400 to-cyan-400" />
+                                <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 text-slate-200 mb-8">
                                     <FileText className="h-10 w-10 text-slate-300" />
                                 </div>
                                 <h3 className="text-xl font-black text-slate-900 mb-4 px-2">
@@ -423,8 +407,7 @@ export function ClassroomDetailClient({
                                     in real-time.
                                 </p>
                                 <Button
-                                    variant="outline"
-                                    className="h-12 px-8 rounded-xl border-2 border-slate-100 font-black text-[10px] uppercase tracking-[0.2em] transition-all hover:bg-slate-50 active:scale-95"
+                                    className="h-12 px-8 rounded-xl bg-[#2dd4bf] hover:bg-[#25b0a0] text-white font-bold text-xs uppercase tracking-widest shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95"
                                     onClick={() => router.push(`/dashboard/teacher/classroom/${id}/quiz`)}
                                 >
                                     Launch Architecture
@@ -436,12 +419,12 @@ export function ClassroomDetailClient({
                     <TabsContent
                         value="assessments"
                         key="assessments"
-                        className="mt-0 outline-none"
+                        className="mt-6 outline-none"
                     >
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-[3rem] border-2 border-slate-100 p-2 overflow-hidden shadow-2xl shadow-slate-200/40"
+                            className="bg-white rounded-[2.5rem] border border-slate-200 p-2 overflow-hidden shadow-sm"
                         >
                             <AssessmentView
                                 courseId={workspace.courseId}
@@ -450,23 +433,23 @@ export function ClassroomDetailClient({
                         </motion.div>
                     </TabsContent>
 
-                    <TabsContent value="grades" key="grades" className="mt-0 outline-none">
+                    <TabsContent value="grades" key="grades" className="mt-6 outline-none">
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="space-y-10"
                         >
                             <Tabs defaultValue="assignments" className="w-full">
-                                <TabsList className="bg-slate-50 p-1.5 rounded-2xl gap-2 mb-8 inline-flex">
+                                <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max mb-8">
                                     <TabsTrigger
                                         value="assignments"
-                                        className="px-6 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg transition-all"
+                                        className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
                                     >
                                         Assignments
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="course-grades"
-                                        className="px-6 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg transition-all"
+                                        className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
                                     >
                                         Course Final
                                     </TabsTrigger>
@@ -475,8 +458,8 @@ export function ClassroomDetailClient({
                                 <TabsContent value="assignments" className="mt-0">
                                     <div className="grid gap-10 lg:grid-cols-12">
                                         <div className="lg:col-span-4">
-                                            <Card className="border-2 border-slate-100 rounded-[2.5rem] overflow-hidden bg-white shadow-xl shadow-slate-200/40 p-0">
-                                                <CardHeader className="bg-slate-50/50 p-8 border-b-2 border-slate-50">
+                                            <Card className="border border-slate-200 rounded-[2.5rem] overflow-hidden bg-white shadow-sm p-0">
+                                                <CardHeader className="bg-slate-50/50 p-8 border-b border-slate-100">
                                                     <CardTitle className="text-xl font-black text-slate-900 tracking-tight">
                                                         Active Tasks
                                                     </CardTitle>
@@ -488,14 +471,14 @@ export function ClassroomDetailClient({
                                                                 key={`grade-asgn-${assignment.id || index}`}
                                                                 onClick={() => setSelectedAssignmentId(assignment.id)}
                                                                 className={`text-left px-8 py-5 text-sm transition-all relative group ${selectedAssignmentId === assignment.id
-                                                                    ? "bg-indigo-50/50 text-indigo-700 font-black"
+                                                                    ? `${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary} font-black`
                                                                     : "text-slate-600 font-bold hover:bg-slate-50"
                                                                     }`}
                                                             >
                                                                 {selectedAssignmentId === assignment.id && (
                                                                     <motion.div
                                                                         layoutId="active-indicator"
-                                                                        className="absolute left-0 top-0 w-1.5 h-full bg-indigo-600 rounded-r-full"
+                                                                        className={`absolute left-0 top-0 w-1.5 h-full ${theme.colors.accent.secondary} rounded-r-full`}
                                                                     />
                                                                 )}
                                                                 {assignment.title}
@@ -513,11 +496,11 @@ export function ClassroomDetailClient({
 
                                         <div className="lg:col-span-8">
                                             {selectedAssignmentId ? (
-                                                <div className="bg-white rounded-[2.5rem] border-2 border-slate-100 p-2 shadow-2xl shadow-slate-200/40">
+                                                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-2 shadow-sm">
                                                     <GradingView assignmentId={selectedAssignmentId} />
                                                 </div>
                                             ) : (
-                                                <Card className="border-2 border-dashed border-slate-100 rounded-[3rem] p-24 text-center bg-white">
+                                                <Card className="border-2 border-dashed border-slate-200 rounded-[3rem] p-24 text-center bg-white">
                                                     <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-200 mb-6">
                                                         <Sparkles className="h-8 w-8" />
                                                     </div>
@@ -534,7 +517,7 @@ export function ClassroomDetailClient({
                                 </TabsContent>
 
                                 <TabsContent value="course-grades" className="mt-0">
-                                    <div className="bg-white rounded-[3rem] border-2 border-slate-100 p-2 overflow-hidden shadow-2xl shadow-slate-200/40">
+                                    <div className="bg-white rounded-[2.5rem] border border-slate-200 p-2 overflow-hidden shadow-sm">
                                         <CourseGradeView
                                             courseId={workspace.courseId}
                                             batchId={workspace.batchId}

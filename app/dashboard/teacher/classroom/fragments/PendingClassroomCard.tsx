@@ -19,31 +19,31 @@ export function PendingClassroomCard({ pending, onCreate, isCreating }: PendingC
             whileHover={{ scale: 1.02 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
-            <Card className="group relative overflow-hidden border-2 border-dashed border-indigo-200 bg-indigo-50/20 rounded-[2.5rem] transition-all hover:bg-indigo-50/40 hover:border-indigo-400/50">
-                <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-indigo-100/50 blur-2xl group-hover:bg-indigo-200/50 transition-colors" />
+            <Card className="glass-panel group relative overflow-hidden rounded-[2.5rem] transition-all border border-orange-200/50 dark:border-orange-900/20 bg-orange-50/30 dark:bg-orange-950/10 hover:shadow-xl hover:shadow-orange-500/5">
+                <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-orange-100/50 blur-2xl group-hover:bg-orange-200/50 transition-colors" />
 
                 <CardHeader className="pb-4 relative z-10">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 mb-2">
-                            <Badge className="bg-white text-indigo-700 border-indigo-100 px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider shadow-sm">
+                            <Badge className="bg-white dark:bg-slate-800 text-orange-500 border-orange-100 dark:border-orange-900/30 px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">
                                 Awaiting Hub
                             </Badge>
                             {pending.courseCode && (
-                                <span className="text-[10px] font-bold text-indigo-400/70 uppercase tracking-widest px-2 py-0.5 rounded-md">
+                                <span className="text-[10px] font-bold text-orange-400/70 uppercase tracking-widest px-2 py-0.5 rounded-md">
                                     {pending.courseCode}
                                 </span>
                             )}
                         </div>
-                        <CardTitle className="text-lg font-black text-slate-900 tracking-tight line-clamp-2 leading-tight">
+                        <CardTitle className="text-lg font-bold text-slate-800 dark:text-white tracking-tight line-clamp-2 leading-tight">
                             {pending.courseName || "Untitled Course"}
                         </CardTitle>
                         <div className="flex flex-col gap-1 mt-2">
-                            <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                                <Users className="w-3.5 h-3.5 text-indigo-400" />
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <Users className="w-3.5 h-3.5 text-orange-400" />
                                 {pending.batchName}
                             </p>
-                            <p className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
-                                <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                                <BookOpen className="w-3.5 h-3.5 text-orange-400" />
                                 Semester {pending.semester}
                             </p>
                         </div>
@@ -54,7 +54,7 @@ export function PendingClassroomCard({ pending, onCreate, isCreating }: PendingC
                     <Button
                         onClick={() => onCreate(pending)}
                         disabled={isCreating}
-                        className="w-full h-12 rounded-2xl bg-white border-2 border-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 group/btn"
+                        className="w-full h-12 rounded-2xl bg-white dark:bg-slate-800 border-2 border-orange-100 dark:border-orange-900/30 text-orange-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 group/btn"
                     >
                         {isCreating ? (
                             <>

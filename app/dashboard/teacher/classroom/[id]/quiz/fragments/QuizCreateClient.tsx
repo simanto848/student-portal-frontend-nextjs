@@ -289,7 +289,7 @@ export function QuizCreateClient({
 
 
     return (
-        <div className="space-y-12 pb-24 overflow-hidden">
+        <div className="space-y-12 pb-24">
             <QuizHeader
                 title={quizId ? "Edit Quiz" : "Create Quiz"}
                 subtitle="Set up your quiz details and questions."
@@ -767,11 +767,11 @@ export function QuizCreateClient({
                             </div>
                         )}
 
-                        <div className="flex items-center justify-between pt-12 border-t-2 border-slate-50">
+                        <div className="sticky bottom-0 z-50 flex items-center justify-between p-6 -mx-6 mt-12 bg-white/80 backdrop-blur-xl border-t-2 border-slate-100 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] rounded-t-[2.5rem]">
                             <Button
                                 onClick={() => step > 1 && setStep((step - 1) as Step)}
                                 disabled={step === 1 || isSubmitting}
-                                className="h-14 px-8 rounded-2xl gap-3 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:bg-slate-50"
+                                className="h-14 px-8 rounded-2xl gap-3 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:text-indigo-600 hover:bg-slate-50 transition-all active:scale-95"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                                 Go Back
@@ -781,7 +781,7 @@ export function QuizCreateClient({
                                 <Button
                                     onClick={() => validateStep(step) && setStep((step + 1) as Step)}
                                     disabled={!validateStep(step)}
-                                    className="h-14 px-10 rounded-2xl gap-3 bg-slate-900 text-white hover:bg-black font-black text-[10px] uppercase tracking-widest shadow-2xl active:scale-95"
+                                    className="h-14 px-10 rounded-2xl gap-3 bg-slate-900 text-white hover:bg-black font-black text-[10px] uppercase tracking-widest shadow-2xl active:scale-95 transition-all shadow-slate-900/20"
                                 >
                                     Next Step
                                     <ArrowRight className="w-4 h-4" />
