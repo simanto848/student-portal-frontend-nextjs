@@ -164,18 +164,6 @@ export const adminNavigation: NavItem[] = [
     ],
   },
   {
-    label: "Library",
-    icon: BookOpen,
-    children: [
-      { href: "/dashboard/admin/library", label: "Overview" },
-      { href: "/dashboard/admin/library/libraries", label: "Libraries" },
-      { href: "/dashboard/admin/library/books", label: "Books" },
-      { href: "/dashboard/admin/library/copies", label: "Book Copies" },
-      { href: "/dashboard/admin/library/borrowings", label: "Borrowings" },
-      { href: "/dashboard/admin/library/reservations", label: "Reservations" },
-    ],
-  },
-  {
     href: "/dashboard/admin/approvals",
     label: "Approvals",
     icon: FileCheck,
