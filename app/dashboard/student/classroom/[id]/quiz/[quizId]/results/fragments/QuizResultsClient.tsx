@@ -7,7 +7,8 @@ import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { quizService, quizAttemptService, Quiz, Question, QuizAttempt } from "@/services/classroom/quiz.service";
-import { toast } from "sonner";
+import StudentLoading from "@/components/StudentLoading";
+import { notifyError, notifySuccess } from "@/components/toast";
 import {
     Trophy,
     Target,
@@ -52,7 +53,7 @@ export default function QuizResultsClient() {
                     if (data.quiz) setQuiz(data.quiz);
                 }
             } catch (error: any) {
-                toast.error(error?.message || "Failed to load results");
+                notifyError(error?.message || "Failed to load results");
             } finally {
                 setIsLoading(false);
             }
@@ -63,13 +64,7 @@ export default function QuizResultsClient() {
 
     if (isLoading) {
         return (
-            <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-                <div className="relative">
-                    <div className="h-16 w-16 rounded-full border-4 border-cyan-100 border-t-cyan-500 animate-spin" />
-                    <TrendingUp className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-cyan-500 animate-pulse" />
-                </div>
-                <p className="text-slate-500 font-black uppercase tracking-widest text-xs animate-pulse">Analyzing Performance Data...</p>
-            </div>
+            <StudentLoading />
         );
     }
 
@@ -77,47 +72,47 @@ export default function QuizResultsClient() {
         return (
             <GlassCard className="max-w-md mx-auto mt-20 p-12 text-center border-dashed">
                 <AlertCircle className="h-16 w-16 text-slate-100 mx-auto mb-6" />
-                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-2">No Record Detected</h3>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed mb-8">The requested assessment log could not be synchronized with your profile.</p>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">No Results Found</h3>
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest leading-relaxed mb-8">We couldn't find the results for this quiz attempt.</p>
                 <Button
                     onClick={() => router.push(`/dashboard/student/classroom/${workspaceId}/quiz`)}
-                    className="w-full h-12 bg-slate-900 hover:bg-cyan-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl"
+                    className="w-full h-12 bg-slate-900 hover:bg-[#0088A9] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl"
                 >
-                    Return to Section
+                    Back to Quizzes
                 </Button>
             </GlassCard>
         );
     }
 
     const getScoreColor = (percentage: number) => {
-        if (percentage >= 80) return "from-cyan-500 to-blue-600 shadow-cyan-200";
+        if (percentage >= 80) return "from-[#0088A9] to-blue-600 shadow-[#0088A9]/20";
         if (percentage >= 50) return "from-amber-400 to-orange-500 shadow-amber-200";
         return "from-rose-500 to-red-600 shadow-rose-200";
     };
 
     const getScoreRank = (percentage: number) => {
-        if (percentage >= 90) return "Elite Operator";
-        if (percentage >= 80) return "Technician";
-        if (percentage >= 60) return "Adept";
-        if (percentage >= 40) return "Novice";
-        return "Unranked";
+        if (percentage >= 90) return "Excellent";
+        if (percentage >= 80) return "Very Good";
+        if (percentage >= 60) return "Satisfactory";
+        if (percentage >= 40) return "Needs Improvement";
+        return "Not Graduated";
     };
 
     return (
-        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
             <PageHeader
-                title="Performance Report"
-                subtitle="Assessment synchronization complete"
+                title="Quiz Results"
+                subtitle="Assessment overview and feedback"
                 icon={TrendingUp}
                 extraActions={
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => router.push(`/dashboard/student/classroom/${workspaceId}/quiz`)}
-                        className="rounded-xl border border-cyan-100 bg-white text-cyan-600 hover:bg-cyan-50 font-black uppercase tracking-widest text-[10px]"
+                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-black uppercase tracking-widest text-[10px]"
                     >
                         <ChevronLeft className="mr-2 h-3.5 w-3.5" />
-                        Section Hub
+                        Quiz Hub
                     </Button>
                 }
             />
@@ -159,7 +154,7 @@ export default function QuizResultsClient() {
                             </svg>
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
                                 <span className="text-4xl font-black leading-none">{attempt.percentage}%</span>
-                                <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-80">Rank Score</span>
+                                <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-80">Final Score</span>
                             </div>
                         </div>
 
@@ -172,11 +167,11 @@ export default function QuizResultsClient() {
                             <div className="flex flex-wrap gap-4 pt-4 justify-center md:justify-start">
                                 <div className="flex items-center gap-2">
                                     <Target className="h-4 w-4 opacity-70" />
-                                    <span className="text-xs font-black">{attempt.score} / {attempt.maxScore} PTS</span>
+                                    <span className="text-xs font-black">{attempt.score} / {attempt.maxScore} POINTS</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Clock className="h-4 w-4 opacity-70" />
-                                    <span className="text-xs font-black">LOGGED EFFORT</span>
+                                    <span className="text-xs font-black">PROGRESS LOGGED</span>
                                 </div>
                             </div>
                         </div>
@@ -186,12 +181,12 @@ export default function QuizResultsClient() {
                 <div className="space-y-6">
                     <GlassCard className="p-6 bg-slate-900 text-white border-none shadow-xl">
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="h-10 w-10 rounded-xl bg-cyan-600 flex items-center justify-center">
+                            <div className="h-10 w-10 rounded-xl bg-[#0088A9] flex items-center justify-center">
                                 <ShieldCheck className="h-5 w-5" />
                             </div>
                             <div>
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Protocol Verification</p>
-                                <p className="text-[10px] font-bold text-cyan-400">Validated Status</p>
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Quiz Summary</p>
+                                <p className="text-[10px] font-bold text-[#0088A9]">Verified</p>
                             </div>
                         </div>
                         <div className="space-y-4">
@@ -202,10 +197,10 @@ export default function QuizResultsClient() {
                             <Button
                                 onClick={() => router.push(`/dashboard/student/classroom/${workspaceId}/quiz/${quizId}`)}
                                 disabled={(quiz?.maxAttempts || 0) <= 1}
-                                className="w-full h-11 bg-white text-slate-900 border-none hover:bg-cyan-100 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"
+                                className="w-full h-11 bg-white text-slate-900 border-none hover:bg-gray-100 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all"
                             >
                                 <RotateCcw className="mr-2 h-3.5 w-3.5" />
-                                Attempt Recalibration
+                                Retake Quiz
                             </Button>
                         </div>
                     </GlassCard>
@@ -226,12 +221,12 @@ export default function QuizResultsClient() {
             {/* Answer Detailed Scan */}
             <div className="space-y-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-widest flex items-center gap-3">
-                        <Zap className="h-5 w-5 text-cyan-500" />
-                        Detailed Analysis
+                    <h3 className="text-lg font-black text-slate-900 uppercase tracking-widest flex items-center gap-3">
+                        <Zap className="h-5 w-5 text-[#0088A9]" />
+                        Question Breakdown
                     </h3>
-                    <Badge variant="outline" className="text-[8px] font-black text-slate-400 uppercase border-slate-200">
-                        {questions.length} Items Evaluated
+                    <Badge variant="outline" className="text-[8px] font-black text-slate-500 uppercase border-gray-200">
+                        {questions.length} Questions
                     </Badge>
                 </div>
 
@@ -261,7 +256,7 @@ export default function QuizResultsClient() {
                                 >
                                     <GlassCard className={cn(
                                         "overflow-hidden border-2 transition-all duration-300",
-                                        isCorrect ? "border-cyan-100" : isPartiallyCorrect ? "border-amber-100" : "border-rose-100"
+                                        isCorrect ? "border-[#0088A9]/20" : isPartiallyCorrect ? "border-amber-100" : "border-rose-100"
                                     )}>
                                         <div className="flex flex-col md:flex-row gap-6 p-8">
                                             <div className="flex-1 space-y-6">
@@ -269,7 +264,7 @@ export default function QuizResultsClient() {
                                                     <div className="flex items-center gap-3">
                                                         <div className={cn(
                                                             "h-8 w-8 rounded-xl flex items-center justify-center font-black text-[10px]",
-                                                            isCorrect ? "bg-cyan-500 text-white" : isPartiallyCorrect ? "bg-amber-500 text-white" : "bg-rose-500 text-white"
+                                                            isCorrect ? "bg-[#0088A9] text-white" : isPartiallyCorrect ? "bg-amber-500 text-white" : "bg-rose-500 text-white"
                                                         )}>
                                                             {idx + 1}
                                                         </div>
@@ -280,11 +275,11 @@ export default function QuizResultsClient() {
                                                     <div className="flex flex-col items-end">
                                                         <span className={cn(
                                                             "text-sm font-black",
-                                                            isCorrect ? "text-cyan-600" : isPartiallyCorrect ? "text-amber-600" : "text-rose-600"
+                                                            isCorrect ? "text-[#0088A9]" : isPartiallyCorrect ? "text-amber-600" : "text-rose-600"
                                                         )}>
-                                                            {pointsEarned} / {q.points} PTS
+                                                            {pointsEarned} / {q.points} POINTS
                                                         </span>
-                                                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Weighting</span>
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Points</span>
                                                     </div>
                                                 </div>
 
@@ -305,22 +300,22 @@ export default function QuizResultsClient() {
                                                                     className={cn(
                                                                         "p-4 rounded-2xl border flex items-center justify-between transition-all",
                                                                         isCorrectOpt
-                                                                            ? "bg-cyan-50 border-cyan-200 shadow-sm"
+                                                                            ? "bg-[#0088A9]/5 border-[#0088A9]/20 shadow-sm"
                                                                             : isUserSelected && !isCorrectOpt
                                                                                 ? "bg-rose-50 border-rose-200"
-                                                                                : "bg-slate-50 border-slate-100"
+                                                                                : "bg-gray-50/50 border-gray-100"
                                                                     )}
                                                                 >
                                                                     <div className="flex items-center gap-4">
                                                                         <div className={cn(
                                                                             "h-5 w-5 rounded-lg border flex items-center justify-center",
-                                                                            isCorrectOpt ? "bg-cyan-500 border-cyan-500 text-white" : isUserSelected ? "bg-rose-500 border-rose-500 text-white" : "bg-white border-slate-200"
+                                                                            isCorrectOpt ? "bg-[#0088A9] border-[#0088A9] text-white" : isUserSelected ? "bg-rose-500 border-rose-500 text-white" : "bg-white border-gray-200"
                                                                         )}>
                                                                             {isCorrectOpt ? <CheckCircle2 className="h-3 w-3" /> : isUserSelected ? <XCircle className="h-3 w-3" /> : null}
                                                                         </div>
                                                                         <span className={cn(
                                                                             "text-xs font-bold uppercase",
-                                                                            isCorrectOpt ? "text-cyan-700" : isUserSelected ? "text-rose-700" : "text-slate-500"
+                                                                            isCorrectOpt ? "text-[#0088A9]" : isUserSelected ? "text-rose-700" : "text-slate-600"
                                                                         )}>
                                                                             {opt.text}
                                                                         </span>
@@ -339,16 +334,16 @@ export default function QuizResultsClient() {
                                                 {/* Written Answer View */}
                                                 {(q.type === "short_answer" || q.type === "long_answer") && (
                                                     <div className="space-y-4 pt-2">
-                                                        <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100">
-                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Transmitted Content</p>
-                                                            <p className="text-xs font-bold text-slate-700 uppercase leading-relaxed">
-                                                                {answer?.writtenAnswer || "No data recorded"}
+                                                        <div className="p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                                                            <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-2">Your Answer</p>
+                                                            <p className="text-xs font-bold text-slate-800 uppercase leading-relaxed">
+                                                                {answer?.writtenAnswer || "No answer provided"}
                                                             </p>
                                                         </div>
                                                         {q.correctAnswer && (
-                                                            <div className="p-5 rounded-2xl bg-cyan-50 border border-cyan-100">
-                                                                <p className="text-[8px] font-black text-cyan-600 uppercase tracking-widest mb-2">Optimal Pattern</p>
-                                                                <p className="text-xs font-bold text-cyan-800 uppercase leading-relaxed">
+                                                            <div className="p-5 rounded-2xl bg-[#0088A9]/5 border border-[#0088A9]/20">
+                                                                <p className="text-[8px] font-black text-[#0088A9] uppercase tracking-widest mb-2">Correct Answer</p>
+                                                                <p className="text-xs font-bold text-[#0088A9] uppercase leading-relaxed">
                                                                     {q.correctAnswer}
                                                                 </p>
                                                             </div>
@@ -360,7 +355,7 @@ export default function QuizResultsClient() {
                                                     <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 flex items-start gap-3">
                                                         <HelpCircle className="h-4 w-4 text-amber-500 mt-0.5" />
                                                         <div>
-                                                            <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mb-0.5">Node Feedback</p>
+                                                            <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mb-0.5">Question Feedback</p>
                                                             <p className="text-[10px] font-bold text-amber-800 uppercase tracking-tight italic">
                                                                 "{answer.feedback}"
                                                             </p>
