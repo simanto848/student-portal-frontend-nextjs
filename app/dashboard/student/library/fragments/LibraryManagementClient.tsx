@@ -31,8 +31,8 @@ import {
     ReservationCard,
     LibraryHistoryCard
 } from "../LibraryComponents";
-import { toast } from "sonner";
-import { notifyInfo } from "@/components/toast";
+import StudentLoading from "@/components/StudentLoading";
+import { notifyError, notifySuccess, notifyInfo } from "@/components/toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LibraryManagementClient() {
@@ -96,7 +96,7 @@ export default function LibraryManagementClient() {
 
     const handleReserveBook = async (book: Book) => {
         if (!book.libraryId) {
-            toast.error("Source library identifier missing");
+            notifyError("Source library ID missing");
             return;
         }
 
@@ -104,59 +104,52 @@ export default function LibraryManagementClient() {
             ? (book.libraryId as any)._id || (book.libraryId as any).id
             : book.libraryId;
 
-        const promise = reserveBookMutation.mutateAsync({
-            bookId: book.id,
-            libraryId,
-            userId: user?.id || "",
-            userType: user?.role || "student",
-            notes: "Remote reservation via Student Nexus"
-        });
-
-        toast.promise(promise, {
-            loading: 'Allocating asset and establishing reservation...',
-            success: () => {
-                refetch();
-                return `Asset "${book.title}" successfully reserved`;
-            },
-            error: (err) => err.message || "Allocation failure"
-        });
+        try {
+            await reserveBookMutation.mutateAsync({
+                bookId: book.id,
+                libraryId,
+                userId: user?.id || "",
+                userType: user?.role || "student",
+                notes: "Reserved via Student Portal"
+            });
+            notifySuccess(`Successfully reserved "${book.title}"`);
+            refetch();
+        } catch (err: any) {
+            notifyError(err.message || "Reservation failed");
+        }
     };
 
     const handleCancelReservation = async (id: string) => {
-        toast.promise(cancelReservationMutation.mutateAsync(id), {
-            loading: "Decommissioning reservation...",
-            success: () => {
-                refetch();
-                return "Reservation purged successfully";
-            },
-            error: (err) => err.message || "Decommissioning failure"
-        });
+        try {
+            await cancelReservationMutation.mutateAsync(id);
+            notifySuccess("Reservation cancelled successfully");
+            refetch();
+        } catch (err: any) {
+            notifyError(err.message || "Cancellation failed");
+        }
     };
 
     if (isLoading) {
         return (
-            <div className="space-y-6 flex flex-col items-center justify-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
-                <p className="text-slate-500 font-bold animate-pulse">Establishing secure link to Library Hub...</p>
-            </div>
+            <StudentLoading />
         );
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="space-y-8 animate-in fade-in duration-700 pb-20">
             <PageHeader
-                title="Knowledge Archive"
-                subtitle="Centralized management of physical and digital assets."
+                title="Library Hub"
+                subtitle="Browse collections and manage your borrowed books."
                 icon={LibraryBig}
                 extraActions={
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="rounded-xl border border-cyan-100 bg-white text-cyan-600 hover:bg-cyan-50 font-bold"
+                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-bold"
                         onClick={() => refetch()}
                     >
                         <RefreshCw className="mr-2 h-4 w-4" />
-                        Sync
+                        Sync Data
                     </Button>
                 }
             />
@@ -165,7 +158,7 @@ export default function LibraryManagementClient() {
                 <Alert variant="destructive" className="rounded-2xl border-rose-100 bg-rose-50 text-rose-700 shadow-sm">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="font-bold">
-                        {error instanceof Error ? error.message : "Archive link failure."}
+                        {error instanceof Error ? error.message : "Failed to load library data."}
                     </AlertDescription>
                 </Alert>
             )}
@@ -178,20 +171,20 @@ export default function LibraryManagementClient() {
                             <BookOpen className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Active Assets</p>
-                            <p className="text-2xl font-black text-slate-800 leading-none">{borrowed.length} Borrowed</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Borrowed Books</p>
+                            <p className="text-2xl font-black text-slate-900 leading-none">{borrowed.length} Active</p>
                         </div>
                     </div>
                 </GlassCard>
 
                 <GlassCard className="p-6">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-2xl bg-cyan-600 shadow-lg shadow-cyan-200">
+                        <div className="p-3 rounded-2xl bg-[#0088A9] shadow-lg shadow-[#0088A9]/20">
                             <Bookmark className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Pending Sync</p>
-                            <p className="text-2xl font-black text-slate-800 leading-none">{reservations.length} Reserved</p>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active Reservations</p>
+                            <p className="text-2xl font-black text-slate-900 leading-none">{reservations.length} Pending</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -203,8 +196,8 @@ export default function LibraryManagementClient() {
                                 <AlertCircle className="h-5 w-5 text-white" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest leading-none mb-1">Critical Priority</p>
-                                <p className="text-2xl font-black text-rose-700 leading-none">{overdue.length} Overdue</p>
+                                <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest leading-none mb-1">Overdue Books</p>
+                                <p className="text-2xl font-black text-rose-700 leading-none">{overdue.length} Total</p>
                             </div>
                         </div>
                     </GlassCard>
@@ -213,26 +206,26 @@ export default function LibraryManagementClient() {
 
             <Tabs defaultValue="borrowed" className="space-y-8">
                 <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-                    <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50 h-12">
-                        <TabsTrigger value="borrowed" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-cyan-600 data-[state=active]:shadow-lg">
+                    <TabsList className="bg-gray-100/50 p-1 rounded-2xl border border-gray-200/50 h-12">
+                        <TabsTrigger value="borrowed" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
                             Borrowed
                         </TabsTrigger>
-                        <TabsTrigger value="reservations" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-cyan-600 data-[state=active]:shadow-lg">
+                        <TabsTrigger value="reservations" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
                             Reservations
                         </TabsTrigger>
-                        <TabsTrigger value="history" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-cyan-600 data-[state=active]:shadow-lg">
+                        <TabsTrigger value="history" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
                             History
                         </TabsTrigger>
-                        <TabsTrigger value="catalog" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-cyan-600 data-[state=active]:shadow-lg">
+                        <TabsTrigger value="catalog" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
                             Catalog
                         </TabsTrigger>
                     </TabsList>
 
                     <div className="relative w-full md:w-[300px]">
-                        <Search className="h-4 w-4 text-cyan-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <Search className="h-4 w-4 text-[#0088A9] absolute left-4 top-1/2 -translate-y-1/2" />
                         <Input
-                            placeholder="Search Archive..."
-                            className="pl-11 bg-white/40 backdrop-blur-sm border-cyan-100 rounded-[1.2rem] h-10 text-sm focus:ring-cyan-500/20 active:scale-[0.99] transition-all"
+                            placeholder="Search my library..."
+                            className="pl-11 bg-white/40 backdrop-blur-sm border-gray-100 rounded-[1.2rem] h-10 text-sm focus:ring-[#0088A9]/20 active:scale-[0.99] transition-all"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -257,9 +250,9 @@ export default function LibraryManagementClient() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/50 flex flex-col items-center">
-                                    <BookOpen className="h-12 w-12 text-slate-200 mb-4" />
-                                    <p className="text-slate-400 font-bold uppercase tracking-widest">No Active Borrowings Detected</p>
+                                <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
+                                    <BookOpen className="h-12 w-12 text-gray-200 mb-4" />
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest">You have no borrowed books</p>
                                 </div>
                             )}
                         </AnimatePresence>
@@ -285,9 +278,9 @@ export default function LibraryManagementClient() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/50 flex flex-col items-center">
-                                    <Bookmark className="h-12 w-12 text-slate-200 mb-4" />
-                                    <p className="text-slate-400 font-bold uppercase tracking-widest">No Active Reservations Detected</p>
+                                <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
+                                    <Bookmark className="h-12 w-12 text-gray-200 mb-4" />
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest">You have no active reservations</p>
                                 </div>
                             )}
                         </AnimatePresence>
@@ -309,9 +302,9 @@ export default function LibraryManagementClient() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/50 flex flex-col items-center">
-                                    <History className="h-12 w-12 text-slate-200 mb-4" />
-                                    <p className="text-slate-400 font-bold uppercase tracking-widest">Archive History Empty</p>
+                                <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
+                                    <History className="h-12 w-12 text-gray-200 mb-4" />
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest">No library history found</p>
                                 </div>
                             )}
                         </AnimatePresence>
@@ -320,10 +313,10 @@ export default function LibraryManagementClient() {
 
                 <TabsContent value="catalog" className="mt-0 space-y-6">
                     <div className="relative">
-                        <Search className="h-4 w-4 text-cyan-500 absolute left-4 top-1/2 -translate-y-1/2" />
+                        <Search className="h-4 w-4 text-[#0088A9] absolute left-4 top-1/2 -translate-y-1/2" />
                         <Input
-                            placeholder="Search complete Archive Catalog..."
-                            className="pl-11 bg-white/40 backdrop-blur-sm border-cyan-100 rounded-[1.2rem] h-12 focus:ring-cyan-500/20 active:scale-[0.99] transition-all shadow-sm"
+                            placeholder="Search library catalog..."
+                            className="pl-11 bg-white/40 backdrop-blur-sm border-gray-100 rounded-[1.2rem] h-12 focus:ring-[#0088A9]/20 active:scale-[0.99] transition-all shadow-sm"
                             value={catalogSearch}
                             onChange={(e) => setCatalogSearch(e.target.value)}
                         />
@@ -332,7 +325,7 @@ export default function LibraryManagementClient() {
                     <div className="grid gap-6">
                         {isLoadingCatalog ? (
                             <div className="flex justify-center py-20">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0088A9]"></div>
                             </div>
                         ) : availableBooks.length > 0 ? (
                             <>
@@ -358,17 +351,17 @@ export default function LibraryManagementClient() {
                                             variant="ghost"
                                             onClick={() => fetchNextPage()}
                                             disabled={isFetchingNextPage}
-                                            className="rounded-xl border border-cyan-100 bg-white text-cyan-600 hover:bg-cyan-50 font-black uppercase tracking-widest text-[10px] px-8 py-6 h-auto shadow-sm"
+                                            className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] px-8 py-6 h-auto shadow-sm"
                                         >
-                                            {isFetchingNextPage ? "Sourcing Assets..." : "Expand Results"}
+                                            {isFetchingNextPage ? "Loading more..." : "Show More"}
                                         </Button>
                                     </div>
                                 )}
                             </>
                         ) : (
-                            <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-[2rem] bg-slate-50/50 flex flex-col items-center">
-                                <History className="h-12 w-12 text-slate-200 mb-4" />
-                                <p className="text-slate-400 font-bold uppercase tracking-widest">No Catalog Entries Match Search Pattern</p>
+                            <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
+                                <History className="h-12 w-12 text-gray-200 mb-4" />
+                                <p className="text-slate-500 font-bold uppercase tracking-widest">No books match your search</p>
                             </div>
                         )}
                     </div>

@@ -25,32 +25,32 @@ export function BookCard({
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <h4 className="text-lg font-black text-slate-800 leading-tight group-hover:text-cyan-600 transition-colors">
+                            <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-[#0088A9] transition-colors">
                                 {book.title}
                             </h4>
                             <StatusBadge
                                 status={isAvailable ? "active" : "failed"}
-                                label={isAvailable ? "Available" : "Unavailable"}
+                                label={isAvailable ? "Available" : "Checked Out"}
                             />
                         </div>
-                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest leading-none">
+                        <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-widest leading-none">
                             {book.author}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <BookOpen className="h-3.5 w-3.5 text-cyan-500" />
+                        <div className="flex items-center gap-2 text-slate-500">
+                            <BookOpen className="h-3.5 w-3.5 text-[#0088A9]" />
                             <span className="text-[10px] font-bold uppercase tracking-widest">{book.category}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-400">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-cyan-500" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{book.availableCopies || 0} Units</span>
+                        <div className="flex items-center gap-2 text-slate-500">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-[#0088A9]" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">{book.availableCopies || 0} Copies</span>
                         </div>
                     </div>
 
                     {book.publisher && (
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
                             Published by {book.publisher} {book.publicationYear ? `(${book.publicationYear})` : ''}
                         </p>
                     )}
@@ -59,11 +59,11 @@ export function BookCard({
                 {onReserve && isAvailable && (
                     <Button
                         size="sm"
-                        className="rounded-xl border border-cyan-100 bg-white text-cyan-600 hover:bg-cyan-600 hover:text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 shadow-sm shadow-cyan-100 transition-all active:scale-95"
+                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-[#0088A9] hover:text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 shadow-sm transition-all active:scale-95"
                         onClick={() => onReserve(book)}
                         disabled={isReserving}
                     >
-                        {isReserving ? "Processing..." : "Reserve"}
+                        {isReserving ? "Processing..." : "Reserve Book"}
                     </Button>
                 )}
             </div>
@@ -107,31 +107,31 @@ export function BorrowedBookCard({
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <h4 className="text-lg font-black text-slate-800 leading-tight">
-                                {bookDetails?.title || "Unknown Asset"}
+                            <h4 className="text-lg font-black text-slate-900 leading-tight">
+                                {bookDetails?.title || "Unknown Book"}
                             </h4>
                             <StatusBadge status={getStatus()} label={getStatusLabel()} />
                         </div>
-                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest leading-none">
-                            {bookDetails?.author || "Unknown Operator"} • ISBN: {bookDetails?.isbn || "N/A"}
+                        <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-widest leading-none">
+                            {bookDetails?.author || "Unknown Author"} • ISBN: {bookDetails?.isbn || "N/A"}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100/50">
-                            <Clock className="h-4 w-4 text-cyan-500" />
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                            <Clock className="h-4 w-4 text-[#0088A9]" />
                             <div>
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Due Date</p>
-                                <p className={`text-xs font-black ${isOverdue ? 'text-rose-500' : 'text-slate-700'}`}>
-                                    {dueDate.toLocaleDateString()} {!isOverdue && `(${daysLeft}d left)`}
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Due Date</p>
+                                <p className={`text-xs font-black ${isOverdue ? 'text-rose-600' : 'text-slate-800'}`}>
+                                    {dueDate.toLocaleDateString()} {!isOverdue && `(${daysLeft} days left)`}
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100/50">
-                            <Bookmark className="h-4 w-4 text-cyan-500" />
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                            <Bookmark className="h-4 w-4 text-[#0088A9]" />
                             <div>
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Borrow Date</p>
-                                <p className="text-xs font-black text-slate-700">
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Borrow Date</p>
+                                <p className="text-xs font-black text-slate-800">
                                     {new Date(item.borrowDate).toLocaleDateString()}
                                 </p>
                             </div>
@@ -142,10 +142,10 @@ export function BorrowedBookCard({
                 {onReturn && (
                     <Button
                         size="sm"
-                        className="rounded-xl bg-slate-100 text-slate-600 hover:bg-cyan-600 hover:text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-sm transition-all active:scale-95"
+                        className="rounded-xl bg-slate-100 text-slate-600 hover:bg-[#0088A9] hover:text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-sm transition-all active:scale-95"
                         onClick={() => onReturn(item.id)}
                     >
-                        How to Return
+                        Return Info
                     </Button>
                 )}
             </div>
@@ -174,32 +174,32 @@ export function ReservationCard({
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <h4 className="text-lg font-black text-slate-800 leading-tight">
-                                {bookDetails?.title || "Pending Allocation"}
+                            <h4 className="text-lg font-black text-slate-900 leading-tight">
+                                {bookDetails?.title || "Pending Reservation"}
                             </h4>
-                            <StatusBadge status={item.status === 'pending' ? 'active' : item.status} label={item.status.toUpperCase()} />
+                            <StatusBadge status={item.status === 'pending' ? 'active' : item.status} label={item.status === 'pending' ? 'Active' : item.status.toUpperCase()} />
                         </div>
-                        <p className="text-[10px] font-black text-cyan-600 uppercase tracking-widest">
-                            {bookDetails?.author || "Internal System"} • Copy Index: {item.copy?.copyNumber || "N/A"}
+                        <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-widest">
+                            {bookDetails?.author || "Library System"} • Copy: {item.copy?.copyNumber || "N/A"}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100/50">
-                            <Clock className="h-4 w-4 text-cyan-500" />
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                            <Clock className="h-4 w-4 text-[#0088A9]" />
                             <div>
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Expiry Horizon</p>
-                                <p className={`text-xs font-black ${isExpired ? 'text-rose-500' : 'text-slate-700'}`}>
+                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Expires On</p>
+                                <p className={`text-xs font-black ${isExpired ? 'text-rose-600' : 'text-slate-800'}`}>
                                     {expiryDate.toLocaleString()}
                                 </p>
                             </div>
                         </div>
                         {item.copy?.location && (
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-cyan-50 border border-cyan-100/50">
-                                <MapPin className="h-4 w-4 text-cyan-600" />
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0088A9]/5 border border-[#0088A9]/10">
+                                <MapPin className="h-4 w-4 text-[#0088A9]" />
                                 <div>
-                                    <p className="text-[8px] font-black text-cyan-500 uppercase tracking-widest leading-none mb-1">Pickup Vector</p>
-                                    <p className="text-xs font-black text-cyan-700">{item.copy.location}</p>
+                                    <p className="text-[8px] font-black text-[#0088A9] uppercase tracking-widest leading-none mb-1">Library Location</p>
+                                    <p className="text-xs font-black text-slate-900">{item.copy.location}</p>
                                 </div>
                             </div>
                         )}
@@ -214,7 +214,7 @@ export function ReservationCard({
                         onClick={() => onCancel(item.id)}
                         disabled={isCancelling}
                     >
-                        {isCancelling ? "Purging..." : "Cancel"}
+                        {isCancelling ? "Cancelling..." : "Cancel Reservation"}
                     </Button>
                 )}
             </div>
@@ -229,22 +229,22 @@ export function LibraryHistoryCard({ item }: { item: Borrowing | Reservation }) 
     const status = item.status;
 
     return (
-        <div className="group relative p-4 rounded-2xl border border-slate-100 hover:border-cyan-100 hover:bg-cyan-50/30 transition-all duration-300">
+        <div className="group relative p-4 rounded-2xl border border-gray-100 hover:border-[#0088A9]/30 hover:bg-gray-50/50 transition-all duration-300">
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
-                    <div className={`p-2 rounded-xl ${isBorrowing ? 'bg-slate-100 text-slate-500' : 'bg-cyan-100 text-cyan-500'}`}>
+                    <div className={`p-2 rounded-xl ${isBorrowing ? 'bg-gray-100 text-slate-500' : 'bg-[#0088A9]/10 text-[#0088A9]'}`}>
                         {isBorrowing ? <BookOpen className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                     </div>
                     <div>
                         <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-sm font-black text-slate-800">{bookDetails?.title || "Archived Asset"}</span>
+                            <span className="text-sm font-black text-slate-900">{bookDetails?.title || "Library Book"}</span>
                             <StatusBadge
                                 status={status === 'returned' || status === 'fulfilled' ? 'success' : status}
                                 label={status.toUpperCase()}
                             />
                         </div>
-                        <div className="flex items-center gap-3 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                            <span>{isBorrowing ? "Borrowing Loop" : "Reservation Sequence"}</span>
+                        <div className="flex items-center gap-3 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                            <span>{isBorrowing ? "Borrowed" : "Reserved"}</span>
                             <span>•</span>
                             <span>{bookDetails?.author}</span>
                         </div>
