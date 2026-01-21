@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface QuizStatItemProps {
     label: string;
@@ -14,6 +15,37 @@ interface QuizStatItemProps {
     delay?: number;
 }
 
+const cardVariants = {
+    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    visible: (delay: number) => ({
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            delay,
+            duration: 0.5,
+            ease: "easeOut" as const,
+        },
+    }),
+};
+
+const iconVariants = {
+    hover: {
+        scale: 1.15,
+        rotate: [0, -10, 10, 0],
+        transition: { duration: 0.4 },
+    },
+};
+
+const valueVariants = {
+    hidden: { opacity: 0, scale: 0.5 },
+    visible: {
+        opacity: 1,
+        scale: 1,
+        transition: { delay: 0.2, duration: 0.4, type: "spring" as const, stiffness: 200 },
+    },
+};
+
 export function QuizStatItem({
     label,
     value,
@@ -22,35 +54,48 @@ export function QuizStatItem({
     bgClass,
     delay = 0,
 }: QuizStatItemProps) {
+    const theme = useDashboardTheme();
+
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay }}
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            custom={delay}
+            whileHover={{ y: -5, transition: { duration: 0.2 } }}
         >
             <Card
                 className={cn(
-                    "border-2 border-slate-100 rounded-[2rem] bg-white shadow-xl shadow-slate-200/40 overflow-hidden group hover:border-indigo-500/20 transition-all duration-300",
+                    "border-slate-100 rounded-3xl bg-white/60 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all duration-300",
+                    `hover:border-${theme.colors.accent.primary.replace('text-', '')}/20`
                 )}
             >
                 <CardContent className="p-6">
                     <div className="flex items-center gap-4">
-                        <div
+                        <motion.div
+                            variants={iconVariants}
+                            whileHover="hover"
                             className={cn(
-                                "h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110",
+                                "h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 relative overflow-hidden",
                                 bgClass,
                                 colorClass,
                             )}
                         >
-                            <Icon className="h-7 w-7" />
-                        </div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <Icon className="h-7 w-7 relative z-10" />
+                        </motion.div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-1">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">
                                 {label}
                             </p>
-                            <p className="text-2xl font-black text-slate-900 tracking-tight">
+                            <motion.p
+                                variants={valueVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="text-2xl font-black text-slate-900 tracking-tight"
+                            >
                                 {value}
-                            </p>
+                            </motion.p>
                         </div>
                     </div>
                 </CardContent>
@@ -69,12 +114,28 @@ interface QuizStatsProps {
     }[];
 }
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.1,
+        },
+    },
+};
+
 export function QuizStats({ stats }: QuizStatsProps) {
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-6"
+        >
             {stats.map((stat, index) => (
                 <QuizStatItem key={`${stat.label}-${index}`} {...stat} delay={index * 0.1} />
             ))}
-        </div>
+        </motion.div>
     );
 }

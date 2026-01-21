@@ -14,12 +14,15 @@ import {
     Shield,
     Layout
 } from "lucide-react";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface QuizSettingsCardProps {
     quiz: Quiz;
 }
 
 export function QuizSettingsCard({ quiz }: QuizSettingsCardProps) {
+    const theme = useDashboardTheme();
+
     const settings = [
         { label: "Shuffle Questions", value: quiz.shuffleQuestions, icon: Layout },
         { label: "Shuffle Options", value: quiz.shuffleOptions, icon: Layout },
@@ -29,10 +32,10 @@ export function QuizSettingsCard({ quiz }: QuizSettingsCardProps) {
 
     return (
         <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border-2 border-slate-100 rounded-[2.5rem] overflow-hidden bg-white shadow-xl shadow-slate-200/30 p-0">
+            <Card className="border border-slate-200/60 rounded-3xl overflow-hidden bg-white/60 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all duration-300 p-0">
                 <CardHeader className="pb-4 bg-slate-50/50 border-b-2 border-slate-50 p-8">
                     <CardTitle className="text-xl font-black text-slate-900 flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/20">
+                        <div className={`p-2.5 rounded-xl ${theme.colors.accent.secondary} text-white shadow-lg shadow-${theme.colors.accent.primary.replace('text-', '')}/20`}>
                             <Shield className="h-5 w-5" />
                         </div>
                         Quiz Settings
@@ -46,17 +49,17 @@ export function QuizSettingsCard({ quiz }: QuizSettingsCardProps) {
                             </p>
                             <p className="text-2xl font-black text-slate-900">{quiz.maxAttempts}</p>
                         </div>
-                        <div className="p-5 rounded-2xl bg-indigo-50 border-2 border-indigo-100/50 shadow-sm">
-                            <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                <Target className="w-3 h-3 text-indigo-500" /> Passing Score
+                        <div className={`p-5 rounded-2xl ${theme.colors.sidebar.active} border-2 border-${theme.colors.accent.primary.replace('text-', '')}/20 shadow-sm`}>
+                            <p className={`text-[10px] font-black uppercase tracking-widest mb-2 flex items-center gap-2 ${theme.colors.accent.primary}`}>
+                                <Target className="w-3 h-3" /> Passing Score
                             </p>
-                            <p className="text-2xl font-black text-indigo-700">{quiz.passingScore}%</p>
+                            <p className={`text-2xl font-black ${theme.colors.sidebar.activeText}`}>{quiz.passingScore}%</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
                         {settings.map((s, idx) => (
-                            <div key={`${s.label}-${idx}`} className="flex flex-col gap-2 p-5 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-indigo-100 transition-all group">
+                            <div key={`${s.label}-${idx}`} className={`flex flex-col gap-2 p-5 rounded-2xl bg-slate-50 border-2 border-transparent hover:border-${theme.colors.accent.primary.replace('text-', '')}/30 transition-all group`}>
                                 <div className="flex items-center gap-3">
                                     <s.icon className="h-4 w-4 text-slate-400" />
                                     <span className="text-sm font-bold text-slate-700">{s.label}</span>
@@ -73,7 +76,7 @@ export function QuizSettingsCard({ quiz }: QuizSettingsCardProps) {
                 </CardContent>
             </Card>
 
-            <Card className="border-2 border-slate-100 rounded-[2.5rem] overflow-hidden bg-white shadow-xl shadow-slate-200/30 p-0">
+            <Card className="border border-slate-200/60 rounded-3xl overflow-hidden bg-white/60 backdrop-blur-xl shadow-sm hover:shadow-xl transition-all duration-300 p-0">
                 <CardHeader className="pb-4 bg-slate-50/50 border-b-2 border-slate-50 p-8">
                     <CardTitle className="text-xl font-black text-slate-900 flex items-center gap-3">
                         <div className="p-2.5 rounded-xl bg-amber-500 text-white shadow-lg shadow-amber-500/20">

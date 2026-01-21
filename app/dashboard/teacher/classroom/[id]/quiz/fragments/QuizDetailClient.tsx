@@ -13,7 +13,6 @@ import { notifySuccess, notifyError } from "@/components/toast";
 import { getErrorMessage, getSuccessMessage } from "@/lib/utils/toastHelpers";
 import {
     Users,
-    FileCheck,
     Edit,
     Play,
     Lock,
@@ -22,22 +21,20 @@ import {
     TrendingUp,
     AlertTriangle,
     FileText,
-    Settings,
     BarChart3,
-    BarChart,
     Layout,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { QuizHeader } from "./QuizHeader";
+import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { QuizStats } from "./QuizStats";
 import { QuizSettingsCard } from "./QuizSettingsCard";
 import { QuestionReviewCard } from "./QuestionReviewCard";
 import { SubmissionRow } from "./SubmissionRow";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface QuizDetailClientProps {
     quiz: Quiz;
@@ -48,6 +45,29 @@ interface QuizDetailClientProps {
     refresh: () => void;
 }
 
+const tabContentVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.98 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: { duration: 0.4, ease: "easeOut" as const },
+    },
+    exit: {
+        opacity: 0,
+        y: -10,
+        transition: { duration: 0.2 },
+    },
+};
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1, delayChildren: 0.1 },
+    },
+};
+
 export function QuizDetailClient({
     quiz,
     questions,
@@ -57,6 +77,7 @@ export function QuizDetailClient({
     refresh,
 }: QuizDetailClientProps) {
     const router = useRouter();
+    const theme = useDashboardTheme();
     const [activeTab, setActiveTab] = useState("analytics");
 
     const handlePublish = async () => {
@@ -96,8 +117,8 @@ export function QuizDetailClient({
             label: "Submissions",
             value: submissions.length,
             icon: Users,
-            colorClass: "text-indigo-600",
-            bgClass: "bg-indigo-50",
+            colorClass: theme.colors.accent.primary,
+            bgClass: theme.colors.sidebar.active,
         },
         {
             label: "Average Score",
@@ -160,58 +181,62 @@ export function QuizDetailClient({
     });
 
     return (
-        <div className="space-y-12 pb-12 overflow-hidden">
-            <QuizHeader
+        <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-12 pb-12 overflow-hidden"
+        >
+            <PageHeader
                 title={quiz.title}
                 subtitle={quiz.description || "Quiz Details"}
-                backHref={`/dashboard/teacher/classroom/${workspaceId}/quiz`}
-                breadcrumbs={[
-                    {
-                        label: "Classroom",
-                        href: `/dashboard/teacher/classroom/${workspaceId}`,
-                    },
-                    {
-                        label: "Quizzes",
-                        href: `/dashboard/teacher/classroom/${workspaceId}/quiz`,
-                    },
-                    { label: "Detail" },
-                ]}
+                onBack={() => router.push(`/dashboard/teacher/classroom/${workspaceId}/quiz`)}
                 icon={Trophy}
-                badgeText={`Status: ${quiz.status.toUpperCase()}`}
-                action={
+                extraActions={
                     <div className="flex items-center gap-3">
+                        <Badge className={`${theme.colors.sidebar.active} ${theme.colors.sidebar.activeText} border-none px-3 py-1 rounded-full flex items-center gap-2 shadow-sm`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${theme.colors.sidebar.activeText}`}>
+                                Status: {quiz.status.toUpperCase()}
+                            </span>
+                        </Badge>
                         {quiz.status === "draft" && (
                             <>
-                                <Button
-                                    onClick={() =>
-                                        router.push(
-                                            `/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`
-                                        )
-                                    }
-                                    variant="outline"
-                                    className="h-14 px-8 rounded-2xl border-2 border-slate-100 bg-white font-black text-[11px] uppercase tracking-[0.2em] text-slate-600 hover:text-indigo-600 hover:border-indigo-500/30 transition-all"
-                                >
-                                    <Edit className="h-4 w-4 mr-3" />
-                                    Modify
-                                </Button>
-                                <Button
-                                    onClick={handlePublish}
-                                    disabled={questions.length === 0}
-                                    className="h-14 px-8 rounded-2xl bg-indigo-600 border-none hover:bg-indigo-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-indigo-200 transition-all active:scale-95"
-                                >
-                                    <Play className="h-4 w-4 mr-3" />
-                                    Publish
-                                </Button>
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                    <Button
+                                        onClick={() =>
+                                            router.push(
+                                                `/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`
+                                            )
+                                        }
+                                        variant="outline"
+                                        className={`h-11 px-6 rounded-xl border-slate-200 text-slate-600 hover:${theme.colors.accent.primary} hover:bg-slate-50 transition-all`}
+                                    >
+                                        <Edit className="h-4 w-4 mr-2" />
+                                        Modify
+                                    </Button>
+                                </motion.div>
+                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                    <Button
+                                        onClick={handlePublish}
+                                        disabled={questions.length === 0}
+                                        className={`h-11 px-6 rounded-xl ${theme.colors.accent.secondary} border-none text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-teal-500/20 transition-all`}
+                                    >
+                                        <Play className="h-4 w-4 mr-2" />
+                                        Publish
+                                    </Button>
+                                </motion.div>
                             </>
                         )}
                         {quiz.status === "published" && (
-                            <Button
-                                onClick={handleClose}
-                                className="h-14 px-8 rounded-2xl bg-rose-600 border-none hover:bg-rose-700 text-white font-black text-[11px] uppercase tracking-[0.2em] shadow-2xl shadow-rose-200 transition-all active:scale-95"
-                            >
-                                <Lock className="h-4 w-4 mr-3" />
-                                Close Quiz
-                            </Button>
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button
+                                    onClick={handleClose}
+                                    className="h-11 px-6 rounded-xl bg-gradient-to-r from-rose-500 to-rose-600 border-none text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-200 transition-all"
+                                >
+                                    <Lock className="h-4 w-4 mr-2" />
+                                    Close Quiz
+                                </Button>
+                            </motion.div>
                         )}
                     </div>
                 }
@@ -220,112 +245,142 @@ export function QuizDetailClient({
             <QuizStats stats={statItems} />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-                <div className="relative">
-                    <TabsList className="bg-white border-2 border-slate-100 rounded-[1.5rem] p-1.5 h-auto shadow-xl shadow-slate-200/40 sticky top-4 z-10 w-full md:w-auto">
-                        <TabsTrigger
-                            value="analytics"
-                            className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-xl gap-3 px-6 py-3 font-black text-[10px] uppercase tracking-widest text-slate-400"
-                        >
-                            <BarChart3 className="h-4 w-4" />
-                            Analytics
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="questions"
-                            className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-xl gap-3 px-6 py-3 font-black text-[10px] uppercase tracking-widest text-slate-400"
-                        >
-                            <Layout className="h-4 w-4" />
-                            Questions ({questions.length})
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="submissions"
-                            className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white rounded-xl gap-3 px-6 py-3 font-black text-[10px] uppercase tracking-widest text-slate-400 relative"
-                        >
-                            <Users className="h-4 w-4" />
-                            Submissions ({submissions.length})
-                            {pendingCount > 0 && (
-                                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-600 text-white text-[9px] flex items-center justify-center font-black animate-bounce shadow-lg">
-                                    {pendingCount}
-                                </span>
-                            )}
-                        </TabsTrigger>
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="relative"
+                >
+                    <TabsList className="bg-white/90 backdrop-blur-sm border-2 border-slate-100 rounded-[1.5rem] p-1.5 h-auto shadow-xl shadow-slate-200/40 sticky top-4 z-10 w-full md:w-auto">
+                        {[
+                            { value: "analytics", icon: BarChart3, label: "Analytics" },
+                            { value: "questions", icon: Layout, label: `Questions (${questions.length})` },
+                            { value: "submissions", icon: Users, label: `Submissions (${submissions.length})`, badge: pendingCount },
+                        ].map((tab) => (
+                            <TabsTrigger
+                                key={tab.value}
+                                value={tab.value}
+                                className={cn(
+                                    "rounded-xl gap-3 px-6 py-3 font-black text-[10px] uppercase tracking-widest text-slate-400 relative transition-all duration-300",
+                                    `data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg`
+                                )}
+                            >
+                                <tab.icon className="h-4 w-4" />
+                                {tab.label}
+                                {tab.badge && tab.badge > 0 && (
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-white text-[9px] flex items-center justify-center font-black shadow-lg"
+                                    >
+                                        {tab.badge}
+                                    </motion.span>
+                                )}
+                            </TabsTrigger>
+                        ))}
                     </TabsList>
-                </div>
+                </motion.div>
 
-                <TabsContent value="analytics" className="space-y-8 outline-none mt-0">
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-8"
-                    >
-                        <QuizSettingsCard quiz={quiz} />
+                <AnimatePresence mode="wait">
+                    <TabsContent value="analytics" className="space-y-8 outline-none mt-0">
+                        <motion.div
+                            key="analytics"
+                            variants={tabContentVariants}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            className="space-y-8"
+                        >
+                            <QuizSettingsCard quiz={quiz} />
 
-                        {submissions.length > 0 && (
-                            <div className="space-y-8">
-                                <div className="flex items-center justify-between">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Score Distribution</h3>
-                                    <div className="h-px flex-1 bg-slate-100 mx-8" />
+                            {submissions.length > 0 && (
+                                <div className="space-y-8">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Score Distribution</h3>
+                                        <div className="h-px flex-1 bg-gradient-to-r from-slate-100 to-transparent mx-8" />
+                                    </div>
+
+                                    <div className="grid gap-4">
+                                        {[
+                                            { label: "Top Performers", min: 90, max: 100, color: theme.colors.accent.secondary, text: theme.colors.accent.primary },
+                                            { label: "High Pass", min: 70, max: 89, color: "bg-emerald-500", text: "text-emerald-500" },
+                                            { label: "Average Range", min: 50, max: 69, color: "bg-amber-500", text: "text-amber-500" },
+                                            { label: "Needs Improvement", min: 0, max: 49, color: "bg-rose-500", text: "text-rose-500" },
+                                        ].map((range, rIdx) => {
+                                            const count = submissions.filter(
+                                                (s) => s.percentage !== null && s.percentage >= range.min && s.percentage <= range.max
+                                            ).length;
+                                            const percentage = submissions.length > 0 ? (count / submissions.length) * 100 : 0;
+                                            return (
+                                                <motion.div
+                                                    key={`range-${rIdx}`}
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: rIdx * 0.1 }}
+                                                    whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+                                                    className={`p-6 rounded-3xl bg-white/90 backdrop-blur-sm border-2 border-slate-100 shadow-lg shadow-slate-100/50 flex flex-col md:flex-row md:items-center gap-6 group hover:border-${theme.colors.accent.primary.replace('text-', '')}/20 transition-all duration-300`}
+                                                >
+                                                    <div className="w-48 shrink-0">
+                                                        <p className={cn("text-[10px] font-black uppercase tracking-widest", range.text)}>{range.label}</p>
+                                                        <p className="text-xs font-bold text-slate-400 mt-1">{range.min}-{range.max}% range</p>
+                                                    </div>
+                                                    <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden relative">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${percentage}%` }}
+                                                            transition={{ delay: 0.5 + rIdx * 0.1, duration: 0.8, ease: "easeOut" as const }}
+                                                            className={cn("h-full rounded-full shadow-sm", range.color)}
+                                                        />
+                                                    </div>
+                                                    <div className="w-24 text-right">
+                                                        <motion.span
+                                                            initial={{ opacity: 0, scale: 0.5 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            transition={{ delay: 0.8 + rIdx * 0.1 }}
+                                                            className="text-xl font-black text-slate-900 leading-none"
+                                                        >
+                                                            {count}
+                                                        </motion.span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Students</span>
+                                                    </div>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
-
-                                <div className="grid gap-4">
-                                    {[
-                                        { label: "Top Performers", min: 90, max: 100, color: "bg-indigo-600", text: "text-indigo-600" },
-                                        { label: "High Pass", min: 70, max: 89, color: "bg-emerald-500", text: "text-emerald-500" },
-                                        { label: "Average Range", min: 50, max: 69, color: "bg-amber-500", text: "text-amber-500" },
-                                        { label: "Needs Improvement", min: 0, max: 49, color: "bg-rose-500", text: "text-rose-500" },
-                                    ].map((range, rIdx) => {
-                                        const count = submissions.filter(
-                                            (s) => s.percentage !== null && s.percentage >= range.min && s.percentage <= range.max
-                                        ).length;
-                                        const percentage = submissions.length > 0 ? (count / submissions.length) * 100 : 0;
-                                        return (
-                                            <div key={`range-${rIdx}`} className="p-6 rounded-3xl bg-white border-2 border-slate-50 shadow-lg shadow-slate-100/50 flex flex-col md:flex-row md:items-center gap-6 group hover:border-indigo-100 transition-all duration-300">
-                                                <div className="w-48 shrink-0">
-                                                    <p className={cn("text-[10px] font-black uppercase tracking-widest", range.text)}>{range.label}</p>
-                                                    <p className="text-xs font-bold text-slate-400 mt-1">{range.min}-{range.max}% range</p>
-                                                </div>
-                                                <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden relative">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${percentage}%` }}
-                                                        transition={{ duration: 1, ease: "easeOut" }}
-                                                        className={cn("h-full rounded-full shadow-sm", range.color)}
-                                                    />
-                                                </div>
-                                                <div className="w-20 text-right">
-                                                    <span className="text-xl font-black text-slate-900 leading-none">{count}</span>
-                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Students</span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-                    </motion.div>
-                </TabsContent>
+                            )}
+                        </motion.div>
+                    </TabsContent>
+                </AnimatePresence>
 
                 <TabsContent value="questions" className="space-y-8 outline-none mt-0">
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        key="questions"
+                        variants={tabContentVariants}
+                        initial="hidden"
+                        animate="visible"
                         className="space-y-8"
                     >
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Question List</h3>
-                            <div className="h-px flex-1 bg-slate-100 mx-8" />
-                            <Badge className="bg-indigo-50 text-indigo-700 border-none rounded-full px-4 font-black text-[9px] uppercase tracking-widest">
+                            <div className="h-px flex-1 bg-gradient-to-r from-slate-100 to-transparent mx-8" />
+                            <Badge className={`${theme.colors.sidebar.active} ${theme.colors.accent.primary} border-none rounded-full px-4 py-1.5 font-black text-[9px] uppercase tracking-widest shadow-sm`}>
                                 Total Points: {totalPoints}
                             </Badge>
                         </div>
 
                         {questions.length === 0 ? (
-                            <div className="py-24 rounded-[3rem] bg-slate-50 border-4 border-dashed border-white flex flex-col items-center justify-center text-center">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="py-24 rounded-[3rem] bg-gradient-to-br from-slate-50 to-white border-4 border-dashed border-slate-100 flex flex-col items-center justify-center text-center shadow-inner"
+                            >
                                 <div className="h-20 w-20 rounded-2xl bg-white shadow-xl flex items-center justify-center text-slate-200 mb-6">
                                     <FileText className="h-10 w-10" />
                                 </div>
                                 <h4 className="text-xl font-black text-slate-900 mb-2">No Questions</h4>
                                 <p className="text-slate-500 font-bold max-w-xs px-6">No questions have been added to this quiz yet.</p>
-                            </div>
+                            </motion.div>
                         ) : (
                             <div className="grid gap-6">
                                 {questions.map((q, idx) => (
@@ -338,13 +393,15 @@ export function QuizDetailClient({
 
                 <TabsContent value="submissions" className="space-y-8 outline-none mt-0">
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        key="submissions"
+                        variants={tabContentVariants}
+                        initial="hidden"
+                        animate="visible"
                         className="space-y-8"
                     >
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] italic">Student List</h3>
-                            <div className="h-px flex-1 bg-slate-100 mx-8" />
+                            <div className="h-px flex-1 bg-gradient-to-r from-slate-100 to-transparent mx-8" />
                         </div>
 
                         <div className="grid gap-4">
@@ -367,6 +424,6 @@ export function QuizDetailClient({
                     </motion.div>
                 </TabsContent>
             </Tabs>
-        </div>
+        </motion.div>
     );
 }

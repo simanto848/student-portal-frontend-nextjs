@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 
 interface QuizCardProps {
     quiz: Quiz;
@@ -78,6 +79,7 @@ export function QuizCard({
 }: QuizCardProps) {
     const status = statusConfig[quiz.status];
     const StatusIcon = status.icon;
+    const theme = useDashboardTheme();
 
     return (
         <motion.div
@@ -85,14 +87,18 @@ export function QuizCard({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.05 }}
             whileHover={{ y: -5 }}
-            className="group"
+            className="group h-full"
         >
-            <Card className="border-2 border-slate-100 rounded-[2.5rem] overflow-hidden bg-white shadow-xl shadow-slate-200/40 hover:border-indigo-500/20 transition-all duration-300 h-full flex flex-col">
+            <Card className={cn(
+                "border-slate-200/60 rounded-3xl overflow-hidden bg-white shadow-sm hover:shadow-xl transition-all duration-300 h-full flex flex-col",
+                `hover:border-${theme.colors.accent.primary.replace('text-', '')}/20`
+            )}>
                 <CardHeader className="pb-4 space-y-4">
                     <div className="flex items-start justify-between">
                         <Badge
+                            variant="outline"
                             className={cn(
-                                "rounded-full px-4 py-1.5 border-none font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm",
+                                "rounded-lg px-2.5 py-0.5 border-none font-bold text-xs uppercase tracking-tight flex items-center gap-2",
                                 status.bgLight,
                                 status.textColor,
                             )}
@@ -106,14 +112,14 @@ export function QuizCard({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-10 w-10 rounded-2xl hover:bg-slate-100 text-slate-400"
+                                    className="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400"
                                 >
-                                    <MoreVertical className="h-5 w-5" />
+                                    <MoreVertical className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56 p-2 rounded-2xl border-slate-100 shadow-2xl">
                                 <DropdownMenuItem
-                                    className="rounded-xl font-bold text-slate-600 gap-3 p-3 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer"
+                                    className={`rounded-xl font-bold text-slate-600 gap-3 p-3 focus:${theme.colors.sidebar.active} focus:${theme.colors.sidebar.activeText} cursor-pointer`}
                                     asChild
                                 >
                                     <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}`}>
@@ -125,7 +131,7 @@ export function QuizCard({
                                 {quiz.status === "draft" && (
                                     <>
                                         <DropdownMenuItem
-                                            className="rounded-xl font-bold text-slate-600 gap-3 p-3 focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer"
+                                            className={`rounded-xl font-bold text-slate-600 gap-3 p-3 focus:${theme.colors.sidebar.active} focus:${theme.colors.sidebar.activeText} cursor-pointer`}
                                             asChild
                                         >
                                             <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`}>
@@ -167,11 +173,11 @@ export function QuizCard({
                     </div>
 
                     <div>
-                        <CardTitle className="text-xl font-black text-slate-900 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                        <CardTitle className={`text-xl font-black text-slate-900 tracking-tight leading-tight group-hover:${theme.colors.accent.primary} transition-colors line-clamp-2`}>
                             {quiz.title}
                         </CardTitle>
                         {quiz.description && (
-                            <p className="text-slate-500 font-bold text-xs mt-2 line-clamp-2 leading-relaxed">
+                            <p className="text-slate-500 font-medium text-xs mt-2 line-clamp-2 leading-relaxed">
                                 {quiz.description}
                             </p>
                         )}
@@ -179,36 +185,36 @@ export function QuizCard({
                 </CardHeader>
 
                 <CardContent className="pb-6 mt-auto">
-                    <div className="grid grid-cols-3 gap-3 p-4 rounded-[1.5rem] bg-slate-50 border-2 border-slate-50/50">
+                    <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100/50 group-hover:bg-white transition-colors">
                         <div className="flex flex-col items-center gap-1">
-                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors shadow-sm">
+                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors shadow-sm border border-slate-100">
                                 <Clock className="h-4 w-4" />
                             </div>
-                            <span className="text-[10px] font-black text-slate-900 uppercase">
+                            <span className="text-[10px] font-bold text-slate-700 uppercase">
                                 {quiz.duration}m
                             </span>
                         </div>
-                        <div className="flex flex-col items-center gap-1 border-x-2 border-slate-200/50">
-                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-indigo-500 transition-colors shadow-sm">
+                        <div className="flex flex-col items-center gap-1 border-x border-slate-200/50">
+                            <div className={`h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:${theme.colors.accent.primary} transition-colors shadow-sm border border-slate-100`}>
                                 <FileCheck className="h-4 w-4" />
                             </div>
-                            <span className="text-[10px] font-black text-slate-900 uppercase">
+                            <span className="text-[10px] font-bold text-slate-700 uppercase">
                                 {quiz.questionCount}q
                             </span>
                         </div>
                         <div className="flex flex-col items-center gap-1">
-                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-rose-500 transition-colors shadow-sm">
+                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover:text-rose-500 transition-colors shadow-sm border border-slate-100">
                                 <Users className="h-4 w-4" />
                             </div>
-                            <span className="text-[10px] font-black text-slate-900 uppercase">
+                            <span className="text-[10px] font-bold text-slate-700 uppercase">
                                 {quiz.submittedCount || 0}
                             </span>
                         </div>
                     </div>
                 </CardContent>
 
-                <CardFooter className="pt-4 border-t-2 border-slate-50 bg-slate-50/30 px-8 py-5 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                <CardFooter className="pt-4 border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
                         <Calendar className="h-3.5 w-3.5" />
                         <span>
                             {quiz.startAt
@@ -219,12 +225,11 @@ export function QuizCard({
 
                     <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}`}>
                         <Button
-                            variant="ghost"
                             size="sm"
-                            className="rounded-xl h-10 px-4 font-black text-[10px] uppercase tracking-[0.2em] text-indigo-600 hover:bg-indigo-50 transition-all active:scale-95 gap-2"
+                            className={`rounded-xl h-9 px-4 font-bold text-[10px] uppercase tracking-wider ${theme.colors.accent.secondary} text-white hover:opacity-90 transition-all shadow-md shadow-teal-500/10 gap-2`}
                         >
                             Details
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-3.5 w-3.5" />
                         </Button>
                     </Link>
                 </CardFooter>
