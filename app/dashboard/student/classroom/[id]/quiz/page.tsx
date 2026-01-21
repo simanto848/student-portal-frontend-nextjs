@@ -8,12 +8,10 @@ import QuizListClient from "./fragments/QuizListClient";
 
 export default function StudentQuizListPage() {
     return (
-        <DashboardLayout>
-            <div className="min-h-screen">
-                <Suspense fallback={<DashboardSkeleton />}>
-                    <QuizListClient />
-                </Suspense>
-            </div>
-        </DashboardLayout>
+        <div className="min-h-screen">
+            <Suspense fallback={<DashboardSkeleton />}>
+                <QuizListClient />
+            </Suspense>
+        </div>
     );
 }

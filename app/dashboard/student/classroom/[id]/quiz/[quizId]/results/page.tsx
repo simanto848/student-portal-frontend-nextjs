@@ -7,12 +7,10 @@ import QuizResultsClient from "./fragments/QuizResultsClient";
 
 export default function QuizResultsPage() {
     return (
-        <DashboardLayout>
-            <div className="min-h-screen">
-                <Suspense fallback={<DashboardSkeleton />}>
-                    <QuizResultsClient />
-                </Suspense>
-            </div>
-        </DashboardLayout>
+        <div className="min-h-screen">
+            <Suspense fallback={<DashboardSkeleton />}>
+                <QuizResultsClient />
+            </Suspense>
+        </div>
     );
 }

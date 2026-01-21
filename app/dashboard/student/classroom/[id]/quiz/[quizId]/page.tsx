@@ -7,12 +7,10 @@ import QuizAttemptClient from "./fragments/QuizAttemptClient";
 
 export default function TakeQuizPage() {
     return (
-        <DashboardLayout>
-            <div className="min-h-screen">
-                <Suspense fallback={<DashboardSkeleton />}>
-                    <QuizAttemptClient />
-                </Suspense>
-            </div>
-        </DashboardLayout>
+        <div className="min-h-screen">
+            <Suspense fallback={<DashboardSkeleton />}>
+                <QuizAttemptClient />
+            </Suspense>
+        </div>
     );
 }
