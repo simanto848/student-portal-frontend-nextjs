@@ -189,6 +189,67 @@ export default function StudentLayout({
                         {children}
                     </div>
                 </main>
+
+                {/* Floating Bottom Action Bar - Pill Style */}
+                <motion.div
+                    initial={{ y: 100, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
+                    className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 px-10 pointer-events-none"
+                >
+                    <div className="glass-panel px-10 py-5 rounded-full flex items-center gap-10 border border-white/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] backdrop-blur-3xl pointer-events-auto">
+                        <Link href="/dashboard/student/classroom">
+                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500 text-indigo-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                    <span className="material-icons-outlined text-3xl">class</span>
+                                </div>
+                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                    Classroom
+                                </span>
+                            </button>
+                        </Link>
+                        <Link href="/dashboard/student/assessments">
+                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-pink-500 text-pink-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                    <span className="material-icons-outlined text-3xl">assignment</span>
+                                </div>
+                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                    Exams
+                                </span>
+                            </button>
+                        </Link>
+                        <Link href="/dashboard/student/library">
+                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-yellow-500 text-yellow-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                    <span className="material-icons-outlined text-3xl">library_books</span>
+                                </div>
+                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                    Library
+                                </span>
+                            </button>
+                        </Link>
+                        <Link href="/dashboard/student/classes">
+                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-[#0088A9] text-[#0088A9] group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                    <span className="material-icons-outlined text-3xl">calendar_today</span>
+                                </div>
+                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                    Schedule
+                                </span>
+                            </button>
+                        </Link>
+                        <Link href="/dashboard/student">
+                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-[#0088A9] text-[#0088A9] group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                    <span className="material-icons-outlined text-3xl">home</span>
+                                </div>
+                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                    Home
+                                </span>
+                            </button>
+                        </Link>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );
