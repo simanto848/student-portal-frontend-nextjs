@@ -1,26 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, MapPin, Clock, BookOpen, Download, AlertCircle } from "lucide-react";
+import {
+    CalendarDays,
+    MapPin,
+    Clock,
+    BookOpen,
+    Download,
+    AlertCircle,
+    Building2,
+    Loader2,
+    CalendarCheck2
+} from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { scheduleService } from "@/services/academic/schedule.service";
 import { CourseSchedule, Classroom } from "@/services/academic/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { studentService } from "@/services/user/student.service";
-import { PageHeader } from "@/components/dashboard/shared/PageHeader";
-import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { notifyError } from "@/components/toast";
+import StudentLoading from "@/components/StudentLoading";
 
 interface FormattedSlot {
     id: string;
     day: string;
-    time: string;
+    startTime: string;
+    endTime: string;
     course: string;
     title: string;
     room: string;
@@ -99,12 +108,13 @@ export function ClassesClient() {
         return {
             id: `${schedule.id}-${day}-${index}`,
             day: day,
-            time: `${schedule.startTime} - ${schedule.endTime}`,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
             course: course?.code || 'N/A',
             title: course?.name || 'Unknown Course',
             room: room,
             building: building,
-            type: schedule.classType
+            type: schedule.classType || 'Lecture'
         };
     };
 
@@ -114,207 +124,222 @@ export function ClassesClient() {
         return schedule.daysOfWeek.map((day, index) => formatSlot(schedule, day, index));
     });
 
-    const todaySlots = allFormatted.filter(s => s.day === todayFullName).sort((a, b) => a.time.localeCompare(b.time));
+    const todaySlots = allFormatted.filter(s => s.day === todayFullName).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     const daysOrder = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const weeklyGrouped = daysOrder.map(day => {
         return {
             day,
-            slots: allFormatted.filter(s => s.day === day).sort((a, b) => a.time.localeCompare(b.time))
+            slots: allFormatted.filter(s => s.day === day).sort((a, b) => a.startTime.localeCompare(b.startTime))
         };
     }).filter(group => group.slots.length > 0);
 
     const getTypeColor = (type: string = '') => {
         switch (type.toLowerCase()) {
-            case 'lecture': return 'bg-cyan-100 text-cyan-700 border-cyan-200';
-            case 'lab': return 'bg-sky-100 text-sky-700 border-sky-200';
+            case 'lecture': return 'bg-[#0088A9]/10 text-[#0088A9] border-[#0088A9]/20';
+            case 'lab': return 'bg-blue-400/10 text-blue-500 border-blue-400/20';
             case 'tutorial': return 'bg-indigo-100 text-indigo-700 border-indigo-200';
-            case 'seminar': return 'bg-blue-100 text-blue-700 border-blue-200';
-            default: return 'bg-slate-100 text-slate-700 border-slate-200';
+            default: return 'bg-[#0088A9]/10 text-[#0088A9] border-[#0088A9]/20';
         }
     };
 
     if (loading) {
         return (
-            <div className="space-y-6">
-                <div className="flex flex-col gap-4">
-                    <Skeleton className="h-12 w-1/3 rounded-xl" />
-                    <Skeleton className="h-4 w-1/2 rounded-lg" />
-                </div>
-                <div className="grid gap-6 lg:grid-cols-2">
-                    <Skeleton className="h-[400px] w-full bg-white/40 rounded-[2rem]" />
-                    <Skeleton className="h-[400px] w-full bg-white/40 rounded-[2rem]" />
-                </div>
-            </div>
+            <StudentLoading />
         );
     }
 
     return (
-        <div className="space-y-8">
-            <PageHeader
-                title="Class Schedule"
-                subtitle="Manage your weekly academic timetable and sessions."
-                icon={CalendarDays}
-                extraActions={
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="rounded-xl border-white/20 bg-white/40 backdrop-blur-md hover:bg-white/60 text-slate-700"
-                        >
-                            <Download className="mr-2 h-4 w-4" /> Download ICS
-                        </Button>
-                    </div>
-                }
-            />
+        <div className="space-y-12 pb-12">
+            {/* Header Area */}
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-4">
+                        <div className="p-3 rounded-2xl bg-[#0088A9]/10 text-[#0088A9] shadow-inner">
+                            <CalendarDays className="h-8 w-8" />
+                        </div>
+                        Class Schedule
+                    </h1>
+                    <p className="text-gray-500 dark:text-gray-400 font-medium tracking-wide ml-16">
+                        Manage your weekly academic timetable and sessions.
+                    </p>
+                </div>
+                <Button
+                    variant="outline"
+                    className="group relative px-6 py-6 rounded-2xl glass-panel border-[#0088A9]/20 text-[#0088A9] font-black uppercase tracking-widest text-[11px] transition-all hover:bg-[#0088A9]/10 hover:shadow-lg overflow-hidden"
+                >
+                    <Download className="mr-3 h-4 w-4 relative z-10" />
+                    <span className="relative z-10">Export Calendar</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                </Button>
+            </header>
 
             {error && (
-                <Alert variant="destructive" className="rounded-2xl border-red-200 bg-red-50/50 backdrop-blur-md">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
+                <Alert variant="destructive" className="rounded-[2rem] border-red-200 bg-red-50/50 backdrop-blur-md p-6">
+                    <AlertCircle className="h-5 w-5 mr-3" />
+                    <AlertDescription className="font-bold uppercase tracking-tighter">{error}</AlertDescription>
                 </Alert>
             )}
 
-            {/* Today's Overview */}
-            <section className="space-y-6">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-cyan-600" />
+            {/* Today's Deep Dive */}
+            <section className="space-y-8">
+                <div className="flex items-center justify-between px-2">
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
+                        <div className="h-2 w-2 rounded-full bg-[#0088A9] animate-pulse" />
                         Today's Sessions
                     </h2>
-                    <Badge className="bg-cyan-500/10 text-cyan-700 border-cyan-200/50 hover:bg-cyan-500/20 px-3 py-1 rounded-full">
-                        {todaySlots.length} Classes
-                    </Badge>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0088A9] bg-[#0088A9]/10 px-4 py-1.5 rounded-full border border-[#0088A9]/20">
+                        {todaySlots.length} Sessions
+                    </span>
                 </div>
 
                 {todaySlots.length > 0 ? (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         <AnimatePresence mode="popLayout">
                             {todaySlots.map((slot, idx) => (
-                                <GlassCard key={slot.id} delay={idx * 0.1} className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <Badge variant="outline" className={cn("font-semibold rounded-lg px-2 text-[10px] uppercase tracking-wider", getTypeColor(slot.type))}>
+                                <motion.div
+                                    key={slot.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    whileHover={{ y: -8, scale: 1.02 }}
+                                    className="glass-panel group p-8 rounded-[2.5rem] border border-white/60 shadow-xl hover:shadow-2xl transition-all relative overflow-hidden"
+                                >
+                                    {/* Shimmer Effect overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none" />
+
+                                    <div className="flex justify-between items-start mb-8 relative z-10">
+                                        <Badge variant="outline" className={cn("font-black text-[10px] uppercase tracking-[0.15em] px-3 py-1 rounded-xl shadow-sm", getTypeColor(slot.type))}>
                                             {slot.type}
                                         </Badge>
-                                        <div className="flex items-center gap-1.5 text-xs font-bold text-cyan-700 bg-cyan-50 px-2.5 py-1 rounded-full">
-                                            <Clock className="h-3.5 w-3.5" />
-                                            {slot.time.split(' - ')[0]}
+                                        <div className="flex items-center gap-2 text-[#0088A9] font-black text-sm tracking-tighter">
+                                            <Clock className="h-4 w-4" />
+                                            {slot.startTime}
                                         </div>
                                     </div>
 
-                                    <h3 className="text-lg font-bold text-slate-900 group-hover:text-cyan-700 transition-colors mb-1">
-                                        {slot.course}
-                                    </h3>
-                                    <p className="text-sm text-slate-500 line-clamp-1 font-medium mb-4">{slot.title}</p>
-
-                                    <div className="flex items-center justify-between pt-4 border-t border-slate-100/50">
-                                        <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl">
-                                            <MapPin className="h-4 w-4 text-cyan-500" />
-                                            {slot.room}
-                                        </div>
-                                        {slot.building && (
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 py-1 bg-slate-100 rounded-md">
-                                                {slot.building}
-                                            </span>
-                                        )}
+                                    <div className="mb-8 relative z-10">
+                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-2 truncate group-hover:text-[#0088A9] transition-colors">
+                                            {slot.course}
+                                        </h3>
+                                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest line-clamp-1">{slot.title}</p>
                                     </div>
-                                </GlassCard>
+
+                                    <div className="flex justify-between items-center pt-6 border-t border-gray-100 dark:border-white/10 relative z-10">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-gray-600 transition-colors">
+                                            <MapPin className="h-4 w-4 text-[#0088A9]" />
+                                            Room {slot.room}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-gray-100 transition-all group-hover:border-[#0088A9]/20">
+                                            <Building2 className="h-4 w-4 text-[#0088A9]" />
+                                            {slot.building || "Academic Block"}
+                                        </div>
+                                    </div>
+                                </motion.div>
                             ))}
                         </AnimatePresence>
                     </div>
                 ) : (
-                    <GlassCard className="p-12 text-center flex flex-col items-center justify-center">
-                        <div className="h-16 w-16 bg-cyan-50 rounded-2xl flex items-center justify-center mb-4">
-                            <BookOpen className="h-8 w-8 text-cyan-400" />
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="glass-panel p-16 rounded-[3rem] text-center flex flex-col items-center justify-center border border-dashed border-gray-300"
+                    >
+                        <div className="h-20 w-20 bg-[#0088A9]/5 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner">
+                            <BookOpen className="h-10 w-10 text-[#0088A9]/40" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900 leading-tight">No classes scheduled for today</h3>
-                        <p className="text-sm text-slate-500 mt-2 max-w-xs font-medium">
-                            You're all clear! Use this time to catch up on self-study or preparations.
+                        <h3 className="text-xl font-black text-gray-900 tracking-tight uppercase">Base Clean - No Dispatches</h3>
+                        <p className="text-sm text-gray-500 mt-3 max-w-sm font-bold uppercase tracking-tighter leading-relaxed">
+                            Terminal clears reveal an empty schedule. Perfect for deep focus or critical review sessions.
                         </p>
-                    </GlassCard>
+                    </motion.div>
                 )}
             </section>
 
-            {/* Weekly View */}
-            <section className="space-y-6 pt-4">
-                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <CalendarDays className="h-5 w-5 text-sky-600" />
-                    Weekly Overview
-                </h2>
+            {/* Weekly Trajectory */}
+            <section className="space-y-8 pt-6">
+                <div className="flex items-center gap-4 px-2">
+                    <div className="p-2 rounded-xl bg-sky-100 text-[#0088A9]">
+                        <CalendarCheck2 className="h-6 w-6" />
+                    </div>
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Weekly Overview</h2>
+                </div>
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                     <AnimatePresence mode="popLayout">
                         {weeklyGrouped.map((group, groupIdx) => {
                             const isToday = group.day === todayFullName;
                             return (
-                                <GlassCard
+                                <motion.div
                                     key={group.day}
-                                    delay={(groupIdx + 1) * 0.1}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: (groupIdx + 1) * 0.1 }}
                                     className={cn(
-                                        "p-0 overflow-hidden",
-                                        isToday && "ring-2 ring-cyan-500 ring-offset-2 ring-offset-transparent"
+                                        "glass-panel rounded-[3rem] p-0 overflow-hidden border border-white/60 transition-all",
+                                        isToday && "ring-4 ring-[#0088A9]/40 ring-offset-8 ring-offset-transparent shadow-2xl shadow-[#0088A9]/20 scale-[1.03] z-20"
                                     )}
                                 >
                                     <div className={cn(
-                                        "px-6 py-4 flex items-center justify-between border-b border-slate-100/50",
-                                        isToday ? "bg-cyan-500/10" : "bg-slate-50/50"
+                                        "px-8 py-6 flex items-center justify-between border-b border-white/20",
+                                        isToday ? "bg-gradient-to-r from-[#0088A9]/20 to-transparent" : "bg-gray-50/50"
                                     )}>
-                                        <h3 className="font-bold text-slate-800">{group.day}</h3>
+                                        <h3 className={cn(
+                                            "text-xs font-black uppercase tracking-[0.2em]",
+                                            isToday ? "text-[#0088A9]" : "text-gray-400"
+                                        )}>
+                                            {group.day}
+                                        </h3>
                                         {isToday && (
-                                            <Badge className="bg-cyan-500 text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg border-none">
-                                                Active Now
-                                            </Badge>
+                                            <span className="text-[9px] font-black text-white bg-[#0088A9] px-3 py-1 rounded-full animate-pulse tracking-widest">
+                                                ACTIVE NOW
+                                            </span>
                                         )}
                                     </div>
 
-                                    <div className="divide-y divide-slate-100/50">
+                                    <div className="p-2 space-y-4">
                                         {group.slots.map((slot, idx) => (
                                             <motion.div
                                                 key={idx}
-                                                className="p-5 hover:bg-white/40 transition-all group"
+                                                className="p-6 rounded-[2rem] hover:bg-white/60 dark:hover:bg-white/5 transition-all group flex items-start gap-6"
                                                 whileHover={{ x: 5 }}
                                             >
-                                                <div className="flex gap-4">
-                                                    <div className="w-20 shrink-0 flex flex-col items-center justify-center border-r border-slate-100/50 pr-4 mt-1">
-                                                        <span className="text-xs font-bold text-slate-900">{slot.time.split(' - ')[0]}</span>
-                                                        <div className="w-px h-3 bg-slate-100 my-1" />
-                                                        <span className="text-[10px] text-slate-400 font-medium">{slot.time.split(' - ')[1]}</span>
-                                                    </div>
+                                                <div className="w-16 shrink-0 flex flex-col items-center justify-center pt-1 border-r border-gray-100 pr-4">
+                                                    <span className="text-xs font-black text-gray-900 tracking-tighter">{slot.startTime}</span>
+                                                    <div className="w-px h-3 bg-gray-200 my-1.5" />
+                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{slot.endTime}</span>
+                                                </div>
 
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex justify-between items-center mb-1 gap-2">
-                                                            <span className="font-bold text-sm text-slate-800 truncate">{slot.course}</span>
-                                                            <Badge variant="outline" className={cn("text-[9px] h-5 border-none font-bold px-2 rounded-md", getTypeColor(slot.type))}>
-                                                                {slot.type}
-                                                            </Badge>
-                                                        </div>
-                                                        <p className="text-[11px] text-slate-500 line-clamp-1 mb-2.5 font-medium">{slot.title}</p>
-                                                        <div className="flex items-center gap-1.5 text-[10px] text-slate-500 bg-slate-50/50 w-fit px-2 py-1 rounded-lg border border-slate-100/50">
-                                                            <MapPin className="h-3 w-3 text-cyan-500" />
-                                                            <span className="font-bold">{slot.room}</span>
-                                                            {slot.building && (
-                                                                <>
-                                                                    <span className="text-slate-200">|</span>
-                                                                    <span className="font-medium">{slot.building}</span>
-                                                                </>
-                                                            )}
-                                                        </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex justify-between items-start mb-1.5 gap-2">
+                                                        <span className="font-black text-sm text-gray-900 truncate leading-none pt-1">{slot.course}</span>
+                                                        <Badge variant="outline" className={cn("text-[8px] font-black px-2 py-0.5 rounded-lg border-none shadow-sm capitalize", getTypeColor(slot.type))}>
+                                                            {slot.type}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-[11px] text-gray-500 line-clamp-1 mb-4 font-bold uppercase tracking-tight opacity-70">{slot.title}</p>
+                                                    <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-black/20 w-fit px-3 py-1.5 rounded-xl border border-gray-100">
+                                                        <MapPin className="h-3 w-3 text-[#0088A9]" />
+                                                        {slot.room}
                                                     </div>
                                                 </div>
                                             </motion.div>
                                         ))}
                                     </div>
-                                </GlassCard>
+                                </motion.div>
                             );
                         })}
                     </AnimatePresence>
                 </div>
 
                 {weeklyGrouped.length === 0 && (
-                    <GlassCard className="p-16 text-center border-dashed bg-white/20">
-                        <p className="text-slate-500 font-bold">Comprehensive schedule data currently unavailable</p>
-                        <p className="text-xs text-slate-400 mt-2">Please sync with your department or administrator.</p>
-                    </GlassCard>
+                    <div className="p-20 text-center glass-panel rounded-[3.5rem] border-dashed bg-white/10 flex flex-col items-center">
+                        <div className="p-6 rounded-[2rem] bg-gray-50 mb-6">
+                            <Loader2 className="h-10 w-10 text-gray-200 animate-spin" />
+                        </div>
+                        <p className="text-gray-900 font-black uppercase tracking-widest">Awaiting Registry Sync</p>
+                        <p className="text-[11px] text-gray-400 mt-2 font-bold uppercase tracking-tighter">Please synchronize with your Department or System Administrator.</p>
+                    </div>
                 )}
             </section>
         </div>
