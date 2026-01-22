@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -46,11 +46,11 @@ export default function TeacherLayout({
     const { user, logout } = useAuth();
     const profilePicture = getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage);
     const [darkMode, setDarkMode] = useState(false);
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useSyncExternalStore(
+        () => () => { },
+        () => true,
+        () => false
+    );
 
     // Toggle dark mode
     useEffect(() => {

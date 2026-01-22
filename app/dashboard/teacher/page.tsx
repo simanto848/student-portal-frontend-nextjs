@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useSyncExternalStore } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { batchCourseInstructorService } from "@/services/enrollment/batchCourseInstructor.service";
 import { BatchCourseInstructor } from "@/services/enrollment/batchCourseInstructor.service";
@@ -40,11 +40,11 @@ export default function TeacherDashboard() {
   const [courses, setCourses] = useState<BatchCourseInstructor[]>([]);
   const [workflows, setWorkflows] = useState<ResultWorkflow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMounted = useSyncExternalStore(
+    () => () => { },
+    () => true,
+    () => false
+  );
 
   // Notifications
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);

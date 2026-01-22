@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -53,11 +53,11 @@ export default function StudentLayout({
     const { user, logout } = useAuth();
     const profilePicture = getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage);
     const [darkMode, setDarkMode] = useState(false);
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
+    const isMounted = useSyncExternalStore(
+        () => () => { },
+        () => true,
+        () => false
+    );
 
     useEffect(() => {
         if (darkMode) {
@@ -70,12 +70,12 @@ export default function StudentLayout({
     return (
         <div className="flex h-screen w-full overflow-hidden bg-glass-modernist text-gray-800 dark:text-gray-100 transition-colors duration-300 font-sans p-4">
             {/* Main Rounded Container */}
-            <div className="flex h-full w-full glass-panel rounded-[2rem] overflow-hidden shadow-2xl border border-white/40">
+            <div className="flex h-full w-full glass-panel rounded-4xl overflow-hidden shadow-2xl border border-white/40">
                 {/* Sidebar */}
-                <aside className="w-20 glass-inner border-r border-white/20 flex flex-col items-center py-6 h-full flex-shrink-0 z-30">
+                <aside className="w-20 glass-inner border-r border-white/20 flex flex-col items-center py-6 h-full shrink-0 z-30">
                     {/* Logo */}
-                    <div className="mb-8 p-3 bg-[#0088A9]/20 rounded-2xl shadow-inner">
-                        <span className="material-icons-outlined text-[#0088A9] text-2xl">school</span>
+                    <div className="mb-8 p-3 bg-primary-nexus/20 rounded-2xl shadow-inner">
+                        <span className="material-icons-outlined text-primary-nexus text-2xl">school</span>
                     </div>
 
                     {/* Navigation */}
@@ -90,15 +90,15 @@ export default function StudentLayout({
                                             <Link
                                                 href={item.href}
                                                 className={`p-3 rounded-2xl transition-all relative group flex items-center justify-center ${isActive
-                                                    ? "bg-white/60 dark:bg-black/40 text-[#0088A9] shadow-[0_8px_16px_-4px_rgba(0,136,169,0.3)] ring-1 ring-white/50"
-                                                    : "text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/10 hover:text-[#0088A9]"
+                                                    ? "bg-white/60 dark:bg-black/40 text-primary-nexus shadow-[0_8px_16px_-4px_rgba(0,136,169,0.3)] ring-1 ring-white/50"
+                                                    : "text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/10 hover:text-primary-nexus"
                                                     }`}
                                             >
                                                 <span className="material-icons-outlined text-2xl relative z-10">{item.icon}</span>
                                                 {isActive && (
                                                     <motion.div
                                                         layoutId="student-active-pill"
-                                                        className="absolute inset-0 rounded-2xl bg-[#0088A9]/5"
+                                                        className="absolute inset-0 rounded-2xl bg-primary-nexus/5"
                                                         transition={{ duration: 0.2 }}
                                                     />
                                                 )}
@@ -128,10 +128,10 @@ export default function StudentLayout({
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <div className="relative group cursor-pointer outline-none">
-                                        <div className="h-12 w-12 rounded-full p-[2px] bg-white/80 dark:bg-gray-800 shadow-lg group-hover:scale-110 transition-transform border border-white/40">
+                                        <div className="h-12 w-12 rounded-full p-0.5 bg-white/80 dark:bg-gray-800 shadow-lg group-hover:scale-110 transition-transform border border-white/40">
                                             <Avatar className="w-full h-full border border-white/20">
                                                 <AvatarImage src={profilePicture} alt={user?.fullName || "User"} className="object-cover" />
-                                                <AvatarFallback className="bg-[#0088A9] text-white font-bold">
+                                                <AvatarFallback className="bg-primary-nexus text-white font-bold">
                                                     {user?.fullName?.charAt(0) || "S"}
                                                 </AvatarFallback>
                                             </Avatar>
@@ -148,13 +148,13 @@ export default function StudentLayout({
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator className="bg-white/10" />
                                     <DropdownMenuGroup className="p-2">
-                                        <DropdownMenuItem className="cursor-pointer rounded-xl focus:bg-[#0088A9] focus:text-white transition-colors py-2.5 px-3" asChild>
+                                        <DropdownMenuItem className="cursor-pointer rounded-xl focus:bg-primary-nexus focus:text-white transition-colors py-2.5 px-3" asChild>
                                             <Link href="/dashboard/student/profile" className="flex items-center w-full text-xs font-semibold tracking-wide capitalize">
                                                 <UserIcon className="mr-3 h-4 w-4" />
                                                 <span>Profile View</span>
                                             </Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="cursor-pointer rounded-xl focus:bg-[#0088A9] focus:text-white transition-colors py-2.5 px-3" asChild>
+                                        <DropdownMenuItem className="cursor-pointer rounded-xl focus:bg-primary-nexus focus:text-white transition-colors py-2.5 px-3" asChild>
                                             <Link href="/dashboard/student/settings" className="flex items-center w-full text-xs font-semibold tracking-wide capitalize">
                                                 <Settings className="mr-3 h-4 w-4" />
                                                 <span>System Settings</span>
@@ -174,9 +174,9 @@ export default function StudentLayout({
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         ) : (
-                            <div className="h-12 w-12 rounded-full p-[2px] bg-white/40 border border-white/20">
+                            <div className="h-12 w-12 rounded-full p-0.5 bg-white/40 border border-white/20">
                                 <Avatar className="w-full h-full">
-                                    <AvatarFallback className="bg-[#0088A9] text-white font-bold">S</AvatarFallback>
+                                    <AvatarFallback className="bg-primary-nexus text-white font-bold">S</AvatarFallback>
                                 </Avatar>
                             </div>
                         )}
@@ -203,7 +203,7 @@ export default function StudentLayout({
                                 <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500 text-indigo-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
                                     <span className="material-icons-outlined text-3xl">class</span>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
                                     Classroom
                                 </span>
                             </button>
@@ -213,7 +213,7 @@ export default function StudentLayout({
                                 <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-pink-500 text-pink-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
                                     <span className="material-icons-outlined text-3xl">assignment</span>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
                                     Exams
                                 </span>
                             </button>
@@ -223,27 +223,27 @@ export default function StudentLayout({
                                 <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-yellow-500 text-yellow-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
                                     <span className="material-icons-outlined text-3xl">library_books</span>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
                                     Library
                                 </span>
                             </button>
                         </Link>
                         <Link href="/dashboard/student/classes">
                             <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-[#0088A9] text-[#0088A9] group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-primary-nexus text-primary-nexus group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
                                     <span className="material-icons-outlined text-3xl">calendar_today</span>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
                                     Schedule
                                 </span>
                             </button>
                         </Link>
                         <Link href="/dashboard/student">
                             <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-[#0088A9] text-[#0088A9] group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
+                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-primary-nexus text-primary-nexus group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
                                     <span className="material-icons-outlined text-3xl">home</span>
                                 </div>
-                                <span className="text-[10px] font-black text-gray-600 dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest text-[9px] shadow-xl">
+                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
                                     Home
                                 </span>
                             </button>
