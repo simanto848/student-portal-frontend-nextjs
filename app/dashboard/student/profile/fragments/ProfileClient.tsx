@@ -339,7 +339,6 @@ export default function ProfileClient() {
                             <NexusCard title="Nexus Standing" subtitle="Academic Integrity & Enrollment" icon={GraduationCap} accent="amber">
                                 <div className="space-y-4">
                                     <NexusInfoItem icon={Building} label="Sector" value={department?.shortName || "Unknown"} accent="teal" />
-                                    <NexusInfoItem icon={Award} label="Standing" value={student?.enrollmentStatus?.toUpperCase() || "ACTIVE"} accent="amber" />
                                     <div className="p-5 glass-inner rounded-3xl border-white/40 mt-4 flex items-center justify-between">
                                         <div>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Current Integrity</p>
