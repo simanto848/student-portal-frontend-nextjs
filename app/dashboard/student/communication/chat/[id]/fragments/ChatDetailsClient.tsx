@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ChatInterface } from "@/components/dashboard/communication/ChatInterface";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,10 @@ import { getChatGroupDetailsAction, getBatchByIdAction } from "../../../actions"
 
 export default function ChatDetailsClient() {
     const params = useParams();
-    const searchParams = useSearchParams();
     const router = useRouter();
     const { user } = useAuth();
 
     const chatGroupId = Array.isArray(params.id) ? params.id[0] : params.id;
-    const typeParam = searchParams.get("type") as
-        | "BatchChatGroup"
-        | "CourseChatGroup"
-        | "group"
-        | null;
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -80,19 +74,21 @@ export default function ChatDetailsClient() {
 
     if (error || !groupDetails) {
         return (
-            <div className="p-6">
-                <Alert variant="destructive">
-                    <AlertDescription>
-                        {error || "Chat group not found"}
-                    </AlertDescription>
-                </Alert>
-                <Button
-                    variant="outline"
-                    className="mt-4"
-                    onClick={() => router.back()}
-                >
-                    <ArrowLeft className="h-4 w-4 mr-2" /> Back
-                </Button>
+            <div className="p-6 h-screen flex flex-col items-center justify-center bg-architectural">
+                <div className="glass-panel p-8 rounded-3xl max-w-sm w-full text-center">
+                    <Alert variant="destructive" className="bg-red-500/10 border-red-500/20 mb-6">
+                        <AlertDescription>
+                            {error || "Chat group not found"}
+                        </AlertDescription>
+                    </Alert>
+                    <Button
+                        variant="outline"
+                        className="w-full glass-inner border-white/20 hover:bg-white/40 rounded-xl"
+                        onClick={() => router.back()}
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Messages
+                    </Button>
+                </div>
             </div>
         );
     }
@@ -104,43 +100,20 @@ export default function ChatDetailsClient() {
 
     const subtitle =
         groupDetails.type === "CourseChatGroup"
-            ? `${groupDetails.courseCode || "CODE"} • ${groupDetails.instructorName || "Instructor"
-            }`
-            : "Official Batch Group";
+            ? `${groupDetails.courseCode || "CODE"} • Dr. ${groupDetails.instructorName || "Instructor"}`
+            : "Official Batch Discussion";
 
     return (
-        <div className="flex flex-col h-[calc(100vh-100px)] -m-4 md:-m-8">
-            {/* Header */}
-            <header className="bg-white border-b px-4 py-3 flex items-center shadow-sm z-10">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => router.push("/dashboard/student/communication")}
-                    className="mr-2"
-                >
-                    <ArrowLeft className="h-5 w-5 text-slate-500" />
-                </Button>
-                <div>
-                    <h1 className="text-lg font-bold text-[#1a3d32]">{title}</h1>
-                    <p className="text-xs text-muted-foreground flex items-center gap-2">
-                        {subtitle}
-                        {canPin && (
-                            <span className="text-amber-600 font-semibold bg-amber-50 px-1.5 rounded ml-2">
-                                You are CR
-                            </span>
-                        )}
-                    </p>
-                </div>
-            </header>
-
-            {/* Chat Area */}
-            <div className="flex-1 overflow-hidden">
-                <ChatInterface
-                    chatGroupId={chatGroupId as string}
-                    chatGroupType={groupDetails.type}
-                    canPin={canPin}
-                />
-            </div>
+        <div className="flex flex-col h-[calc(100vh-140px)] -m-4 md:-m-8 bg-architectural overflow-hidden">
+            <ChatInterface
+                chatGroupId={chatGroupId as string}
+                chatGroupType={groupDetails.type}
+                canPin={canPin}
+                title={title}
+                subtitle={subtitle}
+                courseCode={groupDetails.courseCode}
+                onBack={() => router.push("/dashboard/student/communication")}
+            />
         </div>
     );
 }

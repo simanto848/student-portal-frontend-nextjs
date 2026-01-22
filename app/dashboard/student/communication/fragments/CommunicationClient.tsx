@@ -3,18 +3,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     MessageSquare,
     Search,
     BookOpen,
     Users,
-    User,
-    GraduationCap,
-    AlertCircle,
+    Edit3,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Message } from "@/services/communication/chat.service";
@@ -57,8 +52,6 @@ export default function CommunicationClient() {
     const {
         data: groups = [],
         isLoading,
-        isError,
-        error,
     } = useQuery({
         queryKey: chatKeys.myGroups(),
         queryFn: async () => {
@@ -127,250 +120,192 @@ export default function CommunicationClient() {
     }
 
     return (
-        <div className="flex h-[calc(100vh-100px)] -m-4 md:-m-8 overflow-hidden bg-gray-50/50">
-            {/* Sidebar - Group List */}
-            <div
-                className={cn(
-                    "w-full md:w-[380px] flex flex-col border-r bg-white z-10",
-                    selectedGroup ? "hidden md:flex" : "flex",
-                )}
-            >
-                {/* Header */}
-                <div className="p-4 border-b space-y-4">
-                    <div className="flex items-center gap-2 text-[#1a3d32]">
-                        <div className="p-2 bg-[#1a3d32]/10 rounded-lg">
-                            <MessageSquare className="h-5 w-5 text-[#1a3d32]" />
-                        </div>
-                        <div>
-                            <h1 className="font-bold text-lg leading-none">Messages</h1>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                Your academic conversations
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="relative">
-                        <Search className="h-4 w-4 text-muted-foreground absolute left-3 top-3" />
-                        <Input
-                            placeholder="Search conversations..."
-                            className="pl-9 bg-gray-50 border-gray-200 focus-visible:ring-[#1a3d32]"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-
-                    {/* Error Alert */}
-                    {isError && (
-                        <Alert variant="destructive" className="py-2">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertDescription className="text-xs">
-                                {error instanceof Error
-                                    ? error.message
-                                    : "Failed to load channels."}
-                            </AlertDescription>
-                        </Alert>
+        <div className="h-full min-h-0 overflow-hidden -m-4 md:-m-8 bg-architectural/20">
+            <div className="flex gap-6 h-full p-4 md:p-8">
+                {/* Sidebar - Group List */}
+                <aside
+                    className={cn(
+                        "w-full md:w-80 glass-panel rounded-3xl flex flex-col overflow-hidden transition-all duration-500 shadow-2xl border-white/40",
+                        selectedGroup ? "hidden md:flex" : "flex",
                     )}
-                </div>
-
-                {/* Tabs */}
-                <Tabs
-                    defaultValue="course"
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="w-full flex-1 flex flex-col"
                 >
-                    <div className="px-4 pt-2">
-                        <TabsList className="w-full grid grid-cols-2 bg-gray-100/80 p-1">
-                            <TabsTrigger
-                                value="course"
-                                className="data-[state=active]:bg-white data-[state=active]:text-[#1a3d32] data-[state=active]:shadow-sm"
-                            >
-                                Course Groups
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="batch"
-                                className="data-[state=active]:bg-white data-[state=active]:text-[#1a3d32] data-[state=active]:shadow-sm"
-                            >
-                                Batch Groups
-                            </TabsTrigger>
-                        </TabsList>
-                    </div>
-
-                    <TabsContent value="course" className="flex-1 mt-0">
-                        <GroupList
-                            groups={filteredGroups}
-                            selectedId={selectedGroup?.id}
-                            onSelect={setSelectedGroup}
-                            type="course"
-                        />
-                    </TabsContent>
-
-                    <TabsContent value="batch" className="flex-1 mt-0">
-                        <GroupList
-                            groups={filteredGroups}
-                            selectedId={selectedGroup?.id}
-                            onSelect={setSelectedGroup}
-                            type="batch"
-                        />
-                    </TabsContent>
-                </Tabs>
-            </div>
-
-            {/* Main Content - Chat Interface */}
-            <div className="flex-1 flex flex-col bg-gray-50/50 relative">
-                {selectedGroup ? (
-                    <div className="absolute inset-0 flex flex-col">
-                        {/* Chat Header */}
-                        <div className="h-16 border-b bg-white px-6 flex items-center justify-between shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-[#1a3d32]/5 flex items-center justify-center text-[#1a3d32]">
-                                    {selectedGroup.type === "CourseChatGroup" ? (
-                                        <BookOpen className="h-5 w-5" />
-                                    ) : (
-                                        <Users className="h-5 w-5" />
-                                    )}
-                                </div>
-                                <div>
-                                    <h2 className="font-bold text-[#1a3d32] flex items-center gap-2">
-                                        {selectedGroup.type === "CourseChatGroup"
-                                            ? selectedGroup.courseName
-                                            : selectedGroup.batchName}
-                                        {selectedGroup.courseCode && (
-                                            <Badge
-                                                variant="outline"
-                                                className="text-xs font-normal text-[#1a3d32] border-[#1a3d32]/20"
-                                            >
-                                                {selectedGroup.courseCode}
-                                            </Badge>
-                                        )}
-                                    </h2>
-                                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                        {selectedGroup.type === "CourseChatGroup" ? (
-                                            <>
-                                                <User className="h-3 w-3" />
-                                                {selectedGroup.instructorName || "Instructor"}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <GraduationCap className="h-3 w-3" />
-                                                Official Batch Discussion
-                                            </>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
+                    {/* Header */}
+                    <div className="p-6 border-b border-white/20 bg-white/10">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                                Messages
+                            </h2>
+                            <button className="h-9 w-9 glass-inner flex items-center justify-center rounded-xl hover:bg-teal-500/10 hover:text-teal-600 transition-all text-slate-400">
+                                <Edit3 className="h-4 w-4" />
+                            </button>
                         </div>
 
-                        {/* Chat Area */}
-                        <div className="flex-1 overflow-hidden">
+                        <div className="relative mb-6 group">
+                            <Input
+                                placeholder="Search conversations..."
+                                className="w-full glass-inner border-0 rounded-xl py-2.5 pl-10 pr-4 text-[10px] font-black uppercase tracking-widest focus:ring-1 focus:ring-teal-500 placeholder:text-slate-400 placeholder:italic transition-all shadow-inner"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <Search className="h-3.5 w-3.5 text-slate-400 absolute left-3.5 top-3 transition-colors group-focus-within:text-teal-500" />
+                        </div>
+
+                        <div className="flex p-1.5 glass-inner rounded-2xl border border-white/30">
+                            <button
+                                onClick={() => setActiveTab("course")}
+                                className={cn(
+                                    "flex-1 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all",
+                                    activeTab === "course"
+                                        ? "bg-white text-teal-600 shadow-lg"
+                                        : "text-slate-400 hover:text-slate-600"
+                                )}
+                            >
+                                Course
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("batch")}
+                                className={cn(
+                                    "flex-1 py-2 text-[10px] font-black uppercase tracking-[0.2em] rounded-xl transition-all",
+                                    activeTab === "batch"
+                                        ? "bg-white text-teal-600 shadow-lg"
+                                        : "text-slate-400 hover:text-slate-600"
+                                )}
+                            >
+                                Batch
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Groups List */}
+                    <ScrollArea className="flex-1 bg-white/5">
+                        <div className="p-4 space-y-3">
+                            {filteredGroups.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-muted-foreground">
+                                    <p className="text-sm">No {activeTab} groups found.</p>
+                                </div>
+                            ) : (
+                                filteredGroups.map((group) => (
+                                    <GroupItem
+                                        key={group.id}
+                                        group={group}
+                                        isSelected={selectedGroup?.id === group.id}
+                                        onSelect={setSelectedGroup}
+                                        type={activeTab as "course" | "batch"}
+                                    />
+                                ))
+                            )}
+                        </div>
+                    </ScrollArea>
+                </aside>
+
+                {/* Main Content - Chat Interface */}
+                <section className={cn(
+                    "flex-1 glass-panel rounded-3xl flex flex-col overflow-hidden relative shadow-2xl border-white/30",
+                    !selectedGroup && "hidden md:flex"
+                )}>
+                    {selectedGroup ? (
+                        <div className="absolute inset-0 flex flex-col">
                             <ChatInterface
                                 key={selectedGroup.id} // Force remount on group change
                                 chatGroupId={selectedGroup.id}
                                 chatGroupType={selectedGroup.type}
                                 canPin={canPin}
+                                title={selectedGroup.type === "CourseChatGroup" ? selectedGroup.courseName : selectedGroup.batchName}
+                                subtitle={selectedGroup.type === "CourseChatGroup" ? `${selectedGroup.instructorName || "Instructor"} • Active Now` : "Official Batch Discussion"}
+                                courseCode={selectedGroup.courseCode}
+                                onBack={() => setSelectedGroup(null)}
                             />
                         </div>
-                    </div>
-                ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
-                        <div className="h-20 w-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <MessageSquare className="h-10 w-10 text-gray-300" />
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white/5 backdrop-blur-[2px]">
+                            <div className="h-24 w-24 glass-inner rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl border border-white/20 animate-in zoom-in-50 duration-500">
+                                <MessageSquare className="h-10 w-10 text-teal-600/60" />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-800 uppercase tracking-widest">
+                                Select a conversation
+                            </h3>
+                            <p className="max-w-xs mt-4 text-xs font-black uppercase tracking-[0.2em] text-slate-500/80 leading-relaxed">
+                                Choose a course or batch group<br />from the sidebar to start<br />viewing messages and announcements.
+                            </p>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900">
-                            Select a conversation
-                        </h3>
-                        <p className="max-w-sm mt-2 text-sm">
-                            Choose a course or batch group from the sidebar to start viewing
-                            messages and announcements.
-                        </p>
-                    </div>
-                )}
+                    )}
+                </section>
             </div>
         </div>
     );
 }
 
-function GroupList({
-    groups,
-    selectedId,
+function GroupItem({
+    group,
+    isSelected,
     onSelect,
     type,
 }: {
-    groups: ChatGroupListItem[];
-    selectedId?: string;
+    group: ChatGroupListItem;
+    isSelected: boolean;
     onSelect: (g: ChatGroupListItem) => void;
     type: "course" | "batch";
 }) {
-    if (groups.length === 0) {
-        return (
-            <div className="flex flex-col items-center justify-center py-12 px-4 text-center text-muted-foreground">
-                <p className="text-sm">No {type} groups found.</p>
-            </div>
-        );
-    }
-
     return (
-        <ScrollArea className="h-full">
-            <div className="flex flex-col p-3 gap-2">
-                {groups.map((group) => {
-                    const isSelected = group.id === selectedId;
-                    return (
-                        <button
-                            key={group.id}
-                            onClick={() => onSelect(group)}
-                            className={cn(
-                                "flex flex-col items-start text-left p-3 rounded-xl transition-all duration-200 border",
-                                isSelected
-                                    ? "bg-[#1a3d32]/5 border-[#1a3d32]/20 shadow-sm"
-                                    : "bg-white border-transparent hover:bg-gray-50 hover:border-gray-100",
-                            )}
-                        >
-                            <div className="w-full flex justify-between items-start mb-1">
-                                <span
-                                    className={cn(
-                                        "font-semibold text-sm line-clamp-1",
-                                        isSelected ? "text-[#1a3d32]" : "text-gray-900",
-                                    )}
-                                >
-                                    {type === "course"
-                                        ? group.courseName || "Unknown Course"
-                                        : group.batchName || "Unknown Batch"}
-                                </span>
-                                {group.courseCode && (
-                                    <Badge
-                                        variant="secondary"
-                                        className="text-[10px] px-1.5 h-5 shrink-0 ml-2 bg-gray-100 text-gray-600"
-                                    >
-                                        {group.courseCode}
-                                    </Badge>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
-                                {type === "course" ? (
-                                    <>
-                                        <User className="h-3 w-3" />
-                                        <span className="line-clamp-1">
-                                            {group.instructorName || "Instructor"}
-                                        </span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <GraduationCap className="h-3 w-3" />
-                                        <span>Batch Counselor</span>
-                                    </>
-                                )}
-                            </div>
-
-                            <div className="w-full text-xs text-gray-500 line-clamp-1 pl-2 border-l-2 border-gray-200">
-                                {group.lastMessage?.content || (
-                                    <span className="italic opacity-70">No messages yet</span>
-                                )}
-                            </div>
-                        </button>
-                    );
-                })}
+        <div
+            onClick={() => onSelect(group)}
+            className={cn(
+                "group relative flex items-center p-4 rounded-3xl cursor-pointer transition-all border outline-none",
+                isSelected
+                    ? "bg-teal-500/10 border-teal-500/40 shadow-[0_8px_32px_rgba(20,184,166,0.15)] scale-[1.02]"
+                    : "hover:bg-white/40 border-transparent hover:border-white/40"
+            )}
+        >
+            <div className="relative h-12 w-12 shrink-0">
+                <div className={cn(
+                    "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-inner border border-white/20",
+                    isSelected ? "bg-teal-500 text-white rotate-6 scale-110 shadow-teal-500/50" : "bg-white/50 text-slate-400 group-hover:rotate-3"
+                )}>
+                    {type === "course" ? (
+                        <BookOpen className="h-6 w-6" />
+                    ) : (
+                        <Users className="h-6 w-6" />
+                    )}
+                </div>
+                {isSelected && (
+                    <div className="absolute -top-1 -right-1 h-4 w-4 bg-teal-500 border-2 border-white rounded-full animate-pulse shadow-lg" />
+                )}
             </div>
-        </ScrollArea>
+            <div className="ml-4 flex-1 min-w-0">
+                <div className="flex justify-between items-baseline mb-1">
+                    <h3 className={cn(
+                        "text-[11px] font-black uppercase tracking-widest truncate transition-colors",
+                        isSelected ? "text-teal-600" : "text-slate-700"
+                    )}>
+                        {type === "course"
+                            ? group.courseName || "Unknown Course"
+                            : group.batchName || "Unknown Batch"}
+                    </h3>
+                    {group.courseCode && (
+                        <span className={cn(
+                            "text-[9px] font-black uppercase tracking-widest",
+                            isSelected ? "text-teal-500/60" : "text-slate-400"
+                        )}>
+                            {group.courseCode}
+                        </span>
+                    )}
+                </div>
+                <div className="flex items-center gap-2">
+                    <p className={cn(
+                        "text-[10px] font-bold truncate flex-1 tracking-wide",
+                        isSelected ? "text-teal-600/70" : "text-slate-500"
+                    )}>
+                        {group.lastMessage?.content || (
+                            <span className="italic opacity-50 font-medium">Clear channels...</span>
+                        )}
+                    </p>
+                    {group.updatedAt && (
+                        <span className="text-[8px] font-black text-slate-400 uppercase">
+                            {new Date(group.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

@@ -129,6 +129,46 @@
     }
 
     --animation-shimmer: shimmer 3s infinite linear;
+
+    /* Glassmorphism & Nexus Colors */
+    --color-glass-light: rgba(255, 255, 255, 0.4);
+    --color-glass-dark: rgba(17, 24, 39, 0.4);
+    --color-primary-nexus: #0088A9;
+}
+
+@layer utilities {
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    }
+
+    .dark .glass-panel {
+        background: rgba(17, 24, 39, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-inner {
+        background: rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .dark .glass-inner {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .bg-architectural {
+        background-color: oklch(0.968 0.007 247.896); /* default fallback */
+        background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCBslXE_K1tqrNpm9wzg4QgyuTkZp9qAtOTcNMKq9UqOxunFGht70HVoisXGo1S2rYQpHB9v5w6oQ1osAhKGWAwzNNIqmoHhPiLvrzWzqUgomf0Z9TfifaCxMOryH5eVnt5-FOCbOQbhSXjjFTE0KA7wGaDj5ZZwnRKSWoG73ktBJ77EfI3t2Ejrbyho9IMdWRq1HIBiQnHq5Jv31OWKncbW1FkVMBwaVs2xd-tAejNdNhlLfe1KMHH4BQv9qV_z5SlEEBf9YDuAVak);
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
 }
 
 body {
