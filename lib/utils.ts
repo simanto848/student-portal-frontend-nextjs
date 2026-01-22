@@ -9,7 +9,7 @@ export const getImageUrl = (path?: string) => {
   if (!path) return undefined;
   if (path.startsWith("http")) return path;
 
-  const cleanPath = path.replace(/^public\//, "").replace(/^\//, "");
+  const cleanPath = path.replace(/^\//, "").replace(/^public\//, "");
   const baseUrl =
     process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
     "http://localhost:8000";
