@@ -12,6 +12,7 @@ export interface Attendance {
     student?: any;
     course?: any;
     batch?: any;
+    markedAt?: string;
 }
 
 export interface BulkAttendancePayload {

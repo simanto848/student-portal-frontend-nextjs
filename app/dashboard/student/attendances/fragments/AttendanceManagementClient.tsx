@@ -422,7 +422,7 @@ export default function AttendanceManagementClient() {
                                                 </div>
                                                 <div className="flex flex-col gap-1">
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                                        {new Date(item.date).toLocaleDateString("en-US", { day: "2-digit", month: "short" })} • {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {new Date(item.date).toLocaleDateString("en-US", { day: "2-digit", month: "short" })} • {new Date(item.markedAt || item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
                                                     {item.remarks && (
                                                         <p className="text-[10px] text-slate-400 italic font-medium truncate">"{item.remarks}"</p>
