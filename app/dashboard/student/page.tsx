@@ -249,7 +249,7 @@ export default function StudentDashboard() {
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-12 h-12 animate-spin text-[#0088A9]" />
-          <p className="text-gray-500 font-medium">Loading your dashboard...</p>
+          <p className="text-slate-500 font-medium">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -270,7 +270,7 @@ export default function StudentDashboard() {
         <motion.header variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 px-4 py-6 glass-panel rounded-[2rem] border border-white/40">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+              <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
                 Welcome back, <span className="text-[#0088A9]">{user?.fullName?.split(" ")[0] || "Student"}</span>
               </h1>
               <span className="flex h-3 w-3 relative">
@@ -278,7 +278,7 @@ export default function StudentDashboard() {
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]" />
               </span>
             </div>
-            <p className="text-gray-500 dark:text-gray-400 font-medium tracking-wide mt-1">
+            <p className="text-slate-500 dark:text-slate-400 font-medium tracking-wide mt-1">
               <span className="text-[#0088A9] font-black">Dhaka Internation University Student Portal</span>: You have <span className="text-[#0088A9] font-black">{tasks.filter(t => t.id.startsWith('schedule')).length} sessions</span> today and <span className="text-[#0088A9] font-black">{notificationCount} new</span> updates to review.
             </p>
           </div>
@@ -296,10 +296,10 @@ export default function StudentDashboard() {
               <div className="absolute top-0 right-0 w-80 h-80 bg-[#0088A9]/15 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-[#0088A9]/25 transition-all duration-1000" />
               <div className="flex justify-between items-start mb-10 z-10">
                 <div>
-                  <h2 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-1">Performance Vector</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide leading-relaxed">Real-time academic analysis</p>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-1">Performance Vector</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium tracking-wide leading-relaxed">Real-time academic analysis</p>
                 </div>
-                <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md rounded-full px-5 py-2 border border-white/20 shadow-sm">
+                <div className="bg-white dark:bg-slate-800/30 dark:bg-black/30 backdrop-blur-md rounded-full px-5 py-2 border border-white/20 shadow-sm">
                   <span className="text-[11px] font-black text-[#0088A9] uppercase tracking-widest">Live Data</span>
                 </div>
               </div>
@@ -326,8 +326,8 @@ export default function StudentDashboard() {
                   />
                 </svg>
                 {/* Floating Indicators */}
-                <div className="absolute top-1/4 left-1/4 h-4 w-4 bg-white dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-[#0088A9] animate-float z-20" />
-                <div className="absolute top-1/3 left-2/3 h-4 w-4 bg-white dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-[#0088A9] animate-float z-20" style={{ animationDelay: "2s" }} />
+                <div className="absolute top-1/4 left-1/4 h-4 w-4 bg-white dark:bg-slate-800 dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-[#0088A9] animate-float z-20" />
+                <div className="absolute top-1/3 left-2/3 h-4 w-4 bg-white dark:bg-slate-800 dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-[#0088A9] animate-float z-20" style={{ animationDelay: "2s" }} />
               </div>
             </div>
 
@@ -335,26 +335,26 @@ export default function StudentDashboard() {
             <div className="flex flex-col gap-8 h-full">
               <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3.5 rounded-2xl bg-white/60 dark:bg-blue-900/40 text-[#0088A9] shadow-sm border border-white/40">
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 dark:bg-blue-900/40 text-[#0088A9] shadow-sm border border-white/40">
                     <span className="material-icons-outlined text-2xl font-bold">rocket_launch</span>
                   </div>
                   <span className="text-green-500 text-sm font-black tracking-tight">{credits} Credits</span>
                 </div>
-                <h3 className="text-5xl font-black text-gray-900 dark:text-white mt-2 tracking-tighter">{cgpa.toFixed(2)}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-black uppercase tracking-widest mt-1 opacity-70">Overall GPA</p>
+                <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{cgpa.toFixed(2)}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Overall CGPA</p>
               </motion.div>
 
               <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3.5 rounded-2xl bg-white/60 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
                     <span className="material-icons-outlined text-2xl font-bold">fact_check</span>
                   </div>
                   <div className="bg-green-100/60 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-green-200/40">
                     {attendance >= 85 ? "Excellent" : "Regular"}
                   </div>
                 </div>
-                <h3 className="text-5xl font-black text-gray-900 dark:text-white mt-2 tracking-tighter">{attendance}%</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 font-black uppercase tracking-widest mt-1 opacity-70">Academic Presence</p>
+                <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{attendance}%</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Academic Presence</p>
               </motion.div>
             </div>
           </motion.section>
@@ -362,7 +362,7 @@ export default function StudentDashboard() {
           {/* Course Progress Section */}
           <motion.section variants={itemVariants} className="space-y-8">
             <div className="flex items-center justify-between mb-4 px-2">
-              <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Course Progress</h3>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Course Progress</h3>
               <Link href="/dashboard/student/grades" className="text-sm font-black text-[#0088A9] hover:text-[#0088A9]/80 transition-colors flex items-center group cursor-pointer tracking-wide">
                 View All Courses <span className="material-icons-outlined text-lg ml-1 group-hover:translate-x-1 transition-transform">chevron_right</span>
               </Link>
@@ -390,33 +390,33 @@ export default function StudentDashboard() {
                           </div>
                           <div className="flex flex-col items-end">
                             <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${colors.text} opacity-70 mb-1`}>Status</span>
-                            <span className="text-[11px] font-bold text-gray-900 bg-white px-3 py-1 rounded-full shadow-sm border border-gray-100 uppercase tracking-tighter">
+                            <span className="text-[11px] font-bold text-slate-800 bg-white dark:bg-slate-800 px-3 py-1 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 uppercase tracking-tighter">
                               {course.grade === "N/A" ? "Ongoing" : "Completed"}
                             </span>
                           </div>
                         </div>
 
                         <div className="mb-8">
-                          <h3 className="text-xl font-black text-gray-900 dark:text-white leading-tight mb-2 group-hover:text-[#0088A9] transition-colors">{course.name}</h3>
+                          <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-2 group-hover:text-[#0088A9] transition-colors">{course.name}</h3>
                           <div className="flex items-center gap-3">
-                            <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">{course.code}</span>
-                            <span className="text-[11px] font-bold text-gray-500 line-clamp-1">{course.professor}</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">{course.code}</span>
+                            <span className="text-[11px] font-bold text-slate-500 line-clamp-1">{course.professor}</span>
                           </div>
                         </div>
 
                         <div className="mt-auto space-y-4">
                           <div className="flex items-end justify-between">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400 mb-1">Performance Index</span>
-                              <span className="text-2xl font-black text-gray-900 tracking-tighter">{course.progress}%</span>
+                              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Performance Index</span>
+                              <span className="text-2xl font-black text-slate-800 tracking-tighter">{course.progress}%</span>
                             </div>
                             <div className="flex flex-col items-end">
-                              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-gray-400 mb-1">Grade</span>
+                              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Grade</span>
                               <span className={`text-2xl font-black tracking-tighter ${colors.text}`}>{course.grade}</span>
                             </div>
                           </div>
 
-                          <div className="h-4 w-full bg-gray-100 rounded-full overflow-hidden p-1 shadow-inner ring-1 ring-gray-200">
+                          <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner ring-1 ring-gray-200">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${course.progress}%` }}
@@ -431,11 +431,11 @@ export default function StudentDashboard() {
                 })
               ) : (
                 <div className="col-span-full py-20 flex flex-col items-center justify-center glass-panel rounded-[3rem] border border-dashed border-gray-300">
-                  <div className="p-6 rounded-[2rem] bg-gray-50 text-gray-300 mb-4">
+                  <div className="p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-900/50 text-gray-300 mb-4">
                     <span className="material-icons-outlined text-5xl">auto_stories</span>
                   </div>
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-widest mb-2">No Active Courses</h3>
-                  <p className="text-sm font-medium text-gray-400 text-center max-w-xs uppercase tracking-tighter leading-relaxed">
+                  <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-widest mb-2">No Active Courses</h3>
+                  <p className="text-sm font-medium text-slate-400 text-center max-w-xs uppercase tracking-tighter leading-relaxed">
                     We couldn't find any session courses mapped to your batch for this semester.
                   </p>
                 </div>
@@ -450,9 +450,9 @@ export default function StudentDashboard() {
         <div className="p-8 pb-4">
           <div className="flex items-center gap-3 mb-1">
             <span className="material-icons-outlined text-[#0088A9] text-3xl">event_note</span>
-            <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">Daily Schedule</h3>
+            <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Daily Schedule</h3>
           </div>
-          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-2 uppercase tracking-widest font-black">
+          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest font-black">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
           </p>
         </div>
@@ -473,19 +473,19 @@ export default function StudentDashboard() {
                     checked={checkedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
-                  <div className="w-6 h-6 border-2 border-[#0088A9]/30 rounded-lg flex items-center justify-center transition-all peer-checked:bg-[#0088A9] peer-checked:border-[#0088A9] shadow-inner bg-white/40 dark:bg-black/20">
+                  <div className="w-6 h-6 border-2 border-[#0088A9]/30 rounded-lg flex items-center justify-center transition-all peer-checked:bg-[#0088A9] peer-checked:border-[#0088A9] shadow-inner bg-white dark:bg-slate-800/40 dark:bg-black/20">
                     <span className="material-icons-outlined text-white text-base hidden peer-checked:block">check</span>
                   </div>
                 </label>
                 <div className="flex-1">
-                  <h4 className={`font-black text-gray-900 dark:text-white tracking-tight mb-1 group-hover:text-[#0088A9] transition-colors ${checkedTasks.has(task.id) ? 'line-through text-gray-400' : ''}`}>{task.title}</h4>
+                  <h4 className={`font-black text-slate-800 dark:text-white tracking-tight mb-1 group-hover:text-[#0088A9] transition-colors ${checkedTasks.has(task.id) ? 'line-through text-slate-400' : ''}`}>{task.title}</h4>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-black tracking-widest uppercase text-gray-400 flex items-center gap-1">
+                    <span className="text-[10px] font-black tracking-widest uppercase text-slate-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                       {task.time}
                     </span>
                     {task.location && (
-                      <span className="text-[10px] font-black tracking-widest uppercase text-gray-400 flex items-center gap-1">
+                      <span className="text-[10px] font-black tracking-widest uppercase text-slate-400 flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                         {task.location}
                       </span>
@@ -505,17 +505,17 @@ export default function StudentDashboard() {
         {/* Academic Help Promo */}
         <div className="p-8">
           <div className="relative group overflow-hidden bg-gradient-to-br from-[#0088A9] to-[#00b4d8] rounded-[2.5rem] p-8 text-white shadow-2xl border border-white/30">
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-white dark:bg-slate-800/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-black/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md shadow-xl border border-white/30">
+              <div className="w-14 h-14 bg-white dark:bg-slate-800/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-md shadow-xl border border-white/30">
                 <span className="material-icons-outlined text-3xl">psychology</span>
               </div>
               <h3 className="text-2xl font-black mb-2 tracking-tight">Academic Help?</h3>
               <p className="text-white/80 text-xs mb-8 leading-relaxed font-medium px-2">
                 Connect with faculty advisors or technical support instantly.
               </p>
-              <button className="w-full bg-white text-[#0088A9] py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all active:scale-95 border-b-4 border-gray-200">
+              <button className="w-full bg-white dark:bg-slate-800 text-[#0088A9] py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all active:scale-95 border-b-4 border-slate-200">
                 Connect Now
               </button>
             </div>

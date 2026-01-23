@@ -68,11 +68,58 @@ export default function StudentLayout({
     }, [darkMode]);
 
     return (
-        <div className="flex h-screen w-full overflow-hidden bg-glass-modernist text-gray-800 dark:text-gray-100 transition-colors duration-300 font-sans p-4">
+        <div className="flex h-screen w-full overflow-hidden bg-[#f0f4f8] dark:bg-[#0f172a] text-slate-800 dark:text-slate-100 transition-colors duration-300 font-sans p-4">
+            {/* Mesh Background Styles */}
+            <style jsx global>{`
+        .bg-mesh {
+          background-color: #f0f4f8;
+          background-image: 
+              radial-gradient(at 0% 0%, hsla(180,70%,85%,1) 0, transparent 50%), 
+              radial-gradient(at 100% 0%, hsla(200,80%,90%,1) 0, transparent 50%), 
+              radial-gradient(at 100% 100%, hsla(180,60%,92%,1) 0, transparent 50%), 
+              radial-gradient(at 0% 100%, hsla(210,70%,90%,1) 0, transparent 50%);
+        }
+        .dark .bg-mesh {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(180,40%,15%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(200,50%,15%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 100%, hsla(180,30%,18%,1) 0, transparent 50%), 
+                radial-gradient(at 0% 100%, hsla(210,40%,15%,1) 0, transparent 50%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.5); 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(156, 163, 175, 0.8); 
+        }
+      `}</style>
+
+            {/* Background Layer */}
+            <div className="absolute inset-0 z-0 bg-mesh pointer-events-none" />
+
             {/* Main Rounded Container */}
-            <div className="flex h-full w-full glass-panel rounded-4xl overflow-hidden shadow-2xl border border-white/40">
+            <div className="flex h-full w-full glass-panel rounded-4xl overflow-hidden shadow-2xl relative z-10 border-0">
                 {/* Sidebar */}
-                <aside className="w-20 glass-inner border-r border-white/20 flex flex-col items-center py-6 h-full shrink-0 z-30">
+                <aside className="w-20 border-r border-white/20 dark:border-slate-700/30 flex flex-col items-center py-6 h-full shrink-0 z-30">
                     {/* Logo */}
                     <div className="mb-8 p-3 bg-primary-nexus/20 rounded-2xl shadow-inner">
                         <span className="material-icons-outlined text-primary-nexus text-2xl">school</span>
@@ -90,15 +137,15 @@ export default function StudentLayout({
                                             <Link
                                                 href={item.href}
                                                 className={`p-3 rounded-2xl transition-all relative group flex items-center justify-center ${isActive
-                                                    ? "bg-white/60 dark:bg-black/40 text-primary-nexus shadow-[0_8px_16px_-4px_rgba(0,136,169,0.3)] ring-1 ring-white/50"
-                                                    : "text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/10 hover:text-primary-nexus"
+                                                    ? "bg-white/60 dark:bg-slate-700/60 text-primary-nexus shadow-[0_8px_16px_-4px_rgba(0,136,169,0.3)] ring-1 ring-white/50"
+                                                    : "text-slate-500 dark:text-slate-400 hover:bg-white/40 dark:hover:bg-slate-700/40 hover:text-primary-nexus"
                                                     }`}
                                             >
                                                 <span className="material-icons-outlined text-2xl relative z-10">{item.icon}</span>
                                                 {isActive && (
                                                     <motion.div
                                                         layoutId="student-active-pill"
-                                                        className="absolute inset-0 rounded-2xl bg-primary-nexus/5"
+                                                        className="absolute inset-0 rounded-2xl bg-primary-nexus/5 dark:bg-primary-nexus/20"
                                                         transition={{ duration: 0.2 }}
                                                     />
                                                 )}
@@ -184,8 +231,8 @@ export default function StudentLayout({
                 </aside>
 
                 {/* Main Content Area */}
-                <main className="flex-1 flex flex-col h-full min-w-0 relative overflow-hidden bg-white/10 dark:bg-black/5">
-                    <div className="absolute inset-0 overflow-y-auto no-scrollbar p-8">
+                <main className="flex-1 flex flex-col h-full min-w-0 relative overflow-hidden bg-transparent">
+                    <div className="absolute inset-0 overflow-y-auto w-full h-full p-8 scrollbar-hide">
                         {children}
                     </div>
                 </main>

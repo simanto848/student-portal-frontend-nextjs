@@ -194,12 +194,21 @@ export function ReservationCard({
                                 </p>
                             </div>
                         </div>
-                        {item.copy?.location && (
+                        {item.library && (
                             <div className="flex items-center gap-3 p-3 rounded-xl bg-[#0088A9]/5 border border-[#0088A9]/10">
                                 <MapPin className="h-4 w-4 text-[#0088A9]" />
                                 <div>
-                                    <p className="text-[8px] font-black text-[#0088A9] uppercase tracking-widest leading-none mb-1">Library Location</p>
-                                    <p className="text-xs font-black text-slate-900">{item.copy.location}</p>
+                                    <p className="text-[8px] font-black text-[#0088A9] uppercase tracking-widest leading-none mb-1">Pickup Library</p>
+                                    <p className="text-xs font-black text-slate-900">{item.library.name}</p>
+                                </div>
+                            </div>
+                        )}
+                        {!item.library && item.copy?.location && (
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                <MapPin className="h-4 w-4 text-slate-400" />
+                                <div>
+                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Shelf Location</p>
+                                    <p className="text-xs font-black text-slate-800">{item.copy.location}</p>
                                 </div>
                             </div>
                         )}

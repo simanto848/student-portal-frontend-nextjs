@@ -158,7 +158,7 @@ export default function AttendanceManagementClient() {
                 {/* Header */}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Attendance Intel</h1>
+                        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Attendance Management</h1>
                         <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">Track your academic presence and consistency.</p>
                     </div>
 
