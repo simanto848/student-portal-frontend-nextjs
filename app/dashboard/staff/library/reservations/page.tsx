@@ -268,7 +268,7 @@ function ReservationsContent() {
                                   "font-medium",
                                   new Date() > new Date(r.expiryDate) && r.status === 'pending' ? "text-rose-600" : ""
                                 )}>
-                                  {new Date(r.expiryDate).toLocaleDateString()}
+                                  {new Date(r.expiryDate).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                                 </span>
                               </div>
                             </div>
