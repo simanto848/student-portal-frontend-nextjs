@@ -22,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2, Building2, MapPin, Settings } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Building2, MapPin, Settings, Clock } from "lucide-react";
+import { OperatingHoursInput } from "@/components/dashboard/library/OperatingHoursInput";
 
 export default function EditLibraryPage() {
   const router = useRouter();
@@ -51,6 +52,7 @@ export default function EditLibraryPage() {
           borrowDuration: res.borrowDuration,
           finePerDay: res.finePerDay,
           reservationHoldDays: res.reservationHoldDays,
+          operatingHours: res.operatingHours,
         });
       } catch {
         toast.error("Failed to load library");
@@ -175,6 +177,21 @@ export default function EditLibraryPage() {
                   </SelectContent>
                 </Select>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm border-l-4 border-l-purple-500">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 text-slate-800">
+                <Clock className="h-5 w-5 text-purple-600" />
+                Operating Hours
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OperatingHoursInput
+                value={payload.operatingHours}
+                onChange={(val) => setPayload(prev => ({ ...prev, operatingHours: val }))}
+              />
             </CardContent>
           </Card>
 

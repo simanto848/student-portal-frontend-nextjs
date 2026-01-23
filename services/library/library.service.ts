@@ -5,22 +5,12 @@ import {
   extractLibraryItemData,
   LibraryApiResponse,
 } from "./axios-instance";
-import { LibraryStatus, Library } from "./types";
-
-export interface LibraryCreatePayload {
-  name: string;
-  code: string;
-  description?: string;
-  address?: string;
-  phone?: string;
-  email?: string;
-  operatingHours?: Record<string, string>;
-  maxBorrowLimit?: number;
-  borrowDuration?: number;
-  finePerDay?: number;
-  reservationHoldDays?: number;
-  status?: LibraryStatus;
-}
+import {
+  LibraryStatus,
+  Library,
+  LibraryCreatePayload,
+  OperatingHours,
+} from "./types";
 
 export interface LibraryUpdatePayload {
   name?: string;
@@ -29,7 +19,7 @@ export interface LibraryUpdatePayload {
   address?: string;
   phone?: string;
   email?: string;
-  operatingHours?: Record<string, string>;
+  operatingHours?: OperatingHours;
   maxBorrowLimit?: number;
   borrowDuration?: number;
   finePerDay?: number;
@@ -47,7 +37,7 @@ const normalizeLibrary = (data: unknown): Library => {
     address: (d.address as string) || "",
     phone: (d.phone as string) || "",
     email: (d.email as string) || "",
-    operatingHours: (d.operatingHours as Record<string, string>) || {},
+    operatingHours: (d.operatingHours as OperatingHours) || {},
     maxBorrowLimit: (d.maxBorrowLimit as number) || 3,
     borrowDuration: (d.borrowDuration as number) || 14,
     finePerDay: (d.finePerDay as number) || 0,

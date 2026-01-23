@@ -215,11 +215,11 @@ export default function ViewLibraryPage() {
               <CardContent>
                 {item.operatingHours && Object.keys(item.operatingHours).length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {Object.entries(item.operatingHours).map(([day, hours]) => (
+                    {Object.entries(item.operatingHours).map(([day, config]: [string, any]) => (
                       <div key={day} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
                         <span className="capitalize font-medium text-slate-700">{day}</span>
-                        <span className="text-sm text-slate-600 font-mono bg-white px-2 py-1 rounded border">
-                          {hours as string}
+                        <span className={`text-sm font-mono px-2 py-1 rounded border ${config.isOpen ? "bg-white text-slate-600" : "bg-slate-100 text-slate-400 italic"}`}>
+                          {config.isOpen ? `${config.open} - ${config.close}` : "Closed"}
                         </span>
                       </div>
                     ))}
@@ -297,6 +297,6 @@ export default function ViewLibraryPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 }

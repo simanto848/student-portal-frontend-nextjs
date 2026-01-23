@@ -6,7 +6,7 @@ export interface Library {
   address?: string;
   phone?: string;
   email?: string;
-  operatingHours?: Record<string, string>;
+  operatingHours?: OperatingHours;
   maxBorrowLimit: number;
   borrowDuration: number;
   finePerDay?: number;
@@ -14,6 +14,14 @@ export interface Library {
   status: "active" | "inactive" | "maintenance";
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface OperatingHours {
+  [key: string]: {
+    open: string;
+    close: string;
+    isOpen: boolean;
+  };
 }
 
 export interface Book {
@@ -36,6 +44,21 @@ export interface Book {
   createdAt?: string;
   updatedAt?: string;
   availableCopies?: number;
+}
+//...
+export interface LibraryCreatePayload {
+  name: string;
+  code: string;
+  description?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  operatingHours?: OperatingHours;
+  maxBorrowLimit?: number;
+  borrowDuration?: number;
+  finePerDay?: number;
+  reservationHoldDays?: number;
+  status?: LibraryStatus;
 }
 
 export interface BookCopy {
