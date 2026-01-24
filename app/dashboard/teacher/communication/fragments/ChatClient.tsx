@@ -45,8 +45,12 @@ export default function ChatClient({ chatGroupId, chatGroupType }: ChatClientPro
                             type: "Course Chat"
                         });
                     } else if (details.batchName) {
+                        const shift = String(details.batchShift || "").toLowerCase();
+                        const prefix = shift === 'day' ? 'D-' : shift === 'evening' ? 'E-' : '';
+                        const formattedName = `${prefix}${details.batchName}`;
+
                         setHeaderInfo({
-                            title: details.batchName,
+                            title: formattedName,
                             batchName: details.batchName,
                             batchShift: details.batchShift,
                             batchSemester: details.batchSemester,
