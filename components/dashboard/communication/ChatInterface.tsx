@@ -374,7 +374,7 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
-      {/* Unified Nexus Header */}
+      {/* Header */}
       <div className="px-4 py-3 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-b border-white/20 dark:border-white/5 flex items-center justify-between z-20 shadow-sm">
         <div className="flex items-center gap-3">
           {onBack && (
@@ -401,7 +401,7 @@ export function ChatInterface({
               )}
             </h2>
             <p className="text-[9px] font-black text-teal-600/60 uppercase tracking-[0.2em] mt-1 italic">
-              {subtitle || "Safe & Secure Nexus"}
+              {subtitle || "Group Chat"}
             </p>
           </div>
         </div>
@@ -432,7 +432,7 @@ export function ChatInterface({
             <SheetContent className="rounded-l-[2.5rem] border-none glass-panel shadow-2xl p-0 overflow-hidden">
               <div className="h-full flex flex-col">
                 <SheetHeader className="p-8 border-b border-white/20 text-left bg-white/20">
-                  <SheetTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-widest leading-tight">Nexus Intel</SheetTitle>
+                  <SheetTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-widest leading-tight">Group Info</SheetTitle>
                   <p className="font-bold text-teal-600 uppercase tracking-[0.3em] text-[10px] mt-1">Resources & Important Pins</p>
                 </SheetHeader>
                 <div className="p-6 flex-1 flex flex-col overflow-hidden">

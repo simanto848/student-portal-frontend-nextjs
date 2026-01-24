@@ -10,7 +10,7 @@ export default async function ChatPage({ params, searchParams }: {
     const { type } = await searchParams;
 
     return (
-        <div className="max-w-7xl mx-auto pb-10 px-4 md:px-0">
+        <div className="w-full h-full pb-10 px-4 md:px-0">
             <ChatClient
                 chatGroupId={id}
                 chatGroupType={type as 'BatchChatGroup' | 'CourseChatGroup' | undefined}

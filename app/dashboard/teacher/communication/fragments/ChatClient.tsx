@@ -67,7 +67,7 @@ export default function ChatClient({ chatGroupId, chatGroupType }: ChatClientPro
     const accentBgSubtle = accentPrimary.replace('text-', 'bg-') + '/5';
 
     return (
-        <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] max-w-6xl mx-auto rounded-[2.5rem] border border-slate-200/60 bg-white shadow-2xl shadow-indigo-500/5 overflow-hidden">
+        <div className="flex flex-col h-[calc(100vh-140px)] md:h-[calc(100vh-100px)] w-full rounded-[2.5rem] border border-slate-200/60 bg-white shadow-2xl shadow-indigo-500/5 overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 backdrop-blur-md">
                 <div className="flex items-center gap-4">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

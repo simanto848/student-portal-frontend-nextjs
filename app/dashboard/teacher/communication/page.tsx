@@ -5,7 +5,7 @@ export default async function CommunicationHubPage() {
   await requireUser();
 
   return (
-    <div className="max-w-7xl mx-auto pb-10">
+    <div className="w-full h-full pb-10">
       <CommunicationClient />
     </div>
   );
