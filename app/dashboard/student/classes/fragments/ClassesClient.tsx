@@ -222,15 +222,15 @@ export function ClassesClient() {
                                         <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight mb-2 truncate group-hover:text-[#0088A9] transition-colors">
                                             {slot.course}
                                         </h3>
-                                        <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest line-clamp-1">{slot.title}</p>
+                                        <p className="text-[11px] font-bold text-gray-500 dark:text-slate-400 uppercase tracking-widest line-clamp-1">{slot.title}</p>
                                     </div>
 
                                     <div className="flex justify-between items-center pt-6 border-t border-gray-100 dark:border-white/10 relative z-10">
-                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest group-hover:text-gray-600 transition-colors">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors">
                                             <MapPin className="h-4 w-4 text-[#0088A9]" />
                                             Room {slot.room}
                                         </div>
-                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-gray-100 transition-all group-hover:border-[#0088A9]/20">
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest bg-gray-50 dark:bg-black/20 px-3 py-1.5 rounded-xl border border-gray-100 dark:border-white/10 transition-all group-hover:border-[#0088A9]/20">
                                             <Building2 className="h-4 w-4 text-[#0088A9]" />
                                             {slot.building || "Academic Block"}
                                         </div>
@@ -282,7 +282,7 @@ export function ClassesClient() {
                                 >
                                     <div className={cn(
                                         "px-8 py-6 flex items-center justify-between border-b border-white/20",
-                                        isToday ? "bg-gradient-to-r from-[#0088A9]/20 to-transparent" : "bg-gray-50/50"
+                                        isToday ? "bg-gradient-to-r from-[#0088A9]/20 to-transparent" : "bg-gray-50/50 dark:bg-slate-800/50"
                                     )}>
                                         <h3 className={cn(
                                             "text-xs font-black uppercase tracking-[0.2em]",
@@ -304,23 +304,29 @@ export function ClassesClient() {
                                                 className="p-6 rounded-[2rem] hover:bg-white/60 dark:hover:bg-white/5 transition-all group flex items-start gap-6"
                                                 whileHover={{ x: 5 }}
                                             >
-                                                <div className="w-16 shrink-0 flex flex-col items-center justify-center pt-1 border-r border-gray-100 pr-4">
-                                                    <span className="text-xs font-black text-gray-900 tracking-tighter">{slot.startTime}</span>
-                                                    <div className="w-px h-3 bg-gray-200 my-1.5" />
-                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">{slot.endTime}</span>
+                                                <div className="w-16 shrink-0 flex flex-col items-center justify-center pt-1 border-r border-gray-100 dark:border-slate-700/50 pr-4">
+                                                    <span className="text-xs font-black text-gray-900 dark:text-slate-100 tracking-tighter">{slot.startTime}</span>
+                                                    <div className="w-px h-3 bg-gray-200 dark:bg-slate-700 my-1.5" />
+                                                    <span className="text-[10px] text-gray-400 dark:text-slate-500 font-bold uppercase tracking-tighter">{slot.endTime}</span>
                                                 </div>
 
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex justify-between items-start mb-1.5 gap-2">
-                                                        <span className="font-black text-sm text-gray-900 truncate leading-none pt-1">{slot.course}</span>
+                                                        <span className="font-black text-sm text-gray-900 dark:text-slate-100 truncate leading-none pt-1">{slot.course}</span>
                                                         <Badge variant="outline" className={cn("text-[8px] font-black px-2 py-0.5 rounded-lg border-none shadow-sm capitalize", getTypeColor(slot.type))}>
                                                             {slot.type}
                                                         </Badge>
                                                     </div>
-                                                    <p className="text-[11px] text-gray-500 line-clamp-1 mb-4 font-bold uppercase tracking-tight opacity-70">{slot.title}</p>
-                                                    <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-black/20 w-fit px-3 py-1.5 rounded-xl border border-gray-100">
-                                                        <MapPin className="h-3 w-3 text-[#0088A9]" />
-                                                        {slot.room}
+                                                    <p className="text-[11px] text-gray-500 dark:text-slate-400 line-clamp-1 mb-4 font-bold uppercase tracking-tight opacity-70">{slot.title}</p>
+                                                    <div className="flex items-center gap-2 mt-auto">
+                                                        <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest bg-gray-50 dark:bg-black/20 w-fit px-3 py-1.5 rounded-xl border border-gray-100 dark:border-white/10">
+                                                            <MapPin className="h-3 w-3 text-[#0088A9]" />
+                                                            {slot.room}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-widest bg-gray-50 dark:bg-black/20 w-fit px-3 py-1.5 rounded-xl border border-gray-100 dark:border-white/10">
+                                                            <Building2 className="h-3 w-3 text-[#0088A9]" />
+                                                            {slot.building || "Building N/A"}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </motion.div>

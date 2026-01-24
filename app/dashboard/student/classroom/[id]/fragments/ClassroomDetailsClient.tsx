@@ -106,7 +106,7 @@ export default function ClassroomDetailsClient() {
             <header className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 py-8 px-8 glass-panel rounded-[2.5rem] border border-white/50 shadow-2xl">
                 <div className="space-y-3">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-2xl bg-white shadow-sm border border-gray-100">
+                        <div className="p-3 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-gray-100 dark:border-white/10">
                             <BookOpen className="h-6 w-6 text-[#0088A9]" />
                         </div>
                         <h1 className="text-4xl font-black tracking-tighter text-gray-900 dark:text-white uppercase leading-none">{courseTitle}</h1>
@@ -130,7 +130,7 @@ export default function ClassroomDetailsClient() {
                         <ArrowLeft className="mr-3 h-4 w-4" />
                         Back
                     </Button>
-                    <div className="h-14 px-8 rounded-2xl bg-white text-gray-900 border border-gray-100 dark:bg-slate-800 dark:text-white flex items-center gap-3 font-black text-[10px] uppercase tracking-[0.2em] shadow-xl">
+                    <div className="h-14 px-8 rounded-2xl bg-white text-gray-900 border border-gray-100 dark:bg-slate-900 dark:text-white dark:border-white/10 flex items-center gap-3 font-black text-[10px] uppercase tracking-[0.2em] shadow-xl">
                         <Users className="h-4 w-4 text-[#0088A9]" />
                         {workspace.teacherIds?.length || 0} Teachers
                     </div>
@@ -164,7 +164,7 @@ export default function ClassroomDetailsClient() {
                         {/* Main Feed */}
                         <div className="space-y-10">
                             {/* Dashboard-Style Hero Card */}
-                            <div className="glass-panel group p-12 rounded-[4rem] relative overflow-hidden bg-white border border-gray-100 shadow-[0_40px_80px_-20px_rgba(0,136,169,0.15)]">
+                            <div className="glass-panel group p-12 rounded-[4rem] relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/5 shadow-[0_40px_80px_-20px_rgba(0,136,169,0.15)]">
                                 <div className="absolute top-0 right-0 p-16 opacity-5 group-hover:opacity-10 transition-opacity group-hover:scale-110 duration-1000">
                                     <Rocket className="h-64 w-64 text-[#0088A9]" />
                                 </div>
@@ -175,19 +175,19 @@ export default function ClassroomDetailsClient() {
                                             <div className="h-px w-12 bg-[#0088A9]/30" />
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#0088A9] opacity-90">Online</span>
                                         </div>
-                                        <h2 className="text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">{courseTitle}</h2>
+                                        <h2 className="text-5xl font-black tracking-tighter uppercase leading-none text-slate-900 dark:text-white">{courseTitle}</h2>
                                     </div>
-                                    <p className="text-slate-600 font-bold text-sm uppercase tracking-widest max-w-sm leading-loose">
+                                    <p className="text-slate-600 dark:text-slate-400 font-bold text-sm uppercase tracking-widest max-w-sm leading-loose">
                                         Welcome to your classroom. Stay updated with the latest activity and course materials.
                                     </p>
                                     <div className="flex gap-8 pt-4">
-                                        <div className="px-8 py-4 rounded-3xl bg-gray-50 border border-gray-100 backdrop-blur-2xl flex items-center gap-5 group/stat shadow-inner">
+                                        <div className="px-8 py-4 rounded-3xl bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-white/5 backdrop-blur-2xl flex items-center gap-5 group/stat shadow-inner">
                                             <div className="h-12 w-12 rounded-2xl bg-[#0088A9]/10 flex items-center justify-center text-[#0088A9] shadow-inner">
                                                 <Activity className="h-6 w-6" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-0.5">Total Updates</p>
-                                                <span className="text-2xl font-black tracking-tight text-slate-900">{stream.length} Posts</span>
+                                                <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-[0.3em] mb-0.5">Total Updates</p>
+                                                <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{stream.length} Posts</span>
                                             </div>
                                         </div>
                                     </div>
@@ -196,8 +196,8 @@ export default function ClassroomDetailsClient() {
 
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4 px-4 pb-2">
-                                    <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-[0.3em]">Recent Activity</h3>
-                                    <div className="h-px flex-1 bg-gray-100" />
+                                    <h3 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.3em]">Recent Activity</h3>
+                                    <div className="h-px flex-1 bg-gray-100 dark:bg-white/10" />
                                 </div>
                                 <AnimatePresence mode="popLayout">
                                     {stream.length > 0 ? (
@@ -219,10 +219,10 @@ export default function ClassroomDetailsClient() {
                                                         <div className="min-w-0 flex-1 space-y-4">
                                                             <div className="flex items-center justify-between">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className="h-8 w-8 bg-gray-50 rounded-full flex items-center justify-center text-gray-600 border border-gray-100">
+                                                                    <div className="h-8 w-8 bg-gray-50 dark:bg-slate-800 rounded-full flex items-center justify-center text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-white/10">
                                                                         <Users className="h-3.5 w-3.5" />
                                                                     </div>
-                                                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.25em]">
+                                                                    <p className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-[0.25em]">
                                                                         {item.actorName} • {format(new Date(item.createdAt), "MMM d, yyyy")}
                                                                     </p>
                                                                 </div>
@@ -256,7 +256,7 @@ export default function ClassroomDetailsClient() {
                         {/* Sidebar */}
                         <aside className="space-y-12">
                             {/* Deadline Card */}
-                            <div className="glass-panel p-12 rounded-[4rem] bg-white border border-white shadow-2xl relative overflow-hidden">
+                            <div className="glass-panel p-12 rounded-[4rem] bg-white dark:bg-slate-900 border border-white dark:border-white/5 shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-10 opacity-5">
                                     <Calendar className="h-32 w-32 text-[#0088A9]" />
                                 </div>
@@ -265,8 +265,8 @@ export default function ClassroomDetailsClient() {
                                         <Clock className="h-6 w-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-tighter">Upcoming Deadlines</h3>
-                                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.25em]">Pending Assignments</p>
+                                        <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter">Upcoming Deadlines</h3>
+                                        <p className="text-[10px] font-black text-slate-600 dark:text-slate-400 uppercase tracking-[0.25em]">Pending Assignments</p>
                                     </div>
                                 </div>
 
@@ -286,8 +286,8 @@ export default function ClassroomDetailsClient() {
                                                     }}
                                                 >
                                                     <div className="absolute top-0 -left-[6px] h-[12px] w-[12px] rounded-full bg-white border-2 border-slate-200 group-hover:border-[#0088A9] group-hover:bg-[#0088A9] transition-all" />
-                                                    <h4 className="text-[13px] font-black text-gray-800 leading-tight group-hover:text-[#0088A9] transition-colors uppercase tracking-tight">{a.title}</h4>
-                                                    <div className="flex items-center gap-3 text-gray-600">
+                                                    <h4 className="text-[13px] font-black text-gray-800 dark:text-gray-200 leading-tight group-hover:text-[#0088A9] transition-colors uppercase tracking-tight">{a.title}</h4>
+                                                    <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
                                                         <Calendar className="h-3.5 w-3.5" />
                                                         <span className="text-[10px] font-black uppercase tracking-widest leading-none">Due {format(new Date(a.dueAt!), "MMM d, yyyy")}</span>
                                                     </div>
@@ -304,14 +304,14 @@ export default function ClassroomDetailsClient() {
                                         </Button>
                                     </div>
                                 ) : (
-                                    <div className="py-16 text-center bg-gray-50/50 rounded-[3rem] border border-dashed border-gray-200">
-                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">No deadlines yet</p>
+                                    <div className="py-16 text-center bg-gray-50/50 dark:bg-slate-800/50 rounded-[3rem] border border-dashed border-gray-200 dark:border-white/10">
+                                        <p className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.3em]">No deadlines yet</p>
                                     </div>
                                 )}
                             </div>
 
                             {/* Ledger Promo */}
-                            <div className="glass-panel p-12 rounded-[4rem] relative overflow-hidden group border border-gray-100 shadow-[0_40px_80px_-20px_rgba(0,180,216,0.15)] bg-white">
+                            <div className="glass-panel p-12 rounded-[4rem] relative overflow-hidden group border border-gray-100 dark:border-white/5 shadow-[0_40px_80px_-20px_rgba(0,180,216,0.15)] bg-white dark:bg-slate-900">
                                 <div className="absolute -bottom-10 -right-10 p-4 opacity-5 group-hover:scale-125 transition-transform duration-1000">
                                     <Trophy className="h-56 w-56 text-[#0088A9]" />
                                 </div>
@@ -321,10 +321,10 @@ export default function ClassroomDetailsClient() {
                                     </div>
                                     <div className="space-y-3">
                                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] leading-none mb-1">Academic Hub</p>
-                                        <h3 className="text-4xl font-black uppercase tracking-tighter leading-none mb-4 text-slate-900">Grades Report</h3>
+                                        <h3 className="text-4xl font-black uppercase tracking-tighter leading-none mb-4 text-slate-900 dark:text-white">Grades Report</h3>
                                     </div>
                                     <Button
-                                        className="w-full h-16 rounded-3xl font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl bg-white text-[#0088A9] hover:bg-white/90 hover:scale-[1.05] transition-all duration-300 border-none group"
+                                        className="w-full h-16 rounded-3xl font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl bg-white dark:bg-slate-800 text-[#0088A9] hover:bg-white/90 dark:hover:bg-slate-700 hover:scale-[1.05] transition-all duration-300 border-none group"
                                         onClick={() => {
                                             const gradesTrigger = document.querySelector('[value="grades"]') as HTMLElement;
                                             gradesTrigger?.click();
@@ -336,13 +336,13 @@ export default function ClassroomDetailsClient() {
                             </div>
 
                             {/* Faculty Contact Mini-Card */}
-                            <div className="glass-panel p-10 rounded-[3.5rem] bg-white border border-gray-100 shadow-xl text-center space-y-6">
+                            <div className="glass-panel p-10 rounded-[3.5rem] bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/5 shadow-xl text-center space-y-6">
                                 <div className="p-4 rounded-2xl bg-[#0088A9]/10 text-[#006680] flex items-center justify-center w-fit mx-auto border border-[#0088A9]/20 shadow-inner">
                                     <Shield className="h-7 w-7" />
                                 </div>
                                 <div className="space-y-2">
-                                    <h4 className="text-sm font-black text-gray-900 uppercase tracking-tighter">Student Support</h4>
-                                    <p className="text-[10px] font-bold text-gray-700 uppercase tracking-widest leading-relaxed">Connect with teachers for academic assistance.</p>
+                                    <h4 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tighter">Student Support</h4>
+                                    <p className="text-[10px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-widest leading-relaxed">Connect with teachers for academic assistance.</p>
                                 </div>
                                 <button className="w-full py-4 text-[9px] font-black uppercase tracking-[0.3em] text-[#0088A9] hover:bg-[#0088A9]/5 rounded-2xl border border-dashed border-[#0088A9]/30 transition-all">
                                     Contact Teacher
@@ -363,7 +363,7 @@ export default function ClassroomDetailsClient() {
                                 <ArrowLeft className="mr-4 h-5 w-5 transition-transform group-hover:-translate-x-2" />
                                 Return to Classwork
                             </Button>
-                            <div className="glass-panel rounded-[4rem] p-4 bg-white/40 border border-white shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] overflow-hidden min-h-[600px]">
+                            <div className="glass-panel rounded-[4rem] p-4 bg-white/40 dark:bg-slate-900/40 border border-white dark:border-white/5 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.15)] overflow-hidden min-h-[600px]">
                                 <SubmissionView assignmentId={selectedAssignmentId} studentId={user?.id || ""} />
                             </div>
                         </div>
@@ -371,11 +371,11 @@ export default function ClassroomDetailsClient() {
                         <div className="space-y-16 max-w-6xl pb-20">
                             {assignments.length === 0 && materials.length === 0 ? (
                                 <div className="py-40 flex flex-col items-center justify-center glass-panel rounded-[5rem] border-dashed border-gray-200 bg-gray-50/20">
-                                    <div className="p-12 rounded-[3.5rem] bg-white shadow-2xl mb-10 border border-gray-100 scale-125">
+                                    <div className="p-12 rounded-[3.5rem] bg-white dark:bg-slate-800 shadow-2xl mb-10 border border-gray-100 dark:border-white/5 scale-125">
                                         <BookOpen className="h-24 w-24 text-gray-100" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-4">No Materials Found</h3>
-                                    <p className="text-gray-500 font-black uppercase tracking-[0.4em] text-[12px]">No assignments or materials available yet.</p>
+                                    <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter mb-4">No Materials Found</h3>
+                                    <p className="text-gray-500 dark:text-gray-400 font-black uppercase tracking-[0.4em] text-[12px]">No assignments or materials available yet.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-16">
@@ -397,7 +397,7 @@ export default function ClassroomDetailsClient() {
                                                         transition={{ delay: idx * 0.08, type: "spring", stiffness: 100 }}
                                                     >
                                                         <div
-                                                            className="glass-panel group p-10 rounded-[3rem] bg-white border border-white cursor-pointer hover:border-[#0088A9]/40 hover:shadow-[0_30px_60px_-15px_rgba(0,136,169,0.2)] transition-all duration-700"
+                                                            className="glass-panel group p-10 rounded-[3rem] bg-white dark:bg-slate-900 border border-white dark:border-white/5 cursor-pointer hover:border-[#0088A9]/40 hover:shadow-[0_30px_60px_-15px_rgba(0,136,169,0.2)] transition-all duration-700"
                                                             onClick={() => setSelectedAssignmentId(assignment.id)}
                                                         >
                                                             <div className="flex items-center gap-10">
@@ -465,14 +465,14 @@ export default function ClassroomDetailsClient() {
                 <TabsContent value="quizzes" className="mt-8 outline-none animate-in slide-in-from-bottom-4 duration-700 pb-20">
                     <div className="space-y-12">
                         {/* High-Contrast Hub Card */}
-                        <div className="glass-panel group p-16 flex flex-col md:flex-row items-center justify-between gap-12 bg-white border border-gray-100 shadow-[0_50px_100px_-20px_rgba(0,136,169,0.15)] relative overflow-hidden rounded-[4rem]">
+                        <div className="glass-panel group p-16 flex flex-col md:flex-row items-center justify-between gap-12 bg-white dark:bg-slate-900 border border-gray-100 dark:border-white/5 shadow-[0_50px_100px_-20px_rgba(0,136,169,0.15)] relative overflow-hidden rounded-[4rem]">
                             <div className="absolute top-0 right-0 p-16 opacity-5 group-hover:opacity-10 group-hover:scale-125 transition-all duration-1000">
                                 <Trophy className="h-80 w-80 text-[#0088A9]" />
                             </div>
                             <div className="relative z-10 space-y-6">
                                 <Badge className="bg-[#0088A9] text-white border-none font-black text-[11px] uppercase tracking-[0.3em] px-6 py-2 rounded-full shadow-[0_10px_30px_rgba(0,136,169,0.4)] ring-4 ring-[#0088A9]/20">Quiz Portal</Badge>
-                                <h2 className="text-6xl font-black text-slate-900 leading-none tracking-tighter uppercase">Quiz <span className="text-[#0088A9]">Hub</span></h2>
-                                <p className="text-slate-600 font-bold text-base uppercase tracking-[0.25em] max-w-lg leading-loose italic">Access your quizzes and track your academic performance.</p>
+                                <h2 className="text-6xl font-black text-slate-900 dark:text-white leading-none tracking-tighter uppercase">Quiz <span className="text-[#0088A9]">Hub</span></h2>
+                                <p className="text-slate-600 dark:text-slate-400 font-bold text-base uppercase tracking-[0.25em] max-w-lg leading-loose italic">Access your quizzes and track your academic performance.</p>
                             </div>
                             <Button
                                 className="h-20 px-14 rounded-[2rem] bg-slate-900 text-white border-none hover:bg-[#0088A9] hover:text-white font-black text-[13px] uppercase tracking-[0.4em] shadow-2xl relative z-10 group/btn transition-all hover:scale-[1.05] active:scale-[0.95] ring-8 ring-slate-100"
@@ -484,8 +484,8 @@ export default function ClassroomDetailsClient() {
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-10">
-                            <div className="md:col-span-3 py-24 flex flex-col items-center justify-center glass-panel rounded-[5rem] border-dashed border-gray-200 bg-gray-50/20 shadow-inner">
-                                <div className="h-32 w-32 rounded-[3.5rem] bg-white flex items-center justify-center text-[#0088A9] mb-10 ring-8 ring-slate-100/50 shadow-2xl animate-float border border-gray-100">
+                            <div className="md:col-span-3 py-24 flex flex-col items-center justify-center glass-panel rounded-[5rem] border-dashed border-gray-200 dark:border-white/10 bg-gray-50/20 dark:bg-white/5 shadow-inner">
+                                <div className="h-32 w-32 rounded-[3.5rem] bg-white dark:bg-slate-800 flex items-center justify-center text-[#0088A9] mb-10 ring-8 ring-slate-100/50 dark:ring-white/10 shadow-2xl animate-float border border-gray-100 dark:border-white/5">
                                     <Activity className="h-14 w-14" />
                                 </div>
                                 <h3 className="text-3xl font-black text-gray-900 uppercase tracking-tighter mb-4 leading-none">Quiz Details</h3>
@@ -505,7 +505,7 @@ export default function ClassroomDetailsClient() {
                 </TabsContent>
 
                 <TabsContent value="grades" className="mt-8 outline-none animate-in slide-in-from-bottom-4 duration-700 pb-20">
-                    <div className="glass-panel group p-2 rounded-[5rem] bg-white border border-white shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] overflow-hidden min-h-[700px]">
+                    <div className="glass-panel group p-2 rounded-[5rem] bg-white dark:bg-slate-900 border border-white dark:border-white/5 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.2)] overflow-hidden min-h-[700px]">
                         <StudentGradeView
                             courseId={workspace.courseId}
                             batchId={workspace.batchId}

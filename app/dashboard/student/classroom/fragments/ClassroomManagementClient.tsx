@@ -147,15 +147,14 @@ export default function ClassroomManagementClient() {
             )}
 
             {/* Tactical Search Bar */}
-            <div className="relative z-10 max-w-4xl mx-auto w-full group">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#0088A9]/20 to-blue-500/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="relative glass-panel rounded-[2.5rem] p-3 flex items-center bg-white border border-white shadow-2xl transition-all group-hover:shadow-[0_40px_80px_-20px_rgba(0,136,169,0.2)]">
-                    <div className="p-4 rounded-2xl bg-gray-50 text-[#0088A9] flex items-center justify-center border border-gray-100 shadow-inner">
-                        <Search className="h-5 w-5" />
+            <div className="relative z-10 max-w-2xl mx-auto w-full">
+                <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                        <Search className="h-6 w-6 text-gray-400 group-focus-within:text-[#0088A9] transition-colors" />
                     </div>
                     <Input
-                        placeholder="Search within your neural workspace matrix..."
-                        className="border-none bg-transparent h-16 text-lg font-bold placeholder:text-gray-300 placeholder:font-bold focus-visible:ring-0 focus-visible:ring-offset-0 px-8 flex-1"
+                        placeholder="Search your workspace..."
+                        className="w-full h-16 pl-16 pr-8 rounded-full bg-white dark:bg-slate-900/80 border-none shadow-2xl text-lg font-bold placeholder:text-gray-300 dark:placeholder:text-slate-600 dark:text-white focus-visible:ring-2 focus-visible:ring-[#0088A9]/50 transition-all hover:bg-white/90 dark:hover:bg-slate-900"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -174,7 +173,7 @@ export default function ClassroomManagementClient() {
                             transition={{ delay: idx * 0.05, type: "spring", stiffness: 100 }}
                         >
                             <Link href={`/dashboard/student/classroom/${ws.id}`} className="block group">
-                                <div className="glass-panel overflow-hidden h-full rounded-[3.5rem] bg-white border border-white shadow-xl hover:shadow-[0_50px_100px_-30px_rgba(0,136,169,0.25)] hover:border-[#0088A9]/30 transition-all duration-700 relative flex flex-col hover:-translate-y-3">
+                                <div className="glass-panel overflow-hidden h-full rounded-[3.5rem] bg-white dark:bg-slate-900/40 border border-white dark:border-white/10 shadow-xl hover:shadow-[0_50px_100px_-30px_rgba(0,136,169,0.25)] hover:border-[#0088A9]/30 transition-all duration-700 relative flex flex-col hover:-translate-y-3">
                                     {/* Premium Card Header */}
                                     <div className="h-32 bg-slate-900 relative p-8 flex flex-col justify-end overflow-hidden">
                                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-all duration-1000 group-hover:scale-125">
@@ -199,7 +198,7 @@ export default function ClassroomManagementClient() {
                                         </h3>
 
                                         <div className="flex items-center gap-3 text-gray-400 mb-8">
-                                            <div className="p-1.5 rounded-lg bg-gray-50 border border-gray-100">
+                                            <div className="p-1.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
                                                 <GraduationCap className="h-3.5 w-3.5" />
                                             </div>
                                             <span className="text-[10px] font-black uppercase tracking-[0.25em]">
@@ -207,13 +206,13 @@ export default function ClassroomManagementClient() {
                                             </span>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4 py-6 border-y border-gray-50 mb-8">
+                                        <div className="grid grid-cols-2 gap-4 py-6 border-y border-gray-50 dark:border-white/5 mb-8">
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-2 text-gray-400">
                                                     <Users className="h-3.5 w-3.5" />
                                                     <span className="text-[8px] font-black uppercase tracking-[0.3em]">Total Student</span>
                                                 </div>
-                                                <span className="text-xl font-black text-gray-900 tracking-tighter">
+                                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
                                                     {ws.totalBatchStudents || ws.studentCount || 0}
                                                 </span>
                                             </div>
@@ -222,14 +221,14 @@ export default function ClassroomManagementClient() {
                                                     <span className="text-[8px] font-black uppercase tracking-[0.3em]">Batch</span>
                                                     <Code className="h-3.5 w-3.5" />
                                                 </div>
-                                                <span className="text-xl font-black text-gray-900 tracking-tighter">
+                                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
                                                     {ws.displayBatchName}
                                                 </span>
                                             </div>
                                         </div>
 
                                         <div className="mt-auto">
-                                            <div className="w-full h-16 rounded-3xl bg-gray-50 border border-gray-100 flex items-center justify-between px-8 text-gray-400 group-hover:bg-[#0088A9] group-hover:text-white group-hover:border-none group-hover:shadow-[0_20px_40px_-10px_rgba(0,136,169,0.3)] transition-all duration-500 font-black uppercase tracking-[0.3em] text-[10px]">
+                                            <div className="w-full h-16 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 flex items-center justify-between px-8 text-gray-400 group-hover:bg-[#0088A9] group-hover:text-white group-hover:border-none group-hover:shadow-[0_20px_40px_-10px_rgba(0,136,169,0.3)] transition-all duration-500 font-black uppercase tracking-[0.3em] text-[10px]">
                                                 Enter Classroom
                                                 <Rocket className="h-5 w-5 transition-transform group-hover:translate-x-2 group-hover:-translate-y-2 duration-500" />
                                             </div>
@@ -242,12 +241,12 @@ export default function ClassroomManagementClient() {
                 </AnimatePresence>
 
                 {filteredWorkspaces.length === 0 && (
-                    <div className="col-span-full py-40 flex flex-col items-center justify-center glass-panel rounded-[5rem] border-dashed border-gray-300 bg-gray-50/20">
-                        <div className="p-10 rounded-[3rem] bg-white shadow-xl mb-10 border border-gray-50 scale-125">
-                            <Shield className="h-16 w-16 text-gray-100" />
+                    <div className="col-span-full py-40 flex flex-col items-center justify-center glass-panel rounded-[5rem] border-dashed border-gray-300 dark:border-white/10 bg-gray-50/20 dark:bg-white/5">
+                        <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-800 shadow-xl mb-10 border border-gray-50 dark:border-white/5 scale-125">
+                            <Shield className="h-16 w-16 text-gray-100 dark:text-slate-700" />
                         </div>
-                        <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tighter mb-4">No Sector Detected</h3>
-                        <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.4em] max-w-sm text-center leading-loose opacity-70">
+                        <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter mb-4">No Sector Detected</h3>
+                        <p className="text-[11px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.4em] max-w-sm text-center leading-loose opacity-70">
                             {searchQuery ? "Your tactical scan yielded no results in the current matrix." : "You haven't been synchronized with any neural learning hubs yet."}
                         </p>
                     </div>

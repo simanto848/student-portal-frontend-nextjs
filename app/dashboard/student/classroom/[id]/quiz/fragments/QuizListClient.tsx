@@ -34,6 +34,7 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { motion, AnimatePresence } from "framer-motion";
+import StudentLoading from "@/components/StudentLoading";
 
 export default function QuizListClient() {
     const params = useParams();
@@ -100,13 +101,7 @@ export default function QuizListClient() {
 
     if (isLoading) {
         return (
-            <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
-                <div className="relative">
-                    <div className="h-16 w-16 rounded-full border-4 border-[#0088A9]/10 border-t-[#0088A9] animate-spin" />
-                    <Zap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-[#0088A9] animate-pulse" />
-                </div>
-                <p className="text-slate-700 font-bold uppercase tracking-widest text-xs animate-pulse">Loading assessments...</p>
-            </div>
+            <StudentLoading />
         );
     }
 
@@ -121,7 +116,7 @@ export default function QuizListClient() {
                         variant="ghost"
                         size="sm"
                         onClick={() => router.push(`/dashboard/student/classroom/${workspaceId}`)}
-                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-[#0088A9]/5 font-black uppercase tracking-widest text-[10px] shadow-sm"
+                        className="rounded-xl border border-gray-100 dark:border-white/10 bg-white dark:bg-slate-800 text-[#0088A9] dark:text-white hover:bg-[#0088A9]/5 font-black uppercase tracking-widest text-[10px] shadow-sm"
                     >
                         <ArrowLeft className="mr-2 h-3.5 w-3.5" />
                         Back to Classroom
@@ -133,8 +128,8 @@ export default function QuizListClient() {
                 {quizzes.length === 0 ? (
                     <GlassCard className="p-24 flex flex-col items-center justify-center border-dashed bg-gray-50/50">
                         <ClipboardList className="h-16 w-16 text-slate-200 mb-6" />
-                        <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-2">No Quizzes Available</h3>
-                        <p className="text-slate-600 font-bold uppercase tracking-widest text-[10px]">Your teacher hasn't published any quizzes yet</p>
+                        <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">No Quizzes Available</h3>
+                        <p className="text-slate-600 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px]">Your teacher hasn't published any quizzes yet</p>
                     </GlassCard>
                 ) : (
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -150,33 +145,33 @@ export default function QuizListClient() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.05 }}
                                     >
-                                        <GlassCard className="overflow-hidden group hover:border-[#0088A9]/30 transition-all duration-300 flex flex-col h-full bg-white border-gray-100 shadow-xl">
+                                        <GlassCard className="overflow-hidden group hover:border-[#0088A9]/30 transition-all duration-300 flex flex-col h-full bg-white dark:bg-slate-900 border-gray-100 dark:border-white/5 shadow-xl">
                                             <div className="p-6 flex-1">
                                                 <div className="flex items-start justify-between mb-4">
-                                                    <div className="h-12 w-12 rounded-2xl bg-[#0088A9]/5 text-[#0088A9] flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+                                                    <div className="h-12 w-12 rounded-2xl bg-[#0088A9]/5 dark:bg-[#0088A9]/10 text-[#0088A9] dark:text-cyan-400 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                                                         <Zap className="h-6 w-6" />
                                                     </div>
                                                     <Badge variant="outline" className="text-[9px] font-black uppercase tracking-tighter text-[#0088A9] border-[#0088A9]/20">
                                                         {quiz.duration} MINS
                                                     </Badge>
                                                 </div>
-                                                <h3 className="text-lg font-black text-slate-900 tracking-tight group-hover:text-[#0088A9] transition-colors uppercase mb-2 line-clamp-1">{quiz.title}</h3>
+                                                <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight group-hover:text-[#0088A9] dark:group-hover:text-cyan-400 transition-colors uppercase mb-2 line-clamp-1">{quiz.title}</h3>
                                                 {quiz.description && (
-                                                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest line-clamp-2 mb-6">{quiz.description}</p>
+                                                    <p className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest line-clamp-2 mb-6">{quiz.description}</p>
                                                 )}
 
                                                 <div className="grid grid-cols-2 gap-4 mb-6">
-                                                    <div className="p-3 rounded-xl bg-slate-50/50 border border-slate-100">
-                                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Questions</p>
-                                                        <div className="flex items-center gap-1.5 font-black text-slate-700 text-sm">
-                                                            <FileCheck className="h-3.5 w-3.5 text-[#0088A9]" />
+                                                    <div className="p-3 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+                                                        <p className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Questions</p>
+                                                        <div className="flex items-center gap-1.5 font-black text-slate-700 dark:text-slate-200 text-sm">
+                                                            <FileCheck className="h-3.5 w-3.5 text-[#0088A9] dark:text-cyan-400" />
                                                             {quiz.questionCount}
                                                         </div>
                                                     </div>
-                                                    <div className="p-3 rounded-xl bg-slate-50/50 border border-slate-100">
-                                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Remaining</p>
-                                                        <div className="flex items-center gap-1.5 font-black text-slate-700 text-sm">
-                                                            <RotateCcw className="h-3.5 w-3.5 text-[#0088A9]" />
+                                                    <div className="p-3 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+                                                        <p className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Remaining</p>
+                                                        <div className="flex items-center gap-1.5 font-black text-slate-700 dark:text-slate-200 text-sm">
+                                                            <RotateCcw className="h-3.5 w-3.5 text-[#0088A9] dark:text-cyan-400" />
                                                             {attemptsRemaining}
                                                         </div>
                                                     </div>
@@ -225,8 +220,8 @@ export default function QuizListClient() {
                                                 {!inProgress && (
                                                     <Button
                                                         className={canAttempt
-                                                            ? "w-full h-12 bg-slate-900 border-none hover:bg-[#0088A9] text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-200 transition-all duration-300 group/btn"
-                                                            : "w-full h-12 bg-slate-100 text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-2xl cursor-not-allowed"
+                                                            ? "w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-none hover:bg-[#0088A9] dark:hover:bg-[#0088A9] dark:hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-200 dark:shadow-[#0088A9]/20 transition-all duration-300 group/btn"
+                                                            : "w-full h-12 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-2xl cursor-not-allowed"
                                                         }
                                                         disabled={!canAttempt}
                                                         onClick={() => setStartingQuiz(quiz)}
@@ -256,34 +251,34 @@ export default function QuizListClient() {
             </div>
 
             <AlertDialog open={!!startingQuiz} onOpenChange={() => !isStarting && setStartingQuiz(null)}>
-                <AlertDialogContent className="bg-white/95 backdrop-blur-xl border-gray-100 rounded-[2rem] p-8 max-w-md shadow-2xl">
+                <AlertDialogContent className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-gray-100 dark:border-white/10 rounded-[2rem] p-8 max-w-md shadow-2xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                        <AlertDialogTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-[#0088A9] flex items-center justify-center text-white">
                                 <Zap className="h-5 w-5" />
                             </div>
                             Start Quiz
                         </AlertDialogTitle>
                         <div className="space-y-6 pt-4">
-                            <div className="p-4 rounded-2xl bg-white border border-gray-100 shadow-sm">
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 leading-none">Quiz Title</p>
-                                <p className="text-lg font-black text-slate-900 uppercase leading-none">{startingQuiz?.title}</p>
+                            <div className="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-gray-100 dark:border-white/5 shadow-sm">
+                                <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1 leading-none">Quiz Title</p>
+                                <p className="text-lg font-black text-slate-900 dark:text-white uppercase leading-none">{startingQuiz?.title}</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="p-4 rounded-2xl bg-[#0088A9]/5 border border-[#0088A9]/20">
+                                <div className="p-4 rounded-2xl bg-[#0088A9]/5 dark:bg-slate-800 border border-[#0088A9]/20 dark:border-white/5">
                                     <div className="flex items-center gap-2 mb-1">
                                         <Timer className="h-3.5 w-3.5 text-[#0088A9]" />
                                         <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-widest">Duration</p>
                                     </div>
-                                    <p className="text-sm font-black text-slate-900 uppercase">{startingQuiz?.duration} Mins</p>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white uppercase">{startingQuiz?.duration} Mins</p>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-[#0088A9]/5 border border-[#0088A9]/20">
+                                <div className="p-4 rounded-2xl bg-[#0088A9]/5 dark:bg-slate-800 border border-[#0088A9]/20 dark:border-white/5">
                                     <div className="flex items-center gap-2 mb-1">
                                         <FileCheck className="h-3.5 w-3.5 text-[#0088A9]" />
                                         <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-widest">Questions</p>
                                     </div>
-                                    <p className="text-sm font-black text-slate-900 uppercase">{startingQuiz?.questionCount} Questions</p>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white uppercase">{startingQuiz?.questionCount} Questions</p>
                                 </div>
                             </div>
 
@@ -295,9 +290,9 @@ export default function QuizListClient() {
                             </div>
 
                             {startingQuiz?.instructions && (
-                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-white/5">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Protocol Instructions</p>
-                                    <p className="text-[11px] font-bold text-slate-600 leading-relaxed uppercase">{startingQuiz.instructions}</p>
+                                    <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed uppercase">{startingQuiz.instructions}</p>
                                 </div>
                             )}
                         </div>
@@ -305,7 +300,7 @@ export default function QuizListClient() {
                     <AlertDialogFooter className="pt-8 flex gap-3">
                         <AlertDialogCancel
                             disabled={isStarting}
-                            className="flex-1 h-12 rounded-2xl border-gray-200 font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 text-slate-700"
+                            className="flex-1 h-12 rounded-2xl border-gray-200 dark:border-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 dark:bg-transparent"
                         >
                             Cancel
                         </AlertDialogCancel>
