@@ -32,6 +32,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { notificationService, NotificationItem } from "@/services/notification/notification.service";
+import { chatService, ChatGroup } from "@/services/communication/chat.service";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 
@@ -47,8 +48,10 @@ export default function TeacherDashboard() {
   );
 
   // Notifications
+  // Notifications & Messages
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [recentChats, setRecentChats] = useState<any[]>([]);
 
   const fetchDashboardData = useCallback(async () => {
     if (!user?.id) return;
@@ -57,7 +60,9 @@ export default function TeacherDashboard() {
       const promises: Promise<any>[] = [
         batchCourseInstructorService.getInstructorCourses(user.id),
         courseGradeService.getWorkflow({ mine: true }),
-        notificationService.list({ page: 1, limit: 10 })
+
+        notificationService.list({ page: 1, limit: 10 }),
+        chatService.listMyChatGroups()
       ];
 
       const results = await Promise.allSettled(promises);
@@ -65,9 +70,15 @@ export default function TeacherDashboard() {
       const coursesResult = results[0];
       const workflowResult = results[1];
       const notificationsResult = results[2];
+      const chatsResult = results[3];
 
       if (coursesResult.status === 'fulfilled') setCourses(coursesResult.value);
       if (workflowResult.status === 'fulfilled') setWorkflows(workflowResult.value || []);
+      if (chatsResult.status === 'fulfilled') {
+        // Filter chats that have at least one message for the "Recent Messages" view
+        const activeChats = (chatsResult.value || []).filter((c: any) => c.lastMessage);
+        setRecentChats(activeChats);
+      }
 
       if (notificationsResult.status === 'fulfilled') {
         const notifData = notificationsResult.value;
@@ -223,42 +234,53 @@ export default function TeacherDashboard() {
               <MessageCircle className="text-blue-500 w-5 h-5" />
               Messages
             </h2>
-            <span className="bg-[#2dd4bf] text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+            <span className="bg-[#2dd4bf] text-white text-xs font-bold px-2 py-0.5 rounded-full">{recentChats.length}</span>
           </div>
           <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
-            {/* Dummy Messages */}
-            <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
-              <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                <img src="https://ui-avatars.com/api/?name=Aditi+Sharma&background=random" alt="Student" className="w-full h-full object-cover" />
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></span>
+            {recentChats.length > 0 ? (
+              recentChats.map((chat) => (
+                <Link href={`/dashboard/teacher/communication?chatId=${chat.id}`} key={chat.id}>
+                  <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
+                    <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-500 uppercase">
+                      {chat.type === "CourseChatGroup" ? (
+                        chat.courseCode ? chat.courseCode.slice(0, 3) : "CRS"
+                      ) : (
+                        chat.batchName ? chat.batchName.slice(0, 3) : "BAT"
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">
+                          {chat.type === "CourseChatGroup" ? (
+                            <>
+                              <span className="text-[#2dd4bf]">{chat.courseCode}</span>
+                              <span className="mx-1">•</span>
+                              {chat.batchShift?.toLowerCase() === 'day' ? 'D-' : chat.batchShift?.toLowerCase() === 'evening' ? 'E-' : ''}{chat.batchName}
+                            </>
+                          ) : (
+                            `${chat.batchShift?.toLowerCase() === 'day' ? 'D-' : chat.batchShift?.toLowerCase() === 'evening' ? 'E-' : ''}${chat.batchName}`
+                          )}
+                        </h4>
+                        <span className="text-[10px] text-slate-400">
+                          {chat.lastMessage?.createdAt && formatDistanceToNow(new Date(chat.lastMessage.createdAt), { addSuffix: false })}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        <span className="font-medium text-slate-700 dark:text-slate-300 mr-1">
+                          {chat.lastMessage?.sender?.fullName?.split(' ')[0]}:
+                        </span>
+                        {chat.lastMessage?.content || "Sent an attachment"}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-slate-400 text-xs">
+                <MessageCircle className="w-8 h-8 mb-2 opacity-20" />
+                <p>No recent messages</p>
               </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">Aditi Sharma</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Sir, regarding the assignment...</p>
-              </div>
-              <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0"></span>
-            </div>
-
-            <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
-              <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                <img src="https://ui-avatars.com/api/?name=Rahul+Verma&background=random" alt="Student" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">Rahul Verma</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Can I get an extension?</p>
-              </div>
-              <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0"></span>
-            </div>
-
-            <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
-              <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                <img src="https://ui-avatars.com/api/?name=Priya+Singh&background=random" alt="Student" className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-slate-800 dark:text-white truncate">Priya Singh</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Thank you for the feedback!</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
