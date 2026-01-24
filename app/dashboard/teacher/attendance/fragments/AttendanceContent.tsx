@@ -4,8 +4,9 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import {
     DashboardSkeleton,
 } from "@/components/dashboard/shared";
+import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CardContent, CardHeader } from "@/components/ui/card";
 import {
     Table,
     TableBody,
@@ -268,58 +269,41 @@ export function AttendanceContent() {
     }
 
     return (
-        <div className="space-y-10 pb-20 max-w-7xl mx-auto">
-            {/* Cinematic Hero Section */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-indigo-950 via-indigo-900 to-slate-900 p-10 md:p-14 text-white shadow-2xl"
-            >
-                <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-indigo-500/20 blur-[100px] opacity-50" />
-                <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-96 w-96 rounded-full bg-indigo-600/10 blur-[100px] opacity-30" />
-
-                <div className="relative z-10 space-y-8">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-                        <div className="space-y-4">
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-indigo-200 text-[10px] font-black uppercase tracking-[0.2em]">
-                                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                                <span>Attendance Control</span>
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-none text-white">
-                                Attendance Control
-                            </h1>
-                            <p className="text-indigo-100/70 max-w-md text-lg font-medium leading-relaxed">
-                                Record attendance for students in a cinematic and efficient manner.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-3">
-                            <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Session Active</span>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-xl text-xs font-bold text-white border border-white/10 shadow-xl">
-                                    <CalendarIcon className="h-4 w-4 text-white" />
-                                    {format(date, "MMMM d, yyyy")}
-                                </div>
-                            </div>
-                            {selectedCourse && (
-                                <div className="flex flex-col items-end">
-                                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">Current Sector</span>
-                                    <div className="flex items-center gap-2 px-4 py-2 bg-indigo-500/20 backdrop-blur-md rounded-xl text-xs font-bold text-white border border-indigo-400/30 shadow-xl">
-                                        <Building2 className="h-4 w-4 text-indigo-200" />
-                                        {selectedCourse.batch?.name}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+        <div className="space-y-8 font-display animate-in fade-in duration-500">
+            {/* Standard Dashboard Header */}
+            <GlassCard className="p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <Users className="text-[#2dd4bf] w-6 h-6" />
+                        Attendance Control
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                        Manage student attendance for <span className="text-[#2dd4bf] font-semibold">{format(date, "MMMM d, yyyy")}</span>
+                    </p>
                 </div>
-            </motion.div>
+
+                <div className="flex items-center gap-3">
+                    {selectedCourse && (
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 text-[#2dd4bf] text-xs font-bold shadow-sm backdrop-blur-sm hover:bg-[#2dd4bf]/20 transition-all cursor-default hover:scale-105">
+                            <GraduationCap className="w-3.5 h-3.5" />
+                            <span>{selectedCourse.batch?.name}</span>
+                            <span className="w-1 h-1 rounded-full bg-[#2dd4bf]/50 mx-0.5"></span>
+                            <span>{selectedCourse.course?.code}</span>
+                        </div>
+                    )}
+                    <DatePicker
+                        date={date}
+                        onChange={(d) => d && setDate(d)}
+                        className="w-40 md:w-48 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 h-10"
+                    />
+                </div>
+            </GlassCard>
 
             <motion.div
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
-                className="space-y-10"
+                className="space-y-6"
             >
                 <AnimatePresence mode="wait">
                     {selectedAssignmentId && students.length > 0 && (
@@ -336,107 +320,95 @@ export function AttendanceContent() {
                 </AnimatePresence>
 
                 <motion.div variants={itemVariants}>
-                    <Card className="border-none shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] bg-white overflow-hidden rounded-[3rem]">
-                        <CardHeader className="border-b border-slate-100 p-10 space-y-8">
-                            <div className="flex flex-col lg:flex-row gap-8 justify-between items-start lg:items-end">
-                                <div className="flex-1 w-full space-y-6">
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-2.5 w-2.5 rounded-full bg-indigo-500 animate-pulse" />
-                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assignment</h3>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2.5">
-                                            <label className="text-[10px] font-black text-slate-500 ml-1 uppercase tracking-widest">Course</label>
+                    <GlassCard className="overflow-hidden p-0">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-700 space-y-6">
+                            <div className="flex flex-col lg:flex-row gap-6 justify-between items-start lg:items-end">
+                                <div className="flex-1 w-full space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">Select Course</label>
                                             <Select
                                                 value={selectedAssignmentId}
                                                 onValueChange={setSelectedAssignmentId}
                                             >
-                                                <SelectTrigger className="h-14 bg-slate-50 border-2 border-slate-100/50 hover:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 rounded-2xl font-bold transition-all p-5 shadow-none outline-none">
+                                                <SelectTrigger className="h-11 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#2dd4bf]">
                                                     <SelectValue placeholder="Choose Course..." />
                                                 </SelectTrigger>
-                                                <SelectContent className="rounded-3xl border-slate-100 shadow-2xl p-2">
+                                                <SelectContent className="dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                                                     {courses.map((course) => (
-                                                        <SelectItem key={course.id} value={course.id} className="cursor-pointer font-bold py-4 rounded-xl focus:bg-indigo-50 focus:text-indigo-700 transition-colors">
+                                                        <SelectItem key={course.id} value={course.id} className="cursor-pointer">
                                                             <div className="flex flex-col gap-0.5">
-                                                                <span className="text-sm">{course.course?.code} - {course.course?.name}</span>
-                                                                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{course.batch?.name}</span>
+                                                                <span className="font-medium text-slate-700 dark:text-slate-200">{course.course?.code} - {course.course?.name}</span>
+                                                                <span className="text-[10px] text-slate-400 uppercase tracking-widest">{course.batch?.name}</span>
                                                             </div>
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2.5">
-                                            <label className="text-[10px] font-black text-slate-500 ml-1 uppercase tracking-widest">Date</label>
-                                            <DatePicker
-                                                date={date}
-                                                onChange={(d) => d && setDate(d)}
-                                                className="h-14 bg-slate-50 border-2 border-slate-100/50 font-bold rounded-2xl p-5"
-                                            />
-                                        </div>
+
+                                        {selectedAssignmentId && (
+                                            <div className="space-y-2 relative">
+                                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">Search Students</label>
+                                                <div className="relative">
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                    <Input
+                                                        placeholder="Search by name or reg. no..."
+                                                        value={searchQuery}
+                                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                                        className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#2dd4bf]"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
                                 {selectedAssignmentId && (
-                                    <div className="flex items-center gap-4 w-full lg:w-auto">
-                                        <div className="relative flex-1 lg:w-96 group">
-                                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
-                                            <Input
-                                                placeholder="Search student registry..."
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                className="pl-14 h-14 bg-slate-50 border-2 border-slate-100/50 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 rounded-2xl font-bold transition-all"
-                                            />
-                                        </div>
-                                        <Button
-                                            variant="outline"
-                                            className="h-14 w-14 rounded-2xl border-2 border-slate-100/50 hover:bg-white hover:text-indigo-600 hover:border-indigo-100 transition-all p-0 shadow-sm"
-                                            onClick={() => fetchClassData()}
-                                            title="Sync Data"
-                                        >
-                                            <RefreshCw className={cn("h-6 w-6", loadingStudents && "animate-spin")} />
-                                        </Button>
-                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="h-11 w-11 shrink-0 rounded-xl border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:text-[#2dd4bf] p-0"
+                                        onClick={() => fetchClassData()}
+                                        title="Sync Data"
+                                    >
+                                        <RefreshCw className={cn("h-5 w-5", loadingStudents && "animate-spin")} />
+                                    </Button>
                                 )}
                             </div>
-                        </CardHeader>
+                        </div>
 
-                        <CardContent className="p-0">
+                        <div className="p-0">
                             {!selectedAssignmentId ? (
-                                <div className="flex flex-col items-center justify-center py-40 bg-gradient-to-b from-white to-slate-50/50 px-10 text-center">
-                                    <div className="h-28 w-28 rounded-[2rem] bg-slate-100 flex items-center justify-center mb-8 shadow-inner border border-slate-200/50">
-                                        <SearchCheck className="h-12 w-12 text-slate-300" />
+                                <div className="flex flex-col items-center justify-center py-24 text-center">
+                                    <div className="h-20 w-20 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
+                                        <SearchCheck className="h-10 w-10 text-slate-300 dark:text-slate-600" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight uppercase">Stream Selection Required</h3>
-                                    <p className="text-slate-500 font-medium max-w-sm">Please identify an academic stream from the hub above to begin presence synchronization.</p>
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Select a Course</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm">Choose a course from the dropdown above to start marking attendance.</p>
                                 </div>
                             ) : loadingStudents ? (
-                                <div className="flex flex-col items-center justify-center py-40">
-                                    <div className="relative mb-8">
-                                        <div className="h-20 w-20 rounded-full border-t-4 border-indigo-600 animate-spin" />
-                                        <Loader2 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 text-indigo-200 animate-pulse" />
-                                    </div>
-                                    <p className="text-slate-900 font-black text-lg tracking-tight uppercase">Syncing Registry...</p>
-                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Connecting to Academic Databases</p>
+                                <div className="flex flex-col items-center justify-center py-24">
+                                    <Loader2 className="h-10 w-10 text-[#2dd4bf] animate-spin mb-4" />
+                                    <p className="text-slate-600 dark:text-slate-300 font-medium">Loading Class Register...</p>
                                 </div>
                             ) : students.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center py-40 text-slate-400 bg-gradient-to-b from-white to-slate-50/50 px-10 text-center">
-                                    <div className="h-28 w-28 rounded-[2rem] bg-slate-100 flex items-center justify-center mb-8 shadow-inner border border-slate-200/50">
-                                        <GraduationCap className="h-12 w-12 text-slate-300" />
+                                <div className="flex flex-col items-center justify-center py-24 text-center">
+                                    <div className="h-20 w-20 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
+                                        <GraduationCap className="h-10 w-10 text-slate-300 dark:text-slate-600" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-900 mb-3 tracking-tight uppercase">Empty Manifest</h3>
-                                    <p className="text-slate-500 font-medium max-w-sm">No student units detected within this specific academic stream. Please verify batch assignments.</p>
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">No Students Found</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm">There are no students enrolled in this batch yet.</p>
                                 </div>
                             ) : (
-                                <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-                                    <div className="max-h-[700px] overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
                                         <Table>
-                                            <TableHeader className="bg-white/80 sticky top-0 z-10 backdrop-blur-xl">
-                                                <TableRow className="hover:bg-transparent border-b border-slate-100">
-                                                    <TableHead className="px-10 py-6 h-auto text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] w-56">Registry ID</TableHead>
-                                                    <TableHead className="py-6 h-auto text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Student Identifier</TableHead>
-                                                    <TableHead className="py-6 h-auto text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] text-center">Engagement Status</TableHead>
-                                                    <TableHead className="px-10 py-6 h-auto text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Operational Notes</TableHead>
+                                            <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-10 backdrop-blur-sm">
+                                                <TableRow className="hover:bg-transparent border-b border-slate-100 dark:border-slate-700">
+                                                    <TableHead className="pl-6 w-48 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reg. ID</TableHead>
+                                                    <TableHead className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Student</TableHead>
+                                                    <TableHead className="text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</TableHead>
+                                                    <TableHead className="pr-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remarks</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -465,54 +437,45 @@ export function AttendanceContent() {
                                             </TableBody>
                                         </Table>
                                     </div>
-                                    <div className="p-10 bg-slate-50/50 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-8">
-                                        <div className="flex items-center gap-8">
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status Analytics</span>
-                                                <div className="flex gap-6 mt-3">
-                                                    <div className="flex items-center gap-2 font-black text-[10px] text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 shadow-sm uppercase tracking-widest">
-                                                        <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                                        {attendanceSummary.present} PRESENT
-                                                    </div>
-                                                    <div className="flex items-center gap-2 font-black text-[10px] text-rose-600 bg-rose-50 px-4 py-2 rounded-xl border border-rose-100 shadow-sm uppercase tracking-widest">
-                                                        <div className="h-2 w-2 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-                                                        {attendanceSummary.absent} MISSING
-                                                    </div>
-                                                </div>
+                                    <div className="p-6 border-t border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50/30 dark:bg-slate-800/20">
+                                        <div className="flex flex-wrap items-center gap-4">
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                {attendanceSummary.present} Present
                                             </div>
-                                            <div className="h-12 w-px bg-slate-200" />
-                                            <div className="flex flex-col">
-                                                <p className="text-xs text-slate-600 font-bold italic flex items-center gap-2">
-                                                    <ClipboardCheck className="h-4 w-4 text-indigo-500" />
-                                                    Authenticated timestamp verified for all entries.
-                                                </p>
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1 ml-6 text-indigo-500/50">Academic Integrity Validated</p>
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-500/20">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                                                {attendanceSummary.absent} Absent
+                                            </div>
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
+                                                <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                                {attendanceSummary.late} Late
                                             </div>
                                         </div>
+
                                         <Button
                                             size="lg"
-                                            className="h-16 px-12 bg-slate-900 hover:bg-indigo-600 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl transition-all hover:scale-[1.05] active:scale-95 disabled:hover:scale-100 group overflow-hidden relative"
+                                            className="w-full md:w-auto bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold"
                                             onClick={handleSubmit}
                                             disabled={saving}
                                         >
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                             {saving ? (
                                                 <>
-                                                    <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                                                    Synchronizing...
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Saving...
                                                 </>
                                             ) : (
                                                 <>
-                                                    <Save className="mr-3 h-5 w-5" />
-                                                    Finalize Session
+                                                    <Save className="mr-2 h-4 w-4" />
+                                                    Finalize Attendance
                                                 </>
                                             )}
                                         </Button>
                                     </div>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </GlassCard>
                 </motion.div>
             </motion.div>
         </div>

@@ -61,23 +61,23 @@ export function AttendanceRow({
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="group transition-all duration-300 hover:bg-slate-50/80 border-b border-slate-100/50"
+            className="group transition-colors duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 last:border-0"
         >
-            <TableCell className="px-8 py-5">
-                <span className="text-xs font-black text-slate-400 uppercase tracking-widest bg-slate-100/50 px-2.5 py-1 rounded-lg group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+            <TableCell className="px-6 py-4">
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
                     {student.student?.registrationNumber || "N/A"}
                 </span>
             </TableCell>
             <TableCell>
-                <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-2xl bg-linear-to-br from-indigo-50 to-slate-50 flex items-center justify-center text-indigo-600 font-black text-xs ring-1 ring-slate-200 group-hover:from-indigo-600 group-hover:to-indigo-500 group-hover:text-white transition-all duration-500 shadow-sm group-hover:shadow-indigo-200">
+                <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs">
                         {student.student?.fullName?.charAt(0) || "?"}
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">
+                        <span className="text-sm font-semibold text-slate-800 dark:text-white truncate max-w-[180px]">
                             {student.student?.fullName || "Unknown"}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Academic Record Valid</span>
+                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Valid Record</span>
                     </div>
                 </div>
             </TableCell>
@@ -101,13 +101,13 @@ export function AttendanceRow({
                     ))}
                 </div>
             </TableCell>
-            <TableCell className="px-8">
+            <TableCell className="pr-6">
                 <Input
-                    placeholder="Add operational remarks..."
+                    placeholder="Remarks..."
                     value={state.remarks}
                     disabled={disabled}
                     onChange={(e) => onRemarksChange(e.target.value)}
-                    className="h-11 bg-slate-50/50 border-slate-100 focus:bg-white focus:ring-4 focus:ring-indigo-500/5 focus:border-indigo-500/30 rounded-2xl transition-all group-hover:border-slate-200 md:w-full font-medium"
+                    className="h-9 bg-transparent border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 rounded-lg text-xs"
                 />
             </TableCell>
         </motion.tr>
