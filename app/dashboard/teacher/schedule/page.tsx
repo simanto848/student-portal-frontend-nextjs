@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { getTeacherSchedule } from "./actions";
 import ScheduleClient from "./fragments/ScheduleClient";
 import { Metadata } from "next";
@@ -12,8 +11,6 @@ export default async function TeacherSchedulePage() {
   const schedules = await getTeacherSchedule();
 
   return (
-    <DashboardLayout>
-      <ScheduleClient initialSchedules={schedules} />
-    </DashboardLayout>
+    <ScheduleClient initialSchedules={schedules} />
   );
 }

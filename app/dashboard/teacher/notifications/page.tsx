@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { getTeacherNotifications, getTeacherSentNotifications, getNotificationStats } from "./actions";
 import NotificationListClient from "./fragments/NotificationListClient";
 import { Metadata } from "next";
@@ -16,12 +15,10 @@ export default async function TeacherNotificationsPage() {
   ]);
 
   return (
-    <DashboardLayout>
-      <NotificationListClient
-        initialNotifications={notifications}
-        initialSentNotifications={sentNotifications}
-        initialUnreadCount={stats.unread || 0}
-      />
-    </DashboardLayout>
+    <NotificationListClient
+      initialNotifications={notifications}
+      initialSentNotifications={sentNotifications}
+      initialUnreadCount={stats.unread || 0}
+    />
   );
 }

@@ -1,5 +1,4 @@
 import { requireUser } from "@/lib/auth/userAuth";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import ChatClient from "../../fragments/ChatClient";
 
 export default async function ChatPage({ params, searchParams }: {
@@ -11,13 +10,11 @@ export default async function ChatPage({ params, searchParams }: {
     const { type } = await searchParams;
 
     return (
-        <DashboardLayout>
-            <div className="max-w-7xl mx-auto pb-10 px-4 md:px-0">
-                <ChatClient
-                    chatGroupId={id}
-                    chatGroupType={type as 'BatchChatGroup' | 'CourseChatGroup' | undefined}
-                />
-            </div>
-        </DashboardLayout>
+        <div className="max-w-7xl mx-auto pb-10 px-4 md:px-0">
+            <ChatClient
+                chatGroupId={id}
+                chatGroupType={type as 'BatchChatGroup' | 'CourseChatGroup' | undefined}
+            />
+        </div>
     );
 }

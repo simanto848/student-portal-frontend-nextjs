@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { getNotificationTargetOptions } from "../actions";
 import CreateNotificationClient from "./fragments/CreateNotificationClient";
 import { Metadata } from "next";
@@ -12,8 +11,6 @@ export default async function CreateNotificationPage() {
   const targetOptions = await getNotificationTargetOptions();
 
   return (
-    <DashboardLayout>
-      <CreateNotificationClient initialTargetOptions={targetOptions} />
-    </DashboardLayout>
+    <CreateNotificationClient initialTargetOptions={targetOptions} />
   );
 }

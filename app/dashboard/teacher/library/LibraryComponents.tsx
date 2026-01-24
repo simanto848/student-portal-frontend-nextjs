@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import {
     Clock,
     BookOpen,
@@ -42,18 +43,18 @@ export function BookCard({
             transition={{ delay: index * 0.05 }}
             className="group"
         >
-            <div className="relative overflow-hidden rounded-[2rem] bg-white border border-slate-200/60 p-6 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 hover:border-indigo-100">
+            <GlassCard className="p-6 hover:-translate-y-1 transition-transform duration-300">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-start gap-5 flex-1 min-w-0">
                         <div className={cn(
                             "p-4 rounded-2xl transition-all duration-300 group-hover:scale-110",
-                            isAvailable ? "bg-indigo-50 text-indigo-500" : "bg-slate-50 text-slate-400"
+                            isAvailable ? "bg-[#2dd4bf]/10 text-[#2dd4bf]" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
                         )}>
                             <BookOpen className="h-6 w-6" />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                <h3 className="text-lg font-black tracking-tight text-slate-900 truncate">
+                                <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">
                                     {book.title}
                                 </h3>
                                 <StatusBadge
@@ -63,22 +64,22 @@ export function BookCard({
                                     pill
                                 />
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-3">
+                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium mb-3">
                                 <User className="h-4 w-4 text-slate-400" />
                                 <span>{book.author}</span>
                                 <span className="mx-1 opacity-30">•</span>
-                                <span className="text-indigo-600/80 font-bold uppercase text-[10px] tracking-widest">{book.category}</span>
+                                <span className="text-[#2dd4bf] font-bold uppercase text-[10px] tracking-widest">{book.category}</span>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">
+                            <div className="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
                                 <span className="flex items-center gap-1.5">
                                     <Bookmark className="h-3 w-3" />
-                                    Copies: <span className="text-slate-700">{book.availableCopies || 0}</span>
+                                    Copies: <span className="text-slate-700 dark:text-slate-300">{book.availableCopies || 0}</span>
                                 </span>
                                 {book.language && (
                                     <span className="flex items-center gap-1.5">
                                         <Info className="h-3 w-3" />
-                                        Language: <span className="text-slate-700">{book.language}</span>
+                                        Language: <span className="text-slate-700 dark:text-slate-300">{book.language}</span>
                                     </span>
                                 )}
                             </div>
@@ -89,7 +90,7 @@ export function BookCard({
                         {onReserve && isAvailable && (
                             <Button
                                 size="lg"
-                                className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-600/20 rounded-xl font-black uppercase text-xs tracking-[0.15em] transition-all active:scale-95"
+                                className="h-11 px-8 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold uppercase text-xs tracking-[0.15em] transition-all active:scale-95"
                                 onClick={() => onReserve(book)}
                                 disabled={isReserving}
                             >
@@ -98,7 +99,7 @@ export function BookCard({
                         )}
                     </div>
                 </div>
-            </div>
+            </GlassCard>
         </motion.div>
     );
 }
@@ -134,15 +135,17 @@ export function BorrowedBookCard({
             transition={{ delay: index * 0.05 }}
             className="group"
         >
-            <div className="relative overflow-hidden rounded-[2rem] bg-white border border-slate-200/60 p-6 transition-all duration-300 hover:shadow-xl hover:border-indigo-100">
+            <GlassCard className="p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-start gap-4 flex-1">
-                        <div className={cn("p-4 rounded-2xl group-hover:scale-110 transition-all duration-300", getStatusColor().split(' ')[1], getStatusColor().split(' ')[0])}>
+                        <div className={cn("p-4 rounded-2xl group-hover:scale-110 transition-all duration-300",
+                            isOverdue ? "bg-rose-500/10 text-rose-500" : "bg-[#2dd4bf]/10 text-[#2dd4bf]"
+                        )}>
                             <BookOpen className="h-6 w-6" />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                <h3 className="text-lg font-black tracking-tight text-slate-900 truncate">
+                                <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">
                                     {bookDetails?.title || "Unknown Book"}
                                 </h3>
                                 <StatusBadge
@@ -152,19 +155,19 @@ export function BorrowedBookCard({
                                     pill
                                 />
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-3">
+                            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium mb-3">
                                 <User className="h-4 w-4 text-slate-400" />
                                 <span>{bookDetails?.author || "Unknown Author"}</span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-black uppercase tracking-[0.12em]">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-bold uppercase tracking-[0.12em]">
                                 <div className="flex items-center gap-2 text-slate-400">
                                     <Calendar className="h-3 w-3" />
-                                    <span>Borrowed: <span className="text-slate-700">{new Date(item.borrowDate).toLocaleDateString()}</span></span>
+                                    <span>Borrowed: <span className="text-slate-700 dark:text-slate-300">{new Date(item.borrowDate).toLocaleDateString()}</span></span>
                                 </div>
                                 <div className={cn("flex items-center gap-2", isOverdue ? "text-rose-500" : daysLeft <= 3 ? "text-amber-500" : "text-slate-400")}>
                                     <Clock className="h-3 w-3" />
-                                    <span>Due Date: <span className={cn("font-black", !isOverdue && daysLeft > 3 ? "text-slate-700" : "")}>{dueDate.toLocaleDateString()} {!isOverdue && `(${daysLeft}d left)`}</span></span>
+                                    <span>Due Date: <span className={cn("font-black", !isOverdue && daysLeft > 3 ? "text-slate-700 dark:text-slate-300" : "")}>{dueDate.toLocaleDateString()} {!isOverdue && `(${daysLeft}d left)`}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -176,14 +179,14 @@ export function BorrowedBookCard({
                                 size="sm"
                                 onClick={() => onReturn(item.id)}
                                 variant="outline"
-                                className="h-10 px-4 rounded-xl font-black uppercase text-[9px] tracking-widest border-slate-200 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all"
+                                className="h-10 px-4 rounded-xl font-bold uppercase text-[9px] tracking-widest border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-[#2dd4bf]/10 hover:text-[#2dd4bf] hover:border-[#2dd4bf]/20 transition-all"
                             >
                                 How to Return
                             </Button>
                         )}
                     </div>
                 </div>
-            </div>
+            </GlassCard>
         </motion.div>
     );
 }
@@ -212,15 +215,15 @@ export function ReservationCard({
             transition={{ delay: index * 0.05 }}
             className="group"
         >
-            <div className="relative overflow-hidden rounded-[2rem] bg-white border border-slate-200/60 p-6 transition-all duration-300 hover:shadow-xl">
+            <GlassCard className="p-6 hover:shadow-lg transition-all duration-300">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-start gap-4 flex-1">
-                        <div className="p-4 rounded-2xl bg-amber-50 text-amber-500 group-hover:scale-110 transition-all duration-300">
+                        <div className="p-4 rounded-2xl bg-amber-500/10 text-amber-500 group-hover:scale-110 transition-all duration-300">
                             <Bookmark className="h-6 w-6" />
                         </div>
                         <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                <h3 className="text-lg font-black tracking-tight text-slate-900 truncate">
+                                <h3 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white truncate">
                                     {bookDetails?.title || "Unknown Book"}
                                 </h3>
                                 <StatusBadge
@@ -230,7 +233,7 @@ export function ReservationCard({
                                     pill
                                 />
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-slate-500 font-medium mb-3">
+                            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 font-medium mb-3">
                                 <span className="flex items-center gap-1.5">
                                     <User className="h-3 w-3 text-slate-400" />
                                     {bookDetails?.author || "Unknown Author"}
@@ -242,21 +245,21 @@ export function ReservationCard({
                                 </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-black uppercase tracking-[0.12em]">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-bold uppercase tracking-[0.12em]">
                                 <div className="flex items-center gap-2 text-slate-400">
                                     <Calendar className="h-3 w-3" />
-                                    <span>Placed: <span className="text-slate-700">{new Date(item.reservationDate).toLocaleDateString()}</span></span>
+                                    <span>Placed: <span className="text-slate-700 dark:text-slate-300">{new Date(item.reservationDate).toLocaleDateString()}</span></span>
                                 </div>
                                 <div className={cn("flex items-center gap-2", isExpired ? "text-rose-500" : "text-amber-500")}>
                                     <Clock className="h-3 w-3" />
-                                    <span>Expires: <span className="font-black">{expiryDate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span></span>
+                                    <span>Expires: <span className="font-bold">{expiryDate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span></span>
                                 </div>
                             </div>
 
                             {item.copy?.location && (
-                                <div className="mt-3 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-100 w-fit">
-                                    <MapPinned className="h-3 w-3 text-indigo-500" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Pick up: {item.copy.location}</span>
+                                <div className="mt-3 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700 w-fit">
+                                    <MapPinned className="h-3 w-3 text-[#2dd4bf]" />
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Pick up: {item.copy.location}</span>
                                 </div>
                             )}
                         </div>
@@ -267,7 +270,7 @@ export function ReservationCard({
                             <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-10 px-6 border-rose-100 text-rose-500 hover:bg-rose-50 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all"
+                                className="h-10 px-6 border-rose-100 dark:border-rose-900/50 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-xl font-bold uppercase text-[10px] tracking-widest transition-all"
                                 onClick={() => onCancel(item.id)}
                                 disabled={isCancelling}
                             >
@@ -276,7 +279,7 @@ export function ReservationCard({
                         )}
                     </div>
                 </div>
-            </div>
+            </GlassCard>
         </motion.div >
     );
 }
@@ -293,26 +296,26 @@ export function HistoryCard({ item, index = 0 }: { item: Borrowing | Reservation
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.03 }}
         >
-            <div className="flex items-center gap-4 p-4 rounded-[1.5rem] bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-200 transition-all duration-300">
+            <div className="flex items-center gap-4 p-4 rounded-[1.5rem] bg-slate-50/50 dark:bg-slate-800/20 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-all duration-300">
                 <div className={cn(
                     "p-3 rounded-xl",
-                    isBorrowing ? "bg-indigo-100/50 text-indigo-500" : "bg-amber-100/50 text-amber-500"
+                    isBorrowing ? "bg-[#2dd4bf]/10 text-[#2dd4bf]" : "bg-amber-100/50 dark:bg-amber-500/10 text-amber-500"
                 )}>
                     {isBorrowing ? <HistoryIcon className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                 </div>
 
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-4 mb-0.5">
-                        <h4 className="text-sm font-bold text-slate-900 truncate">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">
                             {bookDetails?.title || "Unknown Book"}
                         </h4>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
                             {isBorrowing ? "BORROWING" : "RESERVATION"}
                         </span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-                        <span className="text-xs text-slate-500 font-medium">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                             {isBorrowing ? (
                                 `Borrowed: ${new Date((item as Borrowing).borrowDate).toLocaleDateString()}`
                             ) : (
@@ -325,11 +328,11 @@ export function HistoryCard({ item, index = 0 }: { item: Borrowing | Reservation
                                 "h-1.5 w-1.5 rounded-full",
                                 status === 'returned' || status === 'fulfilled' ? "bg-emerald-500" : "bg-slate-300"
                             )} />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{status}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{status}</span>
                         </div>
 
                         {(item as Borrowing).fineAmount > 0 && (
-                            <span className="text-rose-500 font-black text-[10px] tracking-widest">
+                            <span className="text-rose-500 font-bold text-[10px] tracking-widest">
                                 FINE: ${((item as Borrowing).fineAmount).toFixed(2)}
                             </span>
                         )}

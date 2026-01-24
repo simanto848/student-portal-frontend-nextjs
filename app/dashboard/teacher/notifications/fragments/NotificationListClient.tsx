@@ -140,85 +140,79 @@ export default function NotificationListClient({
 
     return (
         <div className="space-y-8 pb-12">
-            {/* Header / Hero */}
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-200/60 p-8 shadow-2xl shadow-indigo-500/5">
-                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-indigo-50/50 blur-3xl opacity-50" />
+            {/* Header Section - Updated to match teacher dashboard */}
+            <div className="glass-panel rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <div className="flex items-center gap-2 mb-2">
+                        <Bell className="text-[#2dd4bf] w-5 h-5" />
+                        <span className="text-xs font-bold text-[#2dd4bf] uppercase tracking-widest">
+                            Communications Hub
+                        </span>
+                    </div>
+                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                        Notifi<span className="text-[#2dd4bf]">cations</span>
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                        Stay updated with system alerts and broadcast messages to your students.
+                    </p>
 
-                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="space-y-1.5">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className={`p-2 rounded-xl ${accentBgSubtle} ${accentPrimary}`}>
-                                <Bell className="h-5 w-5" />
-                            </div>
-                            <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${accentPrimary}`}>
-                                Communications Hub
+                    <div className="flex items-center gap-4 mt-3 text-[11px] font-bold uppercase tracking-widest">
+                        <div className="flex items-center gap-1.5">
+                            <div className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                            <span className={isConnected ? 'text-emerald-600' : 'text-red-600'}>
+                                {isConnected ? 'Real-time Linked' : 'Connection Lost'}
                             </span>
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-                            Notifi<span className={accentPrimary}>cations</span>
-                        </h1>
-                        <p className="text-slate-500 font-medium text-sm md:text-base max-w-lg">
-                            Stay updated with system alerts and broadcast messages to your students.
-                        </p>
-
-                        <div className="flex items-center gap-4 mt-4 text-[11px] font-bold uppercase tracking-widest">
-                            <div className="flex items-center gap-1.5">
-                                <div className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-                                <span className={isConnected ? 'text-emerald-600' : 'text-red-600'}>
-                                    {isConnected ? 'Real-time Linked' : 'Connection Lost'}
-                                </span>
-                                {!isConnected && (
-                                    <button onClick={reconnect} className="text-indigo-600 underline ml-1 hover:text-indigo-700">
-                                        Reconnect
-                                    </button>
-                                )}
-                            </div>
+                            {!isConnected && (
+                                <button onClick={reconnect} className="text-[#2dd4bf] underline ml-1 hover:text-[#26b3a2]">
+                                    Reconnect
+                                </button>
+                            )}
                         </div>
                     </div>
+                </div>
 
-                    <div className="flex flex-col gap-3">
-                        <Link href="/dashboard/teacher/notifications/create">
-                            <Button className={`h-14 px-8 ${accentPrimary.replace('text-', 'bg-')} hover:opacity-90 text-white shadow-xl shadow-indigo-600/20 rounded-2xl font-black uppercase text-xs tracking-[0.15em] w-full transition-all active:scale-95 flex items-center gap-3`}>
-                                <Plus className="h-5 w-5" />
-                                Create New Notification
-                            </Button>
-                        </Link>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={() => markAllAsRead.mutate()}
-                                disabled={unreadCount === 0 || isMarkingAllRead}
-                                className="flex-1 h-12 border-slate-200 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50"
-                            >
-                                Mark All Read
-                            </Button>
-                            <Button
-                                variant="outline"
-                                onClick={() => {
-                                    refetch();
-                                    if (activeTab === "sent") fetchSent();
-                                }}
-                                className="h-12 w-12 border-slate-200 rounded-xl flex items-center justify-center hover:bg-slate-50 p-0"
-                            >
-                                <RefreshCw className="h-4 w-4" />
-                            </Button>
-                        </div>
+                <div className="flex flex-col gap-3">
+                    <Link href="/dashboard/teacher/notifications/create">
+                        <Button className="h-14 px-8 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-black uppercase text-xs tracking-widest w-full transition-all active:scale-95 flex items-center gap-3">
+                            <Plus className="h-5 w-5" />
+                            Create New Notification
+                        </Button>
+                    </Link>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => markAllAsRead.mutate()}
+                            disabled={unreadCount === 0 || isMarkingAllRead}
+                            className="flex-1 h-12 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                        >
+                            Mark All Read
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                refetch();
+                                if (activeTab === "sent") fetchSent();
+                            }}
+                            className="h-12 w-12 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 rounded-xl flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700/50 p-0"
+                        >
+                            <RefreshCw className="h-4 w-4" />
+                        </Button>
                     </div>
                 </div>
             </div>
 
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-6">
-                    <TabsList className="h-14 p-1.5 bg-slate-100/80 backdrop-blur rounded-2xl border border-slate-200/50 w-full md:w-auto">
+                    <TabsList className="h-14 p-1.5 bg-slate-100/80 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/50 dark:border-slate-700 w-full md:w-auto">
                         <TabsTrigger
                             value="inbox"
-                            className="h-11 px-8 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=hover]:text-[#2dd4bf] data-[state=active]:border-[#2dd4bf]/20 active:scale-95"
                         >
                             <div className="flex items-center gap-2">
                                 <Inbox className="h-4 w-4" />
                                 Inbox
                                 {unreadCount > 0 && (
-                                    <span className={`flex items-center justify-center h-5 w-5 rounded-full ${accentPrimary.replace('text-', 'bg-')} text-[10px] text-white`}>
+                                    <span className="flex items-center justify-center h-5 w-5 rounded-full bg-[#2dd4bf] text-[10px] text-white">
                                         {unreadCount}
                                     </span>
                                 )}
@@ -226,7 +220,7 @@ export default function NotificationListClient({
                         </TabsTrigger>
                         <TabsTrigger
                             value="sent"
-                            className="h-11 px-8 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=hover]:text-[#2dd4bf] data-[state=active]:border-[#2dd4bf]/20 active:scale-95"
                         >
                             <div className="flex items-center gap-2">
                                 <Send className="h-4 w-4" />
@@ -243,23 +237,23 @@ export default function NotificationListClient({
                                     placeholder="Filter messages..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="h-12 pl-12 pr-4 bg-white border-slate-200 rounded-2xl font-medium focus:ring-indigo-500/20"
+                                    className="h-12 pl-12 pr-4 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl font-medium focus:ring-[#2dd4bf]/20"
                                 />
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="h-12 w-12 rounded-2xl p-0 border-slate-200">
-                                        <Filter className="h-4 w-4 text-slate-600" />
+                                    <Button variant="outline" className="h-12 w-12 rounded-xl p-0 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:text-[#2dd4bf]">
+                                        <Filter className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2">
-                                    <DropdownMenuItem onClick={() => setFilter('all')} className="rounded-xl font-bold text-xs uppercase tracking-widest">
+                                <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur">
+                                    <DropdownMenuItem onClick={() => setFilter('all')} className="rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700">
                                         All Messages
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setFilter('unread')} className="rounded-xl font-bold text-xs uppercase tracking-widest text-indigo-600">
+                                    <DropdownMenuItem onClick={() => setFilter('unread')} className="rounded-xl font-bold text-xs uppercase tracking-widest text-[#2dd4bf] hover:bg-[#2dd4bf]/10">
                                         Unread Only
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setFilter('read')} className="rounded-xl font-bold text-xs uppercase tracking-widest">
+                                    <DropdownMenuItem onClick={() => setFilter('read')} className="rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-100 dark:hover:bg-slate-700">
                                         Read Only
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -300,8 +294,8 @@ export default function NotificationListClient({
                     <div className="grid grid-cols-1 gap-4">
                         {isLoadingSent ? (
                             <div className="py-20 flex flex-col items-center justify-center">
-                                <RefreshCw className={`h-8 w-8 animate-spin ${accentPrimary} mb-4`} />
-                                <p className="font-black uppercase tracking-widest text-slate-400 text-xs text-center">
+                                <RefreshCw className="h-8 w-8 animate-spin text-[#2dd4bf] mb-4" />
+                                <p className="font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-xs text-center">
                                     Synchronizing outbox...
                                 </p>
                             </div>
@@ -381,38 +375,38 @@ function NotificationCard({
             transition={{ delay: index * 0.05 }}
             layout
         >
-            <Card className={`group relative overflow-hidden transition-all duration-300 rounded-[2rem] border-slate-200/60 hover:shadow-xl hover:border-indigo-100 ${!isRead ? 'bg-gradient-to-r from-indigo-50/30 to-white' : 'bg-white'}`}>
+            <Card className={`glass-panel group relative overflow-hidden transition-all duration-300 rounded-3xl border-slate-200/50 dark:border-slate-700 hover:shadow-lg hover:border-[#2dd4bf]/30 hover:-translate-y-1 ${!isRead ? 'bg-[#2dd4bf]/5 dark:bg-[#2dd4bf]/10' : 'bg-white/50 dark:bg-slate-800/50'}`}>
                 {!isRead && (
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-500 rounded-full" />
+                    <div className="absolute top-0 left-0 w-1.5 h-full bg-[#2dd4bf] rounded-full" />
                 )}
                 <CardContent className="p-6">
                     <div className="flex items-start gap-4">
-                        <div className={`p-3 rounded-2xl ${!isRead ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'bg-slate-100 text-slate-400'} transition-all group-hover:scale-110`}>
+                        <div className={`p-3 rounded-2xl ${!isRead ? 'bg-[#2dd4bf] text-white shadow-lg shadow-teal-200 dark:shadow-teal-600/20' : 'bg-slate-100 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500'} transition-all group-hover:scale-110`}>
                             <Icon className="h-5 w-5" />
                         </div>
 
                         <div className="flex-1 min-w-0">
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-y-1 mb-2">
-                                <h3 className={`text-base font-bold tracking-tight ${!isRead ? 'text-slate-900' : 'text-slate-500'}`}>
+                                <h3 className={`text-base font-bold tracking-tight ${!isRead ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-400'}`}>
                                     {notification.title}
                                 </h3>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
                                         {formatDistanceToNow(new Date(notification.publishedAt || notification.createdAt || ""), { addSuffix: true })}
                                     </span>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100">
-                                                <MoreVertical className="h-4 w-4 text-slate-400" />
+                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                                                <MoreVertical className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="rounded-xl">
+                                        <DropdownMenuContent align="end" className="rounded-xl bg-white/90 dark:bg-slate-800/90 backdrop-blur">
                                             {!isRead && (
-                                                <DropdownMenuItem onClick={onMarkAsRead} disabled={isMarkingRead} className="font-bold text-xs uppercase tracking-widest text-indigo-600">
+                                                <DropdownMenuItem onClick={onMarkAsRead} disabled={isMarkingRead} className="font-bold text-xs uppercase tracking-widest text-[#2dd4bf] hover:bg-[#2dd4bf]/10">
                                                     Mark as Read
                                                 </DropdownMenuItem>
                                             )}
-                                            <DropdownMenuItem className="font-bold text-xs uppercase tracking-widest text-red-600">
+                                            <DropdownMenuItem className="font-bold text-xs uppercase tracking-widest text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
                                                 Delete Permanent
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -420,16 +414,16 @@ function NotificationCard({
                                 </div>
                             </div>
 
-                            <p className={`text-sm leading-relaxed mb-4 ${!isRead ? 'text-slate-600' : 'text-slate-400'} line-clamp-2`}>
+                            <p className={`text-sm leading-relaxed mb-4 ${!isRead ? 'text-slate-700 dark:text-slate-300' : 'text-slate-500 dark:text-slate-400'} line-clamp-2`}>
                                 {notification.content}
                             </p>
 
                             <div className="flex flex-wrap items-center gap-2">
-                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-slate-200 text-slate-400 px-2.5 py-0.5 rounded-lg">
+                                <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500 px-2.5 py-0.5 rounded-lg">
                                     {notification.targetType?.replace('_', ' ') || 'General'}
                                 </Badge>
                                 {!isRead && (
-                                    <Badge className="bg-indigo-500 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-lg border-0">
+                                    <Badge className="bg-[#2dd4bf] text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-lg border-0">
                                         Unread
                                     </Badge>
                                 )}
@@ -437,7 +431,7 @@ function NotificationCard({
                         </div>
 
                         <div className="hidden md:flex items-center self-center pl-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ChevronRight className="h-5 w-5 text-indigo-300" />
+                            <ChevronRight className="h-5 w-5 text-[#2dd4bf]" />
                         </div>
                     </div>
                 </CardContent>
@@ -467,26 +461,26 @@ function SentNotificationCard({
             transition={{ delay: index * 0.05 }}
             layout
         >
-            <Card className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 rounded-[2rem] border-slate-200/60 hover:border-indigo-100 p-0">
+            <Card className="glass-panel group relative overflow-hidden bg-white/50 dark:bg-slate-800/50 hover:shadow-lg hover:border-[#2dd4bf]/30 transition-all duration-300 rounded-3xl border-slate-200/50 dark:border-slate-700 hover:-translate-y-1 p-0">
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-start gap-4 flex-1">
-                            <div className={`p-3 rounded-2xl ${isPublished ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-400'}`}>
+                            <div className={`p-3 rounded-2xl ${isPublished ? 'bg-[#2dd4bf]/10 text-[#2dd4bf]' : 'bg-slate-100 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500'}`}>
                                 <Send className="h-5 w-5" />
                             </div>
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <h3 className="text-base font-bold tracking-tight text-slate-900 mb-0.5">
+                                    <h3 className="text-base font-bold tracking-tight text-slate-900 dark:text-white mb-0.5">
                                         {notification.title}
                                     </h3>
-                                    <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-widest border-0 rounded-lg px-2 py-0.5 ${isPublished ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
+                                    <Badge variant="outline" className={`text-[9px] font-black uppercase tracking-widest border-0 rounded-lg px-2 py-0.5 ${isPublished ? 'bg-[#2dd4bf]/10 text-[#2dd4bf]' : 'bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400'}`}>
                                         {notification.status}
                                     </Badge>
                                 </div>
-                                <p className="text-sm text-slate-500 line-clamp-1 mb-3">
+                                <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-1 mb-3">
                                     {notification.content}
                                 </p>
-                                <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
+                                <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
                                     <span className="flex items-center gap-1.5">
                                         <Clock className="h-3 w-3" />
                                         {formatDistanceToNow(new Date(notification.publishedAt || notification.createdAt || ""), { addSuffix: true })}
@@ -502,24 +496,24 @@ function SentNotificationCard({
                         {isPublished && (
                             <div className="flex flex-col gap-2 min-w-[140px]">
                                 <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest mb-1">
-                                    <span className="text-slate-400">Read Status</span>
-                                    <span className="text-indigo-600">{readPercentage}%</span>
+                                    <span className="text-slate-400 dark:text-slate-500">Read Status</span>
+                                    <span className="text-[#2dd4bf]">{readPercentage}%</span>
                                 </div>
-                                <div className="h-2 bg-slate-100 rounded-full overflow-hidden w-full">
+                                <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden w-full">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${readPercentage}%` }}
-                                        className="h-full bg-indigo-500 rounded-full"
+                                        className="h-full bg-[#2dd4bf] rounded-full"
                                     />
                                 </div>
-                                <p className="text-[10px] font-bold text-slate-400 text-center">
+                                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 text-center">
                                     {notification.readCount || 0} Learners
                                 </p>
                             </div>
                         )}
 
                         <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100 text-slate-400 hover:text-red-500">
+                            <Button variant="ghost" size="icon" className="rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 dark:text-slate-500 hover:text-red-500">
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
@@ -532,19 +526,19 @@ function SentNotificationCard({
 
 function EmptyState({ icon: Icon, title, description, action }: any) {
     return (
-        <div className="py-24 flex flex-col items-center justify-center bg-white rounded-[3rem] border border-dashed border-slate-200">
-            <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 flex items-center justify-center mb-6">
-                <Icon className="h-10 w-10 text-slate-200" />
+        <div className="py-24 flex flex-col items-center justify-center glass-panel rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+            <div className="h-20 w-20 rounded-2xl bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
+                <Icon className="h-10 w-10 text-slate-300 dark:text-slate-600" />
             </div>
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2 text-center px-6">
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight mb-2 text-center px-6">
                 {title}
             </h3>
-            <p className="text-slate-400 font-medium text-center px-6 max-w-sm mb-8">
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-center px-6 max-w-sm mb-8">
                 {description}
             </p>
             {action && (
                 <Link href={action.href}>
-                    <Button className="h-12 bg-indigo-600 hover:bg-indigo-700 text-white px-8 rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-indigo-600/20 active:scale-95 transition-all">
+                    <Button className="h-12 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white px-8 rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-teal-500/20 active:scale-95 transition-all">
                         {action.label}
                     </Button>
                 </Link>

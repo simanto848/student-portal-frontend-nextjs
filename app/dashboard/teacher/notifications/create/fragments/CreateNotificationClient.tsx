@@ -77,10 +77,10 @@ interface CreateNotificationClientProps {
 }
 
 const PRIORITIES = [
-    { value: 'low', label: 'General', icon: Info, color: 'bg-emerald-50 text-emerald-600 border-emerald-100', active: 'bg-emerald-600 text-white' },
-    { value: 'medium', label: 'Standard', icon: Zap, color: 'bg-indigo-50 text-indigo-600 border-indigo-100', active: 'bg-indigo-600 text-white' },
-    { value: 'high', label: 'Important', icon: Sparkles, color: 'bg-amber-50 text-amber-600 border-amber-100', active: 'bg-amber-600 text-white' },
-    { value: 'urgent', label: 'Emergency', icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100', active: 'bg-rose-600 text-white' },
+    { value: 'low', label: 'General', icon: Info, color: 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800', active: 'bg-emerald-600 text-white' },
+    { value: 'medium', label: 'Standard', icon: Zap, color: 'bg-[#2dd4bf]/10 text-[#2dd4bf] border-[#2dd4bf]/20', active: 'bg-[#2dd4bf] text-white' },
+    { value: 'high', label: 'Important', icon: Sparkles, color: 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800', active: 'bg-amber-600 text-white' },
+    { value: 'urgent', label: 'Emergency', icon: AlertCircle, color: 'bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800', active: 'bg-rose-600 text-white' },
 ];
 
 export default function CreateNotificationClient({ initialTargetOptions }: CreateNotificationClientProps) {
@@ -216,19 +216,19 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-12">
-            {/* Premium Header */}
+            {/* Header Section - Updated to match teacher dashboard */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-4">
                 <div className="flex items-center gap-4">
                     <Link href="/dashboard/teacher/notifications">
-                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 shadow-sm active:scale-95 transition-all">
-                            <ArrowLeft className="h-5 w-5 text-slate-600" />
+                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-700/50 shadow-sm active:scale-95 transition-all">
+                            <ArrowLeft className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                         </Button>
                     </Link>
                     <div className="space-y-1">
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-                            New <span className={accentPrimary}>Broadcast</span>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">
+                            New <span className="text-[#2dd4bf]">Broadcast</span>
                         </h1>
-                        <p className="text-sm font-medium text-slate-500">
+                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                             Reach your students instantly with critical updates.
                         </p>
                     </div>
@@ -239,14 +239,14 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                         variant="outline"
                         onClick={() => handleSubmit(false)}
                         disabled={isSubmitting}
-                        className="h-12 border-slate-200 rounded-2xl px-6 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
+                        className="h-12 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 rounded-xl px-6 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all flex items-center gap-2"
                     >
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Draft"}
                     </Button>
                     <Button
                         onClick={() => handleSubmit(true)}
                         disabled={isSubmitting}
-                        className={`h-12 ${accentPrimary.replace('text-', 'bg-')} hover:opacity-90 text-white shadow-xl shadow-indigo-600/20 rounded-2xl px-8 font-black uppercase text-xs tracking-widest transition-all active:scale-95 flex items-center gap-2`}
+                        className="h-12 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl px-8 font-black uppercase text-xs tracking-widest transition-all active:scale-95 flex items-center gap-2"
                     >
                         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         {scheduleNotification ? "Schedule" : "Send Now"}
@@ -257,15 +257,15 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
                 {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="rounded-[2.5rem] border-slate-200/60 shadow-2xl shadow-indigo-500/5 bg-white overflow-hidden p-0">
-                        <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
+                    <Card className="glass-panel rounded-3xl border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 overflow-hidden p-0">
+                        <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 p-8">
                             <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-xl ${accentBgSubtle} ${accentPrimary}`}>
+                                <div className="p-2 rounded-xl bg-[#2dd4bf]/10 text-[#2dd4bf]">
                                     <FileText className="h-5 w-5" />
                                 </div>
                                 <div>
-                                    <CardTitle className="text-lg font-black tracking-tight text-slate-900 leading-none mb-1">Compose Message</CardTitle>
-                                    <CardDescription className="text-xs font-medium">Craft a clear and impactful notification.</CardDescription>
+                                    <CardTitle className="text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-none mb-1">Compose Message</CardTitle>
+                                    <CardDescription className="text-xs font-medium text-slate-500 dark:text-slate-400">Craft a clear and impactful notification.</CardDescription>
                                 </div>
                             </div>
                         </CardHeader>
@@ -277,31 +277,31 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                     Target Audience
                                 </Label>
                                 <Select value={selectedId} onValueChange={setSelectedId}>
-                                    <SelectTrigger className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-6 font-bold text-slate-900 focus:ring-indigo-500/20">
+                                    <SelectTrigger className="h-14 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl px-6 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20">
                                         <SelectValue placeholder="Select target group..." />
                                     </SelectTrigger>
-                                    <SelectContent className="rounded-2xl p-2">
+                                    <SelectContent className="rounded-2xl p-2 bg-white/90 dark:bg-slate-800/90 backdrop-blur">
                                         <SelectGroup>
-                                            <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Your Assignments</SelectLabel>
+                                            <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 p-3">Your Assignments</SelectLabel>
                                             {courseOptions.filter((o: any) => o.type !== 'department').map((opt: any) => (
-                                                <SelectItem key={opt.id} value={opt.id} className="rounded-xl p-3 focus:bg-indigo-50">
+                                                <SelectItem key={opt.id} value={opt.id} className="rounded-xl p-3 focus:bg-[#2dd4bf]/10 hover:bg-[#2dd4bf]/5">
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-900">{opt.label}</span>
-                                                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">{opt.type} Access</span>
+                                                        <span className="font-bold text-slate-900 dark:text-white">{opt.label}</span>
+                                                        <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest">{opt.type} Access</span>
                                                     </div>
                                                 </SelectItem>
                                             ))}
                                         </SelectGroup>
                                         {initialTargetOptions.scope?.canSend && courseOptions.some((o: any) => o.type === 'department') && (
                                             <>
-                                                <Separator className="my-2" />
+                                                <Separator className="my-2 bg-slate-200 dark:bg-slate-700" />
                                                 <SelectGroup>
-                                                    <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 p-3">Admin Scopes</SelectLabel>
+                                                    <SelectLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 p-3">Admin Scopes</SelectLabel>
                                                     {courseOptions.filter((o: any) => o.type === 'department').map((opt: any) => (
-                                                        <SelectItem key={opt.id} value={opt.id} className="rounded-xl p-3 focus:bg-indigo-50">
+                                                        <SelectItem key={opt.id} value={opt.id} className="rounded-xl p-3 focus:bg-[#2dd4bf]/10 hover:bg-[#2dd4bf]/5">
                                                             <div className="flex flex-col">
-                                                                <span className="font-bold text-slate-900">{opt.label}</span>
-                                                                <span className="text-[10px] text-indigo-500 uppercase tracking-widest font-black">Department Head</span>
+                                                                <span className="font-bold text-slate-900 dark:text-white">{opt.label}</span>
+                                                                <span className="text-[10px] text-[#2dd4bf] uppercase tracking-widest font-black">Department Head</span>
                                                             </div>
                                                         </SelectItem>
                                                     ))}
@@ -321,7 +321,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g., Mid-Term Exam Rescheduled"
-                                    className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-6 font-bold text-slate-900 text-lg placeholder:text-slate-300 focus:ring-indigo-500/20"
+                                    className="h-14 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl px-6 font-bold text-slate-900 dark:text-white text-lg placeholder:text-slate-300 dark:placeholder:text-slate-500 focus:ring-[#2dd4bf]/20"
                                 />
                             </div>
 
@@ -334,7 +334,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
                                     placeholder="Type your message here..."
-                                    className="min-h-[250px] bg-slate-50 border-slate-200 rounded-[2rem] p-8 font-medium text-slate-700 leading-relaxed placeholder:text-slate-300 focus:ring-indigo-500/20 resize-none"
+                                    className="min-h-[250px] bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl p-6 font-medium text-slate-700 dark:text-slate-300 leading-relaxed placeholder:text-slate-300 dark:placeholder:text-slate-500 focus:ring-[#2dd4bf]/20 resize-none"
                                 />
                             </div>
                         </CardContent>
@@ -343,9 +343,9 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
 
                 {/* Sidebar Controls */}
                 <div className="space-y-6">
-                    <Card className="rounded-[2.5rem] border-slate-200/60 shadow-2xl shadow-indigo-500/5 bg-white overflow-hidden">
-                        <CardHeader className="bg-white border-b border-slate-50 p-6">
-                            <CardTitle className="text-sm font-black tracking-tight text-slate-900 uppercase">Signal Config</CardTitle>
+                    <Card className="glass-panel rounded-3xl border-slate-200/50 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 overflow-hidden">
+                        <CardHeader className="bg-white/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 p-6">
+                            <CardTitle className="text-sm font-bold tracking-tight text-slate-900 dark:text-white uppercase">Signal Config</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-6">
                             {/* Priority */}
@@ -359,7 +359,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                             <button
                                                 key={p.value}
                                                 onClick={() => setPriority(p.value)}
-                                                className={`flex flex-col items-center justify-center p-4 rounded-3xl border-2 transition-all gap-2 active:scale-95 ${isActive ? 'border-indigo-500 bg-indigo-500 text-white shadow-lg shadow-indigo-200' : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'}`}
+                                                className={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all gap-2 active:scale-95 ${isActive ? 'border-[#2dd4bf] bg-[#2dd4bf] text-white shadow-lg shadow-teal-200 dark:shadow-teal-600/20' : 'border-slate-100 bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500 hover:border-slate-200'}`}
                                             >
                                                 <Icon className="h-5 w-5" />
                                                 <span className="text-[10px] font-black uppercase tracking-tight">{p.label}</span>
@@ -375,21 +375,21 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                             <div className="space-y-4">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-1">Delivery Channels</Label>
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                            <div className="p-2 bg-[#2dd4bf]/10 text-[#2dd4bf] rounded-lg">
                                                 <Smartphone className="h-4 w-4" />
                                             </div>
-                                            <span className="text-xs font-bold text-slate-700">In-App Notification</span>
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">In-App Notification</span>
                                         </div>
                                         <Check className="h-4 w-4 text-emerald-500" />
                                     </div>
-                                    <div className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${sendEmail ? 'bg-indigo-50 border-indigo-200' : 'bg-slate-50 border-slate-100 grayscale opacity-60'}`} onClick={() => setSendEmail(!sendEmail)}>
+                                    <div className={`flex items-center justify-between p-4 rounded-xl border transition-all cursor-pointer ${sendEmail ? 'bg-[#2dd4bf]/10 border-[#2dd4bf]/20' : 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 grayscale opacity-60'}`} onClick={() => setSendEmail(!sendEmail)}>
                                         <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg ${sendEmail ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-400'}`}>
+                                            <div className={`p-2 rounded-lg ${sendEmail ? 'bg-[#2dd4bf] text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
                                                 <Mail className="h-4 w-4" />
                                             </div>
-                                            <span className={`text-xs font-bold ${sendEmail ? 'text-indigo-900' : 'text-slate-400'}`}>Email Broadcast</span>
+                                            <span className={`text-xs font-bold ${sendEmail ? 'text-[#2dd4bf]' : 'text-slate-400 dark:text-slate-500'}`}>Email Broadcast</span>
                                         </div>
                                         <Switch checked={sendEmail} onCheckedChange={setSendEmail} />
                                     </div>
@@ -417,7 +417,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                                 date={scheduleDate}
                                                 onChange={setScheduleDate}
                                                 placeholder="Select release date"
-                                                className="bg-slate-50 border-slate-200 rounded-2xl h-14"
+                                                className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl h-14"
                                             />
                                         </div>
 
@@ -428,12 +428,12 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                                     value={scheduleTime.split(':')[0]}
                                                     onValueChange={(h) => setScheduleTime(`${h}:${scheduleTime.split(':')[1]}`)}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-4 font-bold text-slate-900 flex-1 hover:bg-white hover:border-indigo-500/30 transition-all">
+                                                    <SelectTrigger className="h-14 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl px-4 font-bold text-slate-900 dark:text-white flex-1 hover:bg-white/80 dark:hover:bg-slate-700 hover:border-[#2dd4bf]/30 transition-all">
                                                         <SelectValue placeholder="Hour" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl">
+                                                    <SelectContent className="rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur">
                                                         {Array.from({ length: 12 }, (_, i) => (i + 1).toString().padStart(2, '0')).map(hour => (
-                                                            <SelectItem key={hour} value={hour} className="font-bold focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">{hour}</SelectItem>
+                                                            <SelectItem key={hour} value={hour} className="font-bold focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] cursor-pointer">{hour}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -442,12 +442,12 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                                     value={scheduleTime.split(':')[1]}
                                                     onValueChange={(m) => setScheduleTime(`${scheduleTime.split(':')[0]}:${m}`)}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-4 font-bold text-slate-900 flex-1 hover:bg-white hover:border-indigo-500/30 transition-all">
+                                                    <SelectTrigger className="h-14 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl px-4 font-bold text-slate-900 dark:text-white flex-1 hover:bg-white/80 dark:hover:bg-slate-700 hover:border-[#2dd4bf]/30 transition-all">
                                                         <SelectValue placeholder="Min" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl">
+                                                    <SelectContent className="rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur">
                                                         {['00', '15', '30', '45'].map(min => (
-                                                            <SelectItem key={min} value={min} className="font-bold focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">{min}</SelectItem>
+                                                            <SelectItem key={min} value={min} className="font-bold focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] cursor-pointer">{min}</SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -456,20 +456,20 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                                                     value={schedulePeriod}
                                                     onValueChange={(p: any) => setSchedulePeriod(p)}
                                                 >
-                                                    <SelectTrigger className="h-14 bg-slate-50 border-slate-200 rounded-2xl px-4 font-black text-slate-900 flex-1 hover:bg-white hover:border-indigo-500/30 transition-all">
+                                                    <SelectTrigger className="h-14 bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl px-4 font-black text-slate-900 dark:text-white flex-1 hover:bg-white/80 dark:hover:bg-slate-700 hover:border-[#2dd4bf]/30 transition-all">
                                                         <SelectValue placeholder="AM/PM" />
                                                     </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl">
-                                                        <SelectItem value="AM" className="font-black focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">AM</SelectItem>
-                                                        <SelectItem value="PM" className="font-black focus:bg-indigo-50 focus:text-indigo-600 cursor-pointer">PM</SelectItem>
+                                                    <SelectContent className="rounded-2xl bg-white/90 dark:bg-slate-800/90 backdrop-blur">
+                                                        <SelectItem value="AM" className="font-black focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] cursor-pointer">AM</SelectItem>
+                                                        <SelectItem value="PM" className="font-black focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] cursor-pointer">PM</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>
                                         </div>
-                                        <div className="p-3 bg-amber-50 rounded-xl border border-amber-100 flex gap-2">
-                                            <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                                            <p className="text-[10px] font-bold text-amber-800 leading-normal">
-                                                Signal will be stored and automatically released at the specified time.
+                                        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800 flex gap-2">
+                                            <Info className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                                            <p className="text-[10px] font-bold text-amber-800 dark:text-amber-200 leading-normal">
+                                                Signal will be stored and automatically released at specified time.
                                             </p>
                                         </div>
                                     </motion.div>
@@ -479,7 +479,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                     </Card>
 
                     {/* Quick Preview */}
-                    <Card className={`rounded-[2.5rem] border-0 bg-gradient-to-br from-indigo-600 to-indigo-800 p-8 text-white shadow-xl shadow-indigo-600/30 overflow-hidden relative ${!title && 'opacity-50 grayscale'}`}>
+                    <Card className={`rounded-3xl border-0 bg-gradient-to-br from-[#2dd4bf] to-[#26b3a2] p-8 text-white shadow-xl shadow-teal-500/30 overflow-hidden relative ${!title && 'opacity-50 grayscale'}`}>
                         <div className="absolute -bottom-12 -right-12 h-40 w-40 bg-white/10 rounded-full blur-2xl" />
                         <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
                             <Sparkles className="h-4 w-4" />
@@ -489,7 +489,7 @@ export default function CreateNotificationClient({ initialTargetOptions }: Creat
                             <h4 className="text-xl font-black tracking-tight leading-tight line-clamp-2">
                                 {title || "Signal Title Pending"}
                             </h4>
-                            <p className="text-sm font-medium text-white/70 line-clamp-3 leading-relaxed">
+                            <p className="text-sm font-medium text-white/80 line-clamp-3 leading-relaxed">
                                 {content || "The signal content will appear here once you start typing..."}
                             </p>
                             <div className="flex items-center gap-2 pt-4">
