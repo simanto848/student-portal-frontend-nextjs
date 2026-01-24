@@ -190,7 +190,7 @@ export function ReservationCard({
                             <div>
                                 <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Expires On</p>
                                 <p className={`text-xs font-black ${isExpired ? 'text-rose-600' : 'text-slate-800'}`}>
-                                    {expiryDate.toLocaleString()}
+                                    {expiryDate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                                 </p>
                             </div>
                         </div>

@@ -4,7 +4,7 @@ import { bookService } from "@/services/library/book.service";
 import { bookCopyService } from "@/services/library/bookCopy.service";
 import { libraryService } from "@/services/library/library.service";
 import { reservationService } from "@/services/library/reservation.service";
-import { libraryApi } from "@/services/library/axios-instance";
+import { libraryApi, handleLibraryApiError } from "@/services/library/axios-instance";
 import { BorrowingStatus, LibraryStatus, Borrowing, Reservation } from "@/services/library/types";
 
 // ==================================== Query Keys ========================================
@@ -331,16 +331,20 @@ export function useReserveBook() {
       // 2. Select the first available copy
       const copyId = copies[0].id;
 
-      // 3. Create the reservation
-      const response = await libraryApi.post("/library/reservations/reserve", {
-        copyId,
-        libraryId: data.libraryId,
-        userId: data.userId,
-        userType: data.userType,
-        notes: data.notes,
-      });
+      try {
+        // 3. Create the reservation
+        const response = await libraryApi.post("/library/reservations/reserve", {
+          copyId,
+          libraryId: data.libraryId,
+          userId: data.userId,
+          userType: data.userType,
+          notes: data.notes,
+        });
 
-      return response.data.data;
+        return response.data.data;
+      } catch (error) {
+        return handleLibraryApiError(error);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: libraryKeys.reservations() });
@@ -356,7 +360,14 @@ export function useCancelReservation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => libraryApi.post(`/library/reservations/${id}/cancel`),
+    mutationFn: async (id: string) => {
+      try {
+        const response = await libraryApi.post(`/library/reservations/${id}/cancel`);
+        return response.data;
+      } catch (error) {
+        return handleLibraryApiError(error);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: libraryKeys.reservations() });
       queryClient.invalidateQueries({ queryKey: libraryKeys.myReservations() });

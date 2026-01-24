@@ -249,7 +249,7 @@ export function ReservationCard({
                                 </div>
                                 <div className={cn("flex items-center gap-2", isExpired ? "text-rose-500" : "text-amber-500")}>
                                     <Clock className="h-3 w-3" />
-                                    <span>Expires: <span className="font-black">{expiryDate.toLocaleDateString()}</span></span>
+                                    <span>Expires: <span className="font-black">{expiryDate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}</span></span>
                                 </div>
                             </div>
 
@@ -277,7 +277,7 @@ export function ReservationCard({
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </motion.div >
     );
 }
 
