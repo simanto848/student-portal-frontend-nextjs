@@ -375,7 +375,7 @@ export function ChatInterface({
   return (
     <div className="flex flex-col h-full bg-transparent overflow-hidden">
       {/* Unified Nexus Header */}
-      <div className="px-4 py-3 bg-white/40 backdrop-blur-xl border-b border-white/20 flex items-center justify-between z-20 shadow-sm">
+      <div className="px-4 py-3 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border-b border-white/20 dark:border-white/5 flex items-center justify-between z-20 shadow-sm">
         <div className="flex items-center gap-3">
           {onBack && (
             <Button variant="ghost" size="icon" onClick={onBack} className="md:hidden h-9 w-9 rounded-xl hover:bg-white/40">
@@ -392,10 +392,10 @@ export function ChatInterface({
           </div>
 
           <div className="flex flex-col">
-            <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2 leading-none">
-              {title || "Discussion"}
+            <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2 leading-none max-w-[200px] md:max-w-md truncate">
+              <span className="truncate">{title || "Discussion"}</span>
               {courseCode && (
-                <Badge variant="outline" className="text-[10px] font-black py-0 px-1.5 border-teal-500/30 text-teal-600 bg-teal-500/5">
+                <Badge variant="outline" className="text-[10px] font-black py-0 px-1.5 border-teal-500/30 text-teal-600 bg-teal-500/5 shrink-0">
                   {courseCode}
                 </Badge>
               )}
@@ -407,12 +407,12 @@ export function ChatInterface({
         </div>
 
         {/* Floating Search Bar */}
-        <div className="hidden md:flex items-center gap-3 flex-1 max-w-sm mx-12 group bg-white/30 rounded-xl px-3 border border-white/50 focus-within:bg-white/50 transition-all shadow-inner">
-          <Search className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-teal-600 transition-colors" />
-          <form onSubmit={handleSearch} className="flex-1">
+        <div className="hidden md:flex flex-1 max-w-md mx-6">
+          <form onSubmit={handleSearch} className="flex-1 relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-teal-600 dark:group-focus-within:text-teal-400 transition-colors z-10" />
             <Input
-              placeholder="Find something in history..."
-              className="border-none bg-transparent focus-visible:ring-0 px-0 h-8 text-[11px] font-bold uppercase tracking-widest placeholder:text-slate-400 text-slate-700"
+              placeholder="FIND SOMETHING IN HISTORY..."
+              className="w-full bg-white/50 dark:bg-slate-900/50 border-white/20 dark:border-white/10 rounded-2xl pl-10 pr-4 py-6 text-[11px] font-black uppercase tracking-widest placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-700 dark:text-slate-200 shadow-sm hover:shadow-md focus-visible:ring-2 focus-visible:ring-teal-500/20 focus-visible:bg-white/80 dark:focus-visible:bg-slate-800/80 transition-all backdrop-blur-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -432,7 +432,7 @@ export function ChatInterface({
             <SheetContent className="rounded-l-[2.5rem] border-none glass-panel shadow-2xl p-0 overflow-hidden">
               <div className="h-full flex flex-col">
                 <SheetHeader className="p-8 border-b border-white/20 text-left bg-white/20">
-                  <SheetTitle className="text-xl font-black text-slate-900 uppercase tracking-widest leading-tight">Nexus Intel</SheetTitle>
+                  <SheetTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-widest leading-tight">Nexus Intel</SheetTitle>
                   <p className="font-bold text-teal-600 uppercase tracking-[0.3em] text-[10px] mt-1">Resources & Important Pins</p>
                 </SheetHeader>
                 <div className="p-6 flex-1 flex flex-col overflow-hidden">
@@ -534,7 +534,7 @@ export function ChatInterface({
 
       {activePinnedMessage && showPinnedBanner && (
         <div
-          className="mx-4 mt-2 z-10 glass-inner shadow-xl rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-white/40 transition-all border border-teal-500/20 group/pin animate-in slide-in-from-top-2"
+          className="mx-4 mt-2 z-10 glass-inner dark:bg-slate-800/50 shadow-xl rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-white/40 dark:hover:bg-slate-700/40 transition-all border border-teal-500/20 group/pin animate-in slide-in-from-top-2"
           onClick={() => {
             setIsInfoOpen(true);
             setInfoTab("pinned");
@@ -548,7 +548,7 @@ export function ChatInterface({
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-teal-600 flex items-center gap-2">
                 Priority Communication <div className="h-1 w-1 rounded-full bg-teal-500 animate-pulse" />
               </span>
-              <span className="text-xs font-bold text-slate-700 truncate w-full">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate w-full">
                 {activePinnedMessage.content}
               </span>
             </div>
@@ -614,7 +614,7 @@ export function ChatInterface({
                           ? "p-0 bg-transparent border-none shadow-none"
                           : isMe
                             ? "bg-teal-500/90 backdrop-blur-md text-white rounded-2xl rounded-tr-sm shadow-sm px-4 py-3 border border-white/20"
-                            : "glass-inner text-slate-700 rounded-2xl rounded-tl-sm px-4 py-3"
+                            : "glass-inner dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl rounded-tl-sm px-4 py-3"
                           } ${msg.isPinned ? "ring-2 ring-teal-500/50" : ""}`}>
 
                           {msg.isPinned && (
@@ -671,11 +671,11 @@ export function ChatInterface({
                                 }
 
                                 return (
-                                  <div key={i} className={`flex items-center justify-between gap-3 p-3 rounded-xl border mt-2 ${isMe ? 'bg-white/10 border-white/20' : 'bg-slate-500/5 border-slate-200/20'}`}>
+                                  <div key={i} className={`flex items-center justify-between gap-3 p-3 rounded-xl border mt-2 ${isMe ? 'bg-white/10 border-white/20' : 'bg-slate-500/5 dark:bg-slate-700/30 border-slate-200/20 dark:border-white/5'}`}>
                                     <div className="flex items-center gap-2 overflow-hidden">
                                       <FileText className={`h-8 w-8 shrink-0 ${isMe ? 'text-white/70' : 'text-teal-500/70'}`} />
                                       <div className="flex flex-col overflow-hidden">
-                                        <span className={`text-xs font-bold truncate ${isMe ? 'text-white' : 'text-slate-700'}`}>Attachment</span>
+                                        <span className={`text-xs font-bold truncate ${isMe ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>Attachment</span>
                                         <span className={`text-[9px] truncate ${isMe ? 'text-white/60' : 'text-slate-400'}`}>{url.split('/').pop()}</span>
                                       </div>
                                     </div>
@@ -713,11 +713,15 @@ export function ChatInterface({
                           )}
                           {isEditable && (
                             <>
-                              <DropdownMenuItem className="rounded-lg px-3 py-2 font-black text-[9px] uppercase tracking-widest text-slate-600 focus:bg-teal-500/10 focus:text-teal-600" onClick={() => setEditingMessageId(msg.id)}>
+                              <DropdownMenuItem className="rounded-lg px-3 py-2 font-black text-[9px] uppercase tracking-widest text-slate-600 focus:bg-teal-500/10 focus:text-teal-600" onClick={() => {
+                                setEditingMessageId(msg.id);
+                                setNewMessage(msg.content);
+                                if (inputRef.current) inputRef.current.focus();
+                              }}>
                                 <Pencil className="h-3.5 w-3.5 mr-2" /> Edit Message
                               </DropdownMenuItem>
                               <DropdownMenuItem className="rounded-lg px-3 py-2 font-black text-[9px] uppercase tracking-widest text-red-500 focus:bg-red-50 focus:text-red-600" onClick={() => setDeletingMessageId(msg.id)}>
-                                <Trash2 className="h-3.5 w-3.5 mr-2" /> Terminate
+                                <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete
                               </DropdownMenuItem>
                             </>
                           )}
@@ -790,7 +794,7 @@ export function ChatInterface({
             </div>
           )}
 
-          <form onSubmit={handleSendMessage} className="glass-inner rounded-2xl p-2 flex items-center gap-2 border border-white/20">
+          <form onSubmit={handleSendMessage} className="glass-inner dark:bg-slate-800/50 rounded-2xl p-2 flex items-center gap-2 border border-white/20 dark:border-white/5">
             <input
               type="file"
               ref={fileInputRef}
