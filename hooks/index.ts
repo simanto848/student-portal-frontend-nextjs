@@ -7,6 +7,7 @@ export type { CrudServiceInterface } from "./useCrudOperations";
 // ===================================== Search Hook =======================================
 export { useSearch, createNestedSearchFn } from "./useSearch";
 export type { UseSearchOptions, UseSearchReturn } from "./useSearch";
+export * from "./useTheme";
 
 // ====================================  React Query Hooks - Academic ========================================
 export * from "./queries/useAcademicQueries";

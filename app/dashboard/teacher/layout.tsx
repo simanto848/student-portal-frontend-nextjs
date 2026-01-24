@@ -35,6 +35,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { useTheme } from "@/hooks";
 import { getImageUrl } from "@/lib/utils";
 
 export default function TeacherLayout({
@@ -45,21 +46,13 @@ export default function TeacherLayout({
     const pathname = usePathname();
     const { user, logout } = useAuth();
     const profilePicture = getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage);
-    const [darkMode, setDarkMode] = useState(false);
     const isMounted = useSyncExternalStore(
         () => () => { },
         () => true,
         () => false
     );
 
-    // Toggle dark mode
-    useEffect(() => {
-        if (darkMode) {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-    }, [darkMode]);
+    const { isDarkMode, toggleTheme, mounted } = useTheme();
 
     const navItems = getNavigationForUser(user);
 
@@ -169,10 +162,11 @@ export default function TeacherLayout({
                 <div className="mt-auto flex flex-col gap-4 items-center">
                     <button
                         className="p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-white/30 dark:hover:bg-slate-700/30 transition-all"
-                        onClick={() => setDarkMode(!darkMode)}
+                        onClick={toggleTheme}
                     >
-                        {darkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+                        {mounted && isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
                     </button>
+
 
 
                     {/* Hydration safe dropdown */}

@@ -33,6 +33,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { getImageUrl } from "@/lib/utils";
+import { useTheme } from "@/hooks";
 
 const navItems = [
     { href: "/dashboard/student", label: "Dashboard", icon: "dashboard" },
@@ -52,20 +53,13 @@ export default function StudentLayout({
     const pathname = usePathname();
     const { user, logout } = useAuth();
     const profilePicture = getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage);
-    const [darkMode, setDarkMode] = useState(false);
     const isMounted = useSyncExternalStore(
         () => () => { },
         () => true,
         () => false
     );
 
-    useEffect(() => {
-        if (darkMode) {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-    }, [darkMode]);
+    const { isDarkMode, toggleTheme, mounted } = useTheme();
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-[#f0f4f8] dark:bg-[#0f172a] text-slate-800 dark:text-slate-100 transition-colors duration-300 font-sans p-4">
@@ -165,10 +159,11 @@ export default function StudentLayout({
                         {/* Dark Mode Toggle */}
                         <button
                             className="p-3 rounded-2xl text-gray-500 dark:text-gray-400 hover:bg-white/40 dark:hover:bg-white/10 transition-all cursor-pointer shadow-sm hover:shadow-md"
-                            onClick={() => setDarkMode(!darkMode)}
+                            onClick={toggleTheme}
                         >
-                            {darkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-indigo-500" />}
+                            {mounted && isDarkMode ? <Sun className="w-5 h-5 text-yellow-500" /> : <Moon className="w-5 h-5 text-indigo-500" />}
                         </button>
+
 
                         {/* Profile Avatar */}
                         {isMounted ? (
