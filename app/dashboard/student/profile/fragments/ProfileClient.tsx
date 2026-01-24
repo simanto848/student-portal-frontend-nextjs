@@ -313,35 +313,35 @@ export default function ProfileClient() {
                     <div className="grid gap-8 lg:grid-cols-12">
                         {/* Core Nexus Data */}
                         <div className="lg:col-span-8 flex flex-col gap-8">
-                            <NexusCard title="Biographical Intel" subtitle="Personal Identity & Physical Markers" icon={User} accent="teal">
+                            <NexusCard title="Personal Information" subtitle="Basic Personal Details" icon={User} accent="teal">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <NexusInfoItem icon={User} label="Primary Identity" value={student?.fullName || "N/A"} accent="teal" />
-                                    <NexusInfoItem icon={Mail} label="Nexus Communication" value={student?.email || "N/A"} accent="rose" />
-                                    <NexusInfoItem icon={Smartphone} label="Mobile Link" value={profile?.studentMobile || "N/A"} accent="sky" />
-                                    <NexusInfoItem icon={Calendar} label="Timeline Origin" value={formatDate(profile?.dateOfBirth)} accent="amber" />
-                                    <NexusInfoItem icon={Users} label="Gender Ref" value={profile?.gender || "N/A"} accent="violet" />
-                                    <NexusInfoItem icon={Dna} label="Biological Group" value={profile?.bloodGroup || "N/A"} accent="red" />
-                                    <NexusInfoItem icon={Globe} label="Region Origin" value={profile?.nationality || "N/A"} accent="indigo" />
-                                    <NexusInfoItem icon={Hash} label="Nexus Index" value={student?.registrationNumber || "N/A"} accent="slate" />
+                                    <NexusInfoItem icon={User} label="Full Name" value={student?.fullName || "N/A"} accent="teal" />
+                                    <NexusInfoItem icon={Mail} label="Email" value={student?.email || "N/A"} accent="rose" />
+                                    <NexusInfoItem icon={Smartphone} label="Mobile" value={profile?.studentMobile || "N/A"} accent="sky" />
+                                    <NexusInfoItem icon={Calendar} label="Date of Birth" value={formatDate(profile?.dateOfBirth)} accent="amber" />
+                                    <NexusInfoItem icon={Users} label="Gender" value={profile?.gender || "N/A"} accent="violet" />
+                                    <NexusInfoItem icon={Dna} label="Blood Group" value={profile?.bloodGroup || "N/A"} accent="red" />
+                                    <NexusInfoItem icon={Globe} label="Nationality" value={profile?.nationality || "N/A"} accent="indigo" />
+                                    <NexusInfoItem icon={Hash} label="Registration Number" value={student?.registrationNumber || "N/A"} accent="slate" />
                                 </div>
                             </NexusCard>
 
-                            <NexusCard title="Territorial Data" subtitle="Nexus Residency & Mailing Channels" icon={MapPin} accent="indigo">
+                            <NexusCard title="Address Information" subtitle="Permanent & Mailing Address" icon={MapPin} accent="indigo">
                                 <div className="space-y-4">
-                                    <NexusInfoItem icon={Map} label="Permanent Coordinates" value={formatAddress(profile?.permanentAddress)} accent="indigo" />
-                                    <NexusInfoItem icon={MapPin} label="Mailing Channel" value={formatAddress(profile?.mailingAddress)} accent="slate" />
+                                    <NexusInfoItem icon={Map} label="Permanent Address" value={formatAddress(profile?.permanentAddress)} accent="indigo" />
+                                    <NexusInfoItem icon={MapPin} label="Mailing Address" value={formatAddress(profile?.mailingAddress)} accent="slate" />
                                 </div>
                             </NexusCard>
                         </div>
 
                         {/* Academic & Family Sidebars */}
                         <div className="lg:col-span-4 flex flex-col gap-8">
-                            <NexusCard title="Nexus Standing" subtitle="Academic Integrity & Enrollment" icon={GraduationCap} accent="amber">
+                            <NexusCard title="Academic Information" subtitle="Program & Batch" icon={GraduationCap} accent="amber">
                                 <div className="space-y-4">
                                     <NexusInfoItem icon={Building} label="Sector" value={department?.shortName || "Unknown"} accent="teal" />
                                     <div className="p-5 glass-inner rounded-3xl border-white/40 mt-4 flex items-center justify-between">
                                         <div>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Current Integrity</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Batch</p>
                                             <p className="text-2xl font-black text-teal-600 uppercase tracking-tighter">Verified</p>
                                         </div>
                                         <Shield className="h-10 w-10 text-teal-600/20" />
@@ -349,7 +349,7 @@ export default function ProfileClient() {
                                 </div>
                             </NexusCard>
 
-                            <NexusCard title="Kinship Links" subtitle="Family Nexus Connections" icon={Users} accent="rose">
+                            <NexusCard title="Family Information" subtitle="Your Family Members" icon={Users} accent="rose">
                                 <div className="space-y-3">
                                     {profile?.father && (
                                         <div className="p-4 glass-inner rounded-3xl border-white/20 hover:bg-white/40 transition-all cursor-default group/kin">
@@ -357,7 +357,7 @@ export default function ProfileClient() {
                                                 <div className="h-8 w-8 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
                                                     <User className="h-4 w-4 text-indigo-600" />
                                                 </div>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Paternal Link</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Father</span>
                                             </div>
                                             <p className="text-sm font-black text-slate-700">{profile.father.name}</p>
                                             <p className="text-xs text-slate-400 font-bold mt-1 group-hover/kin:text-indigo-600 transition-colors flex items-center gap-1.5 uppercase tracking-wider">
@@ -371,10 +371,10 @@ export default function ProfileClient() {
                                                 <div className="h-8 w-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
                                                     <Heart className="h-4 w-4 text-rose-600" />
                                                 </div>
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Maternal Link</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Mother</span>
                                             </div>
                                             <p className="text-sm font-black text-slate-700">{profile.mother.name}</p>
-                                            <p className="text-xs text-slate-400 font-bold mt-1 group-hover/kin:text-rose-600 transition-colors flex items-center gap-1.5 uppercase tracking-wider">
+                                            <p className="text-xs text-slate-400 font-bold mt-1 group-hover/kin:text-rose-600 transition-colors flex items-center gap-1.5 uppercase tracking-wider pb-8">
                                                 <Phone className="h-3 w-3" /> {profile.mother.cell || "N/A"}
                                             </p>
                                         </div>
@@ -383,10 +383,10 @@ export default function ProfileClient() {
                             </NexusCard>
 
                             {profile?.emergencyContact && (
-                                <NexusCard title="Emergency Hub" icon={Smartphone} accent="red">
+                                <NexusCard title="Emergency Contact" icon={Smartphone} accent="red">
                                     <div className="space-y-3">
-                                        <NexusInfoItem icon={User} label="Coordinator" value={profile.emergencyContact.name} accent="red" />
-                                        <NexusInfoItem icon={Smartphone} label="Direct Frequency" value={profile.emergencyContact.cell} accent="rose" />
+                                        <NexusInfoItem icon={User} label="Name" value={profile.emergencyContact.name} accent="red" />
+                                        <NexusInfoItem icon={Smartphone} label="Cell" value={profile.emergencyContact.cell} accent="rose" />
                                         <p className="text-[9px] font-black text-red-600/60 uppercase tracking-widest text-center mt-2 italic px-4">
                                             Priority communication channel for critical operations.
                                         </p>
