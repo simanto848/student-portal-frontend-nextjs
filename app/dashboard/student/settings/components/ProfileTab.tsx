@@ -93,12 +93,12 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
       <div className="grid gap-8 md:grid-cols-3">
         {/* Profile Header Card */}
         <motion.div variants={itemVariants} className="md:col-span-1">
-          <GlassCard className="p-8 h-full flex flex-col items-center text-center justify-center space-y-6">
+          <GlassCard className="p-8 h-full flex flex-col items-center text-center justify-center space-y-6 dark:bg-slate-900/60">
             <div className="relative group cursor-pointer">
               <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-[#0088A9] to-[#005F73] opacity-20 group-hover:opacity-40 transition-opacity blur-md" />
               <Avatar className="h-32 w-32 border-4 border-white shadow-xl ring-1 ring-slate-100 relative overflow-hidden">
                 <AvatarImage src={getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage)} alt={user?.fullName} className="object-cover" />
-                <AvatarFallback className="text-3xl font-black bg-slate-50 text-slate-400">
+                <AvatarFallback className="text-3xl font-black bg-slate-50 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                   {getInitials(user?.fullName || "User")}
                 </AvatarFallback>
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
@@ -107,7 +107,7 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
               </Avatar>
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900 tracking-tight">{user.fullName}</h3>
+              <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{user.fullName}</h3>
               <p className="text-sm font-bold text-[#0088A9] uppercase tracking-widest mt-1">{user.role}</p>
               <div className="flex items-center justify-center gap-1.5 mt-3 text-slate-400 font-medium text-xs">
                 <Mail className="h-3.5 w-3.5" />
@@ -119,13 +119,13 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
 
         {/* Personal Information */}
         <motion.div variants={itemVariants} className="md:col-span-2">
-          <GlassCard className="p-8 h-full">
+          <GlassCard className="p-8 h-full dark:bg-slate-900/60">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-[#0088A9]/5 ring-1 ring-[#0088A9]/10">
                   <UserIcon className="h-5 w-5 text-[#0088A9]" />
                 </div>
-                <h2 className="text-lg font-black text-slate-800 tracking-tight">Personal Information</h2>
+                <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Personal Information</h2>
               </div>
             </div>
 
@@ -135,7 +135,7 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
                 <Input
                   value={firstName}
                   disabled
-                  className="h-12 rounded-xl bg-slate-50/50 border-slate-100 font-bold text-slate-700"
+                  className="h-12 rounded-xl bg-slate-50/50 border-slate-100 dark:bg-slate-900/50 dark:border-white/10 dark:text-slate-200 font-bold text-slate-700"
                 />
               </div>
               <div className="space-y-2">
@@ -154,7 +154,7 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
                     id="phone"
                     value={user.phone || "Not Set"}
                     disabled
-                    className="h-12 pl-11 rounded-xl bg-slate-50/50 border-slate-100 font-bold text-slate-700 cursor-not-allowed"
+                    className="h-12 pl-11 rounded-xl bg-slate-50/50 border-slate-100 dark:bg-slate-900/50 dark:border-white/10 dark:text-slate-200 font-bold text-slate-700 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -166,7 +166,7 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
                     id="address"
                     value={isStudentUser(user) && user.address?.present ? user.address.present : "Not Set"}
                     disabled
-                    className="h-12 pl-11 rounded-xl bg-slate-50/50 border-slate-100 font-bold text-slate-700 cursor-not-allowed"
+                    className="h-12 pl-11 rounded-xl bg-slate-50/50 border-slate-100 dark:bg-slate-900/50 dark:border-white/10 dark:text-slate-200 font-bold text-slate-700 cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -178,43 +178,43 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
       {/* Academic Information (If Student) */}
       {isStudentUser(user) && (
         <motion.div variants={itemVariants}>
-          <GlassCard className="p-8">
+          <GlassCard className="p-8 dark:bg-slate-900/60">
             <div className="flex items-center gap-3 mb-8">
               <div className="p-2.5 rounded-xl bg-[#0088A9]/5 ring-1 ring-[#0088A9]/10">
                 <GraduationCap className="h-5 w-5 text-[#0088A9]" />
               </div>
-              <h2 className="text-lg font-black text-slate-800 tracking-tight">Academic Profile</h2>
+              <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Academic Profile</h2>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Student ID</Label>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-sm font-black text-slate-700">{user.registrationNumber}</p>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-white/10">
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">{user.registrationNumber}</p>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Department</Label>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-white/10 flex items-center gap-2">
                   <Building className="h-3.5 w-3.5 text-slate-400" />
-                  <p className="text-sm font-black text-slate-700">
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">
                     {isLoadingAcademic ? "Loading..." : (deptName || user.departmentId || "N/A")}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Degree Program</Label>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                  <p className="text-sm font-black text-slate-700">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-white/10">
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">
                     {isLoadingAcademic ? "Loading..." : (progName || user.programId || "N/A")}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Enrollment Year</Label>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center gap-2">
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-white/10 flex items-center gap-2">
                   <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                  <p className="text-sm font-black text-slate-700">
+                  <p className="text-sm font-black text-slate-700 dark:text-slate-200">
                     {user.admissionDate ? new Date(user.admissionDate).getFullYear() : "N/A"}
                   </p>
                 </div>

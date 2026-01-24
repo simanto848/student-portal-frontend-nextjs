@@ -145,7 +145,7 @@ export default function LibraryManagementClient() {
                     <Button
                         size="sm"
                         variant="ghost"
-                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-bold"
+                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-bold dark:bg-slate-800 dark:border-white/10 dark:text-[#0088A9] dark:hover:bg-slate-700"
                         onClick={() => refetch()}
                     >
                         <RefreshCw className="mr-2 h-4 w-4" />
@@ -171,8 +171,8 @@ export default function LibraryManagementClient() {
                             <BookOpen className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Borrowed Books</p>
-                            <p className="text-2xl font-black text-slate-900 leading-none">{borrowed.length} Active</p>
+                            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Borrowed Books</p>
+                            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">{borrowed.length} Active</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -183,8 +183,8 @@ export default function LibraryManagementClient() {
                             <Bookmark className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Active Reservations</p>
-                            <p className="text-2xl font-black text-slate-900 leading-none">{reservations.length} Pending</p>
+                            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Active Reservations</p>
+                            <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">{reservations.length} Pending</p>
                         </div>
                     </div>
                 </GlassCard>
@@ -206,17 +206,17 @@ export default function LibraryManagementClient() {
 
             <Tabs defaultValue="borrowed" className="space-y-8">
                 <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
-                    <TabsList className="bg-gray-100/50 p-1 rounded-2xl border border-gray-200/50 h-12">
-                        <TabsTrigger value="borrowed" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
+                    <TabsList className="bg-gray-100/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-gray-200/50 dark:border-white/10 h-12">
+                        <TabsTrigger value="borrowed" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-[#0088A9] dark:data-[state=active]:text-white data-[state=active]:shadow-lg">
                             Borrowed
                         </TabsTrigger>
-                        <TabsTrigger value="reservations" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
+                        <TabsTrigger value="reservations" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-[#0088A9] dark:data-[state=active]:text-white data-[state=active]:shadow-lg">
                             Reservations
                         </TabsTrigger>
-                        <TabsTrigger value="history" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
+                        <TabsTrigger value="history" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-[#0088A9] dark:data-[state=active]:text-white data-[state=active]:shadow-lg">
                             History
                         </TabsTrigger>
-                        <TabsTrigger value="catalog" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-[#0088A9] data-[state=active]:shadow-lg">
+                        <TabsTrigger value="catalog" className="rounded-xl px-6 font-bold text-xs uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-[#0088A9] dark:data-[state=active]:text-white data-[state=active]:shadow-lg">
                             Catalog
                         </TabsTrigger>
                     </TabsList>
@@ -225,7 +225,7 @@ export default function LibraryManagementClient() {
                         <Search className="h-4 w-4 text-[#0088A9] absolute left-4 top-1/2 -translate-y-1/2" />
                         <Input
                             placeholder="Search my library..."
-                            className="pl-11 bg-white/40 backdrop-blur-sm border-gray-100 rounded-[1.2rem] h-10 text-sm focus:ring-[#0088A9]/20 active:scale-[0.99] transition-all"
+                            className="pl-11 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm border-gray-100 dark:border-white/10 rounded-[1.2rem] h-10 text-sm focus:ring-[#0088A9]/20 active:scale-[0.99] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-white"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -250,9 +250,9 @@ export default function LibraryManagementClient() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
-                                    <BookOpen className="h-12 w-12 text-gray-200 mb-4" />
-                                    <p className="text-slate-500 font-bold uppercase tracking-widest">You have no borrowed books</p>
+                                <div className="py-20 text-center border-2 border-dashed border-gray-100 dark:border-white/10 rounded-[2.5rem] bg-gray-50/30 dark:bg-white/5 flex flex-col items-center">
+                                    <BookOpen className="h-12 w-12 text-gray-200 dark:text-white/20 mb-4" />
+                                    <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">You have no borrowed books</p>
                                 </div>
                             )}
                         </AnimatePresence>
@@ -278,9 +278,9 @@ export default function LibraryManagementClient() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
-                                    <Bookmark className="h-12 w-12 text-gray-200 mb-4" />
-                                    <p className="text-slate-500 font-bold uppercase tracking-widest">You have no active reservations</p>
+                                <div className="py-20 text-center border-2 border-dashed border-gray-100 dark:border-white/10 rounded-[2.5rem] bg-gray-50/30 dark:bg-white/5 flex flex-col items-center">
+                                    <Bookmark className="h-12 w-12 text-gray-200 dark:text-white/20 mb-4" />
+                                    <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">You have no active reservations</p>
                                 </div>
                             )}
                         </AnimatePresence>
@@ -302,9 +302,9 @@ export default function LibraryManagementClient() {
                                     </motion.div>
                                 ))
                             ) : (
-                                <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
-                                    <History className="h-12 w-12 text-gray-200 mb-4" />
-                                    <p className="text-slate-500 font-bold uppercase tracking-widest">No library history found</p>
+                                <div className="py-20 text-center border-2 border-dashed border-gray-100 dark:border-white/10 rounded-[2.5rem] bg-gray-50/30 dark:bg-white/5 flex flex-col items-center">
+                                    <History className="h-12 w-12 text-gray-200 dark:text-white/20 mb-4" />
+                                    <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">No library history found</p>
                                 </div>
                             )}
                         </AnimatePresence>
@@ -316,7 +316,7 @@ export default function LibraryManagementClient() {
                         <Search className="h-4 w-4 text-[#0088A9] absolute left-4 top-1/2 -translate-y-1/2" />
                         <Input
                             placeholder="Search library catalog..."
-                            className="pl-11 bg-white/40 backdrop-blur-sm border-gray-100 rounded-[1.2rem] h-12 focus:ring-[#0088A9]/20 active:scale-[0.99] transition-all shadow-sm"
+                            className="pl-11 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm border-gray-100 dark:border-white/10 rounded-[1.2rem] h-12 focus:ring-[#0088A9]/20 active:scale-[0.99] transition-all shadow-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 dark:text-white"
                             value={catalogSearch}
                             onChange={(e) => setCatalogSearch(e.target.value)}
                         />
@@ -351,7 +351,7 @@ export default function LibraryManagementClient() {
                                             variant="ghost"
                                             onClick={() => fetchNextPage()}
                                             disabled={isFetchingNextPage}
-                                            className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] px-8 py-6 h-auto shadow-sm"
+                                            className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-gray-50 font-black uppercase tracking-widest text-[10px] px-8 py-6 h-auto shadow-sm dark:bg-slate-800 dark:border-white/10 dark:text-[#0088A9] dark:hover:bg-slate-700"
                                         >
                                             {isFetchingNextPage ? "Loading more..." : "Show More"}
                                         </Button>
@@ -359,9 +359,9 @@ export default function LibraryManagementClient() {
                                 )}
                             </>
                         ) : (
-                            <div className="py-20 text-center border-2 border-dashed border-gray-100 rounded-[2.5rem] bg-gray-50/30 flex flex-col items-center">
-                                <History className="h-12 w-12 text-gray-200 mb-4" />
-                                <p className="text-slate-500 font-bold uppercase tracking-widest">No books match your search</p>
+                            <div className="py-20 text-center border-2 border-dashed border-gray-100 dark:border-white/10 rounded-[2.5rem] bg-gray-50/30 dark:bg-white/5 flex flex-col items-center">
+                                <History className="h-12 w-12 text-gray-200 dark:text-white/20 mb-4" />
+                                <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">No books match your search</p>
                             </div>
                         )}
                     </div>

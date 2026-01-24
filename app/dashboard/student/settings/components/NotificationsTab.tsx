@@ -88,25 +88,25 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-8"
     >
-      <GlassCard className="p-8">
+      <GlassCard className="p-8 dark:bg-slate-900/60">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2.5 rounded-xl bg-[#0088A9]/5 ring-1 ring-[#0088A9]/10">
             <Mail className="h-5 w-5 text-[#0088A9]" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-800 tracking-tight">Email Notifications</h3>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Email Notifications</h3>
             <p className="text-xs font-bold text-slate-400">Manage your academic email alerts</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
-              <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+              <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform dark:bg-slate-800 dark:border-white/10">
                 <GraduationCap className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">Grade Updates</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">Grade Updates</Label>
                 <p className="text-[10px] font-bold text-slate-400">When results are published per course</p>
               </div>
             </div>
@@ -117,13 +117,13 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
               <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                 <ClipboardList className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">New Assignments</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">New Assignments</Label>
                 <p className="text-[10px] font-bold text-slate-400">Alerts for new class tasks and labs</p>
               </div>
             </div>
@@ -134,13 +134,13 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
               <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                 <Clock className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">Due Date Alerts</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">Due Date Alerts</Label>
                 <p className="text-[10px] font-bold text-slate-400">Reminders before mission deadlines</p>
               </div>
             </div>
@@ -151,13 +151,13 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
               <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                 <Megaphone className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">Announcements</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">Announcements</Label>
                 <p className="text-[10px] font-bold text-slate-400">Campus-wide broadcast and updates</p>
               </div>
             </div>
@@ -170,25 +170,25 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
         </div>
       </GlassCard>
 
-      <GlassCard className="p-8">
+      <GlassCard className="p-8 dark:bg-slate-900/60">
         <div className="flex items-center gap-3 mb-8">
           <div className="p-2.5 rounded-xl bg-[#0088A9]/5 ring-1 ring-[#0088A9]/10">
             <Smartphone className="h-5 w-5 text-[#0088A9]" />
           </div>
           <div>
-            <h3 className="text-lg font-black text-slate-800 tracking-tight">Push Notifications</h3>
+            <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Push Notifications</h3>
             <p className="text-xs font-bold text-slate-400">Real-time alerts for active browsers</p>
           </div>
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
               <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                 <MessageSquare className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">Messages</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">Messages</Label>
                 <p className="text-[10px] font-bold text-slate-400">Browser alerts for instant updates</p>
               </div>
             </div>
@@ -199,13 +199,13 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
               <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                 <Bell className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">Class Reminders</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">Class Reminders</Label>
                 <p className="text-[10px] font-bold text-slate-400">15-minute countdown before sessions</p>
               </div>
             </div>
@@ -216,13 +216,13 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/50 border border-slate-100/50 hover:border-[#0088A9]/20 transition-all group dark:bg-slate-900/50 dark:border-white/10">
             <div className="flex items-center gap-4">
               <div className="p-2 rounded-xl bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
                 <Library className="h-4 w-4 text-slate-400 group-hover:text-[#0088A9]" />
               </div>
               <div>
-                <Label className="text-sm font-black text-slate-800">Library Alerts</Label>
+                <Label className="text-sm font-black text-slate-800 dark:text-white">Library Alerts</Label>
                 <p className="text-[10px] font-bold text-slate-400">Return dates and reservation updates</p>
               </div>
             </div>

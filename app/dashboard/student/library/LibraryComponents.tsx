@@ -20,12 +20,12 @@ export function BookCard({
     const isAvailable = book.availableCopies && book.availableCopies > 0;
 
     return (
-        <GlassCard className="p-6 group hover:shadow-cyan-500/10 transition-all duration-500">
+        <GlassCard className="p-6 group hover:shadow-cyan-500/10 transition-all duration-500 dark:bg-slate-900/40 dark:border-white/10 dark:hover:bg-slate-800/60">
             <div className="flex items-start justify-between gap-6">
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <h4 className="text-lg font-black text-slate-900 leading-tight group-hover:text-[#0088A9] transition-colors">
+                            <h4 className="text-lg font-black text-slate-900 dark:text-white leading-tight group-hover:text-[#0088A9] transition-colors">
                                 {book.title}
                             </h4>
                             <StatusBadge
@@ -33,24 +33,24 @@ export function BookCard({
                                 label={isAvailable ? "Available" : "Checked Out"}
                             />
                         </div>
-                        <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-widest leading-none">
+                        <p className="text-[10px] font-black text-[#0088A9] dark:text-[#33b5d5] uppercase tracking-widest leading-none">
                             {book.author}
                         </p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <BookOpen className="h-3.5 w-3.5 text-[#0088A9]" />
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-300">
+                            <BookOpen className="h-3.5 w-3.5 text-[#0088A9] dark:text-[#33b5d5]" />
                             <span className="text-[10px] font-bold uppercase tracking-widest">{book.category}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-[#0088A9]" />
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-300">
+                            <CheckCircle2 className="h-3.5 w-3.5 text-[#0088A9] dark:text-[#33b5d5]" />
                             <span className="text-[10px] font-bold uppercase tracking-widest">{book.availableCopies || 0} Copies</span>
                         </div>
                     </div>
 
                     {book.publisher && (
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-tight">
+                        <p className="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight">
                             Published by {book.publisher} {book.publicationYear ? `(${book.publicationYear})` : ''}
                         </p>
                     )}
@@ -59,7 +59,7 @@ export function BookCard({
                 {onReserve && isAvailable && (
                     <Button
                         size="sm"
-                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-[#0088A9] hover:text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 shadow-sm transition-all active:scale-95"
+                        className="rounded-xl border border-gray-100 bg-white text-[#0088A9] hover:bg-[#0088A9] hover:text-white font-black uppercase tracking-widest text-[10px] h-10 px-6 shadow-sm transition-all active:scale-95 dark:bg-slate-800 dark:border-white/10 dark:text-[#0088A9] dark:hover:bg-[#0088A9] dark:hover:text-white"
                         onClick={() => onReserve(book)}
                         disabled={isReserving}
                     >
@@ -107,7 +107,7 @@ export function BorrowedBookCard({
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <h4 className="text-lg font-black text-slate-900 leading-tight">
+                            <h4 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
                                 {bookDetails?.title || "Unknown Book"}
                             </h4>
                             <StatusBadge status={getStatus()} label={getStatusLabel()} />
@@ -118,20 +118,20 @@ export function BorrowedBookCard({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 dark:bg-white/5 dark:border-white/5">
                             <Clock className="h-4 w-4 text-[#0088A9]" />
                             <div>
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Due Date</p>
-                                <p className={`text-xs font-black ${isOverdue ? 'text-rose-600' : 'text-slate-800'}`}>
+                                <p className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Due Date</p>
+                                <p className={`text-xs font-black ${isOverdue ? 'text-rose-600' : 'text-slate-800 dark:text-slate-200'}`}>
                                     {dueDate.toLocaleDateString()} {!isOverdue && `(${daysLeft} days left)`}
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 dark:bg-white/5 dark:border-white/5">
                             <Bookmark className="h-4 w-4 text-[#0088A9]" />
                             <div>
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Borrow Date</p>
-                                <p className="text-xs font-black text-slate-800">
+                                <p className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Borrow Date</p>
+                                <p className="text-xs font-black text-slate-800 dark:text-slate-200">
                                     {new Date(item.borrowDate).toLocaleDateString()}
                                 </p>
                             </div>
@@ -142,7 +142,7 @@ export function BorrowedBookCard({
                 {onReturn && (
                     <Button
                         size="sm"
-                        className="rounded-xl bg-slate-100 text-slate-600 hover:bg-[#0088A9] hover:text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-sm transition-all active:scale-95"
+                        className="rounded-xl bg-slate-100 text-slate-600 hover:bg-[#0088A9] hover:text-white font-black uppercase tracking-widest text-[10px] h-12 px-8 shadow-sm transition-all active:scale-95 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-[#0088A9] dark:hover:text-white"
                         onClick={() => onReturn(item.id)}
                     >
                         Return Info
@@ -174,7 +174,7 @@ export function ReservationCard({
                 <div className="flex-1 space-y-4">
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <h4 className="text-lg font-black text-slate-900 leading-tight">
+                            <h4 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
                                 {bookDetails?.title || "Pending Reservation"}
                             </h4>
                             <StatusBadge status={item.status === 'pending' ? 'active' : item.status} label={item.status === 'pending' ? 'Active' : item.status.toUpperCase()} />
@@ -185,11 +185,11 @@ export function ReservationCard({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 dark:bg-white/5 dark:border-white/5">
                             <Clock className="h-4 w-4 text-[#0088A9]" />
                             <div>
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Expires On</p>
-                                <p className={`text-xs font-black ${isExpired ? 'text-rose-600' : 'text-slate-800'}`}>
+                                <p className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Expires On</p>
+                                <p className={`text-xs font-black ${isExpired ? 'text-rose-600' : 'text-slate-800 dark:text-slate-200'}`}>
                                     {expiryDate.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })}
                                 </p>
                             </div>
@@ -199,16 +199,16 @@ export function ReservationCard({
                                 <MapPin className="h-4 w-4 text-[#0088A9]" />
                                 <div>
                                     <p className="text-[8px] font-black text-[#0088A9] uppercase tracking-widest leading-none mb-1">Pickup Library</p>
-                                    <p className="text-xs font-black text-slate-900">{item.library.name}</p>
+                                    <p className="text-xs font-black text-slate-900 dark:text-white">{item.library.name}</p>
                                 </div>
                             </div>
                         )}
                         {!item.library && item.copy?.location && (
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 dark:bg-white/5 dark:border-white/5">
                                 <MapPin className="h-4 w-4 text-slate-400" />
                                 <div>
-                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Shelf Location</p>
-                                    <p className="text-xs font-black text-slate-800">{item.copy.location}</p>
+                                    <p className="text-[8px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mb-1">Shelf Location</p>
+                                    <p className="text-xs font-black text-slate-800 dark:text-slate-200">{item.copy.location}</p>
                                 </div>
                             </div>
                         )}
@@ -238,21 +238,21 @@ export function LibraryHistoryCard({ item }: { item: Borrowing | Reservation }) 
     const status = item.status;
 
     return (
-        <div className="group relative p-4 rounded-2xl border border-gray-100 hover:border-[#0088A9]/30 hover:bg-gray-50/50 transition-all duration-300">
+        <div className="group relative p-4 rounded-2xl border border-gray-100 hover:border-[#0088A9]/30 hover:bg-gray-50/50 transition-all duration-300 dark:border-white/10 dark:hover:bg-white/5">
             <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
-                    <div className={`p-2 rounded-xl ${isBorrowing ? 'bg-gray-100 text-slate-500' : 'bg-[#0088A9]/10 text-[#0088A9]'}`}>
+                    <div className={`p-2 rounded-xl ${isBorrowing ? 'bg-gray-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' : 'bg-[#0088A9]/10 text-[#0088A9]'}`}>
                         {isBorrowing ? <BookOpen className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
                     </div>
                     <div>
                         <div className="flex items-center gap-2 mb-0.5">
-                            <span className="text-sm font-black text-slate-900">{bookDetails?.title || "Library Book"}</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-white">{bookDetails?.title || "Library Book"}</span>
                             <StatusBadge
                                 status={status === 'returned' || status === 'fulfilled' ? 'success' : status}
                                 label={status.toUpperCase()}
                             />
                         </div>
-                        <div className="flex items-center gap-3 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                        <div className="flex items-center gap-3 text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                             <span>{isBorrowing ? "Borrowed" : "Reserved"}</span>
                             <span>•</span>
                             <span>{bookDetails?.author}</span>
@@ -261,7 +261,7 @@ export function LibraryHistoryCard({ item }: { item: Borrowing | Reservation }) 
                 </div>
 
                 <div className="text-right">
-                    <p className="text-[10px] font-black text-slate-900 mb-0.5">
+                    <p className="text-[10px] font-black text-slate-900 dark:text-white mb-0.5">
                         {isBorrowing ? new Date((item as Borrowing).borrowDate).toLocaleDateString() : new Date((item as Reservation).reservationDate).toLocaleDateString()}
                     </p>
                     {(item as Borrowing).fineAmount !== undefined && (item as Borrowing).fineAmount > 0 && (
