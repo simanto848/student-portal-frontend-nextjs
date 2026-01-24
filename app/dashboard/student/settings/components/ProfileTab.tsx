@@ -28,6 +28,9 @@ export function ProfileTab({ user, refreshUser }: ProfileTabProps) {
   useEffect(() => {
     const fetchAcademicInfo = async () => {
       if (!user) return;
+
+      if (!isStudentUser(user)) return;
+
       setIsLoadingAcademic(true);
       try {
         const [dept, prog] = await Promise.all([

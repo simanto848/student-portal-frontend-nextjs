@@ -2,13 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { User } from "@/types/user";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { notifyPromise } from "@/components/toast";
@@ -37,7 +30,6 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
     libraryAlerts: false,
   });
 
-  // Sync with user preferences when user data loads
   useEffect(() => {
     if (user) {
       const isEnabled = Boolean((user as any).emailUpdatesEnabled);
@@ -54,7 +46,6 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
   const handleEmailSettingChange = async (key: string, checked: boolean) => {
     setEmailSettings((prev) => ({ ...prev, [key]: checked }));
 
-    // For 'announcements', we hook into the real backend preference
     if (key === "announcements") {
       try {
         await notifyPromise(
@@ -68,18 +59,15 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
         await refreshUser();
       } catch (error) {
         console.error(error);
-        // Revert on error
         setEmailSettings((prev) => ({ ...prev, [key]: !checked }));
       }
     } else {
-      // For other fields, we just simulate a save since backend support might not exist yet
       console.log(`Updated ${key} to ${checked}`);
     }
   };
 
   const handlePushSettingChange = (key: string, checked: boolean) => {
     setPushSettings((prev) => ({ ...prev, [key]: checked }));
-    console.log(`Updated ${key} to ${checked}`);
   };
 
   return (

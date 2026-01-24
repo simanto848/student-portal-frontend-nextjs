@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { notifyPromise } from "@/components/toast";
+import { notifyError, notifyPromise } from "@/components/toast";
 import { settingsService } from "@/services/user/settings.service";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,8 +47,7 @@ export function PreferencesTab({ user, refreshUser }: PreferencesTabProps) {
       );
       await refreshUser();
     } catch (error) {
-      console.error(error);
-      // Error handled by toast
+      notifyError("Failed to update preferences");
     } finally {
       setIsPrefSaving(false);
     }

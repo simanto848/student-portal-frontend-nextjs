@@ -9,7 +9,6 @@ import { PreferencesTab } from "./components/PreferencesTab";
 import { User, Bell, Shield, Settings as SettingsIcon } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();

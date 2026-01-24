@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useEffect } from "react";
 
