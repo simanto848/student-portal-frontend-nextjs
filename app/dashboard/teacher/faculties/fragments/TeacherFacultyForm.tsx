@@ -42,6 +42,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { DatePicker } from "@/components/ui/date-picker";
 import { parseISO, format as formatDate } from "date-fns";
+import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 
 interface TeacherFacultyFormProps {
     teacher?: Teacher;
@@ -287,41 +288,45 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
 
     return (
         <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-4 sm:gap-6">
-                    <button
-                        onClick={() => router.back()}
-                        className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-amber-600 hover:border-amber-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
-                    >
-                        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
-                    </button>
-                    <div>
-                        <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
-                            <BookOpen className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">{isEdit ? "Update Faculty" : "Add Faculty"}</span>
-                        </Badge>
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
-                            {isEdit ? `Edit: ${teacher?.fullName}` : "New Faculty Member"}
-                        </h1>
+            <GlassCard className="relative overflow-hidden p-8 border-slate-200/60 dark:border-slate-700/50 shadow-2xl shadow-indigo-500/5 dark:shadow-slate-900/20">
+                <div className="absolute top-0 right-0 -mt-20 -mr-20 h-80 w-80 rounded-full bg-[#2dd4bf]/10 blur-[100px] opacity-60 dark:opacity-20" />
+
+                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-4 sm:gap-6">
+                        <button
+                            onClick={() => router.back()}
+                            className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-[#2dd4bf] dark:hover:text-[#2dd4bf] hover:border-[#2dd4bf]/30 dark:hover:border-[#2dd4bf]/30 transition-all shadow-lg shadow-slate-200/40 dark:shadow-slate-900/20 active:scale-95 group"
+                        >
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                        </button>
+                        <div>
+                            <Badge className="bg-[#2dd4bf]/10 text-[#0d9488] dark:text-[#2dd4bf] ring-1 ring-[#2dd4bf]/20 border-none px-3.5 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.15em]">{isEdit ? "Update Faculty" : "Add Faculty"}</span>
+                            </Badge>
+                            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 dark:text-white leading-none">
+                                {isEdit ? `Edit: ${teacher?.fullName}` : "New Faculty Member"}
+                            </h1>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </GlassCard>
 
-            <div className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
-                <div className="bg-slate-900 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between overflow-x-auto gap-8 no-scrollbar">
+            <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border-2 border-slate-100 dark:border-slate-800 rounded-[2.5rem] md:rounded-[3.5rem] shadow-2xl shadow-slate-200/40 dark:shadow-slate-950/40 overflow-hidden relative">
+                <div className="bg-slate-950/50 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-6 md:px-10 md:py-8 flex items-center justify-between overflow-x-auto gap-8 no-scrollbar border-b border-slate-800/50">
                     {steps.map((s, idx) => {
                         const active = step === s.id;
                         const completed = step > s.id;
                         return (
                             <div key={s.id} className="flex items-center gap-4 flex-shrink-0 group cursor-pointer" onClick={() => step > s.id && setStep(s.id)}>
-                                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${active ? 'bg-amber-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] scale-110' : completed ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-500'}`}>
-                                    {completed ? <CheckCircle2 className="w-6 h-6" /> : <s.icon className="w-6 h-6" />}
+                                <div className={`h-11 w-11 rounded-xl flex items-center justify-center transition-all duration-500 ring-1 ${active ? 'bg-[#0d9488] dark:bg-[#2dd4bf] text-white dark:text-slate-900 ring-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)] scale-110' : completed ? 'bg-emerald-500 text-white ring-emerald-400' : 'bg-white/5 dark:bg-slate-800 text-slate-500 ring-slate-800'}`}>
+                                    {completed ? <CheckCircle2 className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
                                 </div>
                                 <div className="hidden sm:block">
-                                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${active ? 'text-amber-500' : 'text-slate-500'}`}>Step 0{s.id}</p>
+                                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] leading-none mb-1 ${active ? 'text-[#2dd4bf]' : 'text-slate-500'}`}>Step 0{s.id}</p>
                                     <p className={`text-sm font-black tracking-tight ${active ? 'text-white' : 'text-slate-400'}`}>{s.label}</p>
                                 </div>
-                                {idx < steps.length - 1 && <div className="hidden lg:block h-0.5 w-8 bg-slate-800" />}
+                                {idx < steps.length - 1 && <div className="hidden lg:block h-px w-8 bg-slate-800/50" />}
                             </div>
                         );
                     })}
@@ -340,7 +345,7 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
                                             }}
                                             placeholder="Enter full name"
-                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.fullName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}
+                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 ${errors.fullName ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all`}
                                         />
                                     </FormGroup>
                                     {!isEdit && (
@@ -352,7 +357,7 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                     if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
                                                 }}
                                                 placeholder="email@university.edu"
-                                                className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.email ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}
+                                                className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 ${errors.email ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all`}
                                             />
                                         </FormGroup>
                                     )}
@@ -368,9 +373,9 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                             <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.departmentId ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}>
                                                 <SelectValue placeholder={loadingDepartments ? "Loading..." : "Select Department"} />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl max-h-[300px]">
+                                            <SelectContent className="rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-2xl max-h-[300px] dark:bg-slate-900">
                                                 {departments.map(d => (
-                                                    <SelectItem key={d.id || (d as any)._id} value={d.id || (d as any)._id} className="py-3 font-bold text-slate-700 m-1 rounded-xl">
+                                                    <SelectItem key={d.id || (d as any)._id} value={d.id || (d as any)._id} className="py-3 font-bold text-slate-700 dark:text-slate-200 m-1 rounded-xl dark:focus:bg-slate-800">
                                                         {d.name}
                                                     </SelectItem>
                                                 ))}
@@ -385,12 +390,12 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 if (errors.designation) setErrors(prev => ({ ...prev, designation: "" }));
                                             }}
                                         >
-                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.designation ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}>
+                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 ${errors.designation ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all`}>
                                                 <SelectValue placeholder="Select Designation" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
+                                            <SelectContent className="rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-2xl dark:bg-slate-900">
                                                 {Object.entries(designationLabels).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key} className="py-3 font-bold text-slate-700 m-1 rounded-xl">
+                                                    <SelectItem key={key} value={key} className="py-3 font-bold text-slate-700 dark:text-slate-200 m-1 rounded-xl dark:focus:bg-slate-800">
                                                         {label}
                                                     </SelectItem>
                                                 ))}
@@ -402,7 +407,7 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                             <Input
                                                 value={isEdit ? basic.registrationNumber : "Auto-generated by system"}
                                                 readOnly
-                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-100 border-2 border-slate-200 font-bold text-slate-500 cursor-not-allowed opacity-70"
+                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed opacity-70"
                                             />
                                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
                                                 <Lock className="w-4 h-4 text-slate-400" />
@@ -414,7 +419,7 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                             value={basic.phone}
                                             onChange={e => setBasic({ ...basic, phone: e.target.value })}
                                             placeholder="+1 (555) 000-0000"
-                                            className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
+                                            className="h-14 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all"
                                         />
                                     </FormGroup>
                                 </div>
@@ -438,12 +443,12 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 value={advanced.ipInput}
                                                 onChange={e => setAdvanced({ ...advanced, ipInput: e.target.value })}
                                                 placeholder="e.g. 192.168.1.1"
-                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
+                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={handleAddIp}
-                                                className="absolute right-2 top-2 h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-amber-600 transition-all active:scale-95"
+                                                className="absolute right-2 top-2 h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-950 dark:bg-[#2dd4bf] text-white dark:text-slate-900 flex items-center justify-center hover:bg-[#0d9488] dark:hover:bg-[#14b8a6] transition-all active:scale-95 shadow-lg shadow-teal-500/20"
                                             >
                                                 <ShieldPlus className="w-5 h-5" />
                                             </button>
@@ -451,18 +456,18 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                     </FormGroup>
                                 </div>
 
-                                <div className="pt-6 border-t border-slate-100">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Allowed IP Addresses</p>
+                                <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4 px-1">Allowed IP Addresses</p>
                                     <div className="flex flex-wrap gap-3 min-h-[60px]">
                                         {advanced.registeredIps.length === 0 ? (
-                                            <div className="w-full h-16 flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-[10px] font-black text-slate-300 uppercase tracking-widest text-center">
+                                            <div className="w-full h-16 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-[10px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-[0.2em] text-center">
                                                 No IP restrictions (Open Access)
                                             </div>
                                         ) : (
                                             advanced.registeredIps.map(ip => (
-                                                <Badge key={ip} className="h-10 px-4 rounded-xl bg-white border-2 border-slate-100 text-slate-700 font-black text-xs flex items-center gap-3 shadow-sm group hover:border-red-200 transition-all">
+                                                <Badge key={ip} className="h-11 px-5 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-black text-xs flex items-center gap-4 shadow-sm group hover:border-[#2dd4bf]/40 transition-all">
                                                     {ip}
-                                                    <Trash2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-red-500 cursor-pointer" onClick={() => handleRemoveIp(ip)} />
+                                                    <Trash2 className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-red-500 cursor-pointer transition-colors" onClick={() => handleRemoveIp(ip)} />
                                                 </Badge>
                                             ))
                                         )}
@@ -482,11 +487,11 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 if (errors.firstName) setErrors(prev => ({ ...prev, firstName: "" }));
                                             }}
                                             placeholder="First Name"
-                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.firstName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}
+                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 ${errors.firstName ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all`}
                                         />
                                     </FormGroup>
                                     <FormGroup label="Middle Name" icon={UserIcon}>
-                                        <Input value={profileForm.middleName} onChange={e => setProfileForm({ ...profileForm, middleName: e.target.value })} placeholder="Middle Name" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                        <Input value={profileForm.middleName} onChange={e => setProfileForm({ ...profileForm, middleName: e.target.value })} placeholder="Middle Name" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all" />
                                     </FormGroup>
                                     <FormGroup label="Last Name" icon={UserIcon} error={errors.lastName}>
                                         <Input
@@ -496,7 +501,7 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 if (errors.lastName) setErrors(prev => ({ ...prev, lastName: "" }));
                                             }}
                                             placeholder="Last Name"
-                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.lastName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}
+                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 ${errors.lastName ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all`}
                                         />
                                     </FormGroup>
                                     <FormGroup label="Date of Birth" icon={Calendar}>
@@ -506,7 +511,7 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                         />
                                     </FormGroup>
                                     <FormGroup label="Phone Number" icon={Phone}>
-                                        <Input value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value })} placeholder="+X XXX XXX XXXX" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                        <Input value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value })} placeholder="+X XXX XXX XXXX" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all" />
                                     </FormGroup>
                                     <FormGroup label="Gender" icon={Sparkles} error={errors.gender}>
                                         <Select
@@ -516,13 +521,13 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 if (errors.gender) setErrors(prev => ({ ...prev, gender: "" }));
                                             }}
                                         >
-                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.gender ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}>
+                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 ${errors.gender ? 'border-red-500' : 'border-slate-100 dark:border-slate-700'} font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all`}>
                                                 <SelectValue placeholder="Select" />
                                             </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
-                                                <SelectItem value="Male" className="py-3 font-bold text-slate-700 m-1 rounded-xl">Male</SelectItem>
-                                                <SelectItem value="Female" className="py-3 font-bold text-slate-700 m-1 rounded-xl">Female</SelectItem>
-                                                <SelectItem value="Other" className="py-3 font-bold text-slate-700 m-1 rounded-xl">Other</SelectItem>
+                                            <SelectContent className="rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-2xl dark:bg-slate-900">
+                                                <SelectItem value="Male" className="py-3 font-bold text-slate-700 dark:text-slate-200 m-1 rounded-xl dark:focus:bg-slate-800">Male</SelectItem>
+                                                <SelectItem value="Female" className="py-3 font-bold text-slate-700 dark:text-slate-200 m-1 rounded-xl dark:focus:bg-slate-800">Female</SelectItem>
+                                                <SelectItem value="Other" className="py-3 font-bold text-slate-700 dark:text-slate-200 m-1 rounded-xl dark:focus:bg-slate-800">Other</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </FormGroup>
@@ -534,9 +539,9 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Profile Picture</p>
                                     </div>
 
-                                    <div className="flex flex-col sm:flex-row items-center gap-8 p-8 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 shadow-inner">
+                                    <div className="flex flex-col sm:flex-row items-center gap-8 p-8 rounded-[2.5rem] bg-slate-50/50 dark:bg-slate-800/30 border-2 border-slate-100 dark:border-slate-700/50 shadow-inner">
                                         <div className="relative group">
-                                            <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white flex items-center justify-center relative z-10 font-black text-slate-200">
+                                            <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl bg-white dark:bg-slate-800 flex items-center justify-center relative z-10 font-black text-slate-200 dark:text-slate-700">
                                                 {previewUrl ? (
                                                     <img
                                                         src={previewUrl}
@@ -547,8 +552,8 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                     <UserIcon className="w-12 h-12" />
                                                 )}
                                             </div>
-                                            <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg z-20">
-                                                <Sparkles className="w-5 h-5" />
+                                            <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-xl bg-[#2dd4bf] text-white flex items-center justify-center shadow-lg z-20">
+                                                <Sparkles className="w-5 h-5 dark:text-slate-900" />
                                             </div>
                                         </div>
 
@@ -563,21 +568,21 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                                 />
                                                 <label
                                                     htmlFor="pfp-upload"
-                                                    className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-white hover:bg-slate-50 hover:border-amber-500/30 transition-all cursor-pointer group/label"
+                                                    className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-[#2dd4bf]/30 transition-all cursor-pointer group/label"
                                                 >
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                        <UploadCloud className="w-8 h-8 text-slate-400 mb-2 group-hover/label:text-amber-500 transition-colors" />
-                                                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest text-center px-4">
+                                                        <UploadCloud className="w-8 h-8 text-slate-400 dark:text-slate-600 mb-2 group-hover/label:text-[#2dd4bf] transition-colors" />
+                                                        <p className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center px-4">
                                                             {profilePicture ? profilePicture.name : "Choose profile picture"}
                                                         </p>
-                                                        <p className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">PNG, JPG or WEBP (MAX. 2MB)</p>
+                                                        <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold mt-1 uppercase tracking-tighter">PNG, JPG or WEBP (MAX. 2MB)</p>
                                                     </div>
                                                 </label>
                                             </div>
 
                                             {profilePicture && (
                                                 <div className="flex items-center justify-between px-2">
-                                                    <p className="text-[10px] font-black text-amber-600 uppercase flex items-center gap-2">
+                                                    <p className="text-[10px] font-black text-[#2dd4bf] uppercase flex items-center gap-2">
                                                         <CheckCircle2 className="w-3 h-3" />
                                                         Ready for upload
                                                     </p>
@@ -599,48 +604,48 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-8">
                                         <FormGroup label="Street Address" icon={Globe}>
-                                            <Input value={addressDraft.street} onChange={e => setAddressDraft({ ...addressDraft, street: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                            <Input value={addressDraft.street} onChange={e => setAddressDraft({ ...addressDraft, street: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all" />
                                         </FormGroup>
                                         <div className="grid grid-cols-2 gap-4">
                                             <FormGroup label="City" icon={MapPin}>
-                                                <Input value={addressDraft.city} onChange={e => setAddressDraft({ ...addressDraft, city: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                                <Input value={addressDraft.city} onChange={e => setAddressDraft({ ...addressDraft, city: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all" />
                                             </FormGroup>
                                             <FormGroup label="State" icon={MapPin}>
-                                                <Input value={addressDraft.state} onChange={e => setAddressDraft({ ...addressDraft, state: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                                <Input value={addressDraft.state} onChange={e => setAddressDraft({ ...addressDraft, state: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all" />
                                             </FormGroup>
                                         </div>
                                         <FormGroup label="Country" icon={Globe}>
-                                            <Input value={addressDraft.country} onChange={e => setAddressDraft({ ...addressDraft, country: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
+                                            <Input value={addressDraft.country} onChange={e => setAddressDraft({ ...addressDraft, country: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-100 dark:border-slate-700 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all" />
                                         </FormGroup>
                                         <div className="flex items-center justify-between gap-4">
                                             <label className="flex items-center gap-3 cursor-pointer group">
-                                                <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${addressDraft.isPrimary ? 'bg-amber-500 border-amber-500' : 'bg-white border-slate-200 group-hover:border-amber-300'}`}>
-                                                    {addressDraft.isPrimary && <CheckCircle2 className="w-4 h-4 text-white" />}
+                                                <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${addressDraft.isPrimary ? 'bg-[#2dd4bf] border-[#2dd4bf]' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 group-hover:border-[#2dd4bf]/50'}`}>
+                                                    {addressDraft.isPrimary && <CheckCircle2 className="w-4 h-4 text-white dark:text-slate-900" />}
                                                 </div>
                                                 <input type="checkbox" className="hidden" checked={addressDraft.isPrimary} onChange={e => setAddressDraft({ ...addressDraft, isPrimary: e.target.checked })} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-amber-600 transition-colors">Primary Address</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-[#2dd4bf] transition-colors">Primary Address</span>
                                             </label>
-                                            <Button type="button" onClick={addAddress} className="bg-slate-900 text-white rounded-2xl px-8 font-black text-xs uppercase tracking-widest h-12 hover:bg-amber-600 transition-all">Add Address</Button>
+                                            <Button type="button" onClick={addAddress} className="bg-slate-950 dark:bg-[#2dd4bf] text-white dark:text-slate-900 rounded-2xl px-8 font-black text-xs uppercase tracking-widest h-12 hover:bg-[#0d9488] dark:hover:bg-[#14b8a6] transition-all shadow-lg shadow-teal-500/10">Add Address</Button>
                                         </div>
                                     </div>
 
-                                    <div className="bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 p-8">
+                                    <div className="bg-slate-50/50 dark:bg-slate-800/20 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-800 p-8 shadow-inner">
                                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 px-1">Added Addresses</p>
                                         <div className="space-y-4">
                                             {addresses.length === 0 ? (
                                                 <div className="py-12 text-center">
-                                                    <MapPin className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-                                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No addresses added yet</p>
+                                                    <MapPin className="w-10 h-10 text-slate-200 dark:text-slate-800 mx-auto mb-3" />
+                                                    <p className="text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest">No addresses added yet</p>
                                                 </div>
                                             ) : (
                                                 addresses.map((a, idx) => (
-                                                    <div key={idx} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative group">
+                                                    <div key={idx} className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm relative group">
                                                         <div className="flex items-center justify-between mb-2">
-                                                            {a.isPrimary && <Badge className="bg-emerald-100 text-emerald-700 font-black text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-md">Primary Address</Badge>}
-                                                            <Trash2 className="w-4 h-4 text-slate-300 hover:text-red-500 cursor-pointer transition-colors" onClick={() => setAddresses(addresses.filter((_, i) => i !== idx))} />
+                                                            {a.isPrimary && <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 font-black text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-md border-none">Primary Address</Badge>}
+                                                            <Trash2 className="w-4 h-4 text-slate-300 dark:text-slate-700 hover:text-red-500 cursor-pointer transition-colors" onClick={() => setAddresses(addresses.filter((_, i) => i !== idx))} />
                                                         </div>
-                                                        <p className="font-black text-slate-800 text-sm leading-tight">{a.street}, {a.city}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{a.country} • {a.zipCode}</p>
+                                                        <p className="font-black text-slate-800 dark:text-slate-200 text-sm leading-tight">{a.street}, {a.city}</p>
+                                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-1">{a.country} • {a.zipCode}</p>
                                                     </div>
                                                 ))
                                             )}
@@ -651,14 +656,14 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                         )}
                         {step === 5 && (
                             <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="bg-amber-50 p-8 rounded-[2.5rem] border-2 border-amber-100 space-y-8">
+                                <div className="bg-[#2dd4bf]/5 dark:bg-[#2dd4bf]/5 p-8 rounded-[2.5rem] border-2 border-[#2dd4bf]/20 space-y-8">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-14 w-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
+                                        <div className="h-14 w-14 rounded-2xl bg-[#0d9488] dark:bg-[#2dd4bf] text-white dark:text-slate-900 flex items-center justify-center shadow-lg">
                                             <Settings2 className="w-7 h-7" />
                                         </div>
                                         <div>
-                                            <h3 className="text-2xl font-black text-slate-900 leading-none mb-1">Review Faculty Details</h3>
-                                            <p className="text-amber-700 font-bold text-xs italic">Please review the information below before saving the faculty member.</p>
+                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-none mb-1">Review Faculty Details</h3>
+                                            <p className="text-[#0d9488] dark:text-[#2dd4bf] font-bold text-xs">Verify all fields before processing the official registration.</p>
                                         </div>
                                     </div>
 
@@ -672,11 +677,11 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                                     </div>
 
                                     {!isEdit && (
-                                        <div className="p-6 rounded-3xl bg-slate-900 text-white flex items-start gap-4">
-                                            <Sparkles className="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" />
+                                        <div className="p-6 rounded-3xl bg-slate-950/80 dark:bg-slate-900/50 backdrop-blur-md text-white border border-slate-800 flex items-start gap-4">
+                                            <Sparkles className="w-5 h-5 text-[#2dd4bf] flex-shrink-0 mt-0.5" />
                                             <p className="text-[11px] font-bold leading-relaxed text-slate-300">
-                                                A password will be sent to the faculty member's email address upon creation.
-                                                Please ensure all details are correct before proceeding.
+                                                System credential invitation will be dispatched to the academic email provided.
+                                                Ensure accuracy of the designation and department to avoid role conflicts.
                                             </p>
                                         </div>
                                     )}
@@ -686,20 +691,20 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                     </AnimatePresence>
                 </div>
 
-                <div className="bg-slate-50 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between border-t border-slate-100 gap-4">
+                <div className="bg-slate-950/50 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-6 md:px-10 md:py-8 flex items-center justify-between border-t border-slate-800/50 gap-4">
                     <Button
                         variant="ghost"
                         onClick={prevStep}
                         disabled={step === 1 || isSubmitting}
-                        className="h-12 md:h-14 px-4 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 group"
+                        className="h-12 md:h-14 px-4 md:px-8 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] text-slate-400 hover:text-white hover:bg-white/5 group transition-all"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1 md:mr-2 group-hover:-translate-x-1 transition-transform" />
-                        <span className="hidden sm:inline">Back</span>
+                        <span className="hidden sm:inline">Prev Step</span>
                     </Button>
                     {step < 5 ? (
                         <Button
                             onClick={nextStep}
-                            className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 group"
+                            className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-[#0d9488] dark:bg-[#2dd4bf] hover:bg-[#0f766e] dark:hover:bg-[#14b8a6] text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 md:gap-3 transition-all active:scale-95 group shadow-xl shadow-teal-500/20"
                         >
                             Next Step
                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -708,10 +713,10 @@ export function TeacherFacultyForm({ teacher, profile, fixedDepartmentId, scope 
                         <Button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-900/30"
+                            className="h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-[#0d9488] dark:bg-[#2dd4bf] hover:bg-[#0f766e] dark:hover:bg-[#14b8a6] text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2 md:gap-3 transition-all active:scale-95 shadow-2xl shadow-teal-500/30"
                         >
                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
-                            Save Faculty Member
+                            Complete Registration
                         </Button>
                     )}
                 </div>
@@ -725,8 +730,8 @@ function FormGroup({ label, icon: Icon, children, error }: { label: string, icon
         <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                    <Icon className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-400'}`} />
-                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${error ? 'text-red-500' : 'text-slate-400'}`}>{label}</p>
+                    <Icon className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`} />
+                    <p className={`text-[9px] font-black uppercase tracking-[0.2em] ${error ? 'text-red-500' : 'text-slate-400 dark:text-slate-500'}`}>{label}</p>
                 </div>
                 {error && <p className="text-[9px] font-black text-red-500 uppercase tracking-tighter">{error}</p>}
             </div>
@@ -738,8 +743,8 @@ function FormGroup({ label, icon: Icon, children, error }: { label: string, icon
 function SummaryItem({ label, value, highlighted = false }: { label: string, value: string | undefined, highlighted?: boolean }) {
     return (
         <div className="space-y-1">
-            <p className="text-[9px] font-black uppercase tracking-widest text-amber-700/60 leading-none">{label}</p>
-            <p className={`text-base font-black truncate leading-tight ${highlighted ? 'text-amber-600 font-black' : 'text-slate-900 font-bold'}`}>{value || "N/A"}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#0d9488]/60 dark:text-[#2dd4bf]/40 leading-none">{label}</p>
+            <p className={`text-base font-black truncate leading-tight ${highlighted ? 'text-[#0d9488] dark:text-[#2dd4bf]' : 'text-slate-900 dark:text-white'}`}>{value || "N/A"}</p>
         </div>
     );
 }

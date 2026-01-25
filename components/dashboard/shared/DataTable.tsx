@@ -88,7 +88,7 @@ export function DataTable<T extends { id: string | number }>({
                             setSearchTerm(e.target.value);
                             setCurrentPage(1);
                         }}
-                        className={`pl-10 bg-white border-${theme.colors.sidebar.border.replace('border-', '')} shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-${theme.colors.accent.secondary.replace('bg-', '')} rounded-lg h-10`}
+                        className={`pl-10 bg-white dark:bg-slate-900/50 border-${theme.colors.sidebar.border.replace('border-', '')} shadow-sm focus-visible:ring-1 focus-visible:ring-offset-0 focus-visible:ring-${theme.colors.accent.secondary.replace('bg-', '')} rounded-lg h-10 dark:text-white`}
                     />
                 </div>
             </div>
@@ -115,7 +115,7 @@ export function DataTable<T extends { id: string | number }>({
                         <AnimatePresence mode="wait">
                             {paginatedData.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={columns.length + 1} className={`h-32 text-center text-${theme.colors.sidebar.text.replace('text-', '')}/60 bg-white`}>
+                                    <TableCell colSpan={columns.length + 1} className={`h-32 text-center text-${theme.colors.sidebar.text.replace('text-', '')}/60 bg-white dark:bg-slate-900/20`}>
                                         <div className="flex flex-col items-center justify-center space-y-2">
                                             <Search className="h-8 w-8 opacity-20" />
                                             <p>No results found matching your search.</p>
@@ -131,7 +131,7 @@ export function DataTable<T extends { id: string | number }>({
                                         transition={{ delay: index * 0.03 }}
                                         className={`
                                             group border-b ${theme.colors.sidebar.borderSubtle} hover:bg-${theme.colors.sidebar.active.replace('bg-', '')}/30 transition-colors
-                                            ${index % 2 === 0 ? 'bg-white' : `${theme.colors.sidebar.bg}/30`}
+                                            ${index % 2 === 0 ? 'bg-white/50 dark:bg-slate-900/50' : 'bg-transparent'}
                                         `}
                                     >
                                         {columns.map((column) => (
@@ -188,7 +188,7 @@ export function DataTable<T extends { id: string | number }>({
             <div className="md:hidden space-y-4">
                 <AnimatePresence mode="wait">
                     {paginatedData.length === 0 ? (
-                        <div className={`text-center py-12 bg-white rounded-xl border ${theme.colors.sidebar.borderSubtle} text-${theme.colors.sidebar.text.replace('text-', '')}/60 shadow-sm`}>
+                        <div className={`text-center py-12 bg-white dark:bg-slate-900/50 rounded-xl border ${theme.colors.sidebar.borderSubtle} text-${theme.colors.sidebar.text.replace('text-', '')}/60 shadow-sm`}>
                             No results found.
                         </div>
                     ) : (
@@ -198,7 +198,7 @@ export function DataTable<T extends { id: string | number }>({
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: index * 0.05 }}
-                                className={`bg-white rounded-xl p-5 border ${theme.colors.sidebar.borderSubtle} shadow-sm group active:scale-[0.99] transition-transform`}
+                                className={`bg-white dark:bg-slate-900/50 rounded-xl p-5 border ${theme.colors.sidebar.borderSubtle} shadow-sm group active:scale-[0.99] transition-transform`}
                             >
                                 {columns.map((column) => (
                                     <div key={String(column.accessorKey)} className={`flex justify-between py-2.5 border-b ${theme.colors.sidebar.borderSubtle}/50 last:border-0`}>
@@ -249,7 +249,7 @@ export function DataTable<T extends { id: string | number }>({
             {/* Pagination */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2 py-2">
                 <div className={`text-xs font-medium ${theme.colors.sidebar.text}/70 order-2 sm:order-1`}>
-                    Showing <span className="text-slate-900 font-bold">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to <span className="text-slate-900 font-bold">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> of <span className="text-slate-900 font-bold">{filteredData.length}</span> entries
+                    Showing <span className="text-slate-900 dark:text-white font-bold">{filteredData.length > 0 ? startIndex + 1 : 0}</span> to <span className="text-slate-900 dark:text-white font-bold">{Math.min(startIndex + itemsPerPage, filteredData.length)}</span> of <span className="text-slate-900 dark:text-white font-bold">{filteredData.length}</span> entries
                 </div>
                 <div className="flex items-center space-x-1 sm:space-x-1.5 order-1 sm:order-2">
                     <Button
