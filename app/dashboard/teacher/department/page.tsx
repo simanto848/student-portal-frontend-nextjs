@@ -3,7 +3,6 @@ import {
   getDepartmentData
 } from "./actions";
 import DepartmentClient from "./fragments/DepartmentClient";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export default async function DepartmentPage() {
   const user = await requireUser();
@@ -31,12 +30,10 @@ export default async function DepartmentPage() {
   }
 
   return (
-    <DashboardLayout>
-      <DepartmentClient
-        workflows={data.workflows}
-        batches={data.batches}
-        students={data.students}
-      />
-    </DashboardLayout>
+    <DepartmentClient
+      workflows={data.workflows}
+      batches={data.batches}
+      students={data.students}
+    />
   );
 }
