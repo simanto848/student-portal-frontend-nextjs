@@ -104,16 +104,16 @@ export function FacultyDetailClient({ teacher: initialTeacher, profile, departme
     };
 
     const handleDeleteTeacher = async () => {
-        if (!confirm(`Are you sure you want to deactivate ${teacher.fullName}?`)) return;
+        if (!confirm(`Are you sure you want to delete ${teacher.fullName}?`)) return;
         setIsDeleting(true);
         try {
             const formData = new FormData();
             const result = await deleteTeacherAction(teacher.id, null, formData);
             if (result.success) {
-                notifySuccess("Faculty member deactivated");
+                notifySuccess("Faculty member deleted");
                 router.push("/dashboard/admin/users/faculty");
             } else {
-                notifyError(result.message || "Deactivation failed");
+                notifyError(result.message || "Deletion failed");
             }
         } catch (error) {
             notifyError("An error occurred");
@@ -153,7 +153,7 @@ export function FacultyDetailClient({ teacher: initialTeacher, profile, departme
                         className="h-14 px-8 rounded-[2rem] border-2 border-red-100 text-red-600 hover:bg-red-50 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all"
                     >
                         <Trash2 className="w-5 h-5" />
-                        Deactivate
+                        Delete Account
                     </Button>
                     <Button
                         onClick={() => router.push(`/dashboard/admin/users/faculty/${teacher.id}/edit`)}

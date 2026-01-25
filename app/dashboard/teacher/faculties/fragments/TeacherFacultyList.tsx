@@ -178,11 +178,11 @@ export function TeacherFacultyList({
             const formData = new FormData();
             const result = await deleteTeacherAction(selectedTeacher.id, null, formData);
             if (result.success) {
-                notifySuccess("Faculty member suspended");
+                notifySuccess("Faculty member deleted");
                 setIsDeleteOpen(false);
                 router.refresh();
             } else {
-                notifyError(result.message || "Suspension failed");
+                notifyError(result.message || "Deletion failed");
             }
         } catch (error) {
             notifyError("An error occurred");
@@ -240,7 +240,7 @@ export function TeacherFacultyList({
                                 className="h-9 px-8 rounded-xl font-black text-[10px] uppercase tracking-[0.15em] data-[state=active]:bg-rose-600 data-[state=active]:text-white text-slate-500 dark:text-slate-400 transition-all shadow-sm"
                             >
                                 <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                Suspended
+                                Deleted Staff
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -283,8 +283,8 @@ export function TeacherFacultyList({
                                         <Clock className="w-7 h-7" />
                                     </div>
                                     <div className="space-y-1">
-                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Suspended Faculty</h2>
-                                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Records of faculty members currently removed from active duty.</p>
+                                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Deleted Faculty</h2>
+                                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Records of faculty members currently removed from the system.</p>
                                     </div>
                                 </div>
 
@@ -293,7 +293,7 @@ export function TeacherFacultyList({
                                         <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center mx-auto ring-1 ring-slate-100 dark:ring-slate-700/50 shadow-xl shadow-slate-200/20">
                                             <Users className="w-10 h-10 text-slate-300 dark:text-slate-600" />
                                         </div>
-                                        <p className="text-slate-400 dark:text-slate-500 font-black text-lg tracking-tight">No faculty in suspension</p>
+                                        <p className="text-slate-400 dark:text-slate-500 font-black text-lg tracking-tight">No deleted faculty found</p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-inner">
@@ -372,8 +372,8 @@ export function TeacherFacultyList({
                 isOpen={isDeleteOpen}
                 onClose={() => setIsDeleteOpen(false)}
                 onConfirm={confirmDelete}
-                title="Suspend Faculty"
-                description={`Are you sure you want to suspend ${selectedTeacher?.fullName}? their account access will be deactivated.`}
+                title="Delete Faculty Account"
+                description={`Are you sure you want to delete ${selectedTeacher?.fullName}? their account access will be deactivated.`}
                 isDeleting={isActionLoading}
             />
         </div>

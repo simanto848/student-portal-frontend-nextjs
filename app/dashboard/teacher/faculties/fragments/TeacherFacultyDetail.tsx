@@ -112,16 +112,16 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
     };
 
     const handleDeleteTeacher = async () => {
-        if (!confirm(`Are you sure you want to suspend ${teacher.fullName}?`)) return;
+        if (!confirm(`Are you sure you want to delete ${teacher.fullName}?`)) return;
         setIsDeleting(true);
         try {
             const formData = new FormData();
             const result = await deleteTeacherAction(teacher.id, null, formData);
             if (result.success) {
-                notifySuccess("Faculty member suspended");
+                notifySuccess("Faculty member deleted");
                 router.push("/dashboard/teacher/faculties");
             } else {
-                notifyError(result.message || "Suspension failed");
+                notifyError(result.message || "Deletion failed");
             }
         } catch (error) {
             notifyError("An error occurred");
@@ -166,7 +166,7 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
                             className="h-14 px-8 rounded-[1.5rem] border-2 border-rose-100 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 font-black uppercase text-xs tracking-widest flex items-center gap-3 active:scale-95 transition-all"
                         >
                             <Trash2 className="w-5 h-5" />
-                            Suspend
+                            Delete Account
                         </Button>
                         <Button
                             onClick={() => router.push(`/dashboard/teacher/faculties/${teacher.id}/edit`)}

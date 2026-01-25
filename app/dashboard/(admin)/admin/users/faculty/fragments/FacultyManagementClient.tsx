@@ -194,11 +194,11 @@ export function FacultyManagementClient({
             const formData = new FormData();
             const result = await deleteTeacherAction(selectedTeacher.id, null, formData);
             if (result.success) {
-                notifySuccess("Faculty member suspended");
+                notifySuccess("Faculty member deleted");
                 setIsDeleteOpen(false);
                 router.refresh();
             } else {
-                notifyError(result.message || "Suspension failed");
+                notifyError(result.message || "Deletion failed");
             }
         } catch (error) {
             notifyError("An error occurred");
@@ -246,7 +246,7 @@ export function FacultyManagementClient({
                                 className="h-10 px-8 rounded-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all"
                             >
                                 <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                Suspended
+                                Deleted Staff
                             </TabsTrigger>
                         </TabsList>
                     </div>
@@ -286,7 +286,7 @@ export function FacultyManagementClient({
                                     <Clock className="w-7 h-7" />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-black text-slate-900">Suspended Faculty</h2>
+                                    <h2 className="text-2xl font-black text-slate-900">Deleted Faculty</h2>
                                     <p className="text-slate-500 font-bold text-sm italic">Records of faculty members removed from the active system.</p>
                                 </div>
                             </div>
@@ -296,7 +296,7 @@ export function FacultyManagementClient({
                                     <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto opacity-50 border-4 border-white shadow-2xl shadow-slate-100">
                                         <Users className="w-10 h-10 text-slate-300" />
                                     </div>
-                                    <p className="text-slate-400 font-black italic text-lg decoration-slate-200 underline underline-offset-8">No faculty in suspension</p>
+                                    <p className="text-slate-400 font-black italic text-lg decoration-slate-200 underline underline-offset-8">No deleted faculty found</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-inner">
@@ -374,8 +374,8 @@ export function FacultyManagementClient({
                 isOpen={isDeleteOpen}
                 onClose={() => setIsDeleteOpen(false)}
                 onConfirm={confirmDelete}
-                title="Suspend Faculty"
-                description={`Are you sure you want to suspend ${selectedTeacher?.fullName}? their account access will be deactivated.`}
+                title="Delete Faculty Account"
+                description={`Are you sure you want to delete ${selectedTeacher?.fullName}? their account access will be deactivated.`}
                 isDeleting={isActionLoading}
             />
         </div>
