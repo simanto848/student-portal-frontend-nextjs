@@ -2,7 +2,6 @@ import { requireUser } from "@/lib/auth/userAuth";
 import { getExamCommitteeData } from "./actions";
 import ExamCommitteeClient from "./fragments/ExamCommitteeClient";
 import { redirect } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export default async function ExamCommitteePage() {
   const user = await requireUser();
@@ -24,13 +23,11 @@ export default async function ExamCommitteePage() {
   }
 
   return (
-    <DashboardLayout>
-      <ExamCommitteeClient
-        initialMembers={members}
-        teachers={teachers || []}
-        batches={batches || []}
-        departmentId={departmentId}
-      />
-    </DashboardLayout>
+    <ExamCommitteeClient
+      initialMembers={members}
+      teachers={teachers || []}
+      batches={batches || []}
+      departmentId={departmentId}
+    />
   );
 }

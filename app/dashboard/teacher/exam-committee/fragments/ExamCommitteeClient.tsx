@@ -19,7 +19,9 @@ import {
     AlertCircle,
     Building2,
     Clock,
-    Layers
+    Layers,
+    Layout,
+    ArrowLeft
 } from "lucide-react";
 import {
     Dialog,
@@ -41,21 +43,19 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { notifySuccess, notifyError, notifyLoading } from "@/components/toast";
 import { ExamCommitteeMember, TeacherOption } from "../types";
 import { addCommitteeMember, removeCommitteeMember, updateCommitteeMember, getDeletedCommitteeMembers, restoreCommitteeMember } from "../actions";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useAuth } from "@/contexts/AuthContext";
+import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 
 interface BatchOption {
     id: string;
@@ -246,25 +246,25 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
     ).values());
 
     return (
-        <div className="space-y-8 pb-12 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="space-y-8 pb-12 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header / Hero */}
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-200/60 p-8 shadow-2xl shadow-indigo-500/5">
-                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-indigo-50/50 blur-3xl opacity-50" />
+            <GlassCard className="relative overflow-hidden border-slate-200/60 dark:border-slate-700/50 p-8 shadow-2xl shadow-indigo-500/5 dark:shadow-slate-900/20">
+                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-[#2dd4bf]/10 blur-3xl opacity-50 dark:opacity-20" />
 
                 <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-2 mb-2">
-                            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600">
+                            <div className="p-2 rounded-xl bg-[#2dd4bf]/10 ring-1 ring-[#2dd4bf]/20 text-[#2dd4bf]">
                                 <Shield className="h-5 w-5" />
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-600">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#2dd4bf]">
                                 Administrative Control
                             </span>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-                            Exam<span className="text-indigo-600"> Committee</span>
+                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+                            Exam<span className="text-[#2dd4bf]"> Committee</span>
                         </h1>
-                        <p className="text-slate-500 font-medium text-sm md:text-base max-w-lg">
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base max-w-lg">
                             Manage department exam committee members and permissions.
                         </p>
                     </div>
@@ -273,27 +273,27 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                         <Button
                             variant="outline"
                             onClick={handleOpenTrash}
-                            className="h-12 w-12 rounded-xl border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all p-0 flex items-center justify-center shadow-sm"
+                            className="h-12 w-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-[#2dd4bf] dark:hover:text-[#2dd4bf] hover:border-[#2dd4bf]/30 dark:hover:border-[#2dd4bf]/30 hover:bg-[#2dd4bf]/5 dark:hover:bg-[#2dd4bf]/10 transition-all p-0 flex items-center justify-center shadow-sm"
                             title="View Removed Members"
                         >
                             <Trash2 className="h-5 w-5" />
                         </Button>
                         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                             <DialogTrigger asChild>
-                                <Button onClick={handleCreateClick} className="h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-600/20 active:scale-95">
+                                <Button onClick={handleCreateClick} className="h-12 px-6 bg-[#0d9488] hover:bg-[#0f766e] dark:bg-[#2dd4bf] dark:hover:bg-[#14b8a6] text-white dark:text-slate-900 rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-lg shadow-teal-500/20 active:scale-95">
                                     <Plus className="mr-2 h-4 w-4" /> Add Member
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[425px] rounded-[2rem]">
+                            <DialogContent className="sm:max-w-[425px] rounded-[2rem] dark:bg-slate-900 dark:border-slate-800">
                                 <DialogHeader>
-                                    <DialogTitle>{editingMember ? "Edit Details" : "Add Committee Member"}</DialogTitle>
-                                    <DialogDescription>
+                                    <DialogTitle className="dark:text-white">{editingMember ? "Edit Details" : "Add Committee Member"}</DialogTitle>
+                                    <DialogDescription className="dark:text-slate-400">
                                         {editingMember ? "Update exam committee member details." : "Assign a teacher to the exam committee."}
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="grid gap-4 py-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="teacher">Select Teacher</Label>
+                                        <Label htmlFor="teacher" className="dark:text-slate-300">Select Teacher</Label>
                                         <div className="relative">
                                             <SearchableSelect
                                                 options={teacherOptions}
@@ -305,37 +305,37 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                                         </div>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="shift">Shift</Label>
+                                        <Label htmlFor="shift" className="dark:text-slate-300">Shift</Label>
                                         <Select onValueChange={(v: any) => setSelectedShift(v)} value={selectedShift}>
-                                            <SelectTrigger id="shift" className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                                            <SelectTrigger id="shift" className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white">
                                                 <SelectValue placeholder="Select shift" />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="day">Day</SelectItem>
-                                                <SelectItem value="evening">Evening</SelectItem>
+                                            <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
+                                                <SelectItem value="day" className="dark:text-slate-200 dark:focus:bg-slate-800">Day</SelectItem>
+                                                <SelectItem value="evening" className="dark:text-slate-200 dark:focus:bg-slate-800">Evening</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="batch">Batch (Optional)</Label>
+                                        <Label htmlFor="batch" className="dark:text-slate-300">Batch (Optional)</Label>
                                         <Select onValueChange={setSelectedBatch} value={selectedBatch}>
-                                            <SelectTrigger id="batch" className="h-12 rounded-xl bg-slate-50 border-slate-200">
+                                            <SelectTrigger id="batch" className="h-12 rounded-xl bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-white">
                                                 <SelectValue placeholder="All Batches / General" />
                                             </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="null">All Batches / General</SelectItem>
+                                            <SelectContent className="dark:bg-slate-900 dark:border-slate-800">
+                                                <SelectItem value="null" className="dark:text-slate-200 dark:focus:bg-slate-800">All Batches / General</SelectItem>
                                                 {uniqueBatches.map((batch) => (
-                                                    <SelectItem key={batch.id} value={batch.id}>
+                                                    <SelectItem key={batch.id} value={batch.id} className="dark:text-slate-200 dark:focus:bg-slate-800">
                                                         {batch.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div className="flex items-center justify-between rounded-xl border border-slate-200 p-4">
+                                    <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50/30 dark:bg-slate-800/20">
                                         <div className="space-y-0.5">
-                                            <Label className="text-base">Active Status</Label>
-                                            <div className="text-xs text-slate-500">
+                                            <Label className="text-base dark:text-slate-200">Active Status</Label>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400">
                                                 {isActive ? "Member is currently active" : "Member is inactive"}
                                             </div>
                                         </div>
@@ -346,7 +346,7 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                                     </div>
                                 </div>
                                 <DialogFooter>
-                                    <Button onClick={handleSubmit} disabled={isLoading} className="w-full h-12 rounded-xl bg-indigo-600 font-bold">
+                                    <Button onClick={handleSubmit} disabled={isLoading} className="w-full h-12 rounded-xl bg-[#0d9488] hover:bg-[#0f766e] dark:bg-[#2dd4bf] dark:hover:bg-[#14b8a6] text-white dark:text-slate-900 font-bold">
                                         {isLoading ? (editingMember ? "Updating..." : "Adding...") : (editingMember ? "Update Member" : "Confirm Assignment")}
                                     </Button>
                                 </DialogFooter>
@@ -354,17 +354,17 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                         </Dialog>
                     </div>
                 </div>
-            </div>
+            </GlassCard>
 
             {/* Filters */}
-            <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
-                <div className="relative flex-1">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <div className="flex items-center gap-4 bg-white dark:bg-slate-800/40 p-2 rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                <div className="relative flex-1 group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#2dd4bf] transition-colors" />
                     <Input
                         placeholder="Search members by name or email..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="h-12 pl-12 border-none bg-transparent focus-visible:ring-0 text-base"
+                        className="h-12 pl-12 border-none bg-transparent focus-visible:ring-0 text-base dark:text-white dark:placeholder:text-slate-500"
                     />
                 </div>
             </div>
@@ -380,19 +380,19 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                             exit={{ opacity: 0, scale: 0.95 }}
                             transition={{ delay: idx * 0.05 }}
                         >
-                            <Card className={`p-6 rounded-[2rem] border transition-all duration-300 group bg-white ${member.status ? 'border-slate-200/60 hover:shadow-xl hover:border-indigo-100' : 'border-slate-200/60 opacity-70 bg-slate-50'
+                            <GlassCard className={`p-6 border transition-all duration-300 group ${member.status ? 'border-slate-200/60 dark:border-slate-700/50 hover:shadow-xl hover:border-[#2dd4bf]/30' : 'border-slate-200/60 dark:border-slate-700/30 opacity-70 bg-slate-50/50 dark:bg-slate-800/20'
                                 }`}>
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="flex items-center gap-3">
-                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-bold text-lg ${member.status ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-500'
+                                        <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-black text-lg ${member.status ? 'bg-[#2dd4bf]/10 text-[#2dd4bf] ring-1 ring-[#2dd4bf]/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'
                                             }`}>
                                             {getTeacherName(member).charAt(0)}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 leading-tight">
+                                            <h3 className="font-bold text-slate-900 dark:text-white leading-tight">
                                                 {getTeacherName(member)}
                                             </h3>
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                                            <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                                 <Mail className="h-3 w-3" />
                                                 <span className="truncate max-w-[150px]">{getTeacherEmail(member)}</span>
                                             </div>
@@ -400,15 +400,15 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                                     </div>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 text-slate-400">
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400">
                                                 <MoreVertical className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end" className="rounded-xl">
-                                            <DropdownMenuItem className="font-medium" onClick={() => handleEditClick(member)}>
-                                                <Edit2 className="mr-2 h-4 w-4" /> Edit Details
+                                        <DropdownMenuContent align="end" className="rounded-xl dark:bg-slate-900 dark:border-slate-800 p-1.5 shadow-xl border-slate-200/60 transition-all">
+                                            <DropdownMenuItem className="font-bold text-slate-700 dark:text-slate-200 rounded-lg px-3 py-2.5 focus:bg-[#2dd4bf]/10 focus:text-[#0d9488] dark:focus:bg-[#2dd4bf]/20 dark:focus:text-[#2dd4bf] transition-colors cursor-pointer" onClick={() => handleEditClick(member)}>
+                                                <Edit2 className="mr-2 h-4 w-4 text-[#2dd4bf]" /> Edit Details
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem className="text-rose-600 font-medium" onClick={() => handleRemoveMember(member.id)}>
+                                            <DropdownMenuItem className="text-rose-600 font-bold rounded-lg px-3 py-2.5 focus:bg-rose-50 focus:text-rose-700 dark:focus:bg-rose-900/20 dark:focus:text-rose-400 transition-colors cursor-pointer" onClick={() => handleRemoveMember(member.id)}>
                                                 <Trash2 className="mr-2 h-4 w-4" /> Remove Member
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
@@ -416,35 +416,35 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50/50">
-                                        <span className="text-slate-500 font-medium flex items-center gap-2">
-                                            <Clock className="h-4 w-4" /> Shift
+                                    <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50/50 dark:bg-slate-800/40">
+                                        <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
+                                            <Clock className="h-4 w-4 text-[#2dd4bf]" /> Shift
                                         </span>
-                                        <Badge variant="secondary" className="uppercase tracking-wider font-bold text-[10px] bg-white border border-slate-200">
+                                        <Badge variant="secondary" className="uppercase tracking-wider font-extrabold text-[10px] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-200">
                                             {member.shift}
                                         </Badge>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50/50">
-                                        <span className="text-slate-500 font-medium flex items-center gap-2">
-                                            <Layers className="h-4 w-4" /> Batch
+                                    <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50/50 dark:bg-slate-800/40">
+                                        <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
+                                            <Layers className="h-4 w-4 text-[#2dd4bf]" /> Batch
                                         </span>
-                                        <span className="font-bold text-slate-700 text-xs">
+                                        <span className="font-extrabold text-slate-700 dark:text-slate-200 text-[10px] uppercase tracking-wider">
                                             {getBatchName(member)}
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50/50">
-                                        <span className="text-slate-500 font-medium flex items-center gap-2">
-                                            <Shield className="h-4 w-4" /> Status
+                                    <div className="flex items-center justify-between text-sm p-3 rounded-xl bg-slate-50/50 dark:bg-slate-800/40">
+                                        <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
+                                            <Shield className="h-4 w-4 text-[#2dd4bf]" /> Status
                                         </span>
-                                        <Badge className={`uppercase tracking-wider font-bold text-[10px] border-none ${member.status ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' : 'bg-rose-100 text-rose-700 hover:bg-rose-100'
+                                        <Badge className={`uppercase tracking-wider font-black text-[10px] border-none ${member.status ? 'bg-[#2dd4bf]/20 text-[#0d9488] dark:text-[#2dd4bf]' : 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400'
                                             }`}>
                                             {member.status ? "Active" : "Inactive"}
                                         </Badge>
                                     </div>
                                 </div>
-                            </Card>
+                            </GlassCard>
                         </motion.div>
                     ))}
                 </AnimatePresence>
@@ -452,29 +452,29 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
 
             {/* Trash Dialog */}
             <Dialog open={isTrashOpen} onOpenChange={setIsTrashOpen}>
-                <DialogContent className="sm:max-w-md rounded-[2rem]">
+                <DialogContent className="sm:max-w-md rounded-[2rem] dark:bg-slate-900 dark:border-slate-800">
                     <DialogHeader>
-                        <DialogTitle>Removed Members</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="dark:text-white">Removed Members</DialogTitle>
+                        <DialogDescription className="dark:text-slate-400">
                             Restore previously removed committee members.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                         {isLoadingTrash ? (
-                            <div className="py-8 text-center text-slate-400">Loading...</div>
+                            <div className="py-8 text-center text-slate-400 dark:text-slate-500">Loading...</div>
                         ) : deletedMembers.length === 0 ? (
-                            <div className="py-8 text-center text-slate-400 text-sm">No removed members found.</div>
+                            <div className="py-8 text-center text-slate-400 dark:text-slate-500 text-sm">No removed members found.</div>
                         ) : (
                             deletedMembers.map((member) => (
-                                <div key={member.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <div key={member.id} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
                                     <div>
-                                        <h4 className="font-bold text-slate-700 text-sm">{getTeacherName(member)}</h4>
-                                        <p className="text-xs text-slate-400">{getTeacherEmail(member)}</p>
+                                        <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm">{getTeacherName(member)}</h4>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500">{getTeacherEmail(member)}</p>
                                     </div>
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        className="h-8 px-3 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 font-medium"
+                                        className="h-8 px-3 text-[#2dd4bf] border-[#2dd4bf]/30 hover:bg-[#2dd4bf]/10 hover:text-[#2dd4bf] font-black uppercase text-[10px] tracking-widest"
                                         onClick={() => handleRestoreMember(member.id)}
                                     >
                                         Restore
@@ -489,12 +489,12 @@ export default function ExamCommitteeClient({ initialMembers, teachers, batches,
             {
                 filteredMembers.length === 0 && (
                     <div className="py-24 text-center">
-                        <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 mb-6">
-                            <Users className="h-8 w-8 text-slate-300" />
+                        <div className="inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-50 dark:bg-slate-800/40 mb-6 ring-1 ring-slate-100 dark:ring-slate-700/50">
+                            <Users className="h-8 w-8 text-slate-300 dark:text-slate-600" />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900">No Committee Members</h3>
-                        <p className="text-slate-400 mt-2 max-w-sm mx-auto">
-                            {searchQuery ? "No members match your search." : "Get started by adding teachers to the exam committee."}
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white">No Committee Members</h3>
+                        <p className="text-slate-400 dark:text-slate-500 mt-2 max-w-sm mx-auto font-medium">
+                            {searchQuery ? "No members match your search parameter." : "Get started by adding teachers to the exam committee."}
                         </p>
                     </div>
                 )
