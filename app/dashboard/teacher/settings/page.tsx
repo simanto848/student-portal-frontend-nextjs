@@ -9,7 +9,6 @@ import { PreferencesTab } from "./components/PreferencesTab";
 import { User, Bell, Shield, Settings as SettingsIcon } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { user, refreshUser } = useAuth();
@@ -23,32 +22,32 @@ export default function SettingsPage() {
       />
 
       <Tabs defaultValue="profile" className="space-y-8">
-        <div className="bg-white/50 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200/60 shadow-sm inline-block">
+        <div className="glass-panel p-1.5 rounded-2xl shadow-sm inline-block">
           <TabsList className="bg-transparent h-11 gap-1">
             <TabsTrigger
               value="profile"
-              className="px-5 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm font-bold transition-all gap-2"
+              className="px-5 py-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-[#0d9488] data-[state=active]:shadow-sm font-bold transition-all gap-2"
             >
               <User className="h-4 w-4" />
               Profile
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
-              className="px-5 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm font-bold transition-all gap-2"
+              className="px-5 py-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-[#0d9488] data-[state=active]:shadow-sm font-bold transition-all gap-2"
             >
               <Bell className="h-4 w-4" />
               Notifications
             </TabsTrigger>
             <TabsTrigger
               value="security"
-              className="px-5 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm font-bold transition-all gap-2"
+              className="px-5 py-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-[#0d9488] data-[state=active]:shadow-sm font-bold transition-all gap-2"
             >
               <Shield className="h-4 w-4" />
               Security
             </TabsTrigger>
             <TabsTrigger
               value="preferences"
-              className="px-5 py-2 rounded-xl data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm font-bold transition-all gap-2"
+              className="px-5 py-2 rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-[#0d9488] data-[state=active]:shadow-sm font-bold transition-all gap-2"
             >
               <SettingsIcon className="h-4 w-4" />
               Preferences

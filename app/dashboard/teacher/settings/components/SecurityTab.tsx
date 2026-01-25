@@ -227,27 +227,27 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
         <motion.div variants={itemVariants}>
           <GlassCard className="p-8 h-full">
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2.5 rounded-xl bg-orange-50 ring-1 ring-orange-200/50">
-                <KeyRound className="h-5 w-5 text-orange-600" />
+              <div className="p-2.5 rounded-xl bg-[#2dd4bf]/10 ring-1 ring-[#2dd4bf]/20">
+                <KeyRound className="h-5 w-5 text-[#2dd4bf]" />
               </div>
-              <h2 className="text-lg font-black text-slate-800 tracking-tight">Access Control</h2>
+              <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Access Control</h2>
             </div>
 
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Password</Label>
+                <Label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Current Password</Label>
                 <div className="relative">
                   <Input
                     type={showCurrentPassword ? "text" : "password"}
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="h-12 pr-12 rounded-xl bg-slate-50/50 border-slate-100 font-bold"
+                    className="h-12 pr-12 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200"
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors"
                   >
                     {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -256,31 +256,31 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Password</Label>
+                  <Label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">New Password</Label>
                   <div className="relative">
                     <Input
                       type={showNewPassword ? "text" : "password"}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="h-12 pr-12 rounded-xl bg-slate-50/50 border-slate-100 font-bold"
+                      className="h-12 pr-12 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200"
                       placeholder="Min 6 chars"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 dark:text-slate-500 hover:text-slate-500 dark:hover:text-slate-300 transition-colors"
                     >
                       {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm New</Label>
+                  <Label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Confirm New</Label>
                   <Input
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="h-12 rounded-xl bg-slate-50/50 border-slate-100 font-bold"
+                    className="h-12 rounded-xl bg-slate-50/50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700 font-bold text-slate-700 dark:text-slate-200"
                     placeholder="••••••••"
                   />
                 </div>
@@ -289,7 +289,7 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
               <Button
                 onClick={handleChangePassword}
                 disabled={isChangingPassword || !canSubmitPassword}
-                className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black tracking-tight shadow-xl shadow-slate-200/50 transition-all active:scale-95"
+                className="w-full h-12 rounded-xl bg-[#0d9488] hover:bg-[#0f766e] dark:bg-[#2dd4bf] dark:hover:bg-[#14b8a6] text-white dark:text-slate-900 font-black tracking-tight shadow-xl shadow-teal-500/20 transition-all active:scale-95"
               >
                 {isChangingPassword ? "Updating Access..." : "Secure My Account"}
               </Button>
@@ -301,26 +301,26 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
         <motion.div variants={itemVariants}>
           <GlassCard className="p-8 h-full">
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2.5 rounded-xl bg-emerald-50 ring-1 ring-emerald-200/50">
-                <ShieldCheck className="h-5 w-5 text-emerald-600" />
+              <div className="p-2.5 rounded-xl bg-[#2dd4bf]/10 ring-1 ring-[#2dd4bf]/20">
+                <ShieldCheck className="h-5 w-5 text-[#2dd4bf]" />
               </div>
-              <h2 className="text-lg font-black text-slate-800 tracking-tight">Two-Step Verification</h2>
+              <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Two-Step Verification</h2>
             </div>
 
             <div className="space-y-6">
-              <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100/50 flex items-center justify-between">
+              <div className="p-6 rounded-2xl bg-slate-50/50 dark:bg-slate-800/30 border border-slate-100/50 dark:border-slate-700/30 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
-                    <Smartphone className="h-6 w-6 text-emerald-500" />
+                  <div className="h-12 w-12 rounded-xl bg-white dark:bg-slate-700 shadow-sm border border-slate-100 dark:border-slate-600 flex items-center justify-center">
+                    <Smartphone className="h-6 w-6 text-[#2dd4bf]" />
                   </div>
                   <div>
-                    <p className="text-sm font-black text-slate-800">Email Authenticator</p>
-                    <p className="text-xs font-bold text-slate-400">Verifies login via OTP</p>
+                    <p className="text-sm font-black text-slate-800 dark:text-white">Email Authenticator</p>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Verifies login via OTP</p>
                   </div>
                 </div>
                 <Badge className={cn(
                   "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest",
-                  twoFactorEnabled ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100" : "bg-slate-100 text-slate-500 hover:bg-slate-100"
+                  twoFactorEnabled ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100"
                 )}>
                   {twoFactorEnabled ? "Protected" : "Inactive"}
                 </Badge>
@@ -329,13 +329,13 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
               {/* 2FA Flow Controls */}
               {!twoFactorEnabled && !enableOtpRequested && (
                 <div className="space-y-4">
-                  <p className="text-xs font-bold text-slate-400 text-center px-4 leading-relaxed">
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 text-center px-4 leading-relaxed">
                     Highly recommended to prevent unauthorized access to your academic records.
                   </p>
                   <Button
                     onClick={handleRequestEnable2FA}
                     disabled={is2FAWorking}
-                    className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black tracking-tight shadow-xl shadow-emerald-100 transition-all active:scale-95"
+                    className="w-full h-12 rounded-xl bg-[#0d9488] hover:bg-[#0f766e] dark:bg-[#2dd4bf] dark:hover:bg-[#14b8a6] text-white dark:text-slate-900 font-black tracking-tight shadow-xl shadow-teal-500/20 transition-all active:scale-95"
                   >
                     {is2FAWorking ? "Sending OTP..." : "Initialize 2FA"}
                   </Button>
@@ -410,10 +410,10 @@ export function SecurityTab({ user, refreshUser }: SecurityTabProps) {
       <motion.div variants={itemVariants}>
         <GlassCard className="p-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="p-2.5 rounded-xl bg-slate-100 ring-1 ring-slate-200/50">
-              <Clock className="h-5 w-5 text-slate-500" />
+            <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 ring-1 ring-slate-200/50 dark:ring-slate-600">
+              <Clock className="h-5 w-5 text-slate-500 dark:text-slate-400" />
             </div>
-            <h2 className="text-lg font-black text-slate-800 tracking-tight">Active Login Sessions</h2>
+            <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Active Login Sessions</h2>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

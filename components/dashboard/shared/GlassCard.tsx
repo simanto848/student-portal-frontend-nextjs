@@ -20,8 +20,9 @@ export const GlassCard = ({ children, className = "", delay = 0, onClick }: Glas
         }}
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
         onClick={onClick}
-        className={`relative overflow-hidden rounded-[2rem] border border-white/20 bg-white/40 backdrop-blur-xl shadow-xl shadow-cyan-500/5 transition-all duration-300 ${className}`}
+        className={`relative overflow-hidden rounded-[2rem] border border-white/20 dark:border-slate-700/50 bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl shadow-xl shadow-cyan-500/5 dark:shadow-slate-900/20 transition-all duration-300 ${className}`}
     >
         {children}
     </motion.div>
 );
+
