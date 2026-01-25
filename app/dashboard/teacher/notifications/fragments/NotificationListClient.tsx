@@ -86,7 +86,13 @@ export default function NotificationListClient({
         isMarkingRead,
         isMarkingAllRead,
     } = useNotificationCenter(undefined, {
-        initialData: { notifications: initialNotifications }
+        initialData: {
+            pages: [{
+                notifications: initialNotifications,
+                pagination: { page: 1, limit: 50, pages: 1 }
+            }],
+            pageParams: [1]
+        }
     });
 
     const { isConnected, reconnect } = useNotificationSocket({
@@ -157,7 +163,7 @@ export default function NotificationListClient({
                     </p>
 
                     <div className="flex items-center gap-4 mt-3 text-[11px] font-bold uppercase tracking-widest">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5" suppressHydrationWarning>
                             <div className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
                             <span className={isConnected ? 'text-emerald-600' : 'text-red-600'}>
                                 {isConnected ? 'Real-time Linked' : 'Connection Lost'}
@@ -206,6 +212,7 @@ export default function NotificationListClient({
                     <TabsList className="h-14 p-1.5 bg-slate-100/80 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/50 dark:border-slate-700 w-full md:w-auto">
                         <TabsTrigger
                             value="inbox"
+                            suppressHydrationWarning
                             className="h-11 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=hover]:text-[#2dd4bf] data-[state=active]:border-[#2dd4bf]/20 active:scale-95"
                         >
                             <div className="flex items-center gap-2">
@@ -220,6 +227,7 @@ export default function NotificationListClient({
                         </TabsTrigger>
                         <TabsTrigger
                             value="sent"
+                            suppressHydrationWarning
                             className="h-11 px-8 rounded-xl font-bold text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=hover]:text-[#2dd4bf] data-[state=active]:border-[#2dd4bf]/20 active:scale-95"
                         >
                             <div className="flex items-center gap-2">
@@ -242,7 +250,7 @@ export default function NotificationListClient({
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="h-12 w-12 rounded-xl p-0 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:text-[#2dd4bf]">
+                                    <Button variant="outline" className="h-12 w-12 rounded-xl p-0 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:text-[#2dd4bf]" suppressHydrationWarning>
                                         <Filter className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -391,12 +399,12 @@ function NotificationCard({
                                     {notification.title}
                                 </h3>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap" suppressHydrationWarning>
                                         {formatDistanceToNow(new Date(notification.publishedAt || notification.createdAt || ""), { addSuffix: true })}
                                     </span>
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700" suppressHydrationWarning>
                                                 <MoreVertical className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                                             </Button>
                                         </DropdownMenuTrigger>
@@ -481,7 +489,7 @@ function SentNotificationCard({
                                     {notification.content}
                                 </p>
                                 <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
-                                    <span className="flex items-center gap-1.5">
+                                    <span className="flex items-center gap-1.5" suppressHydrationWarning>
                                         <Clock className="h-3 w-3" />
                                         {formatDistanceToNow(new Date(notification.publishedAt || notification.createdAt || ""), { addSuffix: true })}
                                     </span>

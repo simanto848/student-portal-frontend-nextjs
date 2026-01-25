@@ -35,6 +35,8 @@ import { notificationService, NotificationItem } from "@/services/notification/n
 import { chatService, ChatGroup } from "@/services/communication/chat.service";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import { GlassCard } from "@/components/dashboard/shared/GlassCard";
+import { TeacherNotification } from "./fragments/TeacherNotification";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
@@ -126,60 +128,21 @@ export default function TeacherDashboard() {
             />
           </div>
 
-          {isMounted ? (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  suppressHydrationWarning
-                  className="p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-[#2dd4bf] ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm relative transition-all cursor-pointer"
-                >
-                  <Bell className="w-5 h-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                  )}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 p-0 mr-4" align="end" sideOffset={8}>
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
-                  <h3 className="font-semibold text-sm">Notifications</h3>
-                  <span className="text-xs text-[#2dd4bf] cursor-pointer hover:underline" onClick={handleMarkAllRead}>Mark all as read</span>
-                </div>
-                <div className="max-h-[350px] overflow-y-auto">
-                  {notifications.length > 0 ? notifications.map(n => (
-                    <div key={n.id} className={`px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-800/50 last:border-0 ${!n.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="text-sm font-medium text-slate-800 dark:text-slate-200 line-clamp-1">{n.title}</h4>
-                        <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2">
-                          {n.createdAt ? formatDistanceToNow(new Date(n.createdAt), { addSuffix: true }) : ''}
-                        </span>
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2" dangerouslySetInnerHTML={{ __html: n.content }} />
-                    </div>
-                  )) : (
-                    <div className="p-8 text-center text-slate-400 text-xs">No notifications</div>
-                  )}
-                </div>
-                <div className="p-2 border-t border-slate-100 dark:border-slate-700 text-center bg-slate-50/50 dark:bg-slate-800/50 rounded-b-md">
-                  <button className="text-xs font-medium text-slate-500 hover:text-[#2dd4bf] transition-colors">View all notifications</button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          ) : (
-            <button className="p-3 rounded-xl bg-white/50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 hover:text-[#2dd4bf] ring-1 ring-slate-200 dark:ring-slate-700 shadow-sm relative transition-all cursor-pointer">
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-              )}
-            </button>
-          )}
+          <TeacherNotification
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkAllRead={handleMarkAllRead}
+            isMounted={isMounted}
+          />
         </div>
       </header>
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        {/* Weekly Overview - Spans 3 columns on large screens */}
-        <div className="glass-panel rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+        {/* Weekly Overview - Spans 2 columns on medium, 3 on large */}
+        <GlassCard className="rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-3 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-40 w-40 rounded-full bg-[#2dd4bf]/20 blur-[60px] opacity-60 dark:opacity-20 transition-all group-hover:scale-150 duration-700" />
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -225,10 +188,11 @@ export default function TeacherDashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </GlassCard>
 
         {/* Messages Panel */}
-        <div className="glass-panel rounded-3xl p-6 col-span-1 md:col-span-1 lg:col-span-1 shadow-sm flex flex-col h-96 lg:h-auto hover:shadow-md transition-shadow">
+        <GlassCard className="rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-1 shadow-sm flex flex-col h-[420px] lg:h-auto hover:shadow-md transition-shadow group">
+          <div className="absolute top-0 left-0 -mt-10 -ml-10 h-40 w-40 rounded-full bg-blue-500/10 blur-[60px] opacity-60 dark:opacity-20 transition-all group-hover:scale-150 duration-700" />
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <MessageCircle className="text-blue-500 w-5 h-5" />
@@ -236,10 +200,10 @@ export default function TeacherDashboard() {
             </h2>
             <span className="bg-[#2dd4bf] text-white text-xs font-bold px-2 py-0.5 rounded-full">{recentChats.length}</span>
           </div>
-          <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1">
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1 no-scrollbar">
             {recentChats.length > 0 ? (
               recentChats.map((chat) => (
-                <Link href={`/dashboard/teacher/communication?chatId=${chat.id}`} key={chat.id}>
+                <Link href={`/dashboard/teacher/communication/chat/${chat.id}?type=${chat.type}`} key={chat.id}>
                   <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
                     <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-500 uppercase">
                       {chat.type === "CourseChatGroup" ? (
@@ -282,13 +246,13 @@ export default function TeacherDashboard() {
               </div>
             )}
           </div>
-        </div>
+        </GlassCard>
 
         {/* Courses & Assignments Grid */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
           {courses.length > 0 ? courses.slice(0, 2).map((courseItem: any, index: number) => (
-            <div key={courseItem.id} className="glass-panel rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
-              <div className={`h-32 rounded-2xl bg-linear-to-br ${index % 2 === 0 ? 'from-violet-500 to-purple-600' : 'from-blue-500 to-cyan-500'} mb-4 relative overflow-hidden`}>
+            <GlassCard key={courseItem.id} className="rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group border-slate-200/50 dark:border-slate-700">
+              <div className={`h-32 rounded-2xl bg-gradient-to-br ${index % 2 === 0 ? 'from-teal-400 to-[#0d9488]' : 'from-blue-400 to-indigo-600'} mb-4 relative overflow-hidden`}>
                 <div className="absolute inset-0 bg-black/10"></div>
                 <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded-lg border border-white/20">
                   {courseItem.course?.code || "CS-101"}
@@ -305,27 +269,30 @@ export default function TeacherDashboard() {
               </p>
               <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
                 <Link href={`/dashboard/teacher/courses/${courseItem.id}`}>
-                  <button className={`${index % 2 === 0 ? 'bg-[#2dd4bf] hover:bg-teal-400 text-white' : 'bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white'} p-2 rounded-xl border border-transparent dark:border-slate-600 transition-colors shadow-lg shadow-teal-500/10`}>
+                  <button className={`${index % 2 === 0 ? 'bg-[#2dd4bf] hover:bg-teal-400 text-white' : 'bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-white'} p-2 rounded-xl border border-transparent dark:border-slate-600 transition-colors shadow-lg shadow-teal-500/10 active:scale-95`}>
                     <ArrowRight className="w-5 h-5" />
                   </button>
                 </Link>
               </div>
-            </div>
+            </GlassCard>
           )) : (
-            <div className="col-span-2 glass-panel rounded-3xl p-6 text-center flex flex-col items-center justify-center text-slate-400">
+            <GlassCard className="col-span-2 rounded-3xl p-6 text-center flex flex-col items-center justify-center text-slate-400">
               <p>No courses assigned.</p>
-            </div>
+            </GlassCard>
           )}
         </div>
 
         {/* Grading Queue */}
-        <div className="glass-panel rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-2 shadow-sm flex flex-col hover:shadow-md transition-shadow">
+        <GlassCard className="rounded-3xl p-6 col-span-1 md:col-span-2 lg:col-span-2 shadow-sm flex flex-col hover:shadow-md transition-shadow group h-full">
+          <div className="absolute bottom-0 right-0 -mb-10 -mr-10 h-40 w-40 rounded-full bg-orange-500/10 blur-[60px] opacity-60 dark:opacity-20 transition-all group-hover:scale-150 duration-700" />
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
               <CheckCircle className="text-orange-400 w-5 h-5" />
               Grading Queue
             </h2>
-            <button className="text-xs text-[#2dd4bf] font-medium hover:underline">View All</button>
+            <Link href="/dashboard/teacher/grading">
+              <button className="text-xs text-[#2dd4bf] font-medium hover:underline">View All</button>
+            </Link>
           </div>
           <div className="flex flex-col gap-3">
             {workflows.length > 0 ? workflows.slice(0, 3).map((workflow, idx) => (
@@ -335,75 +302,78 @@ export default function TeacherDashboard() {
                     {idx === 0 ? <FileText className="w-5 h-5" /> : idx === 1 ? <FlaskConical className="w-5 h-5" /> : <Code className="w-5 h-5" />}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-white">{workflow.grade?.course?.name || "Assignment"}</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{workflow.grade?.course?.code || "Code"} • {workflow.status}</p>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white line-clamp-1">{workflow.grade?.course?.name || "Assignment"}</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{workflow.grade?.course?.code || "Code"} • {workflow.status}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-bold ${idx === 0 ? 'text-orange-500 bg-orange-100' : 'text-blue-500 bg-blue-100'} dark:bg-opacity-20 px-2 py-1 rounded-lg`}>
-                    {workflow.status === 'PUBLISHED' ? 'Completed' : 'Pending'}
+                <div className="flex items-center gap-3 shrink-0">
+                  <span className={`text-[9px] font-black uppercase tracking-widest ${idx === 0 ? 'text-orange-500 bg-orange-100' : 'text-blue-500 bg-blue-100'} dark:bg-opacity-20 px-2 py-1 rounded-lg`}>
+                    {workflow.status === 'PUBLISHED' ? 'DONE' : 'PENDING'}
                   </span>
-                  <button className="p-2 text-slate-400 hover:text-[#2dd4bf] transition-colors">
+                  <button className="p-2 text-slate-400 hover:text-[#2dd4bf] transition-colors active:scale-95">
                     <Pencil className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             )) : (
-              <div className="p-4 text-center text-slate-400">No pending grading tasks.</div>
+              <div className="py-10 text-center text-slate-400 text-sm font-medium">No pending grading tasks.</div>
             )}
 
-            {/* Fallback Static Items if no data (for demo purposes if array is empty but we want to show UI) */}
-            {workflows.length === 0 && loading === false && (
-              <>
-                <div className="flex items-center justify-between p-3 rounded-2xl bg-white/40 dark:bg-slate-700/30 border border-white/50 dark:border-slate-600/50 hover:border-[#2dd4bf]/50 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-500">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-800 dark:text-white">Mid-Term Algorithms</h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">CS-101 • 12 Pending</p>
-                    </div>
+            {/* Fallback Static Items visually */}
+            {workflows.length === 0 && (
+              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/50 dark:bg-slate-800/20 border border-dashed border-slate-200 dark:border-slate-700 transition-all">
+                <div className="flex items-center gap-3 opacity-50">
+                  <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
+                    <FileText className="w-5 h-5" />
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-900/40 px-2 py-1 rounded-lg">High Priority</span>
-                    <button className="p-2 text-slate-400 hover:text-[#2dd4bf] transition-colors"><Pencil className="w-4 h-4" /></button>
-                  </div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Queue Clear</p>
                 </div>
-              </>
+              </div>
             )}
           </div>
-        </div>
-
+        </GlassCard>
       </div>
 
       {/* Quick Actions (Bottom) */}
-      <div className="mt-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
-          <div className="bg-teal-100 dark:bg-teal-900/30 p-2 rounded-lg text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
-            <PlusCircle className="w-6 h-6" />
+      <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+          <div className="flex items-center gap-3">
+            <div className="bg-teal-100 dark:bg-teal-900/30 p-2.5 rounded-xl text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
+              <PlusCircle className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">New Assignment</span>
           </div>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">New Assignment</span>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#2dd4bf] group-hover:translate-x-1 transition-all" />
         </button>
-        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
-          <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2 rounded-lg text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-            <Megaphone className="w-6 h-6" />
+        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2.5 rounded-xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+              <Megaphone className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Announcement</span>
           </div>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Announcement</span>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
         </button>
-        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
-          <div className="bg-rose-100 dark:bg-rose-900/30 p-2 rounded-lg text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
-            <CalendarCheck className="w-6 h-6" />
+        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+          <div className="flex items-center gap-3">
+            <div className="bg-rose-100 dark:bg-rose-900/30 p-2.5 rounded-xl text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
+              <CalendarCheck className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Mark Attendance</span>
           </div>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Mark Attendance</span>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
         </button>
-        <button className="glass-panel p-4 rounded-2xl flex items-center gap-3 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer">
-          <div className="bg-amber-100 dark:bg-amber-900/30 p-2 rounded-lg text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
-            <FolderOpen className="w-6 h-6" />
+        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+          <div className="flex items-center gap-3">
+            <div className="bg-amber-100 dark:bg-amber-900/30 p-2.5 rounded-xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+              <FolderOpen className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Course Materials</span>
           </div>
-          <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Course Materials</span>
+          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
         </button>
       </div>
     </div>
   );
 }
+

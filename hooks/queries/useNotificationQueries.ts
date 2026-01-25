@@ -271,9 +271,12 @@ export function useNotificationCenter(params?: NotificationListParams, options?:
   const markAllReadMutation = useMarkAllNotificationsAsRead();
   const deleteMutation = useDeleteNotification();
 
+  const pages = query.data?.pages || [];
+  const lastPage = pages.length > 0 ? pages[pages.length - 1] : null;
+
   return {
-    notifications: query.data?.pages.flatMap((page) => page.notifications) ?? [],
-    pagination: query.data?.pages[query.data.pages.length - 1].pagination,
+    notifications: pages.flatMap((page) => page.notifications || []) ?? [],
+    pagination: lastPage?.pagination,
     isLoading: query.isLoading,
     isError: query.isError,
     error: query.error,

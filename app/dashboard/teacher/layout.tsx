@@ -128,11 +128,11 @@ export default function TeacherLayout({
 
                 <nav className="flex-1 w-full flex flex-col items-center gap-6 overflow-y-auto no-scrollbar py-4 overflow-x-hidden">
                     <TooltipProvider>
-                        {navItems.filter(item => item.href).map((item) => {
+                        {isMounted && navItems.filter(item => item.href).map((item) => {
                             const isActive = pathname === item.href;
                             return (
                                 <Tooltip key={item.href!} delayDuration={0}>
-                                    <TooltipTrigger asChild>
+                                    <TooltipTrigger asChild suppressHydrationWarning>
                                         <Link
                                             href={item.href!}
                                             className={`p-3 rounded-xl transition-all group relative ${isActive
@@ -170,67 +170,52 @@ export default function TeacherLayout({
 
 
                     {/* Hydration safe dropdown */}
-                    {isMounted ? (
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <div
-                                    suppressHydrationWarning
-                                    className="relative group cursor-pointer outline-none"
-                                >
-                                    <Avatar className="w-10 h-10 border-2 border-white dark:border-slate-600 shadow-md cursor-pointer">
-                                        <AvatarImage
-                                            src={profilePicture}
-                                            alt={user?.fullName || "User"}
-                                        />
-                                        <AvatarFallback className="bg-[#2dd4bf] text-white font-bold">
-                                            {user?.fullName?.charAt(0) || "U"}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <div className="relative group cursor-pointer outline-none">
+                                <Avatar className="w-10 h-10 border-2 border-white dark:border-slate-600 shadow-md cursor-pointer">
+                                    <AvatarImage
+                                        src={profilePicture}
+                                        alt={user?.fullName || "User"}
+                                    />
+                                    <AvatarFallback className="bg-[#2dd4bf] text-white font-bold">
+                                        {user?.fullName?.charAt(0) || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-56 ml-2" side="right" align="end" sideOffset={10}>
+                            <DropdownMenuLabel className="font-normal">
+                                <div className="flex flex-col space-y-1">
+                                    <p className="text-sm font-medium leading-none truncate">{user?.fullName || "User"}</p>
+                                    <p className="text-xs leading-none text-muted-foreground truncate">
+                                        {user?.email}
+                                    </p>
                                 </div>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-56 ml-2" side="right" align="end" sideOffset={10}>
-                                <DropdownMenuLabel className="font-normal">
-                                    <div className="flex flex-col space-y-1">
-                                        <p className="text-sm font-medium leading-none truncate">{user?.fullName || "User"}</p>
-                                        <p className="text-xs leading-none text-muted-foreground truncate">
-                                            {user?.email}
-                                        </p>
-                                    </div>
-                                </DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuGroup>
-                                    <DropdownMenuItem className="cursor-pointer focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] transition-colors duration-200" asChild>
-                                        <Link href="/dashboard/teacher/profile" className="flex items-center w-full font-bold uppercase text-xs tracking-wider py-1">
-                                            <UserIcon className="mr-2 h-4 w-4" />
-                                            <span>Profile</span>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="cursor-pointer focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] transition-colors duration-200" asChild>
-                                        <Link href="/dashboard/teacher/settings" className="flex items-center w-full font-bold uppercase text-xs tracking-wider py-1">
-                                            <Settings className="mr-2 h-4 w-4" />
-                                            <span>Settings</span>
-                                        </Link>
-                                    </DropdownMenuItem>
-                                </DropdownMenuGroup>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20" onClick={() => logout && logout()}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    <span>Log out</span>
+                            </DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
+                                <DropdownMenuItem className="cursor-pointer focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] transition-colors duration-200" asChild>
+                                    <Link href="/dashboard/teacher/profile" className="flex items-center w-full font-bold uppercase text-xs tracking-wider py-1">
+                                        <UserIcon className="mr-2 h-4 w-4" />
+                                        <span>Profile</span>
+                                    </Link>
                                 </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    ) : (
-                        <div className="relative group cursor-pointer outline-none">
-                            <Avatar className="w-10 h-10 border-2 border-white dark:border-slate-600 shadow-md cursor-pointer">
-                                <AvatarImage src={getImageUrl(user?.profileImage)} alt={user?.fullName || "User"} className="object-cover" />
-                                <AvatarFallback className="bg-[#2dd4bf] text-white font-bold">
-                                    {user?.fullName?.charAt(0) || "U"}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
-                        </div>
-                    )}
+                                <DropdownMenuItem className="cursor-pointer focus:bg-[#2dd4bf]/10 focus:text-[#2dd4bf] transition-colors duration-200" asChild>
+                                    <Link href="/dashboard/teacher/settings" className="flex items-center w-full font-bold uppercase text-xs tracking-wider py-1">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Settings</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/20" onClick={() => logout && logout()}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Log out</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </aside>
 
