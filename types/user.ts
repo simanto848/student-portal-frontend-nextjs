@@ -90,6 +90,7 @@ export interface TeacherUser extends BaseUser {
   joiningDate?: string;
   qualifications?: string[];
   publications?: number;
+  isExamCommitteeMember?: boolean;
 }
 
 // Staff-specific user interface

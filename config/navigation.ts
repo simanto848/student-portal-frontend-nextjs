@@ -294,6 +294,12 @@ export const teacherNavigation: NavItem[] = [
     icon: BookOpen,
   },
   {
+    href: "/dashboard/teacher/committee-panel",
+    label: "Committee Panel",
+    icon: Users,
+    condition: (user) => isTeacherUser(user) && !!user.isExamCommitteeMember,
+  },
+  {
     href: "/dashboard/teacher/exam-committee",
     label: "Exam Committee",
     icon: Users,
