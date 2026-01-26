@@ -30,12 +30,19 @@ export interface GradeStats {
 
 export interface ResultWorkflow {
     id: string;
-    gradeId: string;
+    _id?: string;
+    gradeId?: string;
     status: string;
-    actionBy: string;
-    actionAt: string;
+    actionBy?: string;
+    actionAt?: string;
     comments?: string;
-    grade?: CourseGrade;
+    grade?: CourseGrade | any;
+    batchId: string;
+    courseId: string;
+    semester: number;
+    updatedAt: string;
+    instructorId?: string;
+    approvals?: any[];
 }
 
 export const courseGradeService = {
@@ -151,6 +158,15 @@ export const courseGradeService = {
     getWorkflow: async (params?: any): Promise<ResultWorkflow[]> => {
         try {
             const response = await api.get('/enrollment/result-workflow', { params });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    getWorkflowById: async (id: string): Promise<ResultWorkflow> => {
+        try {
+            const response = await api.get(`/enrollment/committee-results/${id}`);
             return response.data.data;
         } catch (error) {
             return handleApiError(error);

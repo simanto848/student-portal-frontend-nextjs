@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ClipboardList,
@@ -10,9 +10,6 @@ import {
     FileText,
     MessageSquare,
     Clock,
-    AlertTriangle,
-    ChevronRight,
-    Filter,
     ArrowRight,
     GraduationCap,
     Info,
@@ -22,26 +19,21 @@ import {
     Sparkles,
     AlertCircle
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
-import { useGradingWorkflowDashboard } from "@/hooks/queries/useTeacherQueries";
+import { useGradingWorkflow } from "@/hooks/queries/useTeacherQueries";
 import { ResultWorkflow } from "@/services/enrollment/courseGrade.service";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { isTeacherUser } from "@/types/user";
 
 type TabType = "all" | "pending" | "submitted" | "returned" | "approved";
 
@@ -56,34 +48,114 @@ export default function GradingWorkflowClient({
     const theme = useDashboardTheme();
     const [activeTab, setActiveTab] = useState<TabType>("all");
     const [searchQuery, setSearchQuery] = useState("");
-    const [filterByCourse, setFilterByCourse] = useState<string>("all");
 
     const accentPrimary = theme.colors.accent.primary;
     const accentBgSubtle = accentPrimary.replace('text-', 'bg-') + '/10';
 
+    const { user } = useAuth();
+    const isCommitteeMember = user && isTeacherUser(user) && user.isExamCommitteeMember;
+
+    // Map tab to backend status filter
+    const statusFilter = useMemo(() => {
+        switch (activeTab) {
+            case "pending": return "pending";
+            case "submitted": return "submitted_to_committee";
+            case "returned": return "returned_to_teacher";
+            case "approved": return "committee_approved";
+            default: return undefined;
+        }
+    }, [activeTab]);
+
     const {
-        all,
-        pending,
-        submitted,
-        returned,
-        approved,
-        isLoading,
+        data: fetchedWorkflows = [],
+        isLoading: isQueryLoading,
         isError,
         error,
         refetch,
-    } = useGradingWorkflowDashboard(undefined, {
-        initialData: initialWorkflows
-    });
+    } = useGradingWorkflow(
+        activeTab === "all" ? undefined : { status: statusFilter },
+        { initialData: activeTab === "all" ? initialWorkflows : undefined }
+    );
 
-    const workflows = useMemo(() => {
-        switch (activeTab) {
-            case "pending": return pending;
-            case "submitted": return submitted;
-            case "returned": return returned;
-            case "approved": return approved;
-            default: return all;
-        }
-    }, [activeTab, all, pending, submitted, returned, approved]);
+    const [workflows, setWorkflows] = useState<ResultWorkflow[]>([]);
+    const [isEnriching, setIsEnriching] = useState(false);
+
+    // Effect to enrich data when fetchedWorkflows changes
+    // Effect to enrich data when fetchedWorkflows changes
+    useEffect(() => {
+        const enrich = async () => {
+            if (!fetchedWorkflows.length) {
+                setWorkflows([]);
+                return;
+            }
+
+            setIsEnriching(true);
+            const uniqueCourseIds = new Set<string>();
+            const uniqueBatchIds = new Set<string>();
+
+            fetchedWorkflows.forEach(w => {
+                if (!w.grade?.course?.name && w.courseId) uniqueCourseIds.add(w.courseId);
+                if (!w.grade?.batch?.name && !w.grade?.batch?.code && w.batchId) uniqueBatchIds.add(w.batchId);
+            });
+
+            // If nothing to enrich, just set
+            if (uniqueCourseIds.size === 0 && uniqueBatchIds.size === 0) {
+                setWorkflows(fetchedWorkflows);
+                setIsEnriching(false);
+                return;
+            }
+
+            try {
+                // We use import() here or rely on imported services if top-level
+                // Ideally imports are top-level. I will assume they are or will add them.
+                const { courseService } = await import("@/services/academic/course.service");
+                const { batchService } = await import("@/services/academic/batch.service");
+
+                const coursePromises = Array.from(uniqueCourseIds).map(id =>
+                    courseService.getCourseById(id).then(res => ({ id, data: res })).catch(() => ({ id, data: null }))
+                );
+                const batchPromises = Array.from(uniqueBatchIds).map(id =>
+                    batchService.getBatchById(id).then(res => ({ id, data: res })).catch(() => ({ id, data: null }))
+                );
+
+                const [courses, batches] = await Promise.all([
+                    Promise.all(coursePromises),
+                    Promise.all(batchPromises)
+                ]);
+
+                const courseMap = courses.reduce((acc, curr) => {
+                    if (curr.data) acc[curr.id] = curr.data;
+                    return acc;
+                }, {} as Record<string, any>);
+
+                const batchMap = batches.reduce((acc, curr) => {
+                    if (curr.data) acc[curr.id] = curr.data;
+                    return acc;
+                }, {} as Record<string, any>);
+
+                const enriched = fetchedWorkflows.map(w => ({
+                    ...w,
+                    grade: {
+                        ...w.grade,
+                        course: w.grade?.course?.name ? w.grade.course : (courseMap[w.courseId] || w.grade?.course),
+                        batch: (w.grade?.batch?.code || w.grade?.batch?.name) ? w.grade.batch : (batchMap[w.batchId] ? { ...batchMap[w.batchId], code: batchMap[w.batchId].name } : w.grade?.batch),
+                        semester: w.semester
+                    }
+                }));
+                const typedEnriched: any[] = enriched; // Temporary cast to fix type error during enrichment
+                setWorkflows(typedEnriched as ResultWorkflow[]);
+            } catch (err) {
+                console.error("Enrichment failed", err);
+                setWorkflows(fetchedWorkflows);
+            } finally {
+                setIsEnriching(false);
+            }
+        };
+
+        enrich();
+    }, [fetchedWorkflows]);
+
+    const isLoading = isQueryLoading || isEnriching;
 
     const filteredWorkflows = useMemo(() => {
         let list = [...workflows];
@@ -100,13 +172,17 @@ export default function GradingWorkflowClient({
         );
     }, [workflows, searchQuery]);
 
-    const stats = [
-        { label: 'Total', value: all.length, icon: ClipboardList, color: 'text-slate-500', bg: 'bg-slate-50' },
-        { label: 'Pending', value: pending.length, icon: Clock, color: 'text-amber-500', bg: 'bg-amber-50' },
-        { label: 'Submitted', value: submitted.length, icon: Zap, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-        { label: 'Returned', value: returned.length, icon: AlertCircle, color: 'text-rose-500', bg: 'bg-rose-50' },
-        { label: 'Approved', value: approved.length, icon: Sparkles, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    ];
+    // Calculate generic stats for display 
+    // Note: Since we fetch lazily, these stats will only reflect loaded data if we rely solely on 'workflows'.
+    //Ideally, we would have a separate 'stats' endpoint, but for now we can just display counts of what is visible or hide stats if they are misleading.
+    // However, user expected lazy loading. Let's keep stats based on what we have or maybe remove them if they are inaccurate.
+    // Given the previous code had them, let's keep them but acknowledge they might be partial if we paginate, 
+    // but here we fetch 'all' per status so it is accurate for that status.
+    // BUT 'all', 'pending' etc are disjoint arrays in previous implementation. 
+    // Here 'workflows' is just the current tab's data. 
+    // So the stats bar across top showing counts for ALL categories is tricky without fetching all.
+    // Let's remove the stats array for now to avoid confusion, OR just show count for current tab.
+    // Actually, let's just show a simple count of currently displayed items.
 
     return (
         <div className="space-y-8 pb-12">
@@ -133,6 +209,15 @@ export default function GradingWorkflowClient({
                     </div>
 
                     <div className="flex flex-col gap-3">
+                        {isCommitteeMember && (
+                            <Button
+                                onClick={() => router.push("/dashboard/teacher/committee-panel")}
+                                className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 rounded-2xl font-black uppercase text-xs tracking-[0.15em] w-full transition-all active:scale-95 flex items-center gap-3"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-check"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /><path d="m9 12 2 2 4-4" /></svg>
+                                Committee Panel
+                            </Button>
+                        )}
                         <Button
                             onClick={() => router.push("/dashboard/teacher/courses")}
                             className={`h-14 px-8 ${accentPrimary.replace('text-', 'bg-')} hover:opacity-90 text-white shadow-xl shadow-indigo-600/20 rounded-2xl font-black uppercase text-xs tracking-[0.15em] w-full transition-all active:scale-95 flex items-center gap-3`}
@@ -149,24 +234,6 @@ export default function GradingWorkflowClient({
                             Sync Status
                         </Button>
                     </div>
-                </div>
-
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mt-10">
-                    {stats.map((stat, i) => (
-                        <motion.div
-                            key={stat.label}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className={`${stat.bg} rounded-2xl p-4 border border-white shadow-sm flex flex-col gap-1`}
-                        >
-                            <div className="flex items-center justify-between">
-                                <stat.icon className={`h-4 w-4 ${stat.color} opacity-60`} />
-                                <span className={`text-lg font-black ${stat.color}`}>{stat.value}</span>
-                            </div>
-                            <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 mt-1">{stat.label}</span>
-                        </motion.div>
-                    ))}
                 </div>
             </div>
 
@@ -349,4 +416,3 @@ function WorkflowCard({
         </motion.div>
     );
 }
-
