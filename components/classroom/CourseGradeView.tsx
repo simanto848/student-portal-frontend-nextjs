@@ -21,6 +21,8 @@ import { notifyError, notifySuccess } from "@/components/toast";
 import { CourseFinalMarksEntry } from "@/components/classroom/CourseFinalMarksEntry";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import OTPConfirmationDialog from "@/components/ui/OTPConfirmationDialog"; // New import
+import { api } from "@/lib/api"; // Added import
 
 interface CourseGradeViewProps {
   courseId: string;
@@ -38,6 +40,7 @@ export function CourseGradeView({
   const [isLoading, setIsLoading] = useState(true);
   const [isCalculating, setIsCalculating] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<string>("draft");
+  const [isOTPDialogOpen, setIsOTPDialogOpen] = useState(false); // New state
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -62,10 +65,21 @@ export function CourseGradeView({
         : gradesResponse?.grades || [];
       setGrades(gradesList);
 
-      // Determine workflow status from grades
-      if (gradesList && gradesList.length > 0) {
+      // Fetch workflow status
+      const workflows = await courseGradeService.getWorkflow({
+        batchId,
+        courseId,
+        semester
+      });
+
+      if (workflows && workflows.length > 0) {
+        setWorkflowStatus(workflows[0].status.toLowerCase());
+      } else if (gradesList && gradesList.length > 0) {
+        // Fallback if no workflow entry exists yet
         const firstGrade = gradesList[0];
-        setWorkflowStatus(firstGrade.status || "draft");
+        setWorkflowStatus((firstGrade.status || "draft").toLowerCase());
+      } else {
+        setWorkflowStatus("draft");
       }
     } catch {
       notifyError("Failed to fetch grade data");
@@ -91,28 +105,36 @@ export function CourseGradeView({
     }
   };
 
-  const handleSubmitToCommittee = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to submit these grades to the Exam Committee?"
-      )
-    )
+  const handleSubmitClick = () => {
+    // Basic check before opening dialog
+    const gradeIds = grades
+      .filter((g: CourseGrade) => g.status === "pending" || g.status === "calculated")
+      .map((g: CourseGrade) => g.id);
+
+    if (gradeIds.length === 0) {
+      notifyError("No pending grades to submit");
       return;
+    }
+    setIsOTPDialogOpen(true);
+  };
+
+  const handleConfirmSubmit = async (otp: string) => {
     try {
-      const gradeIds = grades
-        .filter((g: CourseGrade) => g.status === "pending" || g.status === "calculated")
-        .map((g: CourseGrade) => g.id);
-      if (gradeIds.length === 0) {
-        notifyError("No pending grades to submit");
-        return;
-      }
-      await Promise.all(
-        gradeIds.map((id: string) => courseGradeService.submitToCommittee(id))
-      );
+      // We are approving the entire batch? The service function takes ONE ID?
+      // Re-reading submitToCommittee in Service... it takes batchId, courseId, semester.
+      // But here we are calling 'courseGradeService.submitToCommittee(id)' which maps to 'submit' endpoint for individual grade?
+      await api.post('/enrollment/result-workflow/submit', {
+        batchId,
+        courseId,
+        semester,
+        otp
+      });
       notifySuccess("Grades submitted to committee");
       fetchData();
-    } catch {
-      notifyError("Failed to submit grades");
+    } catch (err: any) {
+      console.error("Submission failed", err);
+      notifyError(err.response?.data?.message || "Failed to submit grades");
+      throw err;
     }
   };
 
@@ -210,13 +232,12 @@ export function CourseGradeView({
       </motion.div>
 
       {/* Course Final Marks Entry Component */}
-      {!isMarksLocked && (
-        <CourseFinalMarksEntry
-          courseId={courseId}
-          batchId={batchId}
-          semester={semester}
-        />
-      )}
+      <CourseFinalMarksEntry
+        courseId={courseId}
+        batchId={batchId}
+        semester={semester}
+        isLocked={isMarksLocked}
+      />
 
       {/* Grade Summary Table */}
       <motion.div
@@ -232,7 +253,7 @@ export function CourseGradeView({
               </CardTitle>
               {!isMarksLocked && (
                 <Button
-                  onClick={handleSubmitToCommittee}
+                  onClick={handleSubmitClick}
                   className="bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white rounded-xl h-10 px-6 font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95"
                 >
                   <Send className="mr-2 h-4 w-4" />
@@ -242,7 +263,9 @@ export function CourseGradeView({
             </div>
           </CardHeader>
           <CardContent className="pt-6">
+            {/* ... table content remains ... */}
             {students.length > 0 ? (
+              // ... table code ...
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -354,6 +377,15 @@ export function CourseGradeView({
           </CardContent>
         </Card>
       </motion.div>
+
+      <OTPConfirmationDialog
+        isOpen={isOTPDialogOpen}
+        onClose={() => setIsOTPDialogOpen(false)}
+        onConfirm={handleConfirmSubmit}
+        purpose="result_submission"
+        title="Confirm Grade Submission"
+        description="You are about to submit final grades to the Exam Committee. This action cannot be undone by you once approved. Please verify your identity."
+      />
     </div>
   );
 }

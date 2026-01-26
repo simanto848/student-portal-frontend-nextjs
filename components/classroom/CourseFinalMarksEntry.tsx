@@ -60,23 +60,28 @@ function MarkInputField({
     value,
     onChange,
     error,
+    disabled
 }: {
     maxValue: number;
     value?: number;
     onChange: (value: number | undefined) => void;
     error?: string;
+    disabled?: boolean;
 }) {
     return (
         <div className="flex flex-col items-center group">
             <div className="relative w-20">
                 <Input
+                    disabled={disabled}
                     type="number"
                     min="0"
                     max={maxValue}
                     value={value ?? ""}
-                    onChange={(e) =>
-                        onChange(e.target.value ? parseInt(e.target.value) : undefined)
-                    }
+                    onChange={(e) => {
+                        const newVal = e.target.value ? parseInt(e.target.value) : undefined;
+                        if (newVal !== undefined && newVal > maxValue) return;
+                        onChange(newVal);
+                    }}
                     className={`h-11 rounded-xl text-center font-bold text-lg transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${error
                         ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
                         : "border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#2dd4bf]/50 focus:border-[#2dd4bf] focus:ring-4 focus:ring-[#2dd4bf]/10 focus:bg-white text-slate-700 placeholder:text-slate-200"
@@ -97,12 +102,14 @@ interface CourseFinalMarksEntryProps {
     courseId: string;
     batchId: string;
     semester: number;
+    isLocked?: boolean;
 }
 
 export function CourseFinalMarksEntry({
     courseId,
     batchId,
     semester,
+    isLocked = false,
 }: CourseFinalMarksEntryProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [markConfig, setMarkConfig] = useState<MarkConfig | null>(null);
@@ -501,6 +508,7 @@ export function CourseFinalMarksEntry({
                                                                 val
                                                             )
                                                         }
+                                                        disabled={isLocked}
                                                         error={errors.get(`${student.id}.theory.finalExam`)}
                                                     />
                                                 </TableCell>
@@ -649,41 +657,45 @@ export function CourseFinalMarksEntry({
                 </div>
 
                 <div className="flex gap-4 mt-8 justify-end">
-                    <Button
-                        onClick={handleSaveDraft}
-                        disabled={isSaving || isSubmitting}
-                        variant="outline"
-                        className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 text-slate-500 hover:text-[#2dd4bf] hover:border-[#2dd4bf] hover:bg-[#2dd4bf]/5 transition-all"
-                    >
-                        {isSaving ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Saving...
-                            </>
-                        ) : (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Save Draft
-                            </>
-                        )}
-                    </Button>
-                    <Button
-                        onClick={handleSubmitToCommittee}
-                        disabled={isSaving || isSubmitting}
-                        className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white transition-all active:scale-95"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Submitting...
-                            </>
-                        ) : (
-                            <>
-                                <Send className="mr-2 h-4 w-4" />
-                                Hand Over Result
-                            </>
-                        )}
-                    </Button>
+                    {!isLocked && (
+                        <>
+                            <Button
+                                onClick={handleSaveDraft}
+                                disabled={isSaving || isSubmitting}
+                                variant="outline"
+                                className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 text-slate-500 hover:text-[#2dd4bf] hover:border-[#2dd4bf] hover:bg-[#2dd4bf]/5 transition-all"
+                            >
+                                {isSaving ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 h-4 w-4" />
+                                        Save Draft
+                                    </>
+                                )}
+                            </Button>
+                            <Button
+                                onClick={handleSubmitToCommittee}
+                                disabled={isSaving || isSubmitting}
+                                className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white transition-all active:scale-95"
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Submitting...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="mr-2 h-4 w-4" />
+                                        Hand Over Result
+                                    </>
+                                )}
+                            </Button>
+                        </>
+                    )}
                 </div>
             </motion.div>
         </div>
