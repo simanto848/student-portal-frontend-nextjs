@@ -187,6 +187,16 @@ export const notificationService = {
     }
   },
 
+  // Mark all notifications as read
+  markAllRead: async (): Promise<{ message?: string, count?: number }> => {
+    try {
+      const response = await api.post(`/notification/notifications/mark-all-read`);
+      return response.data?.data || response.data;
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
   // React to a notification
   react: async (
     id: string,

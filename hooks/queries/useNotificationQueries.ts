@@ -172,21 +172,7 @@ export function useMarkAllNotificationsAsRead() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      // Fetch all unread notifications and mark them as read
-      const response = await notificationService.list({
-        mine: true,
-        status: "sent",
-      });
-      const notifications = extractNotifications(response);
-
-      // Mark each as read
-      await Promise.all(
-        notifications.map((n) => notificationService.markRead(n.id)),
-      );
-
-      return { count: notifications.length };
-    },
+    mutationFn: () => notificationService.markAllRead(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: notificationKeys.notifications(),

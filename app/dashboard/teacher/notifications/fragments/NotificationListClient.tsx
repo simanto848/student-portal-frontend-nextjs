@@ -18,6 +18,7 @@ import {
     Filter,
     Trash2,
     MoreVertical,
+    X
 } from "lucide-react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
@@ -74,6 +75,7 @@ export default function NotificationListClient({
     const [searchQuery, setSearchQuery] = useState("");
     const [sentNotifications, setSentNotifications] = useState<NotificationItem[]>(initialSentNotifications);
     const [isLoadingSent, setIsLoadingSent] = useState(false);
+    const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
 
     const accentPrimary = theme.colors.accent.primary;
     const accentBgSubtle = accentPrimary.replace('text-', 'bg-') + '/10';
@@ -105,7 +107,9 @@ export default function NotificationListClient({
         },
     });
 
-    const unreadCount = initialUnreadCount;
+    const unreadCount = useMemo(() =>
+        notifications.filter(n => !(n.status === "read" || n.isRead)).length
+        , [notifications]);
 
     const fetchSent = useCallback(async () => {
         setIsLoadingSent(true);
@@ -187,7 +191,12 @@ export default function NotificationListClient({
                     <div className="flex gap-2">
                         <Button
                             variant="outline"
-                            onClick={() => markAllAsRead.mutate()}
+                            onClick={() => {
+                                markAllAsRead.mutate(undefined, {
+                                    onSuccess: () => notifySuccess("All signals synchronized"),
+                                    onError: () => notifyError("Synchronization failed")
+                                });
+                            }}
                             disabled={unreadCount === 0 || isMarkingAllRead}
                             className="flex-1 h-12 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-700/50"
                         >
@@ -282,6 +291,12 @@ export default function NotificationListClient({
                                         onMarkAsRead={() => markAsRead.mutate(n.id)}
                                         isMarkingRead={isMarkingRead}
                                         themeAccent={accentPrimary}
+                                        onClick={() => {
+                                            setSelectedNotification(n);
+                                            if (!(n.status === "read" || n.isRead)) {
+                                                markAsRead.mutate(n.id);
+                                            }
+                                        }}
                                     />
                                 ))
                             ) : (
@@ -332,6 +347,16 @@ export default function NotificationListClient({
                     </div>
                 </TabsContent>
             </Tabs>
+
+            {/* Notification Detail Modal */}
+            <AnimatePresence>
+                {selectedNotification && (
+                    <DetailModal
+                        notification={selectedNotification}
+                        onClose={() => setSelectedNotification(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -341,13 +366,15 @@ function NotificationCard({
     index,
     onMarkAsRead,
     isMarkingRead,
-    themeAccent
+    themeAccent,
+    onClick
 }: {
     notification: NotificationItem;
     index: number;
     onMarkAsRead: () => void;
     isMarkingRead: boolean;
     themeAccent: string;
+    onClick: () => void;
 }) {
     const isRead = notification.status === "read" || notification.isRead;
     const type = notification.targetType || "default";
@@ -382,6 +409,8 @@ function NotificationCard({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
             layout
+            onClick={onClick}
+            className="cursor-pointer"
         >
             <Card className={`glass-panel group relative overflow-hidden transition-all duration-300 rounded-3xl border-slate-200/50 dark:border-slate-700 hover:shadow-lg hover:border-[#2dd4bf]/30 hover:-translate-y-1 ${!isRead ? 'bg-[#2dd4bf]/5 dark:bg-[#2dd4bf]/10' : 'bg-white/50 dark:bg-slate-800/50'}`}>
                 {!isRead && (
@@ -529,6 +558,93 @@ function SentNotificationCard({
                 </CardContent>
             </Card>
         </motion.div>
+    );
+}
+
+function DetailModal({ notification, onClose }: { notification: any, onClose: () => void }) {
+    if (!notification) return null;
+
+    return (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 text-left">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-lg glass-panel-extreme rounded-[2.5rem] shadow-2xl border border-white/20 dark:border-slate-700/30 overflow-hidden bg-white/95 dark:bg-slate-900/95"
+            >
+                <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-2xl bg-[#2dd4bf]/20 flex items-center justify-center shadow-inner">
+                            <Bell className="h-6 w-6 text-[#2dd4bf]" />
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[#2dd4bf] block">Intelligence Signal</span>
+                            <h3 className="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white line-clamp-1">{notification.title}</h3>
+                        </div>
+                    </div>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onClose}
+                        className="h-10 w-10 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-500/10 transition-all focus:ring-0"
+                    >
+                        <X size={20} />
+                    </Button>
+                </div>
+
+                <div className="p-8">
+                    <div className="space-y-6">
+                        <div className="flex gap-5 items-start">
+                            <div className="h-14 w-14 rounded-3xl bg-[#2dd4bf]/10 text-[#2dd4bf] flex items-center justify-center shrink-0 shadow-inner">
+                                <Inbox className="h-7 w-7" />
+                            </div>
+                            <div className="space-y-2 pt-1 border-l-2 border-[#2dd4bf]/20 pl-5">
+                                <h4 className="text-base font-black tracking-tight text-slate-900 dark:text-white leading-tight">{notification.title}</h4>
+                                <p className="text-[10px] font-black text-[#2dd4bf] uppercase tracking-[0.2em] opacity-70">
+                                    {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just Now'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-inner relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Bell className="h-12 w-12 text-[#2dd4bf]" />
+                            </div>
+                            <div
+                                className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed font-medium relative z-10"
+                                dangerouslySetInnerHTML={{ __html: notification.content }}
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-3 px-2">
+                            <Badge variant="outline" className="bg-slate-100/50 dark:bg-slate-800/50 text-slate-500 border-slate-200 dark:border-slate-700 text-[9px] font-black uppercase tracking-widest py-1 px-3">
+                                ID: {notification.id.substring(0, 8)}
+                            </Badge>
+                            <Badge className="bg-[#2dd4bf]/10 text-[#2dd4bf] hover:bg-[#2dd4bf]/20 text-[9px] font-black uppercase tracking-widest py-1 px-3 border-0">
+                                {notification.targetType || 'System Broadcast'}
+                            </Badge>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-6 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                    <Button
+                        onClick={onClose}
+                        className="rounded-2xl px-10 bg-[#2dd4bf] text-white hover:bg-[#26b3a2] text-[11px] font-black uppercase tracking-widest h-12 shadow-lg shadow-teal-500/30 transition-all hover:scale-105 active:scale-95"
+                    >
+                        Acknowledge Signal
+                    </Button>
+                </div>
+            </motion.div>
+        </div>
     );
 }
 

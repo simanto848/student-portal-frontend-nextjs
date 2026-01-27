@@ -63,7 +63,7 @@ export default function TeacherDashboard() {
         batchCourseInstructorService.getInstructorCourses(user.id),
         courseGradeService.getWorkflow({ mine: true }),
 
-        notificationService.list({ page: 1, limit: 10 }),
+        notificationService.list({ page: 1, limit: 10, mine: true }),
         chatService.listMyChatGroups()
       ];
 
@@ -96,9 +96,33 @@ export default function TeacherDashboard() {
     }
   }, [user?.id]);
 
-  const handleMarkAllRead = () => {
-    setNotifications(current => current.map(n => ({ ...n, isRead: true })));
-    setUnreadCount(0);
+  const handleMarkAllRead = async () => {
+    try {
+      const unreadCountLocal = notifications.filter(n => !n.isRead).length;
+      if (unreadCountLocal === 0) return;
+
+      // Optimistic update
+      setNotifications(current => current.map(n => ({ ...n, isRead: true })));
+      setUnreadCount(0);
+
+      // Single API call for efficiency & reliability
+      await notificationService.markAllRead();
+      toast.success("Intelligence Synchronization Complete");
+    } catch (error) {
+      toast.error("Failed to sync status with terminal");
+    }
+  };
+
+  const handleMarkRead = async (id: string) => {
+    try {
+      await notificationService.markRead(id);
+      setNotifications(current =>
+        current.map(n => n.id === id ? { ...n, isRead: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+      console.error("Status sync error:", error);
+    }
   };
 
   useEffect(() => {
@@ -132,6 +156,7 @@ export default function TeacherDashboard() {
             notifications={notifications}
             unreadCount={unreadCount}
             onMarkAllRead={handleMarkAllRead}
+            onMarkRead={handleMarkRead}
             isMounted={isMounted}
           />
         </div>

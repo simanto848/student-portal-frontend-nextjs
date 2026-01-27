@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 import {
   Loader2,
 } from "lucide-react";
@@ -92,7 +92,7 @@ export default function StudentDashboard() {
         setCgpa(cgpaRes.cgpa);
       }
 
-      let gradesList: any[] = Array.isArray(gradeRes)
+      const gradesList: any[] = Array.isArray(gradeRes)
         ? gradeRes
         : (gradeRes as any)?.grades || (gradeRes as any)?.data || [];
 
@@ -140,7 +140,7 @@ export default function StudentDashboard() {
 
       setCourses(mappedCourses);
 
-      let attList: any[] = Array.isArray(attRes)
+      const attList: any[] = Array.isArray(attRes)
         ? attRes
         : (attRes as any)?.attendance || (attRes as any)?.data || [];
 
@@ -149,9 +149,6 @@ export default function StudentDashboard() {
       const late = attList.filter((a) => a.status === "late").length;
       const attPercent = total > 0 ? Math.round(((present + late) / total) * 100) : 100;
       setAttendance(attPercent);
-
-      // Notifications (Wait for hook to handle count/list if needed elsewhere, 
-      // but we still need to know if we should show 'X new updates' in header)
 
       // Tasks from Schedule and Library
       const taskItems: TaskItem[] = [];
@@ -180,7 +177,7 @@ export default function StudentDashboard() {
       }
 
       // Library Logic
-      let borrowedList: any[] = Array.isArray(borrowedRes) ? borrowedRes : [];
+      const borrowedList: any[] = Array.isArray(borrowedRes) ? borrowedRes : [];
       borrowedList.slice(0, 2).forEach((item, idx) => {
         const bookDetails = item.copy?.book;
         const dueDate = new Date(item.dueDate);
@@ -248,7 +245,7 @@ export default function StudentDashboard() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 animate-spin text-[#0088A9]" />
+          <Loader2 className="w-12 h-12 animate-spin text-primary-nexus" />
           <p className="text-slate-500 font-medium">Loading your dashboard...</p>
         </div>
       </div>
@@ -267,11 +264,11 @@ export default function StudentDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 relative">
         {/* Header */}
-        <motion.header variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 px-4 py-6 glass-panel rounded-[2rem] border border-white/40">
+        <motion.header variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 px-4 py-6 glass-panel rounded-4xl border border-white/40">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-black text-slate-800 dark:text-white tracking-tight">
-                Welcome back, <span className="text-[#0088A9]">{user?.fullName?.split(" ")[0] || "Student"}</span>
+                Welcome back, <span className="text-primary-nexus">{user?.fullName?.split(" ")[0] || "Student"}</span>
               </h1>
               <span className="flex h-3 w-3 relative">
                 <span className="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 shadow-[0_0_12px_rgba(34,197,94,0.6)]" />
@@ -279,7 +276,7 @@ export default function StudentDashboard() {
               </span>
             </div>
             <p className="text-slate-500 dark:text-slate-400 font-medium tracking-wide mt-1">
-              <span className="text-[#0088A9] font-black">Dhaka Internation University Student Portal</span>: You have <span className="text-[#0088A9] font-black">{tasks.filter(t => t.id.startsWith('schedule')).length} sessions</span> today and <span className="text-[#0088A9] font-black">{notificationCount} new</span> updates to review.
+              <span className="text-primary-nexus font-black">Dhaka Internation University Student Portal</span>: You have <span className="text-primary-nexus font-black">{tasks.filter(t => t.id.startsWith('schedule')).length} sessions</span> today and <span className="text-primary-nexus font-black">{notificationCount} new</span> updates to review.
             </p>
           </div>
           <div className="flex items-center gap-4">
@@ -293,14 +290,14 @@ export default function StudentDashboard() {
           <motion.section variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
             {/* Performance Vector Chart */}
             <div className="xl:col-span-2 glass-panel rounded-[2.5rem] p-8 relative overflow-hidden group min-h-[300px] flex flex-col cursor-pointer border border-white/50 shadow-xl hover:shadow-2xl transition-all">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-[#0088A9]/15 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-[#0088A9]/25 transition-all duration-1000" />
+              <div className="absolute top-0 right-0 w-80 h-80 bg-primary-nexus/15 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-primary-nexus/2 transition-all duration-1000" />
               <div className="flex justify-between items-start mb-10 z-10">
                 <div>
                   <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-1">Performance Vector</h2>
                   <p className="text-sm text-slate-500 dark:text-slate-400 font-medium tracking-wide leading-relaxed">Real-time academic analysis</p>
                 </div>
-                <div className="bg-white dark:bg-slate-800/30 dark:bg-black/30 backdrop-blur-md rounded-full px-5 py-2 border border-white/20 shadow-sm">
-                  <span className="text-[11px] font-black text-[#0088A9] uppercase tracking-widest">Live Data</span>
+                <div className="bg-white dark:bg-black/30 backdrop-blur-md rounded-full px-5 py-2 border border-white/20 shadow-sm">
+                  <span className="text-[11px] font-black text-primary-nexus uppercase tracking-widest">Live Data</span>
                 </div>
               </div>
               <div className="flex-1 w-full relative flex items-end">
@@ -326,8 +323,8 @@ export default function StudentDashboard() {
                   />
                 </svg>
                 {/* Floating Indicators */}
-                <div className="absolute top-1/4 left-1/4 h-4 w-4 bg-white dark:bg-slate-800 dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-[#0088A9] animate-float z-20" />
-                <div className="absolute top-1/3 left-2/3 h-4 w-4 bg-white dark:bg-slate-800 dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-[#0088A9] animate-float z-20" style={{ animationDelay: "2s" }} />
+                <div className="absolute top-1/4 left-1/4 h-4 w-4 bg-white dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-primary-nexus animate-float z-20" />
+                <div className="absolute top-1/3 left-2/3 h-4 w-4 bg-white dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-primary-nexus animate-float z-20" style={{ animationDelay: "2s" }} />
               </div>
             </div>
 
@@ -335,7 +332,7 @@ export default function StudentDashboard() {
             <div className="flex flex-col gap-8 h-full">
               <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 dark:bg-blue-900/40 text-[#0088A9] shadow-sm border border-white/40">
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-blue-900/40 text-primary-nexus shadow-sm border border-white/40">
                     <span className="material-icons-outlined text-2xl font-bold">rocket_launch</span>
                   </div>
                   <span className="text-green-500 text-sm font-black tracking-tight">{credits} Credits</span>
@@ -346,7 +343,7 @@ export default function StudentDashboard() {
 
               <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3.5 rounded-2xl bg-white dark:bg-slate-800/60 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
                     <span className="material-icons-outlined text-2xl font-bold">fact_check</span>
                   </div>
                   <div className="bg-green-100/60 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-green-200/40">
@@ -363,7 +360,7 @@ export default function StudentDashboard() {
           <motion.section variants={itemVariants} className="space-y-8">
             <div className="flex items-center justify-between mb-4 px-2">
               <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Course Progress</h3>
-              <Link href="/dashboard/student/grades" className="text-sm font-black text-[#0088A9] hover:text-[#0088A9]/80 transition-colors flex items-center group cursor-pointer tracking-wide">
+              <Link href="/dashboard/student/grades" className="text-sm font-black text-primary-nexus hover:text-primary-nexus/80 transition-colors flex items-center group cursor-pointer tracking-wide">
                 View All Courses <span className="material-icons-outlined text-lg ml-1 group-hover:translate-x-1 transition-transform">chevron_right</span>
               </Link>
             </div>
@@ -385,7 +382,7 @@ export default function StudentDashboard() {
 
                       <div className="flex flex-col h-full relative z-10">
                         <div className="flex items-center justify-between mb-8">
-                          <div className={`p-4 rounded-[1.5rem] bg-gradient-to-br ${colors.bg} ${colors.text} shadow-lg ring-4 ring-white`}>
+                          <div className={`p-4 rounded-3xl bg-linear-to-br ${colors.bg} ${colors.text} shadow-lg ring-4 ring-white`}>
                             <span className="material-icons-outlined h-8 w-8">{IconComponent}</span>
                           </div>
                           <div className="flex flex-col items-end">
@@ -397,7 +394,7 @@ export default function StudentDashboard() {
                         </div>
 
                         <div className="mb-8">
-                          <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-2 group-hover:text-[#0088A9] transition-colors">{course.name}</h3>
+                          <h3 className="text-xl font-black text-slate-800 dark:text-white leading-tight mb-2 group-hover:text-primary-nexus transition-colors">{course.name}</h3>
                           <div className="flex items-center gap-3">
                             <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">{course.code}</span>
                             <span className="text-[11px] font-bold text-slate-500 line-clamp-1">{course.professor}</span>
@@ -407,11 +404,11 @@ export default function StudentDashboard() {
                         <div className="mt-auto space-y-4">
                           <div className="flex items-end justify-between">
                             <div className="flex flex-col">
-                              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Performance Index</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Performance Index</span>
                               <span className="text-2xl font-black text-slate-800 tracking-tighter">{course.progress}%</span>
                             </div>
                             <div className="flex flex-col items-end">
-                              <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 mb-1">Grade</span>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Grade</span>
                               <span className={`text-2xl font-black tracking-tighter ${colors.text}`}>{course.grade}</span>
                             </div>
                           </div>
@@ -421,7 +418,7 @@ export default function StudentDashboard() {
                               initial={{ width: 0 }}
                               animate={{ width: `${course.progress}%` }}
                               transition={{ duration: 1.5, ease: "easeOut" }}
-                              className={`h-full rounded-full shadow-sm bg-gradient-to-r ${colors.progress}`}
+                              className={`h-full rounded-full shadow-sm bg-linear-to-r ${colors.progress}`}
                             />
                           </div>
                         </div>
@@ -431,12 +428,12 @@ export default function StudentDashboard() {
                 })
               ) : (
                 <div className="col-span-full py-20 flex flex-col items-center justify-center glass-panel rounded-[3rem] border border-dashed border-gray-300">
-                  <div className="p-6 rounded-[2rem] bg-slate-50 dark:bg-slate-900/50 text-gray-300 mb-4">
+                  <div className="p-6 rounded-4xl bg-slate-50 dark:bg-slate-900/50 text-gray-300 mb-4">
                     <span className="material-icons-outlined text-5xl">auto_stories</span>
                   </div>
                   <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-widest mb-2">No Active Courses</h3>
                   <p className="text-sm font-medium text-slate-400 text-center max-w-xs uppercase tracking-tighter leading-relaxed">
-                    We couldn't find any session courses mapped to your batch for this semester.
+                    We couldn&apos;t find any session courses mapped to your batch for this semester.
                   </p>
                 </div>
               )}
@@ -446,10 +443,10 @@ export default function StudentDashboard() {
       </div>
 
       {/* Right Sidebar - Daily Itinerary & Help */}
-      <aside className="w-96 glass-inner border-l border-white/20 hidden xl:flex flex-col h-full overflow-hidden flex-shrink-0 z-30">
+      <aside className="w-96 glass-inner border-l border-white/20 hidden xl:flex flex-col h-full overflow-hidden shrink-0 z-30">
         <div className="p-8 pb-4">
           <div className="flex items-center gap-3 mb-1">
-            <span className="material-icons-outlined text-[#0088A9] text-3xl">event_note</span>
+            <span className="material-icons-outlined text-primary-nexus text-3xl">event_note</span>
             <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Daily Schedule</h3>
           </div>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest font-black">
@@ -463,7 +460,7 @@ export default function StudentDashboard() {
               key={task.id}
               variants={itemVariants}
               whileHover={{ x: 5 }}
-              className={`glass-panel p-6 rounded-[2rem] border border-white/40 shadow-md group hover:shadow-lg transition-all border-l-4 ${checkedTasks.has(task.id) ? 'border-l-gray-300 opacity-60' : 'border-l-[#0088A9]/40'}`}
+              className={`glass-panel p-6 rounded-4xl border border-white/40 shadow-md group hover:shadow-lg transition-all border-l-4 ${checkedTasks.has(task.id) ? 'border-l-gray-300 opacity-60' : '`border-l-primary-nexus/40'}`}
             >
               <div className="flex items-start gap-4">
                 <label className="checkbox-wrapper relative flex items-center cursor-pointer pt-1">
@@ -473,12 +470,12 @@ export default function StudentDashboard() {
                     checked={checkedTasks.has(task.id)}
                     onChange={() => toggleTask(task.id)}
                   />
-                  <div className="w-6 h-6 border-2 border-[#0088A9]/30 rounded-lg flex items-center justify-center transition-all peer-checked:bg-[#0088A9] peer-checked:border-[#0088A9] shadow-inner bg-white dark:bg-slate-800/40 dark:bg-black/20">
+                  <div className="w-6 h-6 border-2 border-primary-nexus/30 rounded-lg flex items-center justify-center transition-all peer-checked:bg-primary-nexus peer-checked:border-primary-nexus shadow-inner bg-white dark:bg-black/20">
                     <span className="material-icons-outlined text-white text-base hidden peer-checked:block">check</span>
                   </div>
                 </label>
                 <div className="flex-1">
-                  <h4 className={`font-black text-slate-800 dark:text-white tracking-tight mb-1 group-hover:text-[#0088A9] transition-colors ${checkedTasks.has(task.id) ? 'line-through text-slate-400' : ''}`}>{task.title}</h4>
+                  <h4 className={`font-black text-slate-800 dark:text-white tracking-tight mb-1 group-hover:text-primary-nexus transition-colors ${checkedTasks.has(task.id) ? 'line-through text-slate-400' : ''}`}>{task.title}</h4>
                   <div className="flex items-center gap-3">
                     <span className="text-[10px] font-black tracking-widest uppercase text-slate-400 flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
@@ -504,7 +501,7 @@ export default function StudentDashboard() {
 
         {/* Academic Help Promo */}
         <div className="p-8">
-          <div className="relative group overflow-hidden bg-gradient-to-br from-[#0088A9] to-[#00b4d8] rounded-[2.5rem] p-8 text-white shadow-2xl border border-white/30">
+          <div className="relative group overflow-hidden bg-linear-to-br from-primary-nexus to-[#00b4d8] rounded-[2.5rem] p-8 text-white shadow-2xl border border-white/30">
             <div className="absolute -right-8 -top-8 w-32 h-32 bg-white dark:bg-slate-800/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-black/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
             <div className="relative z-10 flex flex-col items-center text-center">
@@ -515,7 +512,7 @@ export default function StudentDashboard() {
               <p className="text-white/80 text-xs mb-8 leading-relaxed font-medium px-2">
                 Connect with faculty advisors or technical support instantly.
               </p>
-              <button className="w-full bg-white dark:bg-slate-800 text-[#0088A9] py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all active:scale-95 border-b-4 border-slate-200">
+              <button className="w-full bg-white dark:bg-slate-800 text-primary-nexus py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all active:scale-95 border-b-4 border-slate-200">
                 Connect Now
               </button>
             </div>

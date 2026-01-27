@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TimePicker } from "@/components/ui/time-picker";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, CheckSquare, Square, RotateCcw } from "lucide-react";
+import { CheckSquare, Square } from "lucide-react";
 import type { OperatingHours } from "@/services/library/types";
 
 interface OperatingHoursInputProps {
@@ -197,7 +197,7 @@ export function OperatingHoursInput({ value, onChange }: OperatingHoursInputProp
                                         onCheckedChange={() => toggleDaySelection(day)}
                                         className="data-[state=checked]:bg-teal-600 data-[state=checked]:border-teal-600"
                                     />
-                                    <Label className="capitalize font-semibold text-slate-700 min-w-[80px]">
+                                    <Label className="capitalize font-semibold text-slate-700 min-w-20">
                                         {day}
                                     </Label>
                                 </div>

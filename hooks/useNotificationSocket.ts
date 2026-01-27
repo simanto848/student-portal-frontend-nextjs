@@ -69,7 +69,7 @@ export function useNotificationSocket(
       });
 
       // Show real-time alert
-      toast.info(`Intelligence: ${notification.title}`, {
+      toast.info(`Notification: ${notification.title}`, {
         description: notification.content,
       });
 
