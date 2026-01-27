@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/tooltip";
 import { getImageUrl } from "@/lib/utils";
 import { useTheme } from "@/hooks";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 
 const navItems = [
     { href: "/dashboard/student", label: "Dashboard", icon: "dashboard" },
@@ -52,6 +53,10 @@ export default function StudentLayout({
 }) {
     const pathname = usePathname();
     const { user, logout } = useAuth();
+
+    // Enable real-time notifications for students globally
+    useNotificationSocket({ enabled: !!user });
+
     const profilePicture = getImageUrl((user as any)?.profile?.profilePicture || user?.profileImage);
     const isMounted = useSyncExternalStore(
         () => () => { },
