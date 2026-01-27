@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, BookOpen, Edit, Trash2, Calendar, Link as LinkIcon, Download } from "lucide-react";
+import { FileText, BookOpen, Edit, Trash2, Calendar, Link as LinkIcon, Download, Send, Lock } from "lucide-react";
 import { Assignment, Material } from "@/services/classroom/types";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -14,9 +14,12 @@ interface ClassworkCardProps {
     onEdit: (item: any) => void;
     onDelete: (id: string) => void;
     onDownload?: (item: Material, index: number) => void;
+    onPublish?: (id: string) => void;
+    onClose?: (id: string) => void;
+    onClick?: () => void;
 }
 
-export function ClassworkCard({ item, type, onEdit, onDelete, onDownload }: ClassworkCardProps) {
+export function ClassworkCard({ item, type, onEdit, onDelete, onDownload, onPublish, onClose, onClick }: ClassworkCardProps) {
     const theme = useDashboardTheme();
     const isAssignment = type === "assignment";
     const assignment = isAssignment ? (item as Assignment) : null;
@@ -27,7 +30,10 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload }: Clas
             whileHover={{ scale: 1.005, x: 4 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
-            <Card className={`group border border-slate-200 bg-white hover:${theme.colors.accent.primary.replace('text-', 'border-')}/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all rounded-[2rem] overflow-hidden`}>
+            <Card
+                className={`group border border-slate-200 bg-white hover:${theme.colors.accent.primary.replace('text-', 'border-')}/30 hover:shadow-xl hover:shadow-slate-200/40 transition-all rounded-[2rem] overflow-hidden ${onClick ? "cursor-pointer" : ""}`}
+                onClick={onClick}
+            >
                 <CardContent className="p-5 flex items-center gap-5">
                     <div className={`h-12 w-12 rounded-2xl shrink-0 flex items-center justify-center transition-transform group-hover:scale-110 duration-500 ${isAssignment
                         ? `${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary} shadow-sm`
@@ -46,6 +52,14 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload }: Clas
                                 }`}>
                                 {type}
                             </span>
+                            {isAssignment && assignment?.status && (
+                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md ${assignment.status === 'published' ? 'bg-green-100 text-green-700' :
+                                    assignment.status === 'closed' ? 'bg-red-100 text-red-700' :
+                                        'bg-amber-100 text-amber-700'
+                                    }`}>
+                                    {assignment.status}
+                                </span>
+                            )}
                             {isAssignment && assignment?.dueAt && (
                                 <div className="flex items-center gap-1.5 text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-md">
                                     <Calendar className="w-3 h-3" />
@@ -78,11 +92,33 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload }: Clas
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0 pr-1">
+                        {isAssignment && assignment?.status === 'draft' && onPublish && (
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition-all active:scale-90"
+                                onClick={(e) => { e.stopPropagation(); onPublish(assignment.id); }}
+                                title="Publish Assignment"
+                            >
+                                <Send className="h-4 w-4" />
+                            </Button>
+                        )}
+                        {isAssignment && assignment?.status === 'published' && onClose && (
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className="h-10 w-10 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-all active:scale-90"
+                                onClick={(e) => { e.stopPropagation(); onClose(assignment.id); }}
+                                title="Close Assignment"
+                            >
+                                <Lock className="h-4 w-4" />
+                            </Button>
+                        )}
                         <Button
                             variant="secondary"
                             size="icon"
                             className={`h-10 w-10 rounded-xl bg-slate-50 text-slate-400 hover:${theme.colors.accent.primary} hover:${theme.colors.accent.primary.replace('text-', 'bg-')}/10 transition-all active:scale-90`}
-                            onClick={() => onEdit(item)}
+                            onClick={(e) => { e.stopPropagation(); onEdit(item); }}
                         >
                             <Edit className="h-4 w-4" />
                         </Button>
@@ -90,7 +126,7 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload }: Clas
                             variant="secondary"
                             size="icon"
                             className="h-10 w-10 rounded-xl bg-slate-50 text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all active:scale-90"
-                            onClick={() => onDelete(item.id)}
+                            onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
                         >
                             <Trash2 className="h-4 w-4" />
                         </Button>

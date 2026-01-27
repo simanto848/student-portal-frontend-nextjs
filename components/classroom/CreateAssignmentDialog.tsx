@@ -25,10 +25,15 @@ interface CreateAssignmentDialogProps {
     assignment?: Assignment; // If provided, we are in edit mode
     trigger?: React.ReactNode;
     onSuccess?: () => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuccess }: CreateAssignmentDialogProps) {
-    const [open, setOpen] = useState(false);
+export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuccess, open: controlledOpen, onOpenChange }: CreateAssignmentDialogProps) {
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isControlled = controlledOpen !== undefined;
+    const open = isControlled ? controlledOpen : internalOpen;
+    const setOpen = isControlled ? onOpenChange! : setInternalOpen;
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [title, setTitle] = useState("");
@@ -36,6 +41,9 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
     const [maxScore, setMaxScore] = useState(100);
     const [dueAt, setDueAt] = useState("");
     const [allowLate, setAllowLate] = useState(false);
+    const [requiresFileUpload, setRequiresFileUpload] = useState(false);
+
+    const [publishImmediately, setPublishImmediately] = useState(true);
 
     useEffect(() => {
         if (open) {
@@ -45,6 +53,8 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
                 setMaxScore(assignment.maxScore);
                 setDueAt(assignment.dueAt ? new Date(assignment.dueAt).toISOString().slice(0, 16) : "");
                 setAllowLate(assignment.allowLate);
+                setRequiresFileUpload(assignment.requiresFileUpload || false);
+                setPublishImmediately(assignment.status === 'published');
             } else {
                 resetForm();
             }
@@ -57,6 +67,8 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
         setMaxScore(100);
         setDueAt("");
         setAllowLate(false);
+        setRequiresFileUpload(false);
+        setPublishImmediately(true);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -74,7 +86,9 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
                     description,
                     maxScore,
                     dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
-                    allowLate
+                    allowLate,
+                    requiresFileUpload,
+                    status: publishImmediately ? 'published' : 'draft'
                 };
                 await assignmentService.update(assignment.id, updateData);
                 toast.success("Assignment updated successfully");
@@ -85,7 +99,9 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
                     description,
                     maxScore,
                     dueAt: dueAt ? new Date(dueAt).toISOString() : undefined,
-                    allowLate
+                    allowLate,
+                    requiresFileUpload,
+                    status: publishImmediately ? 'published' : 'draft'
                 };
                 await assignmentService.create(createData);
                 toast.success("Assignment created successfully");
@@ -101,14 +117,16 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Assignment
-                    </Button>
-                )}
-            </DialogTrigger>
+            {trigger !== null && (
+                <DialogTrigger asChild>
+                    {trigger || (
+                        <Button className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create Assignment
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>{assignment ? "Edit Assignment" : "Create Assignment"}</DialogTitle>
@@ -158,17 +176,43 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
                             />
                         </div>
                     </div>
-                    <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
-                        <div className="space-y-0.5">
-                            <Label className="text-base">Allow Late Submissions</Label>
-                            <p className="text-xs text-muted-foreground">
-                                Students can submit after the due date
-                            </p>
+                    <div className="grid grid-cols-1 gap-4">
+                        <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
+                            <div className="space-y-0.5">
+                                <Label className="text-base">Allow Late Submissions</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Students can submit after the due date
+                                </p>
+                            </div>
+                            <Switch
+                                checked={allowLate}
+                                onCheckedChange={setAllowLate}
+                            />
                         </div>
-                        <Switch
-                            checked={allowLate}
-                            onCheckedChange={setAllowLate}
-                        />
+                        <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
+                            <div className="space-y-0.5">
+                                <Label className="text-base">Require File Upload</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Students must upload a file to submit
+                                </p>
+                            </div>
+                            <Switch
+                                checked={requiresFileUpload}
+                                onCheckedChange={setRequiresFileUpload}
+                            />
+                        </div>
+                        <div className="flex items-center justify-between space-x-2 border rounded-lg p-3">
+                            <div className="space-y-0.5">
+                                <Label className="text-base">Publish Immediately</Label>
+                                <p className="text-xs text-muted-foreground">
+                                    Make visible to students immediately
+                                </p>
+                            </div>
+                            <Switch
+                                checked={publishImmediately}
+                                onCheckedChange={setPublishImmediately}
+                            />
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -176,7 +220,7 @@ export function CreateAssignmentDialog({ workspaceId, assignment, trigger, onSuc
                         </Button>
                         <Button type="submit" disabled={isSubmitting} className="bg-[#3e6253] text-white hover:bg-[#2c4a3e]">
                             {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                            {assignment ? "Save Changes" : "Create Assignment"}
+                            {assignment ? "Save Changes" : (publishImmediately ? "Create & Publish" : "Create Draft")}
                         </Button>
                     </DialogFooter>
                 </form>

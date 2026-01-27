@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { assignmentService } from "@/services/classroom/assignment.service";
 import { materialService } from "@/services/classroom/material.service";
 import { batchService } from "@/services/academic/batch.service";
@@ -64,6 +65,8 @@ export function ClassroomDetailClient({
     const router = useRouter();
     const theme = useDashboardTheme();
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+    const [viewingAssignmentId, setViewingAssignmentId] = useState<string | null>(null);
+    const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
     const [batchDetails, setBatchDetails] = useState<any>(null);
 
     useEffect(() => {
@@ -98,6 +101,10 @@ export function ClassroomDetailClient({
         }
     };
 
+    const handleEditAssignment = (assignment: Assignment) => {
+        setEditingAssignment(assignment);
+    };
+
     const handleDeleteMaterial = async (materialId: string) => {
         if (!confirm("Are you sure you want to delete this material?")) return;
         try {
@@ -121,6 +128,30 @@ export function ClassroomDetailClient({
             downloadBlob(blob, attachment.name || "material");
         } catch (error: unknown) {
             const message = getErrorMessage(error, "Failed to download attachment");
+            notifyError(message);
+        }
+    };
+
+    const handlePublishAssignment = async (assignmentId: string) => {
+        if (!confirm("Are you sure you want to publish this assignment? It will become visible to students.")) return;
+        try {
+            await assignmentService.publish(assignmentId);
+            notifySuccess("Assignment published");
+            onRefresh();
+        } catch (error) {
+            const message = getErrorMessage(error, "Failed to publish assignment");
+            notifyError(message);
+        }
+    };
+
+    const handleCloseAssignment = async (assignmentId: string) => {
+        if (!confirm("Are you sure you want to close this assignment? Students will no longer be able to submit.")) return;
+        try {
+            await assignmentService.close(assignmentId);
+            notifySuccess("Assignment closed");
+            onRefresh();
+        } catch (error) {
+            const message = getErrorMessage(error, "Failed to close assignment");
             notifyError(message);
         }
     };
@@ -301,8 +332,11 @@ export function ClassroomDetailClient({
                                                         key={`asgn-${assignment.id || index}`}
                                                         item={assignment}
                                                         type="assignment"
-                                                        onEdit={() => { }}
+                                                        onEdit={() => handleEditAssignment(assignment)}
                                                         onDelete={handleDeleteAssignment}
+                                                        onPublish={handlePublishAssignment}
+                                                        onClose={handleCloseAssignment}
+                                                        onClick={() => setViewingAssignmentId(assignment.id)}
                                                     />
                                                 ))}
                                             </div>
@@ -530,6 +564,27 @@ export function ClassroomDetailClient({
                     </TabsContent>
                 </AnimatePresence>
             </Tabs>
+
+            <CreateAssignmentDialog
+                workspaceId={id}
+                assignment={editingAssignment || undefined}
+                trigger={null}
+                open={!!editingAssignment}
+                onOpenChange={(open) => !open && setEditingAssignment(null)}
+                onSuccess={() => {
+                    setEditingAssignment(null);
+                    onRefresh();
+                }}
+            />
+
+            <Dialog open={!!viewingAssignmentId} onOpenChange={(open) => !open && setViewingAssignmentId(null)}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Assignment Details & Grading</DialogTitle>
+                    </DialogHeader>
+                    {viewingAssignmentId && <GradingView assignmentId={viewingAssignmentId} />}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

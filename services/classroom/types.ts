@@ -132,6 +132,7 @@ export interface Assignment {
     attachments: Attachment[];
     dueAt?: string;
     allowLate: boolean;
+    requiresFileUpload: boolean;
     maxScore: number;
     rubricId?: string;
     rubric?: Rubric;
@@ -150,8 +151,10 @@ export interface CreateAssignmentDto {
     attachments?: Attachment[];
     dueAt?: string;
     allowLate?: boolean;
+    requiresFileUpload?: boolean;
     maxScore?: number;
     rubricId?: string;
+    status?: AssignmentStatus;
 }
 
 export interface UpdateAssignmentDto {
@@ -161,13 +164,14 @@ export interface UpdateAssignmentDto {
     attachments?: Attachment[];
     dueAt?: string;
     allowLate?: boolean;
+    requiresFileUpload?: boolean;
     maxScore?: number;
     rubricId?: string;
     status?: AssignmentStatus;
 }
 
 // Submission Types
-export type SubmissionStatus = 'none' | 'draft' | 'submitted' | 'resubmitted' | 'graded';
+export type SubmissionStatus = 'none' | 'draft' | 'submitted' | 'resubmitted' | 'graded' | 'missing';
 
 export interface SubmissionFile {
     id?: string;
@@ -189,7 +193,7 @@ export interface Submission {
     assignmentId: string;
     assignment?: Assignment;
     workspaceId: string;
-    studentId: string;
+    studentId: string | { _id: string; fullName: string; email: string; profileImage?: string };
     submittedAt?: string;
     files: SubmissionFile[];
     textAnswer?: string;

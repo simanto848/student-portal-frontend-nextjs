@@ -118,4 +118,17 @@ export const submissionService = {
             return handleClassroomApiError(error);
         }
     },
+
+    /**
+     * Remove a file from a submission (immediate action)
+     * Roles: student
+     */
+    removeFile: async (submissionId: string, fileId: string): Promise<Submission> => {
+        try {
+            const response = await classroomApi.delete(`/submissions/item/${submissionId}/files/${fileId}`);
+            return extractClassroomItemData<Submission>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
 };

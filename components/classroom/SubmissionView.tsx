@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { assignmentService } from "@/services/classroom/assignment.service";
 import { submissionService } from "@/services/classroom/submission.service";
 import { Assignment, Submission, SubmitAssignmentDto } from "@/services/classroom/types";
-import { Loader2, FileText, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, FileText, CheckCircle, AlertCircle, UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { downloadBlob } from "@/lib/download";
@@ -59,6 +59,11 @@ export function SubmissionView({ assignmentId, studentId: _studentId }: Submissi
             return;
         }
 
+        if (assignment?.requiresFileUpload && files.length === 0) {
+            toast.error("File upload is required for this assignment");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const result = files.length > 0
@@ -83,6 +88,19 @@ export function SubmissionView({ assignmentId, studentId: _studentId }: Submissi
             toast.error(message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleRemoveExistingFile = async (fileId: string) => {
+        if (!submission) return;
+
+        // Optimistic UI update or loading state could go here, but for now simple await
+        try {
+            const updatedSubmission = await submissionService.removeFile(submission.id, fileId);
+            setSubmission(updatedSubmission);
+            toast.success("File removed");
+        } catch (error) {
+            toast.error("Failed to remove file");
         }
     };
 
@@ -157,14 +175,90 @@ export function SubmissionView({ assignmentId, studentId: _studentId }: Submissi
                                     rows={5}
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Files (Optional)</Label>
-                                <Input
-                                    type="file"
-                                    multiple
-                                    onChange={(e) => setFiles(Array.from(e.target.files || []))}
-                                />
-                            </div>
+                            {assignment.requiresFileUpload && (
+                                <div className="space-y-3">
+                                    <Label className="text-base font-semibold text-slate-900">Attached Files (Required)</Label>
+
+                                    <div className="border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center hover:bg-slate-50 hover:border-[#3e6253] transition-all relative group bg-slate-50/50 min-h-[150px]">
+                                        <input
+                                            type="file"
+                                            multiple
+                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            onChange={(e) => {
+                                                if (e.target.files) {
+                                                    setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+                                                }
+                                            }}
+                                        />
+
+                                        <div className="p-6 flex flex-col items-center justify-center text-center w-full">
+                                            <div className="p-3 bg-white rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
+                                                <UploadCloud className="h-6 w-6 text-[#3e6253]" />
+                                            </div>
+                                            <p className="text-sm font-bold text-slate-700">Click to upload or drag files</p>
+                                            <p className="text-xs text-slate-400 mt-1">PDF, Word, Images supported</p>
+                                        </div>
+
+                                        {/* File List Area */}
+                                        {(files.length > 0 || (submission?.files && submission.files.length > 0)) && (
+                                            <div className="w-full px-4 pb-4 space-y-2 relative z-20">
+                                                <div className="h-px bg-slate-200 w-full mb-3" />
+                                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 text-left">
+                                                    Attached Files ({(files.length + (submission?.files?.length || 0))})
+                                                </p>
+
+                                                {/* Previously Uploaded Files */}
+                                                {submission?.files?.map((file, idx) => (
+                                                    <div
+                                                        key={`existing-${idx}`}
+                                                        className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-lg shadow-sm text-sm hover:bg-slate-100 transition-colors cursor-pointer"
+                                                        onClick={(e) => { e.stopPropagation(); handleDownloadFile(idx); }}
+                                                    >
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <FileText className="h-4 w-4 text-blue-600" />
+                                                            <span className="truncate max-w-[200px] font-medium text-slate-700">{file.name}</span>
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 ml-2">UPLOADED</span>
+                                                        </div>
+                                                        {submission.status !== 'graded' && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (file.id) handleRemoveExistingFile(file.id);
+                                                                }}
+                                                                className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50 ml-2"
+                                                            >
+                                                                <X className="h-4 w-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+
+                                                {/* Newly Selected Files */}
+                                                {files.map((file, idx) => (
+                                                    <div key={`new-${idx}`} className="flex items-center justify-between p-2.5 bg-white border border-slate-100 rounded-lg shadow-sm text-sm hover:shadow-md transition-shadow">
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <FileText className="h-4 w-4 text-[#3e6253]" />
+                                                            <span className="truncate max-w-[200px] font-medium text-slate-700">{file.name}</span>
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 ml-2">NEW</span>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // Prevent triggering file input
+                                                                setFiles(files.filter((_, i) => i !== idx));
+                                                            }}
+                                                            className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50"
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </>
                     ) : (
                         <div className="space-y-4">
