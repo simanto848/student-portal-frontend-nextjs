@@ -565,7 +565,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
     if (!notification) return null;
 
     return (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-6 text-left">
+        <div className="fixed inset-0 z-999 flex items-center justify-center p-4 sm:p-6 text-left">
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -614,7 +614,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                             </div>
                         </div>
 
-                        <div className="p-8 rounded-[2rem] bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-inner relative overflow-hidden group">
+                        <div className="p-8 rounded-4xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 shadow-inner relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Bell className="h-12 w-12 text-[#2dd4bf]" />
                             </div>

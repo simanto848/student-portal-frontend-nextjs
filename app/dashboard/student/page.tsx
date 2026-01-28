@@ -341,18 +341,20 @@ export default function StudentDashboard() {
                 <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Overall CGPA</p>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3.5 rounded-2xl bg-white dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
-                    <span className="material-icons-outlined text-2xl font-bold">fact_check</span>
+              <Link href="/dashboard/student/attendances">
+                <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="p-3.5 rounded-2xl bg-white dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
+                      <span className="material-icons-outlined text-2xl font-bold">fact_check</span>
+                    </div>
+                    <div className="bg-green-100/60 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-green-200/40">
+                      {attendance >= 85 ? "Excellent" : "Regular"}
+                    </div>
                   </div>
-                  <div className="bg-green-100/60 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-green-200/40">
-                    {attendance >= 85 ? "Excellent" : "Regular"}
-                  </div>
-                </div>
-                <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{attendance}%</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Academic Presence</p>
-              </motion.div>
+                  <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{attendance}%</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Academic Presence</p>
+                </motion.div>
+              </Link>
             </div>
           </motion.section>
 
