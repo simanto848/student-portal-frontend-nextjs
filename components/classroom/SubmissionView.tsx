@@ -142,7 +142,37 @@ export function SubmissionView({ assignmentId, studentId: _studentId }: Submissi
                     <p>{assignment.description}</p>
                 </div>
 
-                {/* Attachments would go here */}
+                {assignment.attachments && assignment.attachments.length > 0 && (
+                    <div className="space-y-3">
+                        <Label className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Attachments</Label>
+                        <div className="grid gap-2">
+                            {assignment.attachments.map((file, idx) => (
+                                <Button
+                                    key={idx}
+                                    variant="outline"
+                                    className="justify-start h-auto py-3 px-4 bg-white hover:bg-slate-50 border-slate-200"
+                                    onClick={() => {
+                                        if (file.id && assignment.id) {
+                                            assignmentService.downloadAttachment(assignment.id, file.id, file.name)
+                                                .then(blob => downloadBlob(blob, file.name));
+                                        }
+                                    }}
+                                >
+                                    <div className="flex items-center gap-3 w-full">
+                                        <div className="h-8 w-8 rounded-lg bg-[#3e6253]/10 flex items-center justify-center shrink-0">
+                                            <FileText className="h-4 w-4 text-[#3e6253]" />
+                                        </div>
+                                        <div className="flex-1 text-left min-w-0">
+                                            <div className="font-medium text-slate-700 truncate">{file.name}</div>
+                                            <div className="text-xs text-slate-400">{(file.size ? file.size / 1024 : 0).toFixed(0)} KB</div>
+                                        </div>
+                                        <div className="text-xs font-bold text-[#3e6253]">Download</div>
+                                    </div>
+                                </Button>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             <Card>

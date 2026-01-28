@@ -16,6 +16,25 @@ export const assignmentService = {
     },
 
     /**
+     * Upload files for an assignment
+     * Roles: super_admin, admin, program_controller, teacher
+     */
+    upload: async (formData: FormData): Promise<any> => {
+        try {
+            const response = await classroomApi.post('/assignments/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            // The backend returns the list of attachments directly or inside data
+            // Based on ApiResponse.created(res, attachments, "Files uploaded"), it's likely response.data.data
+            return extractClassroomArrayData(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
+
+    /**
      * List all assignments in a workspace
      * Roles: super_admin, admin, program_controller, teacher, student
      * Note: Students only see published assignments
@@ -92,4 +111,18 @@ export const assignmentService = {
             return handleClassroomApiError(error);
         }
     },
+
+    /**
+     * Download an attachment
+     */
+    downloadAttachment: async (assignmentId: string, attachmentId: string, filename: string): Promise<Blob> => {
+        try {
+            const response = await classroomApi.get(`/assignments/item/${assignmentId}/attachments/${attachmentId}/download`, {
+                responseType: 'blob'
+            });
+            return response.data;
+        } catch (error) {
+            throw handleClassroomApiError(error);
+        }
+    }
 };

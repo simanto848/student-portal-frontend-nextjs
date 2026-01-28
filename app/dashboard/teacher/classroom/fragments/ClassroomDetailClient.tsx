@@ -21,7 +21,7 @@ import { Teacher } from "@/services/user/teacher.service";
 import { CreateAssignmentDialog } from "@/components/classroom/CreateAssignmentDialog";
 import { CreateMaterialDialog } from "@/components/classroom/CreateMaterialDialog";
 import { GradingView } from "@/components/classroom/GradingView";
-import { AssessmentView } from "@/components/classroom/AssessmentView";
+
 import { CourseGradeView } from "@/components/classroom/CourseGradeView";
 import {
     FileText,
@@ -224,7 +224,7 @@ export function ClassroomDetailClient({
             <Tabs defaultValue="stream" className="w-full">
                 <div className="flex overflow-x-auto pb-2 mb-4 scrollbar-hide">
                     <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max">
-                        {["Stream", "Classwork", "Quizzes", "People", "Assessments", "Grades"].map(
+                        {["Stream", "Classwork", "Quizzes", "People", "Grades"].map(
                             (tab) => (
                                 <TabsTrigger
                                     key={tab}
@@ -450,22 +450,7 @@ export function ClassroomDetailClient({
                         </motion.div>
                     </TabsContent>
 
-                    <TabsContent
-                        value="assessments"
-                        key="assessments"
-                        className="mt-6 outline-none"
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-[2.5rem] border border-slate-200 p-2 overflow-hidden shadow-sm"
-                        >
-                            <AssessmentView
-                                courseId={workspace.courseId}
-                                batchId={workspace.batchId}
-                            />
-                        </motion.div>
-                    </TabsContent>
+
 
                     <TabsContent value="grades" key="grades" className="mt-6 outline-none">
                         <motion.div
@@ -473,14 +458,8 @@ export function ClassroomDetailClient({
                             animate={{ opacity: 1, y: 0 }}
                             className="space-y-10"
                         >
-                            <Tabs defaultValue="assignments" className="w-full">
+                            <Tabs defaultValue="course-grades" className="w-full">
                                 <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max mb-8">
-                                    <TabsTrigger
-                                        value="assignments"
-                                        className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
-                                    >
-                                        Assignments
-                                    </TabsTrigger>
                                     <TabsTrigger
                                         value="course-grades"
                                         className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
@@ -488,67 +467,6 @@ export function ClassroomDetailClient({
                                         Course Final
                                     </TabsTrigger>
                                 </TabsList>
-
-                                <TabsContent value="assignments" className="mt-0">
-                                    <div className="grid gap-10 lg:grid-cols-12">
-                                        <div className="lg:col-span-4">
-                                            <Card className="border border-slate-200 rounded-[2.5rem] overflow-hidden bg-white shadow-sm p-0">
-                                                <CardHeader className="bg-slate-50/50 p-8 border-b border-slate-100">
-                                                    <CardTitle className="text-xl font-black text-slate-900 tracking-tight">
-                                                        Active Tasks
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent className="p-0 max-h-[500px] overflow-y-auto scrollbar-hide">
-                                                    <div className="flex flex-col">
-                                                        {assignments.map((assignment, index) => (
-                                                            <button
-                                                                key={`grade-asgn-${assignment.id || index}`}
-                                                                onClick={() => setSelectedAssignmentId(assignment.id)}
-                                                                className={`text-left px-8 py-5 text-sm transition-all relative group ${selectedAssignmentId === assignment.id
-                                                                    ? `${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary} font-black`
-                                                                    : "text-slate-600 font-bold hover:bg-slate-50"
-                                                                    }`}
-                                                            >
-                                                                {selectedAssignmentId === assignment.id && (
-                                                                    <motion.div
-                                                                        layoutId="active-indicator"
-                                                                        className={`absolute left-0 top-0 w-1.5 h-full ${theme.colors.accent.secondary} rounded-r-full`}
-                                                                    />
-                                                                )}
-                                                                {assignment.title}
-                                                            </button>
-                                                        ))}
-                                                        {assignments.length === 0 && (
-                                                            <div className="p-10 text-center text-slate-400 font-bold italic text-sm">
-                                                                No tasks deployed.
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        </div>
-
-                                        <div className="lg:col-span-8">
-                                            {selectedAssignmentId ? (
-                                                <div className="bg-white rounded-[2.5rem] border border-slate-200 p-2 shadow-sm">
-                                                    <GradingView assignmentId={selectedAssignmentId} />
-                                                </div>
-                                            ) : (
-                                                <Card className="border-2 border-dashed border-slate-200 rounded-[3rem] p-24 text-center bg-white">
-                                                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-200 mb-6">
-                                                        <Sparkles className="h-8 w-8" />
-                                                    </div>
-                                                    <h3 className="text-xl font-black text-slate-900 mb-2 px-2">
-                                                        Task Evaluation Matrix
-                                                    </h3>
-                                                    <p className="text-slate-500 font-medium px-4">
-                                                        Select a task from the portfolio to begin the grading cycle.
-                                                    </p>
-                                                </Card>
-                                            )}
-                                        </div>
-                                    </div>
-                                </TabsContent>
 
                                 <TabsContent value="course-grades" className="mt-0">
                                     <div className="bg-white rounded-[2.5rem] border border-slate-200 p-2 overflow-hidden shadow-sm">

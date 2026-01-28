@@ -89,6 +89,13 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload, onPubl
                                 {material.type === "text" && material.content}
                             </div>
                         )}
+
+                        {isAssignment && assignment?.attachments && assignment.attachments.length > 0 && (
+                            <div className="mt-2 text-xs font-medium flex items-center gap-1 text-emerald-600">
+                                <Download className="w-3 h-3" />
+                                {assignment.attachments.length} attachment(s)
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0 pr-1">

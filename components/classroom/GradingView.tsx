@@ -315,7 +315,12 @@ export function GradingView({ assignmentId }: GradingViewProps) {
                                                 min="0"
                                                 max={assignment.maxScore}
                                                 value={grade}
-                                                onChange={(e) => setGrade(parseInt(e.target.value) || 0)}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value) || 0;
+                                                    if (val <= assignment.maxScore) {
+                                                        setGrade(val);
+                                                    }
+                                                }}
                                                 className="h-14 text-2xl font-black text-center bg-white border-slate-200 focus:border-[#3e6253] focus:ring-[#3e6253] rounded-xl"
                                             />
                                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
