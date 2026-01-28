@@ -33,6 +33,22 @@ export const materialService = {
     },
 
     /**
+     * Upload incremental attachments
+     */
+    uploadAttachments: async (data: FormData): Promise<Attachment[]> => {
+        try {
+            const response = await classroomApi.post('/materials/attachments/upload', data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return extractClassroomArrayData<Attachment>(response);
+        } catch (error) {
+            return handleClassroomApiError(error);
+        }
+    },
+
+    /**
      * List all materials in a workspace
      * Roles: super_admin, admin, program_controller, teacher, student
      * Students see only 'all' visibility materials

@@ -67,6 +67,7 @@ export function ClassroomDetailClient({
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
     const [viewingAssignmentId, setViewingAssignmentId] = useState<string | null>(null);
     const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+    const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
     const [batchDetails, setBatchDetails] = useState<any>(null);
 
     useEffect(() => {
@@ -103,6 +104,10 @@ export function ClassroomDetailClient({
 
     const handleEditAssignment = (assignment: Assignment) => {
         setEditingAssignment(assignment);
+    };
+
+    const handleEditMaterial = (material: Material) => {
+        setEditingMaterial(material);
     };
 
     const handleDeleteMaterial = async (materialId: string) => {
@@ -359,7 +364,7 @@ export function ClassroomDetailClient({
                                                         material={material}
                                                         variant="teacher"
                                                         onDownload={handleDownloadMaterialAttachment}
-                                                        onEdit={() => { }}
+                                                        onEdit={() => handleEditMaterial(material)}
                                                         onDelete={handleDeleteMaterial}
                                                     />
                                                 ))}
@@ -482,6 +487,18 @@ export function ClassroomDetailClient({
                     </TabsContent>
                 </AnimatePresence>
             </Tabs>
+
+            <CreateMaterialDialog
+                workspaceId={id}
+                material={editingMaterial || undefined}
+                trigger={null}
+                open={!!editingMaterial}
+                onOpenChange={(open) => !open && setEditingMaterial(null)}
+                onSuccess={() => {
+                    setEditingMaterial(null);
+                    onRefresh();
+                }}
+            />
 
             <CreateAssignmentDialog
                 workspaceId={id}

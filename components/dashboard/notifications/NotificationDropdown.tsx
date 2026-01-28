@@ -12,7 +12,8 @@ import {
     Zap,
     ExternalLink,
     Loader2,
-    X
+    X,
+    Badge
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -244,7 +245,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                             <Zap className="h-6 w-6 text-[#0088A9]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0088A9] block mb-0.5">Terminal Dispatch</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0088A9] block mb-0.5">{notification.type}</span>
                             <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 dark:text-white line-clamp-1">{notification.title}</h3>
                         </div>
                     </div>
@@ -288,7 +289,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
 
                         {/* Metadata Pills */}
                         <div className="flex flex-wrap gap-3 items-center px-2">
-                            <Badge variant="outline" className="bg-white/50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl">
+                            <Badge className="bg-white/50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl">
                                 ID: {notification.id ? notification.id.substring(0, 12) : 'N/A'}
                             </Badge>
                             <Badge className="bg-[#0088A9]/10 text-[#0088A9] hover:bg-[#0088A9]/20 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl border-0">
@@ -304,7 +305,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                         onClick={onClose}
                         className="rounded-2xl px-12 bg-gradient-to-r from-[#0088A9] to-indigo-600 text-white hover:scale-105 active:scale-95 text-[11px] font-black uppercase tracking-widest h-14 shadow-xl shadow-[#0088A9]/30 border-0 transition-all"
                     >
-                        Acknowledge Intel
+                        Close
                     </Button>
                 </div>
             </motion.div>

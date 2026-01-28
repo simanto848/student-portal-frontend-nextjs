@@ -139,8 +139,8 @@ export function MaterialFolderCard({
                                 </a>
                             )}
 
-                            {/* Text Preview */}
-                            {isText && material.content && (
+                            {/* Content Preview (Text or File Description) */}
+                            {(isText || !isLink) && material.content && (
                                 <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">
                                     {material.content}
                                 </p>
