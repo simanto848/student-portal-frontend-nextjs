@@ -86,16 +86,16 @@ export function AttendanceStats({ summary }: AttendanceStatsProps) {
                                     <stat.icon className="h-5 w-5" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{stat.label}</p>
-                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-0.5">{stat.label}</p>
+                                    <h3 className="text-3xl font-bold text-slate-800 dark:text-white">
                                         {stat.value}
-                                        <span className="text-[10px] text-slate-400 font-medium ml-1">/ {stat.total || 0}</span>
+                                        <span className="text-xs text-slate-400 font-medium ml-1">/ {stat.total || 0}</span>
                                     </h3>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider">
+                                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider">
                                     <span className="text-slate-400">Rate</span>
                                     <span className={stat.color}>
                                         {summary.total > 0 ? Math.round((stat.value / summary.total) * 100) : 0}%

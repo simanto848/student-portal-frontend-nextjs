@@ -69,20 +69,20 @@ export function AttendanceRow({
             )}
         >
             <TableCell className="px-6 py-4">
-                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
                     {student.student?.registrationNumber || "N/A"}
                 </span>
             </TableCell>
             <TableCell>
                 <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-xs">
+                    <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm">
                         {student.student?.fullName?.charAt(0) || "?"}
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-slate-800 dark:text-white truncate max-w-[180px]">
+                        <span className="text-base font-semibold text-slate-800 dark:text-white truncate max-w-[180px]">
                             {student.student?.fullName || "Unknown"}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Valid Record</span>
+                        <span className="text-xs text-slate-400 font-medium uppercase tracking-wide">Valid Record</span>
                     </div>
                 </div>
             </TableCell>
@@ -115,7 +115,7 @@ export function AttendanceRow({
                         disabled={disabled}
                         onChange={(e) => onRemarksChange(e.target.value)}
                         className={cn(
-                            "h-9 bg-transparent focus:bg-white dark:focus:bg-slate-800 rounded-lg text-xs transition-all",
+                            "h-9 bg-transparent focus:bg-white dark:focus:bg-slate-800 rounded-lg text-sm transition-all",
                             isError
                                 ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/20 placeholder:text-rose-400"
                                 : "border-slate-200 dark:border-slate-700"

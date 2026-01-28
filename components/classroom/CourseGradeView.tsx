@@ -23,6 +23,8 @@ import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import OTPConfirmationDialog from "@/components/ui/OTPConfirmationDialog"; // New import
 import { api } from "@/lib/api"; // Added import
+import { AttendanceSummarySheet } from "@/app/dashboard/teacher/attendance/fragments/AttendanceSummarySheet";
+import { ClipboardCheck } from "lucide-react";
 
 interface CourseGradeViewProps {
   courseId: string;
@@ -41,6 +43,7 @@ export function CourseGradeView({
   const [isCalculating, setIsCalculating] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<string>("draft");
   const [isOTPDialogOpen, setIsOTPDialogOpen] = useState(false); // New state
+  const [showAttendanceSummary, setShowAttendanceSummary] = useState(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -251,15 +254,25 @@ export function CourseGradeView({
               <CardTitle className="text-xl font-black text-slate-900">
                 Grade Summary
               </CardTitle>
-              {!isMarksLocked && (
+              <div className="flex items-center gap-2">
                 <Button
-                  onClick={handleSubmitClick}
-                  className="bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white rounded-xl h-10 px-6 font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95"
+                  variant="outline"
+                  onClick={() => setShowAttendanceSummary(true)}
+                  className="bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-[#2dd4bf] h-10 px-4 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all"
                 >
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit to Committee
+                  <ClipboardCheck className="mr-2 h-4 w-4" />
+                  Attendance
                 </Button>
-              )}
+                {!isMarksLocked && (
+                  <Button
+                    onClick={handleSubmitClick}
+                    className="bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white rounded-xl h-10 px-6 font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Submit to Committee
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -385,6 +398,13 @@ export function CourseGradeView({
         purpose="result_submission"
         title="Confirm Grade Submission"
         description="You are about to submit final grades to the Exam Committee. This action cannot be undone by you once approved. Please verify your identity."
+      />
+
+      <AttendanceSummarySheet
+        isOpen={showAttendanceSummary}
+        onClose={() => setShowAttendanceSummary(false)}
+        courseId={courseId}
+        batchId={batchId}
       />
     </div>
   );

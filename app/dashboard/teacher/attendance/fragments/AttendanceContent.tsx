@@ -41,6 +41,7 @@ import { AnimatePresence, motion, Variants } from "framer-motion";
 import { DatePicker } from "@/components/ui/date-picker";
 import { AttendanceStats } from "./AttendanceStats";
 import { AttendanceRow } from "./AttendanceRow";
+import { AttendanceSummarySheet } from "./AttendanceSummarySheet";
 
 
 interface AttendanceState {
@@ -66,6 +67,7 @@ export function AttendanceContent() {
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [saving, setSaving] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [showSummary, setShowSummary] = useState(false);
 
     // Handle URL params for course/batch selection
     useEffect(() => {
@@ -284,32 +286,55 @@ export function AttendanceContent() {
             {/* Standard Dashboard Header */}
             <GlassCard className="p-6 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <Users className="text-[#2dd4bf] w-6 h-6" />
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <Users className="text-[#2dd4bf] w-8 h-8" />
                         Attendance Control
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                    <p className="text-slate-500 dark:text-slate-400 text-base mt-1">
                         Manage student attendance for <span className="text-[#2dd4bf] font-semibold">{format(date, "MMMM d, yyyy")}</span>
                     </p>
                 </div>
 
                 <div className="flex items-center gap-3">
                     {selectedCourse && (
-                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 text-[#2dd4bf] text-xs font-bold shadow-sm backdrop-blur-sm hover:bg-[#2dd4bf]/20 transition-all cursor-default hover:scale-105">
-                            <GraduationCap className="w-3.5 h-3.5" />
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 text-[#2dd4bf] text-sm font-bold shadow-sm backdrop-blur-sm hover:bg-[#2dd4bf]/20 transition-all cursor-default hover:scale-105">
+                            <GraduationCap className="w-4 h-4" />
                             <span>{selectedCourse.batch?.name}</span>
                             <span className="w-1 h-1 rounded-full bg-[#2dd4bf]/50 mx-0.5"></span>
                             <span>{selectedCourse.course?.code}</span>
                         </div>
                     )}
-                    <DatePicker
-                        date={date}
-                        onChange={(d) => d && setDate(d)}
-                        className="w-40 md:w-48 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 h-10"
-                        disabled={(date) => date > new Date()}
-                    />
+                    <div className="flex items-center gap-2">
+                        {selectedCourse && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setShowSummary(true)}
+                                className="hidden md:flex bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:bg-[#2dd4bf] hover:text-white hover:border-[#2dd4bf] transition-all h-10 px-4 rounded-xl font-bold text-sm uppercase tracking-wider"
+                            >
+                                <ClipboardCheck className="w-4 h-4 mr-2" />
+                                Summary
+                            </Button>
+                        )}
+                        <DatePicker
+                            date={date}
+                            onChange={(d) => d && setDate(d)}
+                            className="w-40 md:w-48 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 h-10 text-sm"
+                            disabled={(date) => date > new Date()}
+                        />
+                    </div>
                 </div>
             </GlassCard>
+
+            {selectedCourse && (
+                <AttendanceSummarySheet
+                    isOpen={showSummary}
+                    onClose={() => setShowSummary(false)}
+                    courseId={selectedCourse.courseId}
+                    batchId={selectedCourse.batchId}
+                    courseCode={selectedCourse.course?.code}
+                    batchName={selectedCourse.batch?.name}
+                />
+            )}
 
             <motion.div
                 variants={containerVariants}
@@ -338,20 +363,20 @@ export function AttendanceContent() {
                                 <div className="flex-1 w-full space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">Select Course</label>
+                                            <label className="text-sm font-bold text-slate-500 dark:text-slate-400 ml-1">Select Course</label>
                                             <Select
                                                 value={selectedAssignmentId}
                                                 onValueChange={setSelectedAssignmentId}
                                             >
-                                                <SelectTrigger className="h-11 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#2dd4bf]">
+                                                <SelectTrigger className="h-12 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#2dd4bf] text-base font-medium">
                                                     <SelectValue placeholder="Choose Course..." />
                                                 </SelectTrigger>
                                                 <SelectContent className="dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                                                     {courses.map((course) => (
-                                                        <SelectItem key={course.id} value={course.id} className="cursor-pointer">
-                                                            <div className="flex flex-col gap-0.5">
-                                                                <span className="font-medium text-slate-700 dark:text-slate-200">{course.course?.code} - {course.course?.name}</span>
-                                                                <span className="text-[10px] text-slate-400 uppercase tracking-widest">{course.batch?.name}</span>
+                                                        <SelectItem key={course.id} value={course.id} className="cursor-pointer py-3">
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="font-bold text-base text-slate-700 dark:text-slate-200">{course.course?.code} - {course.course?.name}</span>
+                                                                <span className="text-xs text-slate-400 uppercase tracking-widest">{course.batch?.name}</span>
                                                             </div>
                                                         </SelectItem>
                                                     ))}
@@ -361,14 +386,14 @@ export function AttendanceContent() {
 
                                         {selectedAssignmentId && (
                                             <div className="space-y-2 relative">
-                                                <label className="text-xs font-bold text-slate-500 dark:text-slate-400 ml-1">Search Students</label>
+                                                <label className="text-sm font-bold text-slate-500 dark:text-slate-400 ml-1">Search Students</label>
                                                 <div className="relative">
-                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                                                     <Input
                                                         placeholder="Search by name or reg. no..."
                                                         value={searchQuery}
                                                         onChange={(e) => setSearchQuery(e.target.value)}
-                                                        className="pl-10 h-11 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#2dd4bf]"
+                                                        className="pl-10 h-12 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 rounded-xl focus:ring-[#2dd4bf] text-base"
                                                     />
                                                 </div>
                                             </div>
@@ -379,11 +404,11 @@ export function AttendanceContent() {
                                 {selectedAssignmentId && (
                                     <Button
                                         variant="outline"
-                                        className="h-11 w-11 shrink-0 rounded-xl border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:text-[#2dd4bf] p-0"
+                                        className="h-12 w-12 shrink-0 rounded-xl border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:text-[#2dd4bf] p-0"
                                         onClick={() => fetchClassData()}
                                         title="Sync Data"
                                     >
-                                        <RefreshCw className={cn("h-5 w-5", loadingStudents && "animate-spin")} />
+                                        <RefreshCw className={cn("h-6 w-6", loadingStudents && "animate-spin")} />
                                     </Button>
                                 )}
                             </div>
@@ -392,24 +417,24 @@ export function AttendanceContent() {
                         <div className="p-0">
                             {!selectedAssignmentId ? (
                                 <div className="flex flex-col items-center justify-center py-24 text-center">
-                                    <div className="h-20 w-20 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
-                                        <SearchCheck className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+                                    <div className="h-24 w-24 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
+                                        <SearchCheck className="h-12 w-12 text-slate-300 dark:text-slate-600" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Select a Course</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm">Choose a course from the dropdown above to start marking attendance.</p>
+                                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Select a Course</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-base max-w-sm">Choose a course from the dropdown above to start marking attendance.</p>
                                 </div>
                             ) : loadingStudents ? (
                                 <div className="flex flex-col items-center justify-center py-24">
-                                    <Loader2 className="h-10 w-10 text-[#2dd4bf] animate-spin mb-4" />
-                                    <p className="text-slate-600 dark:text-slate-300 font-medium">Loading Class Register...</p>
+                                    <Loader2 className="h-12 w-12 text-[#2dd4bf] animate-spin mb-4" />
+                                    <p className="text-slate-600 dark:text-slate-300 font-medium text-lg">Loading Class Register...</p>
                                 </div>
                             ) : students.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center py-24 text-center">
-                                    <div className="h-20 w-20 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
-                                        <GraduationCap className="h-10 w-10 text-slate-300 dark:text-slate-600" />
+                                    <div className="h-24 w-24 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center mb-6">
+                                        <GraduationCap className="h-12 w-12 text-slate-300 dark:text-slate-600" />
                                     </div>
-                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">No Students Found</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm">There are no students enrolled in this batch yet.</p>
+                                    <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">No Students Found</h3>
+                                    <p className="text-slate-500 dark:text-slate-400 text-base max-w-sm">There are no students enrolled in this batch yet.</p>
                                 </div>
                             ) : (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -417,10 +442,10 @@ export function AttendanceContent() {
                                         <Table>
                                             <TableHeader className="bg-slate-50/50 dark:bg-slate-800/50 sticky top-0 z-10 backdrop-blur-sm">
                                                 <TableRow className="hover:bg-transparent border-b border-slate-100 dark:border-slate-700">
-                                                    <TableHead className="pl-6 w-48 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reg. ID</TableHead>
-                                                    <TableHead className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Student</TableHead>
-                                                    <TableHead className="text-center text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</TableHead>
-                                                    <TableHead className="pr-6 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remarks</TableHead>
+                                                    <TableHead className="pl-6 w-48 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Reg. ID</TableHead>
+                                                    <TableHead className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Student</TableHead>
+                                                    <TableHead className="text-center text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</TableHead>
+                                                    <TableHead className="pr-6 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remarks</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -451,23 +476,23 @@ export function AttendanceContent() {
                                     </div>
                                     <div className="p-6 border-t border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-6 bg-slate-50/30 dark:bg-slate-800/20">
                                         <div className="flex flex-wrap items-center gap-4">
-                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20">
-                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-bold border border-emerald-500/20">
+                                                <div className="h-2 w-2 rounded-full bg-emerald-500" />
                                                 {attendanceSummary.present} Present
                                             </div>
-                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold border border-rose-500/20">
-                                                <div className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 text-sm font-bold border border-rose-500/20">
+                                                <div className="h-2 w-2 rounded-full bg-rose-500" />
                                                 {attendanceSummary.absent} Absent
                                             </div>
-                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-xs font-bold border border-amber-500/20">
-                                                <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 text-sm font-bold border border-amber-500/20">
+                                                <div className="h-2 w-2 rounded-full bg-amber-500" />
                                                 {attendanceSummary.late} Late
                                             </div>
                                         </div>
 
                                         <Button
                                             size="lg"
-                                            className="w-full md:w-auto bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold"
+                                            className="w-full md:w-auto bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold text-base"
                                             onClick={handleSubmit}
                                             disabled={saving}
                                         >
