@@ -677,27 +677,10 @@ export function CourseFinalMarksEntry({
                                     </>
                                 )}
                             </Button>
-                            <Button
-                                onClick={handleSubmitToCommittee}
-                                disabled={isSaving || isSubmitting}
-                                className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest bg-[#2dd4bf] hover:bg-[#25b0a0] shadow-lg shadow-teal-500/20 hover:shadow-teal-500/40 text-white transition-all active:scale-95"
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Submitting...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Send className="mr-2 h-4 w-4" />
-                                        Hand Over Result
-                                    </>
-                                )}
-                            </Button>
                         </>
                     )}
                 </div>
-            </motion.div>
-        </div>
+            </motion.div >
+        </div >
     );
 }
