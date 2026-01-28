@@ -143,14 +143,16 @@ export function CreateMaterialDialog({ workspaceId, material, trigger, onSuccess
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {trigger || (
-                    <Button className="bg-[#2dd4bf] text-white hover:bg-[#25b0a0] shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all font-bold text-xs uppercase tracking-widest rounded-xl">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Resource
-                    </Button>
-                )}
-            </DialogTrigger>
+            {trigger !== null && (
+                <DialogTrigger asChild>
+                    {trigger || (
+                        <Button className="bg-[#2dd4bf] text-white hover:bg-[#25b0a0] shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all font-bold text-xs uppercase tracking-widest rounded-xl">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Resource
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[600px] overflow-hidden rounded-[2rem] p-0 gap-0 border-none shadow-2xl">
                 <DialogHeader className="p-8 bg-white border-b border-slate-100 pb-6">
                     <DialogTitle className="text-2xl font-black text-slate-900 tracking-tight">

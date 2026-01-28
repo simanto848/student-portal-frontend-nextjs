@@ -3,14 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { workspaceService } from "@/services/classroom/workspace.service";
-import { streamService } from "@/services/classroom/stream.service";
 import { assignmentService } from "@/services/classroom/assignment.service";
 import { materialService } from "@/services/classroom/material.service";
 import {
   Workspace,
   Assignment,
   Material,
-  StreamItem,
 } from "@/services/classroom/types";
 import { studentService, Student } from "@/services/user/student.service";
 import { courseService } from "@/services/academic/course.service";
@@ -29,7 +27,6 @@ export default function TeacherClassroomDetailPage() {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [stream, setStream] = useState<StreamItem[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,18 +41,15 @@ export default function TeacherClassroomDetailPage() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [ws, asgn, mat, st] = await Promise.all([
+      const [ws, asgn, mat] = await Promise.all([
         workspaceService.getById(id),
         assignmentService.listByWorkspace(id),
         materialService.listByWorkspace(id),
-        streamService.listByWorkspace(id),
       ]);
       setWorkspace(ws);
       setAssignments(asgn);
       setMaterials(mat);
-      setStream(st);
 
-      // Fetch students of this batch for People tab
       const batchId = ws?.batchId;
       const [courseDetail, batchDetail, batchStudents, teacherDetails] =
         await Promise.all([
@@ -117,7 +111,6 @@ export default function TeacherClassroomDetailPage() {
       workspace={workspace}
       assignments={assignments}
       materials={materials}
-      stream={stream}
       students={students}
       teachers={teachers}
       onRefresh={fetchData}

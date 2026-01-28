@@ -14,7 +14,6 @@ import {
     Workspace,
     Assignment,
     Material,
-    StreamItem,
 } from "@/services/classroom/types";
 import { Student } from "@/services/user/student.service";
 import { Teacher } from "@/services/user/teacher.service";
@@ -35,7 +34,6 @@ import { notifySuccess, notifyError } from "@/components/toast";
 import { getErrorMessage } from "@/lib/utils/toastHelpers";
 import { downloadBlob } from "@/lib/download";
 import { motion, AnimatePresence } from "framer-motion";
-import { StreamItemCard } from "./StreamItemCard";
 import { ClassworkCard } from "./ClassworkCard";
 import { StudentRow } from "./StudentRow";
 import { MaterialFolderCard } from "@/components/classroom/MaterialFolderCard";
@@ -46,7 +44,6 @@ interface ClassroomDetailClientProps {
     workspace: Workspace;
     assignments: Assignment[];
     materials: Material[];
-    stream: StreamItem[];
     students: Student[];
     teachers: Teacher[];
     onRefresh: () => void;
@@ -57,7 +54,6 @@ export function ClassroomDetailClient({
     workspace,
     assignments,
     materials,
-    stream,
     students,
     teachers,
     onRefresh,
@@ -226,10 +222,10 @@ export function ClassroomDetailClient({
                 </div>
             </div>
 
-            <Tabs defaultValue="stream" className="w-full">
+            <Tabs defaultValue="classwork" className="w-full">
                 <div className="flex overflow-x-auto pb-2 mb-4 scrollbar-hide">
                     <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max">
-                        {["Stream", "Classwork", "Quizzes", "People", "Grades"].map(
+                        {["Classwork", "Quizzes", "People", "Grades"].map(
                             (tab) => (
                                 <TabsTrigger
                                     key={tab}
@@ -243,63 +239,9 @@ export function ClassroomDetailClient({
                     </TabsList>
                 </div>
 
+
+
                 <AnimatePresence mode="wait">
-                    <TabsContent value="stream" key="stream" className="mt-6 outline-none">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            className="grid gap-8 lg:grid-cols-12"
-                        >
-                            <div className="lg:col-span-8 space-y-6">
-                                {stream.filter(item => ['assignment', 'material'].includes(item.type)).length > 0 ? (
-                                    stream.filter(item => ['assignment', 'material'].includes(item.type)).map((item, index) => (
-                                        <StreamItemCard key={`stream-${item.id || index}`} item={item} />
-                                    ))
-                                ) : (
-                                    <Card className="border-2 border-dashed border-slate-200 rounded-[3rem] p-20 text-center bg-white">
-                                        <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300 mb-6">
-                                            <Sparkles className="h-8 w-8" />
-                                        </div>
-                                        <h3 className="text-xl font-black text-slate-900 mb-2">
-                                            The stream is empty
-                                        </h3>
-                                        <p className="text-slate-500 font-medium">
-                                            Post announcements or tasks to engage with your students.
-                                        </p>
-                                    </Card>
-                                )}
-                            </div>
-
-                            <aside className="lg:col-span-4 space-y-8">
-                                <Card className="border border-slate-200 rounded-[2.5rem] shadow-sm p-10 bg-white">
-                                    <h3 className={`text-xl font-black text-slate-900 mb-6 flex items-center gap-3`}>
-                                        <GraduationCap className={`h-5 w-5 ${theme.colors.accent.primary}`} />
-                                        Quick Insights
-                                    </h3>
-                                    <div className="space-y-6">
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                                                Enrolled Scholars
-                                            </p>
-                                            <p className="text-3xl font-black text-slate-900 tracking-tighter">
-                                                {students.length}
-                                            </p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                                                Pending Evaluations
-                                            </p>
-                                            <p className="text-3xl font-black text-slate-900 tracking-tighter">
-                                                {assignments.length}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Card>
-                            </aside>
-                        </motion.div>
-                    </TabsContent>
-
                     <TabsContent value="classwork" key="classwork" className="mt-6 outline-none">
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
@@ -520,6 +462,6 @@ export function ClassroomDetailClient({
                     {viewingAssignmentId && <GradingView assignmentId={viewingAssignmentId} />}
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 }
