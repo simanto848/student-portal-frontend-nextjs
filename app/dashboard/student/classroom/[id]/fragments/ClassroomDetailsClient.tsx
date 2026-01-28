@@ -28,8 +28,10 @@ import {
     Users,
     Activity,
     Rocket,
-    Shield
+    Shield,
+    XCircle
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,6 +40,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MaterialFolderCard } from "@/components/classroom/MaterialFolderCard";
 import { cn } from "@/lib/utils";
 import StudentLoading from "@/components/StudentLoading";
+import mammoth from "mammoth";
 
 export default function ClassroomDetailsClient() {
     const params = useParams();
@@ -78,14 +81,64 @@ export default function ClassroomDetailsClient() {
         }
     };
 
-    const handleDownloadMaterialAttachment = async (material: Material, index: number) => {
+    // Preview State
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+    const [previewType, setPreviewType] = useState<'pdf' | 'image' | 'html' | 'other'>('other');
+    const [previewName, setPreviewName] = useState<string>("");
+
+    const handleClosePreview = () => {
+        if (previewUrl) {
+            window.URL.revokeObjectURL(previewUrl);
+        }
+        setPreviewUrl(null);
+        setPreviewHtml(null);
+        setPreviewType('other');
+        setPreviewName("");
+    };
+
+    const handleDownload = async (material: Material, index: number) => {
         try {
             const attachment = material.attachments?.[index];
             if (!attachment) return;
-            const blob = await materialService.downloadAttachment(attachment);
-            downloadBlob(blob, attachment.name || 'material');
+            const blob = await materialService.downloadAttachment(material.id, attachment);
+            downloadBlob(blob, attachment.name || 'file');
+        } catch (error) {
+            toast.error("Failed to download file");
+        }
+    };
+
+    const handlePreview = async (material: Material, index: number) => {
+        try {
+            const attachment = material.attachments?.[index];
+            if (!attachment) return;
+
+            const fileName = attachment.name || "file";
+            const extension = fileName.split('.').pop()?.toLowerCase();
+            const isPdf = extension === 'pdf';
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || "");
+            const isDocx = ['doc', 'docx'].includes(extension || "");
+
+            const blob = await materialService.downloadAttachment(material.id, attachment);
+
+            if (isDocx) {
+                const arrayBuffer = await blob.arrayBuffer();
+                const result = await mammoth.convertToHtml({ arrayBuffer });
+                setPreviewHtml(result.value);
+                setPreviewType('html');
+                setPreviewName(fileName);
+            } else if (isPdf || isImage) {
+                const url = window.URL.createObjectURL(blob);
+                setPreviewUrl(url);
+                setPreviewType(isPdf ? 'pdf' : 'image');
+                setPreviewName(fileName);
+            } else {
+                // Should not happen if button is only shown for previewable, but fallback
+                downloadBlob(blob, fileName);
+            }
         } catch (error: unknown) {
-            const message = error instanceof Error ? error.message : 'Failed to download attachment';
+            console.error(error);
+            const message = error instanceof Error ? error.message : 'Failed to preview file';
             toast.error(message);
         }
     };
@@ -449,7 +502,8 @@ export default function ClassroomDetailsClient() {
                                                         <MaterialFolderCard
                                                             material={material}
                                                             variant="student"
-                                                            onDownload={handleDownloadMaterialAttachment}
+                                                            onDownload={handleDownload}
+                                                            onPreview={handlePreview}
                                                         />
                                                     </motion.div>
                                                 ))}
@@ -514,6 +568,55 @@ export default function ClassroomDetailsClient() {
                     </div>
                 </TabsContent>
             </Tabs>
+            {/* File Preview Dialog */}
+            <Dialog open={!!previewUrl} onOpenChange={(open) => !open && handleClosePreview()}>
+                <DialogContent className="w-[95vw] h-[95vh] max-w-none p-0 gap-0 overflow-hidden bg-slate-950 border-slate-800 shadow-2xl flex flex-col">
+                    <DialogHeader className="p-4 bg-slate-900 border-b border-slate-800 flex flex-row items-center justify-between shrink-0">
+                        <DialogTitle className="text-slate-100 flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-[#0088A9]" />
+                            </div>
+                            <div>
+                                <span className="block text-base font-bold truncate max-w-md tracking-tight">{previewName || "File Preview"}</span>
+                                <span className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Preview Mode</span>
+                            </div>
+                        </DialogTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleClosePreview}
+                            className="h-10 w-10 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
+                        >
+                            <XCircle className="h-6 w-6" />
+                        </Button>
+                    </DialogHeader>
+                    <div className="flex-1 w-full bg-slate-950 flex items-center justify-center overflow-hidden relative p-1">
+                        {previewType === 'pdf' ? (
+                            <iframe
+                                src={previewUrl!}
+                                className="w-full h-full rounded-none border-none bg-white shadow-sm"
+                                title="PDF Preview"
+                            />
+                        ) : previewType === 'image' ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={previewUrl!}
+                                alt="Preview"
+                                className="max-w-full max-h-full object-contain shadow-2xl drop-shadow-2xl"
+                            />
+                        ) : previewType === 'html' ? (
+                            <div className="w-full h-full bg-slate-50 overflow-y-auto overflow-x-hidden p-8">
+                                <div className="max-w-[850px] mx-auto bg-white min-h-full shadow-lg rounded-sm p-12 text-slate-900 prose prose-slate max-w-none break-words" dangerouslySetInnerHTML={{ __html: previewHtml || "" }} />
+                            </div>
+                        ) : (
+                            <div className="text-center text-slate-500">
+                                <FileText className="h-20 w-20 mx-auto mb-6 opacity-20" />
+                                <p className="font-medium text-lg">Preview unavailable for this file type</p>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

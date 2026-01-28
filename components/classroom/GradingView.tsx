@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { assignmentService } from "@/services/classroom/assignment.service";
 import { submissionService } from "@/services/classroom/submission.service";
 import { Assignment, Submission, GradeSubmissionDto } from "@/services/classroom/types";
-import { Loader2, CheckCircle, XCircle, FileText, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle, XCircle, FileText, AlertCircle, Eye, Download } from "lucide-react";
 import { format } from "date-fns";
 import { notifySuccess, notifyError } from "@/components/toast";
 
@@ -94,6 +94,47 @@ export function GradingView({ assignmentId }: GradingViewProps) {
             document.body.removeChild(a);
         } catch (e) {
             notifyError("Failed to download file");
+        }
+    };
+
+    // Preview State
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [previewType, setPreviewType] = useState<'pdf' | 'image' | 'other'>('other');
+    const [previewName, setPreviewName] = useState<string>("");
+
+    const handleClosePreview = () => {
+        if (previewUrl) {
+            window.URL.revokeObjectURL(previewUrl);
+        }
+        setPreviewUrl(null);
+        setPreviewType('other');
+        setPreviewName("");
+    };
+
+    const handleFileAction = async (file: any) => {
+        const fileName = file.name || "file";
+        const extension = fileName.split('.').pop()?.toLowerCase();
+
+        // Define previewable types
+        const isPdf = extension === 'pdf';
+        const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || "");
+
+        if (isPdf || isImage) {
+            try {
+                // Fetch blob for preview
+                const blob = await submissionService.downloadSubmittedFile(file);
+                const url = window.URL.createObjectURL(blob);
+
+                setPreviewUrl(url);
+                setPreviewType(isPdf ? 'pdf' : 'image');
+                setPreviewName(fileName);
+            } catch (error) {
+                console.error("Failed to load preview", error);
+                notifyError("Failed to load preview");
+            }
+        } else {
+            // Fallback to download
+            await handleDownloadFile(file);
         }
     };
 
@@ -279,21 +320,28 @@ export function GradingView({ assignmentId }: GradingViewProps) {
 
                                     {selectedSubmission.files && selectedSubmission.files.length > 0 ? (
                                         <div className="grid gap-2">
-                                            {selectedSubmission.files.map((file, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => handleDownloadFile(file)}
-                                                    className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md hover:shadow-blue-50 transition-all text-left group"
-                                                >
-                                                    <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                                        <FileText className="h-5 w-5" />
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-700">{file.name}</p>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-blue-400">Click to download</p>
-                                                    </div>
-                                                </button>
-                                            ))}
+                                            {selectedSubmission.files.map((file, i) => {
+                                                const ext = file.name?.split('.').pop()?.toLowerCase();
+                                                const canPreview = ext === 'pdf' || ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext || "");
+
+                                                return (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => handleFileAction(file)}
+                                                        className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-md hover:shadow-blue-50 transition-all text-left group"
+                                                    >
+                                                        <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                                            <FileText className="h-5 w-5" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-bold text-slate-700 truncate group-hover:text-blue-700">{file.name}</p>
+                                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider group-hover:text-blue-400">
+                                                                {canPreview ? "Click to preview" : "Click to download"}
+                                                            </p>
+                                                        </div>
+                                                    </button>
+                                                )
+                                            })}
                                         </div>
                                     ) : (
                                         <div className="text-sm text-slate-400 italic p-4 text-center border-2 border-dashed border-slate-100 rounded-xl">
@@ -352,6 +400,52 @@ export function GradingView({ assignmentId }: GradingViewProps) {
                             </div>
                         </div>
                     )}
+                </DialogContent>
+            </Dialog>
+
+            {/* File Preview Dialog */}
+            <Dialog open={!!previewUrl} onOpenChange={(open) => !open && handleClosePreview()}>
+                <DialogContent className="w-[95vw] h-[95vh] max-w-none p-0 gap-0 overflow-hidden bg-slate-950 border-slate-800 shadow-2xl flex flex-col">
+                    <DialogHeader className="p-4 bg-slate-900 border-b border-slate-800 flex flex-row items-center justify-between shrink-0">
+                        <DialogTitle className="text-slate-100 flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-slate-800 flex items-center justify-center">
+                                <FileText className="h-5 w-5 text-[#2dd4bf]" />
+                            </div>
+                            <div>
+                                <span className="block text-base font-bold truncate max-w-md tracking-tight">{previewName || "File Preview"}</span>
+                                <span className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Preview Mode</span>
+                            </div>
+                        </DialogTitle>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleClosePreview}
+                            className="h-10 w-10 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all"
+                        >
+                            <XCircle className="h-6 w-6" />
+                        </Button>
+                    </DialogHeader>
+                    <div className="flex-1 w-full bg-slate-950 flex items-center justify-center overflow-hidden relative p-1">
+                        {previewType === 'pdf' ? (
+                            <iframe
+                                src={previewUrl!}
+                                className="w-full h-full rounded-none border-none bg-white shadow-sm"
+                                title="PDF Preview"
+                            />
+                        ) : previewType === 'image' ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                                src={previewUrl!}
+                                alt="Preview"
+                                className="max-w-full max-h-full object-contain shadow-2xl drop-shadow-2xl"
+                            />
+                        ) : (
+                            <div className="text-center text-slate-500">
+                                <AlertCircle className="h-20 w-20 mx-auto mb-6 opacity-20" />
+                                <p className="font-medium text-lg">Preview unavailable for this file type</p>
+                            </div>
+                        )}
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>

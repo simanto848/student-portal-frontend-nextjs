@@ -103,13 +103,21 @@ export const materialService = {
     /**
      * Download a material attachment (authenticated)
      */
-    downloadAttachment: async (attachment: Attachment): Promise<Blob> => {
-        if (!attachment.url) {
-            throw new Error('Attachment download URL is missing');
+    downloadAttachment: async (materialId: string, attachment: Attachment): Promise<Blob> => {
+        let url = attachment.url;
+
+        if (!url) {
+            if (attachment.id) {
+                // Construct the URL if it's missing but we have IDs
+                // /materials/item/:id/attachments/:attachmentId/download
+                url = `/materials/item/${materialId}/attachments/${attachment.id}/download`;
+            } else {
+                throw new Error('Attachment download URL and ID are missing');
+            }
         }
 
         try {
-            const response = await classroomApi.get(attachment.url, {
+            const response = await classroomApi.get(url, {
                 responseType: 'blob',
             });
             return response.data as Blob;

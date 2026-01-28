@@ -163,7 +163,8 @@
     }
 
     .bg-architectural {
-        background-color: oklch(0.968 0.007 247.896); /* default fallback */
+        background-color: oklch(0.968 0.007 247.896);
+        /* default fallback */
         background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuCBslXE_K1tqrNpm9wzg4QgyuTkZp9qAtOTcNMKq9UqOxunFGht70HVoisXGo1S2rYQpHB9v5w6oQ1osAhKGWAwzNNIqmoHhPiLvrzWzqUgomf0Z9TfifaCxMOryH5eVnt5-FOCbOQbhSXjjFTE0KA7wGaDj5ZZwnRKSWoG73ktBJ77EfI3t2Ejrbyho9IMdWRq1HIBiQnHq5Jv31OWKncbW1FkVMBwaVs2xd-tAejNdNhlLfe1KMHH4BQv9qV_z5SlEEBf9YDuAVak);
         background-size: cover;
         background-position: center;

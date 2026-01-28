@@ -129,7 +129,7 @@ export function ClassroomDetailClient({
         try {
             const attachment = material.attachments?.[index];
             if (!attachment) return;
-            const blob = await materialService.downloadAttachment(attachment);
+            const blob = await materialService.downloadAttachment(material.id, attachment);
             downloadBlob(blob, attachment.name || "material");
         } catch (error: unknown) {
             const message = getErrorMessage(error, "Failed to download attachment");

@@ -19,6 +19,7 @@ import {
     Trash2,
     Link as LinkIcon,
     ExternalLink,
+    Eye,
 } from "lucide-react";
 import { Material, Attachment } from "@/services/classroom/types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,6 +27,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface MaterialFolderCardProps {
     material: Material;
     onDownload: (material: Material, index: number) => void;
+    onPreview?: (material: Material, index: number) => void;
     onEdit?: (material: Material) => void;
     onDelete?: (id: string) => void;
     variant?: "teacher" | "student";
@@ -57,6 +59,7 @@ const formatFileSize = (bytes?: number): string => {
 export function MaterialFolderCard({
     material,
     onDownload,
+    onPreview,
     onEdit,
     onDelete,
     variant = "student",
@@ -221,6 +224,9 @@ export function MaterialFolderCard({
                                     <div className="space-y-2">
                                         {material.attachments?.map((attachment, idx) => {
                                             const FileIcon = getFileIcon(attachment.name);
+                                            const ext = attachment.name.split('.').pop()?.toLowerCase();
+                                            const isPreviewable = ext === 'pdf' || ['jpg', 'jpeg', 'png', 'gif', 'webp', 'doc', 'docx'].includes(ext || "");
+
                                             return (
                                                 <motion.div
                                                     key={attachment.id || `${material.id}-${idx}`}
@@ -246,16 +252,35 @@ export function MaterialFolderCard({
                                                         )}
                                                     </div>
 
-                                                    {/* Download Button */}
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-9 px-4 rounded-xl bg-white border border-slate-100 text-slate-500 hover:text-cyan-600 hover:border-cyan-200 hover:bg-cyan-50 font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
-                                                        onClick={() => onDownload(material, idx)}
-                                                    >
-                                                        <Download className="h-3.5 w-3.5 mr-1.5" />
-                                                        Download
-                                                    </Button>
+                                                    {/* Actions */}
+                                                    <div className="flex items-center gap-2">
+                                                        {isPreviewable && onPreview && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-9 px-3 rounded-xl bg-white border border-slate-100 text-slate-500 hover:text-cyan-600 hover:border-cyan-200 hover:bg-cyan-50 font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    onPreview(material, idx);
+                                                                }}
+                                                            >
+                                                                <Eye className="h-3.5 w-3.5 mr-1.5" />
+                                                                View
+                                                            </Button>
+                                                        )}
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-9 w-9 rounded-xl bg-white border border-slate-100 text-slate-500 hover:text-cyan-600 hover:border-cyan-200 hover:bg-cyan-50 transition-all shadow-sm"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onDownload(material, idx);
+                                                            }}
+                                                            title="Download"
+                                                        >
+                                                            <Download className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </div>
                                                 </motion.div>
                                             );
                                         })}
