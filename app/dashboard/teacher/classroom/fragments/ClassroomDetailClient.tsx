@@ -180,11 +180,11 @@ export function ClassroomDetailClient({
                         <div className="flex items-center gap-3 mb-2">
                             <Badge className={`${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary} border-none px-3 py-1 rounded-full flex items-center gap-2 shadow-sm`}>
                                 <Sparkles className="w-3 h-3" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">
+                                <span className="text-xs font-black uppercase tracking-widest">
                                     Classroom Hub
                                 </span>
                             </Badge>
-                            <span className="text-slate-400 font-black text-xs uppercase tracking-widest flex items-center gap-2">
+                            <span className="text-slate-400 font-black text-sm uppercase tracking-widest flex items-center gap-2">
                                 <Layers className="w-3.5 h-3.5" />
                                 {workspace.courseCode}
                             </span>
@@ -206,7 +206,7 @@ export function ClassroomDetailClient({
                         trigger={
                             <Button
                                 variant="outline"
-                                className={`h-12 px-6 rounded-xl border-slate-200 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 hover:${theme.colors.accent.primary} hover:border-${theme.colors.accent.primary.replace('text-', '')}/30 transition-all active:scale-95`}
+                                className={`h-12 px-6 rounded-xl border-slate-200 font-bold text-sm uppercase tracking-widest hover:bg-slate-50 hover:${theme.colors.accent.primary} hover:border-${theme.colors.accent.primary.replace('text-', '')}/30 transition-all active:scale-95`}
                             >
                                 <BookOpen className="w-4 h-4 mr-2" />
                                 Add Material
@@ -217,7 +217,7 @@ export function ClassroomDetailClient({
                         workspaceId={id}
                         onSuccess={onRefresh}
                         trigger={
-                            <Button className={`h-12 px-8 rounded-xl bg-[#2dd4bf] hover:bg-[#25b0a0] text-white font-bold text-xs uppercase tracking-widest shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95`}>
+                            <Button className={`h-12 px-8 rounded-xl bg-[#2dd4bf] hover:bg-[#25b0a0] text-white font-bold text-sm uppercase tracking-widest shadow-md hover:shadow-lg hover:shadow-teal-500/20 transition-all active:scale-95`}>
                                 <FileText className="w-4 h-4 mr-2" />
                                 Create Task
                             </Button>
@@ -234,7 +234,7 @@ export function ClassroomDetailClient({
                                 <TabsTrigger
                                     key={tab}
                                     value={tab.toLowerCase()}
-                                    className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
+                                    className={`rounded-xl px-6 py-2.5 font-bold text-sm uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}
                                 >
                                     {tab}
                                 </TabsTrigger>
@@ -252,8 +252,8 @@ export function ClassroomDetailClient({
                             className="grid gap-8 lg:grid-cols-12"
                         >
                             <div className="lg:col-span-8 space-y-6">
-                                {stream.length > 0 ? (
-                                    stream.map((item, index) => (
+                                {stream.filter(item => ['assignment', 'material'].includes(item.type)).length > 0 ? (
+                                    stream.filter(item => ['assignment', 'material'].includes(item.type)).map((item, index) => (
                                         <StreamItemCard key={`stream-${item.id || index}`} item={item} />
                                     ))
                                 ) : (
@@ -279,7 +279,7 @@ export function ClassroomDetailClient({
                                     </h3>
                                     <div className="space-y-6">
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                                                 Enrolled Scholars
                                             </p>
                                             <p className="text-3xl font-black text-slate-900 tracking-tighter">
@@ -287,7 +287,7 @@ export function ClassroomDetailClient({
                                             </p>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                                                 Pending Evaluations
                                             </p>
                                             <p className="text-3xl font-black text-slate-900 tracking-tighter">

@@ -39,12 +39,11 @@ export function StreamItemCard({ item }: StreamItemCardProps) {
                             <div className="flex items-center justify-between gap-4">
                                 <p className="text-sm font-black text-slate-800 tracking-tight">
                                     <span className={theme.colors.accent.primary}>{item.actorName}</span>
-                                    <span className="text-slate-400 font-bold mx-2">posted a new</span>
-                                    <span className="uppercase text-[10px] tracking-widest px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 font-black">
-                                        {item.type}
+                                    <span className="text-slate-400 font-bold mx-2">
+                                        {item.type === 'assignment' ? 'shared a new assignment with the class' : 'shared new learning materials'}
                                     </span>
                                 </p>
-                                <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                <div className="flex items-center gap-1.5 text-sm font-black text-slate-400 uppercase tracking-widest">
                                     <Clock className="w-3 h-3" />
                                     {format(new Date(item.createdAt), "MMM d, yyyy")}
                                 </div>

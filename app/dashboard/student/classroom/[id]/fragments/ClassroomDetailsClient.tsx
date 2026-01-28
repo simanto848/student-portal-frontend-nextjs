@@ -253,8 +253,8 @@ export default function ClassroomDetailsClient() {
                                     <div className="h-px flex-1 bg-gray-100 dark:bg-white/10" />
                                 </div>
                                 <AnimatePresence mode="popLayout">
-                                    {stream.length > 0 ? (
-                                        stream.map((item, idx) => (
+                                    {stream.filter(item => ['assignment', 'material'].includes(item.type)).length > 0 ? (
+                                        stream.filter(item => ['assignment', 'material'].includes(item.type)).map((item, idx) => (
                                             <motion.div
                                                 key={item.id}
                                                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -267,7 +267,7 @@ export default function ClassroomDetailsClient() {
                                                             "h-16 w-16 rounded-[2rem] shadow-sm flex items-center justify-center shrink-0 transition-transform duration-700 group-hover:scale-110 border-2 border-white",
                                                             item.type === 'assignment' ? 'bg-orange-100 text-orange-700' : 'bg-[#0088A9]/20 text-[#006680]'
                                                         )}>
-                                                            {item.type === 'assignment' ? <FileText className="h-8 w-8" /> : <MessageSquare className="h-8 w-8" />}
+                                                            {item.type === 'assignment' ? <FileText className="h-8 w-8" /> : <BookOpen className="h-8 w-8" />}
                                                         </div>
                                                         <div className="min-w-0 flex-1 space-y-4">
                                                             <div className="flex items-center justify-between">
@@ -276,7 +276,7 @@ export default function ClassroomDetailsClient() {
                                                                         <Users className="h-3.5 w-3.5" />
                                                                     </div>
                                                                     <p className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-[0.25em]">
-                                                                        {item.actorName} • {format(new Date(item.createdAt), "MMM d, yyyy")}
+                                                                        Posted by {item.actorName} • {format(new Date(item.createdAt), "MMM d, yyyy")}
                                                                     </p>
                                                                 </div>
                                                                 <Badge className={cn(
@@ -286,8 +286,8 @@ export default function ClassroomDetailsClient() {
                                                                     {item.type}
                                                                 </Badge>
                                                             </div>
-                                                            <h4 className="text-lg font-black text-slate-900 dark:text-white leading-snug tracking-tight">
-                                                                {item.actorName} shared a new {item.type}: <span className="text-[#0088A9] group-hover:underline font-black">{item.title}</span>
+                                                            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-snug tracking-tight">
+                                                                New {item.type === 'assignment' ? 'Assignment' : 'Material'}: <span className="text-[#0088A9] group-hover:underline font-black">{item.title}</span>
                                                             </h4>
                                                         </div>
                                                     </div>
@@ -299,7 +299,7 @@ export default function ClassroomDetailsClient() {
                                             <div className="p-10 rounded-[3rem] bg-white shadow-xl mb-8 border border-gray-50 scale-110">
                                                 <MessageSquare className="h-16 w-16 text-gray-100" />
                                             </div>
-                                            <p className="text-gray-500 font-black uppercase tracking-[0.4em] text-[11px]">No activity found yet.</p>
+                                            <p className="text-gray-500 font-black uppercase tracking-[0.4em] text-[11px]">No updates found yet.</p>
                                         </div>
                                     )}
                                 </AnimatePresence>

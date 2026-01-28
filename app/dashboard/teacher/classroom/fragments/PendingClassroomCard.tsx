@@ -25,11 +25,11 @@ export function PendingClassroomCard({ pending, onCreate, isCreating }: PendingC
                 <CardHeader className="pb-4 relative z-10">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2 mb-2">
-                            <Badge className="bg-white dark:bg-slate-800 text-orange-500 border-orange-100 dark:border-orange-900/30 px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                            <Badge className="bg-white dark:bg-slate-800 text-orange-500 border-orange-100 dark:border-orange-900/30 px-2.5 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wider shadow-sm">
                                 Awaiting Hub
                             </Badge>
                             {pending.courseCode && (
-                                <span className="text-[10px] font-bold text-orange-400/70 uppercase tracking-widest px-2 py-0.5 rounded-md">
+                                <span className="text-xs font-bold text-orange-400/70 uppercase tracking-widest px-2 py-0.5 rounded-md">
                                     {pending.courseCode}
                                 </span>
                             )}
@@ -38,11 +38,11 @@ export function PendingClassroomCard({ pending, onCreate, isCreating }: PendingC
                             {pending.courseName || "Untitled Course"}
                         </CardTitle>
                         <div className="flex flex-col gap-1 mt-2">
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                 <Users className="w-3.5 h-3.5 text-orange-400" />
                                 {pending.batchName}
                             </p>
-                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                 <BookOpen className="w-3.5 h-3.5 text-orange-400" />
                                 Semester {pending.semester}
                             </p>
@@ -54,7 +54,7 @@ export function PendingClassroomCard({ pending, onCreate, isCreating }: PendingC
                     <Button
                         onClick={() => onCreate(pending)}
                         disabled={isCreating}
-                        className="w-full h-12 rounded-2xl bg-white dark:bg-slate-800 border-2 border-orange-100 dark:border-orange-900/30 text-orange-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 group/btn"
+                        className="w-full h-12 rounded-2xl bg-white dark:bg-slate-800 border-2 border-orange-100 dark:border-orange-900/30 text-orange-500 hover:bg-orange-500 hover:text-white hover:border-orange-500 font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95 group/btn"
                     >
                         {isCreating ? (
                             <>

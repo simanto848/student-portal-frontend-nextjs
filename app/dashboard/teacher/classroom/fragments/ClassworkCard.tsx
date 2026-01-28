@@ -48,12 +48,12 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload, onPubl
 
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md ${isAssignment ? `${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary}` : "bg-slate-100 text-slate-600"
+                            <span className={`text-xs font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md ${isAssignment ? `${theme.colors.accent.primary.replace('text-', 'bg-')}/10 ${theme.colors.accent.primary}` : "bg-slate-100 text-slate-600"
                                 }`}>
                                 {type}
                             </span>
                             {isAssignment && assignment?.status && (
-                                <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md ${assignment.status === 'published' ? 'bg-green-100 text-green-700' :
+                                <span className={`text-xs font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-md ${assignment.status === 'published' ? 'bg-green-100 text-green-700' :
                                     assignment.status === 'closed' ? 'bg-red-100 text-red-700' :
                                         'bg-amber-100 text-amber-700'
                                     }`}>
@@ -61,7 +61,7 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload, onPubl
                                 </span>
                             )}
                             {isAssignment && assignment?.dueAt && (
-                                <div className="flex items-center gap-1.5 text-[10px] font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-md">
+                                <div className="flex items-center gap-1.5 text-xs font-black text-rose-500 uppercase tracking-widest bg-rose-50 px-2 py-0.5 rounded-md">
                                     <Calendar className="w-3 h-3" />
                                     Due {format(new Date(assignment.dueAt), "MMM d, yyyy")}
                                 </div>
@@ -73,7 +73,7 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload, onPubl
                         </h4>
 
                         {material && (
-                            <div className="mt-2 text-xs font-medium text-slate-500 line-clamp-1">
+                            <div className="mt-2 text-sm font-medium text-slate-500 line-clamp-1">
                                 {material.type === "link" && (
                                     <div className={`flex items-center gap-1 ${theme.colors.accent.primary}`}>
                                         <LinkIcon className="w-3 h-3" />
@@ -91,7 +91,7 @@ export function ClassworkCard({ item, type, onEdit, onDelete, onDownload, onPubl
                         )}
 
                         {isAssignment && assignment?.attachments && assignment.attachments.length > 0 && (
-                            <div className="mt-2 text-xs font-medium flex items-center gap-1 text-emerald-600">
+                            <div className="mt-2 text-sm font-medium flex items-center gap-1 text-emerald-600">
                                 <Download className="w-3 h-3" />
                                 {assignment.attachments.length} attachment(s)
                             </div>
