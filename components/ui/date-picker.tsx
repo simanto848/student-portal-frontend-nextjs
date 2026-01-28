@@ -25,6 +25,7 @@ interface DatePickerProps {
     onChange?: (date: Date | undefined) => void;
     placeholder?: string;
     className?: string;
+    disabled?: (date: Date) => boolean;
 }
 
 export function DatePicker({
@@ -32,6 +33,7 @@ export function DatePicker({
     onChange,
     placeholder = "Pick a date",
     className,
+    disabled,
 }: DatePickerProps) {
     const [calendarMonth, setCalendarMonth] = React.useState<Date>(date || new Date());
 
@@ -123,6 +125,7 @@ export function DatePicker({
                     onMonthChange={setCalendarMonth}
                     hideNavigation
                     initialFocus
+                    disabled={disabled}
                 />
             </PopoverContent>
         </Popover>

@@ -56,12 +56,17 @@ export function AttendanceRow({
         },
     ];
 
+    const isError = state.status === 'excused' && !state.remarks?.trim();
+
     return (
         <motion.tr
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="group transition-colors duration-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 last:border-0"
+            className={cn(
+                "group transition-colors duration-200 border-b last:border-0",
+                isError ? "bg-rose-50/50 hover:bg-rose-50 dark:bg-rose-900/10 dark:hover:bg-rose-900/20 border-rose-200 dark:border-rose-800" : "hover:bg-slate-50/50 dark:hover:bg-slate-800/50 border-slate-100 dark:border-slate-800"
+            )}
         >
             <TableCell className="px-6 py-4">
                 <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
@@ -91,7 +96,8 @@ export function AttendanceRow({
                             disabled={disabled}
                             className={cn(
                                 "h-10 w-10 p-0 rounded-2xl transition-all duration-500 border-2",
-                                state.status === config.id ? config.activeClass : config.inactiveClass
+                                state.status === config.id ? config.activeClass : config.inactiveClass,
+                                isError && state.status === 'excused' && "ring-2 ring-rose-500 ring-offset-2"
                             )}
                             onClick={() => onStatusChange(config.id as any)}
                             title={config.label}
@@ -102,13 +108,25 @@ export function AttendanceRow({
                 </div>
             </TableCell>
             <TableCell className="pr-6">
-                <Input
-                    placeholder="Remarks..."
-                    value={state.remarks}
-                    disabled={disabled}
-                    onChange={(e) => onRemarksChange(e.target.value)}
-                    className="h-9 bg-transparent border-slate-200 dark:border-slate-700 focus:bg-white dark:focus:bg-slate-800 rounded-lg text-xs"
-                />
+                <div className="relative">
+                    <Input
+                        placeholder={isError ? "Remarks required for Excused..." : "Remarks..."}
+                        value={state.remarks}
+                        disabled={disabled}
+                        onChange={(e) => onRemarksChange(e.target.value)}
+                        className={cn(
+                            "h-9 bg-transparent focus:bg-white dark:focus:bg-slate-800 rounded-lg text-xs transition-all",
+                            isError
+                                ? "border-rose-300 focus:border-rose-500 focus:ring-rose-500/20 placeholder:text-rose-400"
+                                : "border-slate-200 dark:border-slate-700"
+                        )}
+                    />
+                    {isError && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-rose-500 pointer-events-none animate-pulse">
+                            <AlertCircle className="h-4 w-4" />
+                        </div>
+                    )}
+                </div>
             </TableCell>
         </motion.tr>
     );

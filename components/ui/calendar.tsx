@@ -48,7 +48,7 @@ function Calendar({
                     `hover:${theme.colors.sidebar.iconBg} ${theme.colors.sidebar.hover}`,
                     `focus:outline-none focus:ring-2 focus:ring-${theme.colors.accent.secondary.replace("bg-", "")}/30`
                 ),
-                selected: `${theme.colors.accent.secondary} text-white font-bold shadow-md hover:opacity-90`,
+                selected: `${theme.colors.accent.primary} text-white font-bold shadow-md hover:opacity-90`,
                 today: `${theme.colors.accent.primary} font-bold underline underline-offset-4`,
                 outside: "day-outside text-slate-300",
                 disabled: "text-slate-300 opacity-50",

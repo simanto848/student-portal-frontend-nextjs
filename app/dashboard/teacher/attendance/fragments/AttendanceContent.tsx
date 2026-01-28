@@ -195,6 +195,17 @@ export function AttendanceContent() {
         const assignment = courses.find((c) => c.id === selectedAssignmentId);
         if (!assignment) return;
 
+        // Validation: Check for missing remarks on 'excused' status
+        const invalidAttendance = students.filter(student => {
+            const state = attendanceState[student.studentId];
+            return state.status === 'excused' && !state.remarks?.trim();
+        });
+
+        if (invalidAttendance.length > 0) {
+            notifyError(`Please provide remarks for ${invalidAttendance.length} student(s) marked as Excused.`);
+            return;
+        }
+
         setSaving(true);
         try {
             const isoDate = format(date, "yyyy-MM-dd") + "T00:00:00Z";
@@ -295,6 +306,7 @@ export function AttendanceContent() {
                         date={date}
                         onChange={(d) => d && setDate(d)}
                         className="w-40 md:w-48 bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 h-10"
+                        disabled={(date) => date > new Date()}
                     />
                 </div>
             </GlassCard>
