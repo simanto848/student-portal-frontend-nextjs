@@ -32,42 +32,75 @@ export function NotificationsTab({ user, refreshUser }: NotificationsTabProps) {
 
   useEffect(() => {
     if (user) {
-      const isEnabled = Boolean((user as any).emailUpdatesEnabled);
-      setEmailSettings((prev) => {
-        if (prev.announcements === isEnabled) return prev;
-        return {
+      if (user.notificationPreferences?.email) {
+        setEmailSettings((prev) => ({
           ...prev,
-          announcements: isEnabled,
-        };
-      });
+          ...user.notificationPreferences?.email,
+        }));
+      }
+      if (user.notificationPreferences?.push) {
+        setPushSettings((prev) => ({
+          ...prev,
+          ...user.notificationPreferences?.push,
+        }));
+      }
     }
   }, [user]);
 
   const handleEmailSettingChange = async (key: string, checked: boolean) => {
+    const oldSettings = { ...emailSettings };
     setEmailSettings((prev) => ({ ...prev, [key]: checked }));
 
-    if (key === "announcements") {
-      try {
-        await notifyPromise(
-          settingsService.updatePreferences({ emailUpdatesEnabled: checked }),
-          {
-            loading: "Updating preferences...",
-            success: "Preferences updated",
-            error: "Failed to update preferences",
-          },
-        );
-        await refreshUser();
-      } catch (error) {
-        console.error(error);
-        setEmailSettings((prev) => ({ ...prev, [key]: !checked }));
-      }
-    } else {
-      console.log(`Updated ${key} to ${checked}`);
+    const promise = settingsService.updatePreferences({
+      notificationPreferences: {
+        email: { [key]: checked },
+      },
+    });
+
+    notifyPromise(promise, {
+      loading: "Updating preferences...",
+      success: (data: any) => data.message || "Preferences updated successfully",
+      error: (err: any) => {
+        console.error(err);
+        setEmailSettings(oldSettings);
+        return err.message || "Failed to update preferences";
+      },
+    });
+
+    try {
+      await promise;
+      await refreshUser();
+    } catch (error) {
+      // Error handled by notifyPromise
     }
   };
 
-  const handlePushSettingChange = (key: string, checked: boolean) => {
+  const handlePushSettingChange = async (key: string, checked: boolean) => {
+    const oldSettings = { ...pushSettings };
     setPushSettings((prev) => ({ ...prev, [key]: checked }));
+
+    const promise = settingsService.updatePreferences({
+      notificationPreferences: {
+        push: { [key]: checked },
+      },
+    });
+
+    notifyPromise(promise, {
+      loading: "Updating preferences...",
+      success: (data: any) => data.message || "Preferences updated successfully",
+      error: (err: any) => {
+        console.error(err);
+        setPushSettings(oldSettings);
+        return err.message || "Failed to update preferences";
+      },
+    });
+
+    try {
+      await promise;
+      await refreshUser();
+    } catch (error) {
+      // Error handled by notifyPromise
+    }
   };
 
   return (

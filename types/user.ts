@@ -56,6 +56,21 @@ export interface BaseUser {
   status: boolean;
   createdAt: string;
   updatedAt: string;
+  emailUpdatesEnabled?: boolean;
+  notificationPreferences?: {
+    email?: {
+      gradeUpdates?: boolean;
+      newAssignments?: boolean;
+      deadlineReminders?: boolean;
+      announcements?: boolean;
+      directMessages?: boolean;
+    };
+    push?: {
+      messages?: boolean;
+      classReminders?: boolean;
+      libraryAlerts?: boolean;
+    };
+  };
 }
 
 // Student-specific user interface

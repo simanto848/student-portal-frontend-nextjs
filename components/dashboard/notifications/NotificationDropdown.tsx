@@ -12,10 +12,7 @@ import {
     Zap,
     ExternalLink,
     Loader2,
-    X,
-    Info,
-    Calendar,
-    AlertCircle
+    X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +26,6 @@ import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 
 interface NotificationDropdownProps {
     className?: string;
@@ -96,9 +92,9 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                 <div className="p-6 border-b border-white/20 bg-white/20 dark:bg-black/20 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-xl bg-primary-nexus/20">
-                            <Bell className="h-5 w-5 text-primary-nexus" />
+                            <Zap className="h-5 w-5 text-primary-nexus" />
                         </div>
-                        <span className="text-sm font-bold uppercase tracking-widest text-gray-900 dark:text-white">Notifications</span>
+                        <span className="text-sm font-black uppercase tracking-widest text-gray-900 dark:text-white">Active Updates</span>
                     </div>
                     {unreadCount > 0 && (
                         <Button
@@ -109,7 +105,7 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                             className="h-8 px-4 text-[10px] font-black uppercase tracking-widest text-primary-nexus hover:bg-primary-nexus/10 rounded-xl"
                         >
                             {isMarkingAllRead ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <CheckCircle2 className="h-3 w-3 mr-2" />}
-                            Clear All
+                            Clear List
                         </Button>
                     )}
                 </div>
@@ -127,8 +123,8 @@ export function NotificationDropdown({ className }: NotificationDropdownProps) {
                                     <Inbox className="h-8 w-8 text-gray-200" />
                                 </div>
                                 <div>
-                                    <p className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">All Caught Up</p>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">You have no new notifications</p>
+                                    <p className="text-[11px] font-black text-gray-900 dark:text-white uppercase tracking-widest mb-1">Terminal Clear</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">No new intel recorded on this frequency</p>
                                 </div>
                             </div>
                         ) : (
@@ -244,12 +240,12 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 {/* Modal Header */}
                 <div className="p-6 sm:p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="h-10 w-10 rounded-full bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center border border-teal-100 dark:border-teal-800">
-                            <Info className="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                        <div className="h-12 w-12 rounded-2xl bg-[#0088A9]/10 dark:bg-[#0088A9]/20 flex items-center justify-center shadow-inner">
+                            <Zap className="h-6 w-6 text-[#0088A9]" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-400 block mb-0.5">Notification Details</span>
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1">{notification.title}</h3>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0088A9] block mb-0.5">Terminal Dispatch</span>
+                            <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 dark:text-white line-clamp-1">{notification.title}</h3>
                         </div>
                     </div>
                     <Button
@@ -265,42 +261,37 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 {/* Modal Body */}
                 <div className="p-8 sm:p-10">
                     <div className="space-y-8">
-                        <div className="flex gap-5 items-start">
-                            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-teal-500/20">
-                                <MailOpen className="h-6 w-6" />
+                        <div className="flex gap-6 items-start">
+                            <div className="h-16 w-16 rounded-[2rem] bg-gradient-to-br from-[#0088A9] to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#0088A9]/20">
+                                <MailOpen className="h-8 w-8" />
                             </div>
-                            <div className="space-y-1.5 pt-0.5 border-l-2 border-teal-100 dark:border-teal-900/50 pl-5">
-                                <h4 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white leading-tight">{notification.title}</h4>
+                            <div className="space-y-2 pt-1 border-l-2 border-[#0088A9]/20 pl-6">
+                                <h4 className="text-lg font-black tracking-tight text-gray-900 dark:text-white leading-tight">{notification.title}</h4>
                                 <div className="flex items-center gap-2">
-                                    <Calendar className="h-3 w-3 text-teal-500" />
-                                    <p className="text-[10px] font-semibold text-teal-600 dark:text-teal-400 uppercase tracking-wider">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-[#0088A9] animate-pulse" />
+                                    <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-[0.2em]">
                                         {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just Now'}
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-6 rounded-2xl bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
-                                <Info className="h-20 w-20 text-teal-600" />
+                        <div className="p-10 rounded-[2.5rem] bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 shadow-inner relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                                <Zap className="h-20 w-20 text-[#0088A9]" />
                             </div>
                             <div
-                                className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed break-words font-medium relative z-10"
+                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed break-words font-medium relative z-10"
                                 dangerouslySetInnerHTML={{ __html: notification.content }}
                             />
                         </div>
 
                         {/* Metadata Pills */}
-                        <div className="flex flex-wrap gap-2 items-center">
-                            {notification.id && (
-                                <Badge variant="secondary" className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-medium px-3 rounded-lg">
-                                    ID: {notification.id.substring(0, 8)}
-                                </Badge>
-                            )}
-                            <Badge variant={notification.priority === 'high' ? 'destructive' : 'outline'} className={cn(
-                                "text-[10px] font-medium px-3 rounded-lg capitalize border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300",
-                                notification.priority === 'high' && "bg-red-50 text-red-600 border-red-200"
-                            )}>
+                        <div className="flex flex-wrap gap-3 items-center px-2">
+                            <Badge variant="outline" className="bg-white/50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl">
+                                ID: {notification.id ? notification.id.substring(0, 12) : 'N/A'}
+                            </Badge>
+                            <Badge className="bg-[#0088A9]/10 text-[#0088A9] hover:bg-[#0088A9]/20 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl border-0">
                                 {notification.priority || 'Standard'} Priority
                             </Badge>
                         </div>
@@ -311,9 +302,9 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 <div className="p-8 bg-gray-50/50 dark:bg-white/5 border-t border-gray-100 dark:border-white/5 flex justify-end">
                     <Button
                         onClick={onClose}
-                        className="rounded-xl px-8 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold uppercase tracking-wider h-10 shadow-lg shadow-teal-500/20 transition-all"
+                        className="rounded-2xl px-12 bg-gradient-to-r from-[#0088A9] to-indigo-600 text-white hover:scale-105 active:scale-95 text-[11px] font-black uppercase tracking-widest h-14 shadow-xl shadow-[#0088A9]/30 border-0 transition-all"
                     >
-                        Close
+                        Acknowledge Intel
                     </Button>
                 </div>
             </motion.div>

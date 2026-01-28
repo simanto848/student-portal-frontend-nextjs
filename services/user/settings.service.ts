@@ -48,10 +48,30 @@ export const settingsService = {
 
   updatePreferences: async (data: {
     emailUpdatesEnabled?: boolean;
-  }): Promise<{ emailUpdatesEnabled: boolean } | any> => {
+    notificationPreferences?: {
+      email?: {
+        gradeUpdates?: boolean;
+        newAssignments?: boolean;
+        deadlineReminders?: boolean;
+        announcements?: boolean;
+        directMessages?: boolean;
+      };
+      push?: {
+        messages?: boolean;
+        classReminders?: boolean;
+        libraryAlerts?: boolean;
+      };
+    };
+  }): Promise<
+    | {
+      emailUpdatesEnabled: boolean;
+      notificationPreferences?: any;
+    }
+    | any
+  > => {
     try {
       const res = await api.patch("/user/auth/preferences", data);
-      return extractItemData(res as any);
+      return res.data;
     } catch (e) {
       return handleApiError(e);
     }
