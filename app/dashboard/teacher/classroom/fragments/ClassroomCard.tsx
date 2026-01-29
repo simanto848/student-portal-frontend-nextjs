@@ -85,7 +85,7 @@ export function ClassroomCard({ workspace, onEnter, onArchive }: ClassroomCardPr
                                     <Archive className="h-5 w-5" />
                                 </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent className="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl">
+                            <AlertDialogContent className="rounded-4xl border border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl shadow-2xl">
                                 <AlertDialogHeader>
                                     <AlertDialogTitle className="text-xl font-bold text-slate-900 dark:text-white">Archive Classroom?</AlertDialogTitle>
                                     <AlertDialogDescription className="text-slate-500 dark:text-slate-400 font-medium">
@@ -112,7 +112,7 @@ export function ClassroomCard({ workspace, onEnter, onArchive }: ClassroomCardPr
                             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Total Students</p>
                             <p className="text-lg font-bold text-[#2dd4bf] tracking-tighter">{workspace.totalBatchStudents || 0}</p>
                         </div>
-                        <div className="h-8 w-[1px] bg-slate-100 dark:bg-slate-700" />
+                        <div className="h-8 w-px bg-slate-100 dark:bg-slate-700" />
                         <div className="space-y-1">
                             <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Stream Status</p>
                             <div className="flex items-center gap-1.5">

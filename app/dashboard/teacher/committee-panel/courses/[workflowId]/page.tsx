@@ -50,8 +50,6 @@ interface TheoryMarks {
 
 interface LabMarks {
     labReports?: number | string | null;
-    viva?: number | string | null;
-    experiment?: number | string | null;
     attendance?: number | string | null;
     finalLab?: number | string | null;
 }
@@ -407,14 +405,6 @@ export default function CommitteeWorkflowDetail() {
                                                 <span className="font-medium">{viewStudent.labMarks.labReports ?? '-'}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Viva</span>
-                                                <span className="font-medium">{viewStudent.labMarks.viva ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500">Experiment</span>
-                                                <span className="font-medium">{viewStudent.labMarks.experiment ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
                                                 <span className="text-slate-500">Attendance</span>
                                                 <span className="font-medium">{viewStudent.labMarks.attendance ?? '-'}</span>
                                             </div>
@@ -463,7 +453,11 @@ export default function CommitteeWorkflowDetail() {
                 isOpen={otpDialogOpen}
                 onClose={() => setOtpDialogOpen(false)}
                 onConfirm={handleOtpConfirm}
-                purpose={otpActionType === 'publish' ? 'result_publish' : 'result_approval'}
+                purpose={
+                    otpActionType === 'publish' ? 'result_publication' :
+                        otpActionType === 'return' ? 'result_return' :
+                            'result_approval'
+                }
                 title={
                     otpActionType === 'approve' ? 'Confirm Approval' :
                         otpActionType === 'publish' ? 'Confirm Publication' :

@@ -223,7 +223,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
     if (!notification) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 text-left">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6 text-left">
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -241,11 +241,11 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 {/* Modal Header */}
                 <div className="p-6 sm:p-8 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-2xl bg-[#0088A9]/10 dark:bg-[#0088A9]/20 flex items-center justify-center shadow-inner">
-                            <Zap className="h-6 w-6 text-[#0088A9]" />
+                        <div className="h-12 w-12 rounded-2xl bg-primary-nexus/10 dark:bg-primary-nexus/20 flex items-center justify-center shadow-inner">
+                            <Zap className="h-6 w-6 text-primary-nexus" />
                         </div>
                         <div>
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0088A9] block mb-0.5">{notification.type}</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary-nexus block mb-0.5">{notification.type}</span>
                             <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 dark:text-white line-clamp-1">{notification.title}</h3>
                         </div>
                     </div>
@@ -263,14 +263,14 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 <div className="p-8 sm:p-10">
                     <div className="space-y-8">
                         <div className="flex gap-6 items-start">
-                            <div className="h-16 w-16 rounded-[2rem] bg-gradient-to-br from-[#0088A9] to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#0088A9]/20">
+                            <div className="h-16 w-16 rounded-4xl bg-linear-to-br from-primary-nexus to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xl shadow-primary-nexus/20">
                                 <MailOpen className="h-8 w-8" />
                             </div>
-                            <div className="space-y-2 pt-1 border-l-2 border-[#0088A9]/20 pl-6">
+                            <div className="space-y-2 pt-1 border-l-2 border-primary-nexus/20 pl-6">
                                 <h4 className="text-lg font-black tracking-tight text-gray-900 dark:text-white leading-tight">{notification.title}</h4>
                                 <div className="flex items-center gap-2">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-[#0088A9] animate-pulse" />
-                                    <p className="text-[10px] font-black text-[#0088A9] uppercase tracking-[0.2em]">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary-nexus animate-pulse" />
+                                    <p className="text-[10px] font-black text-primary-nexus uppercase tracking-[0.2em]">
                                         {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just Now'}
                                     </p>
                                 </div>
@@ -279,10 +279,10 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
 
                         <div className="p-10 rounded-[2.5rem] bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 shadow-inner relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                                <Zap className="h-20 w-20 text-[#0088A9]" />
+                                <Zap className="h-20 w-20 text-primary-nexus" />
                             </div>
                             <div
-                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed break-words font-medium relative z-10"
+                                className="text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed wrap-break-word font-medium relative z-10"
                                 dangerouslySetInnerHTML={{ __html: notification.content }}
                             />
                         </div>
@@ -292,7 +292,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                             <Badge className="bg-white/50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl">
                                 ID: {notification.id ? notification.id.substring(0, 12) : 'N/A'}
                             </Badge>
-                            <Badge className="bg-[#0088A9]/10 text-[#0088A9] hover:bg-[#0088A9]/20 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl border-0">
+                            <Badge className="bg-primary-nexus/10 text-primary-nexus hover:bg-primary-nexus/20 text-[9px] font-black uppercase tracking-widest py-1.5 px-4 rounded-xl border-0">
                                 {notification.priority || 'Standard'} Priority
                             </Badge>
                         </div>
@@ -303,7 +303,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 <div className="p-8 bg-gray-50/50 dark:bg-white/5 border-t border-gray-100 dark:border-white/5 flex justify-end">
                     <Button
                         onClick={onClose}
-                        className="rounded-2xl px-12 bg-gradient-to-r from-[#0088A9] to-indigo-600 text-white hover:scale-105 active:scale-95 text-[11px] font-black uppercase tracking-widest h-14 shadow-xl shadow-[#0088A9]/30 border-0 transition-all"
+                        className="rounded-2xl px-12 bg-linear-to-r from-primary-nexus to-indigo-600 text-white hover:scale-105 active:scale-95 text-[11px] font-black uppercase tracking-widest h-14 shadow-xl shadow-primary-nexus/30 border-0 transition-all"
                     >
                         Close
                     </Button>

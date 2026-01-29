@@ -39,8 +39,6 @@ interface MarkEntry {
     };
     labMarks?: {
         labReports?: number;
-        viva?: number;
-        experiment?: number;
         attendance?: number;
         finalLab?: number;
     };
@@ -103,6 +101,7 @@ interface CourseFinalMarksEntryProps {
     batchId: string;
     semester: number;
     isLocked?: boolean;
+    onSave?: () => void;
 }
 
 export function CourseFinalMarksEntry({
@@ -110,6 +109,7 @@ export function CourseFinalMarksEntry({
     batchId,
     semester,
     isLocked = false,
+    onSave,
 }: CourseFinalMarksEntryProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [markConfig, setMarkConfig] = useState<MarkConfig | null>(null);
@@ -228,9 +228,9 @@ export function CourseFinalMarksEntry({
     const calculateLabTotal = (studentId: string): number => {
         const entry = markEntries.get(studentId);
         if (!entry?.labMarks) return 0;
-        const { labReports = 0, viva = 0, experiment = 0, attendance = 0, finalLab = 0 } =
+        const { labReports = 0, attendance = 0, finalLab = 0 } =
             entry.labMarks;
-        return labReports + viva + experiment + attendance + finalLab;
+        return labReports + attendance + finalLab;
     };
 
     const validateEntry = (studentId: string): boolean => {
@@ -260,16 +260,12 @@ export function CourseFinalMarksEntry({
 
         if (markConfig?.courseType === "lab" && entry?.labMarks) {
             const lab = entry.labMarks;
-            if (lab.labReports !== undefined && lab.labReports > 20) {
-                newErrors.set(`${studentId}.lab.reports`, "Cannot exceed 20");
+            if (lab.labReports !== undefined && lab.labReports > 10) {
+                newErrors.set(`${studentId}.lab.reports`, "Cannot exceed 10");
                 isValid = false;
             }
-            if (lab.viva !== undefined && lab.viva > 20) {
-                newErrors.set(`${studentId}.lab.viva`, "Cannot exceed 20");
-                isValid = false;
-            }
-            if (lab.experiment !== undefined && lab.experiment > 10) {
-                newErrors.set(`${studentId}.lab.experiment`, "Cannot exceed 10");
+            if (lab.attendance !== undefined && lab.attendance > 10) {
+                newErrors.set(`${studentId}.lab.attendance`, "Cannot exceed 10");
                 isValid = false;
             }
             if (lab.finalLab !== undefined && lab.finalLab > 30) {
@@ -323,6 +319,11 @@ export function CourseFinalMarksEntry({
                 notifyWarning(
                     `${result.successCount} saved, ${result.failureCount} failed`
                 );
+            }
+
+            // Trigger grade summary refresh after save
+            if (onSave) {
+                onSave();
             }
         } catch (error) {
             notifyError("Failed to save marks");
@@ -460,13 +461,7 @@ export function CourseFinalMarksEntry({
                                     markConfig.courseType === "combined") && (
                                         <>
                                             <TableHead className="font-black text-slate-900">
-                                                Lab Reports (20)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Viva (20)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Experiment (10)
+                                                Lab Reports (10)
                                             </TableHead>
                                             <TableHead className="font-black text-slate-900">
                                                 Lab Attendance (10)
@@ -573,7 +568,7 @@ export function CourseFinalMarksEntry({
                                             <>
                                                 <TableCell>
                                                     <MarkInputField
-                                                        maxValue={20}
+                                                        maxValue={10}
                                                         value={
                                                             markEntries.get(student.id)?.labMarks?.labReports
                                                         }
@@ -585,32 +580,6 @@ export function CourseFinalMarksEntry({
                                                             )
                                                         }
                                                         error={errors.get(`${student.id}.lab.reports`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={20}
-                                                        value={markEntries.get(student.id)?.labMarks?.viva}
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(student.id, "labMarks.viva", val)
-                                                        }
-                                                        error={errors.get(`${student.id}.lab.viva`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={
-                                                            markEntries.get(student.id)?.labMarks?.experiment
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "labMarks.experiment",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.lab.experiment`)}
                                                     />
                                                 </TableCell>
                                                 <TableCell>

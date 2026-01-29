@@ -16,7 +16,7 @@ import {
   CourseGrade,
 } from "@/services/enrollment/courseGrade.service";
 import { enrollmentService } from "@/services/enrollment/enrollment.service";
-import { Loader2, Calculator, Send, Lock, AlertCircle } from "lucide-react";
+import { Loader2, Send, Lock, AlertCircle } from "lucide-react";
 import { notifyError, notifySuccess } from "@/components/toast";
 import { CourseFinalMarksEntry } from "@/components/classroom/CourseFinalMarksEntry";
 import { motion } from "framer-motion";
@@ -40,7 +40,6 @@ export function CourseGradeView({
   const [grades, setGrades] = useState<CourseGrade[]>([]);
   const [students, setStudents] = useState<Record<string, unknown>[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCalculating, setIsCalculating] = useState(false);
   const [workflowStatus, setWorkflowStatus] = useState<string>("draft");
   const [isOTPDialogOpen, setIsOTPDialogOpen] = useState(false); // New state
   const [showAttendanceSummary, setShowAttendanceSummary] = useState(false);
@@ -94,19 +93,6 @@ export function CourseGradeView({
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const handleCalculate = async (studentId: string) => {
-    setIsCalculating(true);
-    try {
-      await courseGradeService.calculate({ studentId, courseId, batchId });
-      notifySuccess("Grade calculated");
-      fetchData();
-    } catch {
-      notifyError("Failed to calculate grade");
-    } finally {
-      setIsCalculating(false);
-    }
-  };
 
   const handleSubmitClick = () => {
     // Basic check before opening dialog
@@ -240,6 +226,7 @@ export function CourseGradeView({
         batchId={batchId}
         semester={semester}
         isLocked={isMarksLocked}
+        onSave={fetchData}
       />
 
       {/* Grade Summary Table */}
@@ -301,11 +288,6 @@ export function CourseGradeView({
                       <TableHead className="py-5 font-black text-slate-400 text-[10px] uppercase tracking-widest">
                         Status
                       </TableHead>
-                      {!isMarksLocked && (
-                        <TableHead className="px-8 py-5 text-right font-black text-slate-400 text-[10px] uppercase tracking-widest">
-                          Actions
-                        </TableHead>
-                      )}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -353,27 +335,6 @@ export function CourseGradeView({
                               </span>
                             )}
                           </TableCell>
-                          {!isStudentLocked && (
-                            <TableCell className="px-8 py-5 text-right">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() =>
-                                  handleCalculate(studentId)
-                                }
-                                disabled={
-                                  isCalculating ||
-                                  (grade &&
-                                    grade.status !== "pending" &&
-                                    grade.status !== "calculated")
-                                }
-                                className="h-8 px-4 text-[10px] font-bold uppercase tracking-widest rounded-lg text-slate-500 hover:bg-slate-50 hover:text-[#2dd4bf] hover:shadow-sm transition-all"
-                              >
-                                <Calculator className="h-4 w-4 mr-1" />
-                                Calculate
-                              </Button>
-                            </TableCell>
-                          )}
                         </TableRow>
                       );
                     })}
