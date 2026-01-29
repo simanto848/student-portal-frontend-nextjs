@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +49,8 @@ interface ClassroomDetailClientProps {
     onRefresh: () => void;
 }
 
+type TabType = "classwork" | "quizzes" | "people" | "grades";
+
 export function ClassroomDetailClient({
     id,
     workspace,
@@ -59,12 +61,30 @@ export function ClassroomDetailClient({
     onRefresh,
 }: ClassroomDetailClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const theme = useDashboardTheme();
+
+    // Get initial tab from URL or default to "classwork"
+    const initialTab = (searchParams.get('tab') as TabType) || "classwork";
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+
     const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
     const [viewingAssignmentId, setViewingAssignmentId] = useState<string | null>(null);
     const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
     const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
     const [batchDetails, setBatchDetails] = useState<any>(null);
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab as TabType);
+        const url = new URL(window.location.href);
+        if (tab === "classwork") {
+            url.searchParams.delete('tab');
+        } else {
+            url.searchParams.set('tab', tab);
+        }
+        router.replace(url.pathname + url.search, { scroll: false });
+    };
 
     useEffect(() => {
         const fetchBatchDetails = async () => {
@@ -222,7 +242,7 @@ export function ClassroomDetailClient({
                 </div>
             </div>
 
-            <Tabs defaultValue="classwork" className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex overflow-x-auto pb-2 mb-4 scrollbar-hide">
                     <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max">
                         {["Classwork", "Quizzes", "People", "Grades"].map(

@@ -321,7 +321,7 @@ export default function GradingWorkflowClient({
                             {filteredWorkflows.length > 0 ? (
                                 filteredWorkflows.map((workflow, idx) => (
                                     <WorkflowCard
-                                        key={workflow.id}
+                                        key={workflow.id || workflow._id || `workflow-${idx}`}
                                         workflow={workflow}
                                         index={idx}
                                         themeAccent={accentPrimary}

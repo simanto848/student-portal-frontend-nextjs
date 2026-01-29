@@ -11,7 +11,7 @@ import {
     AlertCircle,
     Library as LibraryIcon
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,10 +46,26 @@ interface LibraryClientProps {
 
 export default function LibraryClient({ initialData }: LibraryClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<TabType>("borrowed");
+
+    // Get initial tab from URL or default to "borrowed"
+    const initialTab = (searchParams.get('tab') as TabType) || "borrowed";
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab);
     const [searchQuery, setSearchQuery] = useState("");
     const [catalogSearch, setCatalogSearch] = useState("");
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab as TabType);
+        const url = new URL(window.location.href);
+        if (tab === "borrowed") {
+            url.searchParams.delete('tab');
+        } else {
+            url.searchParams.set('tab', tab);
+        }
+        router.replace(url.pathname + url.search, { scroll: false });
+    };
 
     const {
         borrowed,
@@ -212,7 +228,7 @@ export default function LibraryClient({ initialData }: LibraryClientProps) {
                 </Alert>
             )}
 
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8">
                     <GlassCard className="p-1.5 w-full xl:w-auto overflow-x-auto no-scrollbar">
                         <TabsList className="bg-transparent h-auto p-0 gap-1">

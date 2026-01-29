@@ -89,11 +89,18 @@ export default function CommitteeReviewTab() {
     const { user } = useAuth();
     const [workflows, setWorkflows] = useState<CommitteeWorkflow[]>([]);
     const [loading, setLoading] = useState(true);
-    const [statusFilter, setStatusFilter] = useState("all");
+    const [statusFilter, setStatusFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
+    const [isMounted, setIsMounted] = useState(false);
 
     const isCommitteeMember = user && isTeacherUser(user) && user.isExamCommitteeMember;
+
+    // Delay rendering of complex components to avoid ref loops
+    useEffect(() => {
+        setIsMounted(true);
+        return () => setIsMounted(false);
+    }, []);
 
     const fetchWorkflows = async () => {
         try {
@@ -230,20 +237,32 @@ export default function CommitteeReviewTab() {
                 </div>
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[180px] bg-slate-50 border-slate-200">
-                            <Filter className="h-4 w-4 mr-2 text-slate-400" />
-                            <SelectValue placeholder="Filter Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="WITH_INSTRUCTOR">With Instructor</SelectItem>
-                            <SelectItem value="SUBMITTED_TO_COMMITTEE">Pending Review</SelectItem>
-                            <SelectItem value="COMMITTEE_APPROVED">Approved</SelectItem>
-                            <SelectItem value="PUBLISHED">Published</SelectItem>
-                            <SelectItem value="RETURNED_TO_TEACHER">Returned</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <div className="w-[180px]">
+                        {isMounted ? (
+                            <Select
+                                value={statusFilter}
+                                onValueChange={setStatusFilter}
+                            >
+                                <SelectTrigger className="w-full bg-slate-50 border-slate-200">
+                                    <Filter className="h-4 w-4 mr-2 text-slate-400" />
+                                    <SelectValue placeholder="Filter Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="WITH_INSTRUCTOR">With Instructor</SelectItem>
+                                    <SelectItem value="SUBMITTED_TO_COMMITTEE">Pending Review</SelectItem>
+                                    <SelectItem value="COMMITTEE_APPROVED">Approved</SelectItem>
+                                    <SelectItem value="PUBLISHED">Published</SelectItem>
+                                    <SelectItem value="RETURNED_TO_TEACHER">Returned</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        ) : (
+                            <div className="h-10 w-full bg-slate-50 border border-slate-200 rounded-md flex items-center px-3">
+                                <Filter className="h-4 w-4 mr-2 text-slate-400" />
+                                <span className="text-sm text-muted-foreground">Filter Status</span>
+                            </div>
+                        )}
+                    </div>
 
                     <Button variant="outline" size="icon" onClick={fetchWorkflows} className="shrink-0">
                         <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />

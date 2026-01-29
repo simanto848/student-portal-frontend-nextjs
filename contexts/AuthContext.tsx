@@ -191,9 +191,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw new Error("Invalid login response");
         }
 
-        const userRole = (data.user.role || role).toLowerCase() as UserRole;
+        // Store tokens first
+        localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
+        localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
+
+        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
+        // Fetch complete user profile with isDepartmentHead, isExamCommitteeMember flags
+        let fullUserData = data.user;
+        try {
+          const meResponse = await api.get("/user/auth/me", {
+            headers: { Authorization: `Bearer ${data.accessToken}` },
+          });
+          if (meResponse.data?.data?.user) {
+            fullUserData = meResponse.data.data.user;
+          }
+        } catch (meError) {
+          console.warn("Failed to fetch full user profile, using login response:", meError);
+        }
+
+        const userRole = (fullUserData.role || role).toLowerCase() as UserRole;
         const normalizedUser = {
-          ...data.user,
+          ...fullUserData,
           role: userRole
         };
 
@@ -204,23 +225,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           AUTH_CONFIG.USER_STORAGE_KEY,
           JSON.stringify(normalizedUser),
         );
-        localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
-        localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
-
-        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
-        const isSecure = window.location.protocol === "https:";
-        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
-
-        // Explicitly handle exam_controller role variations if necessary, though standard flow should catch it via STAFF_ROLE_ROUTES
-        // We trust the backend returning the correct role enum value (with underscore)
-
-        console.log("LOGIN DEBUG:", {
-          receivedUserRole: data.user.role,
-          computedUserRole: userRole,
-          requestedRole: role,
-          mappedRoute: STAFF_ROLE_ROUTES[userRole],
-          allStaffRoutes: STAFF_ROLE_ROUTES
-        });
 
         const redirectPath = getRedirectPath(userRole, role);
         router.push(redirectPath);
@@ -257,9 +261,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
           throw new Error("Invalid 2FA verification response");
         }
 
-        const userRole = (data.user.role || "student").toLowerCase() as UserRole;
+        // Store tokens first
+        localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
+        localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
+
+        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+
+        // Fetch complete user profile with isDepartmentHead, isExamCommitteeMember flags
+        let fullUserData = data.user;
+        try {
+          const meResponse = await api.get("/user/auth/me", {
+            headers: { Authorization: `Bearer ${data.accessToken}` },
+          });
+          if (meResponse.data?.data?.user) {
+            fullUserData = meResponse.data.data.user;
+          }
+        } catch (meError) {
+          console.warn("Failed to fetch full user profile, using 2FA response:", meError);
+        }
+
+        const userRole = (fullUserData.role || "student").toLowerCase() as UserRole;
         const normalizedUser = {
-          ...data.user,
+          ...fullUserData,
           role: userRole
         };
 
@@ -270,12 +295,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           AUTH_CONFIG.USER_STORAGE_KEY,
           JSON.stringify(normalizedUser),
         );
-        localStorage.setItem(AUTH_CONFIG.ACCESS_TOKEN_KEY, data.accessToken);
-        localStorage.setItem(AUTH_CONFIG.REFRESH_TOKEN_KEY, data.refreshToken);
-
-        const maxAge = AUTH_CONFIG.TOKEN_EXPIRY_DAYS * 24 * 60 * 60;
-        const isSecure = window.location.protocol === "https:";
-        document.cookie = `${AUTH_CONFIG.TOKEN_COOKIE_NAME}=${data.accessToken}; path=/; max-age=${maxAge}; SameSite=Lax${isSecure ? "; Secure" : ""}`;
 
         const redirectPath = getRedirectPath(userRole);
         router.push(redirectPath);

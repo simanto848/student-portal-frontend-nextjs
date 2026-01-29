@@ -21,6 +21,7 @@ import {
     X
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { notifySuccess, notifyError } from "@/components/toast";
 
@@ -69,13 +70,30 @@ export default function NotificationListClient({
     initialSentNotifications,
     initialUnreadCount,
 }: NotificationListClientProps) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const theme = useDashboardTheme();
-    const [activeTab, setActiveTab] = useState<TabType>("inbox");
+
+    // Get initial tab from URL or default to "inbox"
+    const initialTab = (searchParams.get('tab') as TabType) || "inbox";
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab);
     const [filter, setFilter] = useState<FilterType>("all");
     const [searchQuery, setSearchQuery] = useState("");
     const [sentNotifications, setSentNotifications] = useState<NotificationItem[]>(initialSentNotifications);
     const [isLoadingSent, setIsLoadingSent] = useState(false);
     const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab as TabType);
+        const url = new URL(window.location.href);
+        if (tab === "inbox") {
+            url.searchParams.delete('tab');
+        } else {
+            url.searchParams.set('tab', tab);
+        }
+        router.replace(url.pathname + url.search, { scroll: false });
+    };
 
     const accentPrimary = theme.colors.accent.primary;
     const accentBgSubtle = accentPrimary.replace('text-', 'bg-') + '/10';
@@ -216,7 +234,7 @@ export default function NotificationListClient({
                 </div>
             </div>
 
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-6">
                     <TabsList className="h-14 p-1.5 bg-slate-100/80 dark:bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-200/50 dark:border-slate-700 w-full md:w-auto">
                         <TabsTrigger

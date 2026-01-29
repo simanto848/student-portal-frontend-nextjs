@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     Users,
     Calendar,
@@ -64,6 +64,8 @@ interface CourseDetailClientProps {
     id: string;
 }
 
+type TabType = "overview" | "students" | "attendance" | "grades";
+
 const formatBatchName = (batch: any) => {
     if (!batch) return "N/A";
     const prefix = batch.shift === "day" ? "D-" : batch.shift === "evening" ? "E-" : "";
@@ -72,7 +74,13 @@ const formatBatchName = (batch: any) => {
 
 export default function CourseDetailClient({ id }: CourseDetailClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const theme = useDashboardTheme();
+
+    // Get initial tab from URL or default to "overview"
+    const initialTab = (searchParams.get('tab') as TabType) || "overview";
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab);
+
     const [assignment, setAssignment] = useState<BatchCourseInstructor | null>(null);
     const [students, setStudents] = useState<Enrollment[]>([]);
     const [schedules, setSchedules] = useState<CourseSchedule[]>([]);
@@ -81,6 +89,18 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
         assessmentsCount: 0,
     });
     const [loading, setLoading] = useState(true);
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab as TabType);
+        const url = new URL(window.location.href);
+        if (tab === "overview") {
+            url.searchParams.delete('tab');
+        } else {
+            url.searchParams.set('tab', tab);
+        }
+        router.replace(url.pathname + url.search, { scroll: false });
+    };
 
     useEffect(() => {
         if (id) {
@@ -192,7 +212,7 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                 </div>
             </div>
 
-            <Tabs defaultValue="overview" className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex overflow-x-auto pb-2 mb-4 scrollbar-hide">
                     <TabsList className="bg-slate-100/50 p-1 rounded-2xl border border-slate-200/60 inline-flex min-w-max">
                         <TabsTrigger value="overview" className={`rounded-xl px-6 py-2.5 font-bold text-xs uppercase tracking-wider data-[state=active]:${theme.colors.accent.secondary} data-[state=active]:text-white data-[state=active]:shadow-lg transition-all`}>

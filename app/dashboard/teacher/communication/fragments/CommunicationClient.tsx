@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
     MessageSquare,
@@ -47,14 +47,33 @@ const formatBatchName = (batch: any) => {
     return `${prefix}${batch.name}`;
 };
 
+type TabType = "courses" | "batches";
+
 export default function CommunicationClient() {
     const { user } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const instructorId = user?.id || user?._id || "";
+
+    // Get initial tab from URL or default to "courses"
+    const initialTab = (searchParams.get('tab') as TabType) || "courses";
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab);
 
     // UI State
     const [enteringChat, setEnteringChat] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab as TabType);
+        const url = new URL(window.location.href);
+        if (tab === "courses") {
+            url.searchParams.delete('tab');
+        } else {
+            url.searchParams.set('tab', tab);
+        }
+        router.replace(url.pathname + url.search, { scroll: false });
+    };
 
     // Dialog State
     const [crDialogOpen, setCrDialogOpen] = useState(false);
@@ -190,7 +209,7 @@ export default function CommunicationClient() {
                 </Alert>
             )}
 
-            <Tabs defaultValue="courses" className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-8">
                     <GlassCard className="p-1.5 w-full xl:w-auto overflow-x-auto no-scrollbar">
                         <TabsList className="bg-transparent h-auto p-0 gap-1">
