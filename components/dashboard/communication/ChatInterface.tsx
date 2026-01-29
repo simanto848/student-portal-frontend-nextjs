@@ -794,7 +794,7 @@ export function ChatInterface({
             </div>
           )}
 
-          <form onSubmit={handleSendMessage} className="glass-inner dark:bg-slate-800/50 rounded-2xl p-2 flex items-center gap-2 border border-white/20 dark:border-white/5">
+          <form onSubmit={handleSendMessage} className="bg-white dark:bg-slate-900 rounded-2xl p-3 flex items-center gap-3 border-2 border-slate-200 dark:border-teal-500/30 shadow-lg shadow-slate-200/50 dark:shadow-teal-500/10">
             <input
               type="file"
               ref={fileInputRef}
@@ -805,7 +805,7 @@ export function ChatInterface({
               type="button"
               variant="ghost"
               size="icon"
-              className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-white/50 transition-all shrink-0"
+              className="w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/20 transition-all shrink-0 border border-slate-200 dark:border-slate-600 dark:bg-slate-800"
               onClick={() => fileInputRef.current?.click()}
             >
               <Plus className="w-5 h-5" />
@@ -817,7 +817,7 @@ export function ChatInterface({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-white/50 transition-all shrink-0"
+                  className="w-11 h-11 flex items-center justify-center rounded-xl text-slate-500 dark:text-slate-300 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/20 transition-all shrink-0 border border-slate-200 dark:border-slate-600 dark:bg-slate-800"
                 >
                   <Smile className="w-5 h-5" />
                 </Button>
@@ -834,27 +834,29 @@ export function ChatInterface({
               </PopoverContent>
             </Popover>
 
-            <input
-              ref={inputRef}
-              type="text"
-              placeholder={editingMessageId ? "Refine your transmission..." : "Type a message..."}
-              value={newMessage}
-              onChange={handleInputChange}
-              disabled={sending}
-              className="flex-1 bg-transparent border-none focus:ring-0 text-slate-700 placeholder-slate-400 text-sm py-2 px-2 outline-none"
-            />
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder={editingMessageId ? "Refine your message..." : "Type a message..."}
+                value={newMessage}
+                onChange={handleInputChange}
+                disabled={sending}
+                className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 text-base py-3 px-4 outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all"
+              />
+            </div>
 
             <Button
               type="submit"
               disabled={!newMessage.trim() || sending}
-              className="bg-teal-500 hover:bg-teal-600 text-white rounded-xl px-5 py-2 text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-teal-500/20 flex items-center gap-2 h-10 ml-1"
+              className="bg-teal-500 hover:bg-teal-600 text-white rounded-xl px-6 py-3 text-sm font-bold transition-all shadow-lg shadow-teal-500/30 flex items-center gap-2 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <>
                   <span>{editingMessageId ? 'Update' : 'Send'}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>
