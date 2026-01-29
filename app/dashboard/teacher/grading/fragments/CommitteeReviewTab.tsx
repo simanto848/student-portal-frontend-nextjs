@@ -13,7 +13,8 @@ import {
     AlertCircle,
     Inbox,
     RefreshCw,
-    Shield
+    Shield,
+    ShieldCheck
 } from "lucide-react";
 
 import { academicApi as api } from "@/services/academic/axios-instance";
@@ -40,10 +41,53 @@ import {
 } from "@/components/ui/select";
 import { notifyError } from "@/components/toast";
 
-export default function CommitteeWorkflowList() {
+// Type definitions for committee workflows
+interface BatchInfo {
+    id?: string;
+    _id?: string;
+    name: string;
+    code?: string;
+    shift?: string;
+}
+
+interface CommitteeWorkflow {
+    id?: string;
+    _id?: string;
+    status: string;
+    semester: number;
+    batchId?: string;
+    grade?: {
+        course?: {
+            id: string;
+            name: string;
+            code: string;
+            creditHour?: number;
+        };
+        batch?: BatchInfo;
+        instructor?: {
+            fullName: string;
+        };
+    };
+    totalStudents?: number;
+    actionAt?: string;
+}
+
+// Helper to get workflow ID (handles both id and _id)
+const getWorkflowId = (wf: CommitteeWorkflow, index: number): string => {
+    return wf.id || wf._id || `workflow-${index}`;
+};
+
+interface BatchGroup {
+    id: string;
+    batch: BatchInfo | undefined;
+    semester: number;
+    workflows: CommitteeWorkflow[];
+}
+
+export default function CommitteeReviewTab() {
     const router = useRouter();
     const { user } = useAuth();
-    const [workflows, setWorkflows] = useState<any[]>([]); // Use any[] for flexibility with virtual workflows
+    const [workflows, setWorkflows] = useState<CommitteeWorkflow[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
@@ -65,8 +109,10 @@ export default function CommitteeWorkflowList() {
     };
 
     useEffect(() => {
-        fetchWorkflows();
-    }, []);
+        if (isCommitteeMember) {
+            fetchWorkflows();
+        }
+    }, [isCommitteeMember]);
 
     // Filter and Group
     const filteredAndGroupedData = useMemo(() => {
@@ -89,7 +135,7 @@ export default function CommitteeWorkflowList() {
         }
 
         // Group by Batch + Semester
-        const groups: Record<string, { id: string, batch: any, semester: number, workflows: any[] }> = {};
+        const groups: Record<string, BatchGroup> = {};
 
         filtered.forEach(wf => {
             const batchId = wf.batchId || wf.grade?.batch?.id || wf.grade?.batch?._id;
@@ -139,11 +185,38 @@ export default function CommitteeWorkflowList() {
     };
 
     const navigateToDetail = (workflowId: string) => {
-        router.push(`/dashboard/teacher/committee-panel/courses/${workflowId}`);
+        router.push(`/dashboard/teacher/grading/committee/${workflowId}`);
     };
+
+    // If not a committee member, show access denied
+    if (!isCommitteeMember) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                    <Shield className="h-8 w-8 text-slate-300" />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">Access Restricted</h3>
+                <p className="text-slate-500 max-w-md text-center mt-2">
+                    This section is only available to Exam Committee members.
+                    If you believe you should have access, please contact your department head.
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
+            {/* Header Info */}
+            <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                <div className="p-2 bg-indigo-100 rounded-xl">
+                    <ShieldCheck className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                    <h3 className="font-bold text-indigo-900">Committee Review Panel</h3>
+                    <p className="text-sm text-indigo-600">Review and approve course results submitted by instructors for publishing.</p>
+                </div>
+            </div>
+
             {/* Controls */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 <div className="relative w-full md:w-96">
@@ -180,12 +253,17 @@ export default function CommitteeWorkflowList() {
 
             {/* Content */}
             <div className="space-y-4">
-                {filteredAndGroupedData.length === 0 ? (
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                        <RefreshCw className="h-8 w-8 text-slate-300 animate-spin mb-4" />
+                        <p className="text-slate-500">Loading committee workflows...</p>
+                    </div>
+                ) : filteredAndGroupedData.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
                         <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4">
                             <Inbox className="h-8 w-8 text-slate-300" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900">No Batches Found</h3>
+                        <h3 className="text-lg font-bold text-slate-900">No Results Found</h3>
                         <p className="text-slate-500">Try adjusting your filters or search query.</p>
                     </div>
                 ) : (
@@ -219,16 +297,16 @@ export default function CommitteeWorkflowList() {
                                 <div className="flex items-center gap-4">
                                     {/* Mini Status Summary */}
                                     <div className="flex items-center gap-1 text-xs font-medium text-slate-400">
-                                        {group.workflows.filter(w => w.status === 'SUBMITTED_TO_COMMITTEE').length > 0 && (
+                                        {group.workflows.filter((w) => w.status === 'SUBMITTED_TO_COMMITTEE').length > 0 && (
                                             <span className="flex items-center gap-1 text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md">
                                                 <AlertCircle className="h-3 w-3" />
-                                                {group.workflows.filter(w => w.status === 'SUBMITTED_TO_COMMITTEE').length} Pending
+                                                {group.workflows.filter((w) => w.status === 'SUBMITTED_TO_COMMITTEE').length} Pending
                                             </span>
                                         )}
-                                        {group.workflows.filter(w => w.status === 'WITH_INSTRUCTOR').length > 0 && (
+                                        {group.workflows.filter((w) => w.status === 'WITH_INSTRUCTOR').length > 0 && (
                                             <span className="hidden md:flex items-center gap-1 text-slate-600 bg-slate-50 px-2 py-1 rounded-md">
                                                 <Shield className="h-3 w-3" />
-                                                {group.workflows.filter(w => w.status === 'WITH_INSTRUCTOR').length} Waiting
+                                                {group.workflows.filter((w) => w.status === 'WITH_INSTRUCTOR').length} Waiting
                                             </span>
                                         )}
                                     </div>
@@ -260,11 +338,14 @@ export default function CommitteeWorkflowList() {
                                                         </TableRow>
                                                     </TableHeader>
                                                     <TableBody>
-                                                        {group.workflows.map((wf) => (
+                                                        {group.workflows.map((wf, idx) => (
                                                             <TableRow
-                                                                key={wf.id || wf._id}
+                                                                key={getWorkflowId(wf, idx)}
                                                                 className="hover:bg-slate-50 cursor-pointer group"
-                                                                onClick={() => navigateToDetail(wf.id || wf._id)}
+                                                                onClick={() => {
+                                                                    const id = wf.id || wf._id;
+                                                                    if (id) navigateToDetail(id);
+                                                                }}
                                                             >
                                                                 <TableCell className="pl-6">
                                                                     <div className="flex flex-col">
@@ -279,11 +360,10 @@ export default function CommitteeWorkflowList() {
                                                                 <TableCell>
                                                                     <div className="flex items-center gap-2">
                                                                         <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
-                                                                            T
+                                                                            {wf.grade?.instructor?.fullName?.[0] || "T"}
                                                                         </div>
                                                                         <span className="text-sm font-medium text-slate-600">
-                                                                            {/* Ideally fetch teacher name */}
-                                                                            Teacher
+                                                                            {wf.grade?.instructor?.fullName || "Teacher"}
                                                                         </span>
                                                                     </div>
                                                                 </TableCell>

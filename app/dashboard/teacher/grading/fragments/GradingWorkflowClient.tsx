@@ -17,15 +17,16 @@ import {
     Target,
     Zap,
     Sparkles,
-    AlertCircle
+    AlertCircle,
+    ShieldCheck
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
@@ -34,8 +35,9 @@ import { ResultWorkflow } from "@/services/enrollment/courseGrade.service";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { isTeacherUser } from "@/types/user";
+import CommitteeReviewTab from "./CommitteeReviewTab";
 
-type TabType = "all" | "pending" | "submitted" | "returned" | "approved";
+type TabType = "all" | "pending" | "submitted" | "returned" | "approved" | "committee";
 
 interface GradingWorkflowClientProps {
     initialWorkflows: ResultWorkflow[];
@@ -45,8 +47,12 @@ export default function GradingWorkflowClient({
     initialWorkflows
 }: GradingWorkflowClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const theme = useDashboardTheme();
-    const [activeTab, setActiveTab] = useState<TabType>("all");
+
+    // Get initial tab from URL or default to "all"
+    const initialTab = (searchParams.get('tab') as TabType) || "all";
+    const [activeTab, setActiveTab] = useState<TabType>(initialTab);
     const [searchQuery, setSearchQuery] = useState("");
 
     const accentPrimary = theme.colors.accent.primary;
@@ -54,6 +60,18 @@ export default function GradingWorkflowClient({
 
     const { user } = useAuth();
     const isCommitteeMember = user && isTeacherUser(user) && user.isExamCommitteeMember;
+
+    // Update URL when tab changes
+    const handleTabChange = (tab: string) => {
+        setActiveTab(tab as TabType);
+        const url = new URL(window.location.href);
+        if (tab === "all") {
+            url.searchParams.delete('tab');
+        } else {
+            url.searchParams.set('tab', tab);
+        }
+        router.replace(url.pathname + url.search, { scroll: false });
+    };
 
     // Map tab to backend status filter
     const statusFilter = useMemo(() => {
@@ -73,7 +91,7 @@ export default function GradingWorkflowClient({
         error,
         refetch,
     } = useGradingWorkflow(
-        activeTab === "all" ? undefined : { status: statusFilter },
+        activeTab === "all" || activeTab === "committee" ? undefined : { status: statusFilter },
         { initialData: activeTab === "all" ? initialWorkflows : undefined }
     );
 
@@ -209,15 +227,6 @@ export default function GradingWorkflowClient({
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        {isCommitteeMember && (
-                            <Button
-                                onClick={() => router.push("/dashboard/teacher/committee-panel")}
-                                className="h-14 px-8 bg-slate-900 hover:bg-slate-800 text-white shadow-xl shadow-slate-900/20 rounded-2xl font-black uppercase text-xs tracking-[0.15em] w-full transition-all active:scale-95 flex items-center gap-3"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield-check"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" /><path d="m9 12 2 2 4-4" /></svg>
-                                Committee Panel
-                            </Button>
-                        )}
                         <Button
                             onClick={() => router.push("/dashboard/teacher/courses")}
                             className={`h-14 px-8 ${accentPrimary.replace('text-', 'bg-')} hover:opacity-90 text-white shadow-xl shadow-indigo-600/20 rounded-2xl font-black uppercase text-xs tracking-[0.15em] w-full transition-all active:scale-95 flex items-center gap-3`}
@@ -246,7 +255,7 @@ export default function GradingWorkflowClient({
                 </Alert>
             )}
 
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-6">
                     <TabsList className="h-14 p-1.5 bg-slate-100/80 backdrop-blur rounded-2xl border border-slate-200/50 w-full md:w-auto">
                         <TabsTrigger
@@ -279,45 +288,61 @@ export default function GradingWorkflowClient({
                         >
                             Approved
                         </TabsTrigger>
+                        {isCommitteeMember && (
+                            <TabsTrigger
+                                value="committee"
+                                className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-violet-600 data-[state=active]:shadow-lg active:scale-95 flex items-center gap-2"
+                            >
+                                <ShieldCheck className="h-4 w-4" />
+                                Committee
+                            </TabsTrigger>
+                        )}
                     </TabsList>
 
-                    <div className="relative flex-1 md:w-80 w-full">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                        <Input
-                            placeholder="Find course or instructor..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="h-12 pl-12 pr-4 bg-white border-slate-200 rounded-2xl font-medium focus:ring-indigo-500/20"
-                        />
-                    </div>
+                    {activeTab !== "committee" && (
+                        <div className="relative flex-1 md:w-80 w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                            <Input
+                                placeholder="Find course or instructor..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="h-12 pl-12 pr-4 bg-white border-slate-200 rounded-2xl font-medium focus:ring-indigo-500/20"
+                            />
+                        </div>
+                    )}
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                    <AnimatePresence mode="popLayout">
-                        {filteredWorkflows.length > 0 ? (
-                            filteredWorkflows.map((workflow, idx) => (
-                                <WorkflowCard
-                                    key={workflow.id}
-                                    workflow={workflow}
-                                    index={idx}
-                                    themeAccent={accentPrimary}
-                                />
-                            ))
-                        ) : (
-                            <div className="py-24 flex flex-col items-center justify-center bg-white rounded-[3rem] border border-dashed border-slate-200">
-                                <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 flex items-center justify-center mb-6">
-                                    <Inbox className="h-10 w-10 text-slate-200" />
+                {/* Committee Review Tab Content */}
+                {activeTab === "committee" && isCommitteeMember ? (
+                    <CommitteeReviewTab />
+                ) : (
+                    <div className="grid grid-cols-1 gap-4">
+                        <AnimatePresence mode="popLayout">
+                            {filteredWorkflows.length > 0 ? (
+                                filteredWorkflows.map((workflow, idx) => (
+                                    <WorkflowCard
+                                        key={workflow.id}
+                                        workflow={workflow}
+                                        index={idx}
+                                        themeAccent={accentPrimary}
+                                    />
+                                ))
+                            ) : (
+                                <div className="py-24 flex flex-col items-center justify-center bg-white rounded-[3rem] border border-dashed border-slate-200">
+                                    <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 flex items-center justify-center mb-6">
+                                        <Inbox className="h-10 w-10 text-slate-200" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2 text-center px-6">
+                                        No Workflows Found
+                                    </h3>
+                                    <p className="text-slate-400 font-medium text-center px-6 max-w-sm mb-8">
+                                        {searchQuery ? "No results match your search criteria." : "There are currently no grading workflows to display in this category."}
+                                    </p>
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2 text-center px-6">
-                                    No Workflows Found
-                                </h3>
-                                <p className="text-slate-400 font-medium text-center px-6 max-w-sm mb-8">
-                                    {searchQuery ? "No results match your search criteria." : "There are currently no grading workflows to display in this category."}
-                                </p>
-                            </div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                )}
             </Tabs>
         </div>
     );

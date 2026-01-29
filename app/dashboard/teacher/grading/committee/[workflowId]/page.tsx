@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,10 +15,13 @@ import {
     GraduationCap,
     Calendar,
     FileText,
-    Shield
+    Shield,
+    ShieldAlert
 } from "lucide-react";
 
 import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { isTeacherUser } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -73,6 +78,7 @@ interface StudentGradeDetail {
 export default function CommitteeWorkflowDetail() {
     const params = useParams();
     const router = useRouter();
+    const { user, isLoading: authLoading } = useAuth();
     const workflowId = params.workflowId as string;
 
     const [workflow, setWorkflow] = useState<ResultWorkflow | null>(null);
@@ -81,19 +87,19 @@ export default function CommitteeWorkflowDetail() {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [viewStudent, setViewStudent] = useState<StudentGradeDetail | null>(null);
 
-    // Dialog & Action State
     const [otpDialogOpen, setOtpDialogOpen] = useState(false);
     const [otpActionType, setOtpActionType] = useState<'approve' | 'return' | 'publish' | null>(null);
 
-    // Return Comment State
     const [isReturnDialogOpen, setIsReturnDialogOpen] = useState(false);
     const [returnComment, setReturnComment] = useState("");
 
+    const isCommitteeMember = user && isTeacherUser(user) && user.isExamCommitteeMember;
+
     useEffect(() => {
-        if (workflowId) {
+        if (workflowId && isCommitteeMember) {
             fetchData();
         }
-    }, [workflowId]);
+    }, [workflowId, isCommitteeMember]);
 
     const fetchData = async () => {
         try {
@@ -159,7 +165,7 @@ export default function CommitteeWorkflowDetail() {
 
             await api.post(endpoint, payload);
             notifySuccess(`Result ${otpActionType}ed successfully`);
-            fetchData(); // Refresh data
+            fetchData();
         } catch (error: any) {
             notifyError(error.response?.data?.message || `Failed to ${otpActionType} result`);
         } finally {
@@ -185,10 +191,34 @@ export default function CommitteeWorkflowDetail() {
         }
     };
 
-    if (loading) {
+    // Loading state
+    if (authLoading || loading) {
         return (
             <div className="flex h-[50vh] w-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+            </div>
+        );
+    }
+
+    // Access denied for non-committee members
+    if (!isCommitteeMember) {
+        return (
+            <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
+                <div className="rounded-full bg-red-100 p-6 dark:bg-red-900/20">
+                    <ShieldAlert className="h-12 w-12 text-red-600 dark:text-red-400" />
+                </div>
+                <div className="space-y-2">
+                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                        Access Restricted
+                    </h1>
+                    <p className="max-w-md text-slate-600 dark:text-slate-400">
+                        You do not have permission to view this page.
+                        This area is restricted to assigned Exam Committee members only.
+                    </p>
+                </div>
+                <Button variant="outline" onClick={() => router.push('/dashboard/teacher/grading')}>
+                    Back to Grading
+                </Button>
             </div>
         );
     }
@@ -198,7 +228,7 @@ export default function CommitteeWorkflowDetail() {
             <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
                 <AlertCircle className="h-12 w-12 text-slate-300" />
                 <h2 className="text-xl font-bold text-slate-700">Workflow Not Found</h2>
-                <Button variant="outline" onClick={() => router.back()}>Go Back</Button>
+                <Button variant="outline" onClick={() => router.push('/dashboard/teacher/grading')}>Back to Grading</Button>
             </div>
         );
     }
@@ -210,10 +240,10 @@ export default function CommitteeWorkflowDetail() {
                 <Button
                     variant="ghost"
                     className="w-fit pl-0 hover:bg-transparent text-slate-500 hover:text-slate-800"
-                    onClick={() => router.back()}
+                    onClick={() => router.push('/dashboard/teacher/grading?tab=committee')}
                 >
                     <ChevronLeft className="h-4 w-4 mr-2" />
-                    Back to Committee Panel
+                    Back to Committee Review
                 </Button>
 
                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
