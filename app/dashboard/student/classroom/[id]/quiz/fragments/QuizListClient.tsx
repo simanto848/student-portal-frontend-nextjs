@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { quizService, quizAttemptService, Quiz, QuizAttempt } from "@/services/classroom/quiz.service";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import {
     FileCheck,
     Play,
@@ -20,7 +21,8 @@ import {
     Lock,
     Zap,
     ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -136,7 +138,9 @@ export default function QuizListClient() {
                         <AnimatePresence mode="popLayout">
                             {quizzes.map((quiz, idx) => {
                                 const { inProgress, completed, attemptsRemaining, bestScore } = getQuizStatus(quiz);
-                                const canAttempt = attemptsRemaining > 0 || !!inProgress;
+                                const isOverdue = quiz.endAt && new Date() > new Date(quiz.endAt);
+                                const canAttempt = (attemptsRemaining > 0 || !!inProgress) && (!isOverdue || quiz.allowLateSubmissions);
+                                const isLateSubmission = isOverdue && quiz.allowLateSubmissions;
 
                                 return (
                                     <motion.div
@@ -220,7 +224,12 @@ export default function QuizListClient() {
                                                 {!inProgress && (
                                                     <Button
                                                         className={canAttempt
-                                                            ? "w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-none hover:bg-[#0088A9] dark:hover:bg-[#0088A9] dark:hover:text-white font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-200 dark:shadow-[#0088A9]/20 transition-all duration-300 group/btn"
+                                                            ? cn(
+                                                                "w-full h-12 border-none font-black text-[10px] uppercase tracking-widest rounded-2xl shadow-xl transition-all duration-300 group/btn",
+                                                                isLateSubmission
+                                                                    ? "bg-amber-500 hover:bg-amber-600 text-white shadow-amber-500/20"
+                                                                    : "bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-[#0088A9] dark:hover:bg-[#0088A9] dark:hover:text-white shadow-slate-200 dark:shadow-[#0088A9]/20"
+                                                            )
                                                             : "w-full h-12 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest rounded-2xl cursor-not-allowed"
                                                         }
                                                         disabled={!canAttempt}
@@ -228,14 +237,18 @@ export default function QuizListClient() {
                                                     >
                                                         {canAttempt ? (
                                                             <>
-                                                                <Play className="h-3.5 w-3.5 mr-2 fill-current" />
-                                                                {completed.length > 0 ? "Retake Quiz" : "Start Quiz"}
+                                                                {isLateSubmission ? (
+                                                                    <AlertTriangle className="h-3.5 w-3.5 mr-2 fill-current animate-pulse" />
+                                                                ) : (
+                                                                    <Play className="h-3.5 w-3.5 mr-2 fill-current" />
+                                                                )}
+                                                                {isLateSubmission ? "Start Late Attempt" : (completed.length > 0 ? "Retake Quiz" : "Start Quiz")}
                                                                 <ChevronRight className="ml-2 h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
                                                             </>
                                                         ) : (
                                                             <>
                                                                 <Lock className="h-3.5 w-3.5 mr-2" />
-                                                                Attempts Finished
+                                                                {isOverdue ? "Quiz Ended" : "Attempts Finished"}
                                                             </>
                                                         )}
                                                     </Button>

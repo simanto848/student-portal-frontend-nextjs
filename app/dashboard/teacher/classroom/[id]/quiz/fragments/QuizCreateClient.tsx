@@ -122,6 +122,7 @@ export function QuizCreateClient({
     const [shuffleOptions, setShuffleOptions] = useState(initialQuiz?.shuffleOptions ?? false);
     const [showResultsAfterSubmit, setShowResultsAfterSubmit] = useState(initialQuiz?.showResultsAfterSubmit ?? true);
     const [showCorrectAnswers, setShowCorrectAnswers] = useState(initialQuiz?.showCorrectAnswers ?? false);
+    const [allowLateSubmissions, setAllowLateSubmissions] = useState(initialQuiz?.allowLateSubmissions ?? false);
     const [passingScore, setPassingScore] = useState(initialQuiz?.passingScore || 0);
 
     const steps = [
@@ -231,6 +232,7 @@ export function QuizCreateClient({
                 shuffleOptions,
                 showResultsAfterSubmit,
                 showCorrectAnswers,
+                allowLateSubmissions,
                 startAt: startAt ? new Date(startAt).toISOString() : undefined,
                 endAt: endAt ? new Date(endAt).toISOString() : undefined,
             };
@@ -683,6 +685,7 @@ export function QuizCreateClient({
                                             { label: "Shuffle Options", state: shuffleOptions, set: setShuffleOptions, desc: "Randomize answer choices for MCQ" },
                                             { label: "Instant Results", state: showResultsAfterSubmit, set: setShowResultsAfterSubmit, desc: "Show marks immediately after finish" },
                                             { label: "Show Correct Answers", state: showCorrectAnswers, set: setShowCorrectAnswers, desc: "Reveal answers after submission" },
+                                            { label: "Allow Late Submissions", state: allowLateSubmissions, set: setAllowLateSubmissions, desc: "Students can submit after due date (marked as Late)" },
                                         ].map((s) => (
                                             <div key={s.label} className="flex items-center justify-between p-5 rounded-2xl bg-white/40 dark:bg-slate-800/40 ring-1 ring-slate-200/50 dark:ring-slate-700/50 hover:bg-white/60 dark:hover:bg-slate-800/60 transition-all">
                                                 <div>

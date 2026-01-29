@@ -23,10 +23,17 @@ import {
     FileText,
     BarChart3,
     Layout,
+    RefreshCw,
+    Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format, parseISO } from "date-fns";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { QuizStats } from "./QuizStats";
 import { QuizSettingsCard } from "./QuizSettingsCard";
@@ -79,6 +86,9 @@ export function QuizDetailClient({
     const router = useRouter();
     const theme = useDashboardTheme();
     const [activeTab, setActiveTab] = useState("analytics");
+    const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
+    const [newEndAt, setNewEndAt] = useState("");
+    const [isReopening, setIsReopening] = useState(false);
 
     const handlePublish = async () => {
         try {
@@ -97,6 +107,20 @@ export function QuizDetailClient({
             refresh();
         } catch (error: unknown) {
             notifyError(getErrorMessage(error, "Failed to close quiz"));
+        }
+    };
+
+    const handleReopen = async () => {
+        try {
+            setIsReopening(true);
+            const res = await quizService.reopen(quiz.id, newEndAt ? new Date(newEndAt).toISOString() : null);
+            notifySuccess(getSuccessMessage(res, "Quiz re-opened successfully"));
+            setReopenDialogOpen(false);
+            refresh();
+        } catch (error: unknown) {
+            notifyError(getErrorMessage(error, "Failed to re-open quiz"));
+        } finally {
+            setIsReopening(false);
         }
     };
 
@@ -185,7 +209,7 @@ export function QuizDetailClient({
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-12 pb-12 overflow-hidden"
+            className="space-y-12 pb-12 overflow-x-hidden"
         >
             <PageHeader
                 title={quiz.title}
@@ -199,33 +223,31 @@ export function QuizDetailClient({
                                 Status: {quiz.status.toUpperCase()}
                             </span>
                         </Badge>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                            <Button
+                                onClick={() =>
+                                    router.push(
+                                        `/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`
+                                    )
+                                }
+                                variant="outline"
+                                className={`h-11 px-6 rounded-xl border-slate-200 text-slate-600 hover:${theme.colors.accent.primary} hover:bg-slate-50 transition-all`}
+                            >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modify
+                            </Button>
+                        </motion.div>
                         {quiz.status === "draft" && (
-                            <>
-                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                    <Button
-                                        onClick={() =>
-                                            router.push(
-                                                `/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`
-                                            )
-                                        }
-                                        variant="outline"
-                                        className={`h-11 px-6 rounded-xl border-slate-200 text-slate-600 hover:${theme.colors.accent.primary} hover:bg-slate-50 transition-all`}
-                                    >
-                                        <Edit className="h-4 w-4 mr-2" />
-                                        Modify
-                                    </Button>
-                                </motion.div>
-                                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                    <Button
-                                        onClick={handlePublish}
-                                        disabled={questions.length === 0}
-                                        className={`h-11 px-6 rounded-xl ${theme.colors.accent.secondary} border-none text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-teal-500/20 transition-all`}
-                                    >
-                                        <Play className="h-4 w-4 mr-2" />
-                                        Publish
-                                    </Button>
-                                </motion.div>
-                            </>
+                            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                <Button
+                                    onClick={handlePublish}
+                                    disabled={questions.length === 0}
+                                    className={`h-11 px-6 rounded-xl ${theme.colors.accent.secondary} border-none text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-teal-500/20 transition-all`}
+                                >
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Publish
+                                </Button>
+                            </motion.div>
                         )}
                         {quiz.status === "published" && (
                             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -238,11 +260,70 @@ export function QuizDetailClient({
                                 </Button>
                             </motion.div>
                         )}
+                        {quiz.status === "closed" && (
+                            <Dialog open={reopenDialogOpen} onOpenChange={setReopenDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                                        <Button
+                                            className={`h-11 px-6 rounded-xl ${theme.colors.accent.secondary} border-none text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-teal-500/20 transition-all`}
+                                        >
+                                            <RefreshCw className="h-4 w-4 mr-2" />
+                                            Re-open Quiz
+                                        </Button>
+                                    </motion.div>
+                                </DialogTrigger>
+
+                                <DialogContent className="sm:max-w-md bg-white dark:bg-slate-900 rounded-3xl border-0 shadow-2xl overflow-hidden p-0 gap-0">
+                                    <DialogHeader className="p-8 pb-4">
+                                        <DialogTitle className="text-xl font-black text-slate-800 dark:text-white">Re-open Assessment</DialogTitle>
+                                        <DialogDescription className="text-slate-500 font-medium mt-2">
+                                            Set a new deadline for this quiz. Leave blank to keep it open indefinitely.
+                                        </DialogDescription>
+                                    </DialogHeader>
+
+                                    <div className="px-8 pb-6 space-y-4">
+                                        <div className="space-y-3">
+                                            <Label className="text-xs font-bold uppercase tracking-widest text-[#2dd4bf]">New Deadline (Optional)</Label>
+                                            <div className="flex flex-col sm:flex-row gap-3">
+                                                <DatePicker
+                                                    date={newEndAt ? parseISO(newEndAt) : undefined}
+                                                    onChange={(d) => {
+                                                        const timePart = newEndAt.split('T')[1] || "23:59";
+                                                        setNewEndAt(d ? `${format(d, "yyyy-MM-dd")}T${timePart}` : "");
+                                                    }}
+                                                    className="h-12 rounded-xl flex-1 bg-slate-50 dark:bg-slate-800"
+                                                />
+                                                <Input
+                                                    type="time"
+                                                    value={newEndAt.split('T')[1] || ""}
+                                                    onChange={(e) => {
+                                                        const datePart = newEndAt.split('T')[0] || format(new Date(), "yyyy-MM-dd");
+                                                        setNewEndAt(`${datePart}T${e.target.value || "23:59"}`);
+                                                    }}
+                                                    className="h-12 w-full sm:w-[120px] rounded-xl border-0 ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-50 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300 px-4"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <DialogFooter className="p-6 bg-slate-50/50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 gap-3">
+                                        <Button variant="ghost" onClick={() => setReopenDialogOpen(false)} className="rounded-xl font-bold text-slate-500">Cancel</Button>
+                                        <Button
+                                            onClick={handleReopen}
+                                            disabled={isReopening}
+                                            className={`rounded-xl px-6 ${theme.colors.accent.secondary} text-white font-bold shadow-lg shadow-teal-500/20`}
+                                        >
+                                            {isReopening ? "Re-opening..." : "Confirm Re-open"}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
                     </div>
                 }
             />
 
-            <QuizStats stats={statItems} />
+            < QuizStats stats={statItems} />
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
                 <motion.div
@@ -424,6 +505,6 @@ export function QuizDetailClient({
                     </motion.div>
                 </TabsContent>
             </Tabs>
-        </motion.div>
+        </motion.div >
     );
 }

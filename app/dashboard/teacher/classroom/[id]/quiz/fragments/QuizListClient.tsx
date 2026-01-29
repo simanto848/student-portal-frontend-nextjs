@@ -166,7 +166,7 @@ export function QuizListClient({
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8 pb-12"
+            className="space-y-8 pb-12 overflow-x-hidden"
         >
             <PageHeader
                 title="Quiz Management"

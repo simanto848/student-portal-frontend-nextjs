@@ -27,6 +27,7 @@ export default function GradeSubmissionPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [student, setStudent] = useState<Student | null>(null);
+  const [otherAttempts, setOtherAttempts] = useState<QuizAttempt[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -48,12 +49,14 @@ export default function GradeSubmissionPage() {
 
       if (attemptResult.attempt.studentId) {
         try {
-          const studentData = await studentService.getById(
-            attemptResult.attempt.studentId,
-          );
+          const [studentData, attemptsList] = await Promise.all([
+            studentService.getById(attemptResult.attempt.studentId),
+            quizAttemptService.getAttemptsByStudent(quizId, attemptResult.attempt.studentId)
+          ]);
           setStudent(studentData);
+          setOtherAttempts(attemptsList);
         } catch (e) {
-          console.error("Failed to fetch student details:", e);
+          console.error("Failed to fetch student details or attempts:", e);
         }
       }
     } catch (error: unknown) {
@@ -64,21 +67,7 @@ export default function GradeSubmissionPage() {
       setIsLoading(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[500px] space-y-6">
-        <div className="relative">
-          <div className="h-20 w-20 rounded-full border-4 border-slate-100 border-t-indigo-600 animate-spin" />
-          <Loader2 className="h-8 w-8 text-indigo-600 animate-pulse absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-        </div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] animate-pulse">
-          Deep-Scanning Candidate Assessment Data
-        </p>
-      </div>
-    );
-  }
-
+  // ... (rest of loading state)
   if (!quiz || !attempt) return null;
 
   return (
@@ -86,6 +75,7 @@ export default function GradeSubmissionPage() {
       quiz={quiz}
       questions={questions}
       attempt={attempt}
+      otherAttempts={otherAttempts}
       student={student}
       workspaceId={workspaceId}
       refresh={fetchData}

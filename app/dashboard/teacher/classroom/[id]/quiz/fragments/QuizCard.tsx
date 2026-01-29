@@ -128,25 +128,24 @@ export function QuizCard({
                                     </Link>
                                 </DropdownMenuItem>
 
+                                <DropdownMenuItem
+                                    className={`rounded-xl font-bold text-slate-600 gap-3 p-3 focus:${theme.colors.sidebar.active} focus:${theme.colors.sidebar.activeText} cursor-pointer`}
+                                    asChild
+                                >
+                                    <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`}>
+                                        <Edit className="h-4 w-4" />
+                                        Edit Quiz
+                                    </Link>
+                                </DropdownMenuItem>
+
                                 {quiz.status === "draft" && (
-                                    <>
-                                        <DropdownMenuItem
-                                            className={`rounded-xl font-bold text-slate-600 gap-3 p-3 focus:${theme.colors.sidebar.active} focus:${theme.colors.sidebar.activeText} cursor-pointer`}
-                                            asChild
-                                        >
-                                            <Link href={`/dashboard/teacher/classroom/${workspaceId}/quiz/${quiz.id}/edit`}>
-                                                <Edit className="h-4 w-4" />
-                                                Edit Quiz
-                                            </Link>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            className="rounded-xl font-bold text-emerald-600 gap-3 p-3 focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer"
-                                            onClick={() => onPublish(quiz)}
-                                        >
-                                            <Play className="h-4 w-4" />
-                                            Publish Quiz
-                                        </DropdownMenuItem>
-                                    </>
+                                    <DropdownMenuItem
+                                        className="rounded-xl font-bold text-emerald-600 gap-3 p-3 focus:bg-emerald-50 focus:text-emerald-700 cursor-pointer"
+                                        onClick={() => onPublish(quiz)}
+                                    >
+                                        <Play className="h-4 w-4" />
+                                        Publish Quiz
+                                    </DropdownMenuItem>
                                 )}
 
                                 {quiz.status === "published" && (

@@ -281,6 +281,14 @@ export default function QuizAttemptClient() {
                             </div>
                         </div>
                     </div>
+                    {attempt?.isLate && (
+                        <div className="bg-amber-500/10 border-y border-amber-500/20 px-6 py-2 flex items-center justify-center gap-2 backdrop-blur-sm">
+                            <AlertTriangle className="h-4 w-4 text-amber-500 animate-pulse" />
+                            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">
+                                Late Submission Mode — This attempt will be marked as late
+                            </p>
+                        </div>
+                    )}
                     <div className="h-1.5 w-full bg-slate-900">
                         <motion.div
                             className="h-full bg-gradient-to-r from-[#0088A9] via-[#00B4D8] to-[#0088A9]"

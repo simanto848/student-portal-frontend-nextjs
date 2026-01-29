@@ -46,6 +46,7 @@ export interface Quiz {
     shuffleOptions: boolean;
     showResultsAfterSubmit: boolean;
     showCorrectAnswers: boolean;
+    allowLateSubmissions?: boolean;
     status: 'draft' | 'published' | 'closed';
     publishedAt?: string;
     questionCount: number;
@@ -80,7 +81,14 @@ export interface QuizAttempt {
     percentage: number | null;
     isPassed: boolean | null;
     answers: QuizAnswer[];
+    isLate?: boolean;
+    manualScore?: number;
+    graderFeedback?: string;
+    gradedById?: string;
+    gradedAt?: string;
     feedback?: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface StartAttemptResponse {
@@ -175,6 +183,16 @@ export const quizService = {
     async close(id: string): Promise<Quiz> {
         try {
             const res = await classroomApi.post(`/quizzes/${id}/close`);
+            return normalizeQuiz(res.data.data);
+        } catch (e) {
+            return handleClassroomApiError(e);
+        }
+    },
+
+    // Reopen quiz
+    async reopen(id: string, endAt?: string | null): Promise<Quiz> {
+        try {
+            const res = await classroomApi.post(`/quizzes/${id}/reopen`, { endAt });
             return normalizeQuiz(res.data.data);
         } catch (e) {
             return handleClassroomApiError(e);
@@ -340,10 +358,40 @@ export const quizAttemptService = {
         }
     },
 
+    // Get attempts by student (teacher)
+    async getAttemptsByStudent(quizId: string, studentId: string): Promise<QuizAttempt[]> {
+        try {
+            const res = await classroomApi.get(`/quiz-attempts/quiz/${quizId}/student/${studentId}`);
+            return res.data.data || [];
+        } catch (e) {
+            return handleClassroomApiError(e);
+        }
+    },
+
     // Grade answer (teacher)
     async gradeAnswer(attemptId: string, questionId: string, pointsAwarded: number, feedback?: string): Promise<QuizAttempt> {
         try {
             const res = await classroomApi.post(`/quiz-attempts/${attemptId}/grade/${questionId}`, { pointsAwarded, feedback });
+            return res.data.data;
+        } catch (e) {
+            return handleClassroomApiError(e);
+        }
+    },
+
+    // Grade overall attempt (teacher manual override)
+    async gradeOverall(attemptId: string, score: number, feedback?: string): Promise<QuizAttempt> {
+        try {
+            const res = await classroomApi.post(`/quiz-attempts/${attemptId}/grade`, { score, feedback });
+            return res.data.data;
+        } catch (e) {
+            return handleClassroomApiError(e);
+        }
+    },
+
+    // Auto-Regrade attempt (teacher)
+    async regrade(attemptId: string): Promise<QuizAttempt> {
+        try {
+            const res = await classroomApi.post(`/quiz-attempts/${attemptId}/regrade`);
             return res.data.data;
         } catch (e) {
             return handleClassroomApiError(e);
