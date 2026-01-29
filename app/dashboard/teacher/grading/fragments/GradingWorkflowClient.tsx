@@ -205,8 +205,8 @@ export default function GradingWorkflowClient({
     return (
         <div className="space-y-8 pb-12">
             {/* Header / Hero */}
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-200/60 p-8 shadow-2xl shadow-indigo-500/5">
-                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-indigo-50/50 blur-3xl opacity-50" />
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-700/60 p-8 shadow-2xl shadow-indigo-500/5 dark:shadow-slate-900/50">
+                <div className="absolute top-0 right-0 -mt-12 -mr-12 h-64 w-64 rounded-full bg-indigo-50/50 dark:bg-indigo-900/20 blur-3xl opacity-50" />
 
                 <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1.5">
@@ -218,10 +218,10 @@ export default function GradingWorkflowClient({
                                 Academic Governance
                             </span>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                             Result<span className={accentPrimary}> Workflow</span>
                         </h1>
-                        <p className="text-slate-500 font-medium text-sm md:text-base max-w-lg">
+                        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm md:text-base max-w-lg">
                             Track the progression of your submitted grades through the review and approval committee.
                         </p>
                     </div>
@@ -237,7 +237,7 @@ export default function GradingWorkflowClient({
                         <Button
                             variant="outline"
                             onClick={() => refetch()}
-                            className="h-12 border-slate-200 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 flex items-center gap-2"
+                            className="h-12 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
                         >
                             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                             Sync Status
@@ -257,41 +257,41 @@ export default function GradingWorkflowClient({
 
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4 mb-6">
-                    <TabsList className="h-14 p-1.5 bg-slate-100/80 backdrop-blur rounded-2xl border border-slate-200/50 w-full md:w-auto">
+                    <TabsList className="h-14 p-1.5 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-200/50 dark:border-slate-700/50 w-full md:w-auto">
                         <TabsTrigger
                             value="all"
-                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-lg active:scale-95"
                         >
                             All
                         </TabsTrigger>
                         <TabsTrigger
                             value="pending"
-                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-amber-600 dark:data-[state=active]:text-amber-400 data-[state=active]:shadow-lg active:scale-95"
                         >
                             Pending
                         </TabsTrigger>
                         <TabsTrigger
                             value="submitted"
-                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-indigo-600 dark:data-[state=active]:text-indigo-400 data-[state=active]:shadow-lg active:scale-95"
                         >
                             In Review
                         </TabsTrigger>
                         <TabsTrigger
                             value="returned"
-                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-lg active:scale-95"
                         >
                             Returned
                         </TabsTrigger>
                         <TabsTrigger
                             value="approved"
-                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-lg active:scale-95"
+                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400 data-[state=active]:shadow-lg active:scale-95"
                         >
                             Approved
                         </TabsTrigger>
                         {isCommitteeMember && (
                             <TabsTrigger
                                 value="committee"
-                                className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-violet-600 data-[state=active]:shadow-lg active:scale-95 flex items-center gap-2"
+                                className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest transition-all data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-violet-600 dark:data-[state=active]:text-violet-400 data-[state=active]:shadow-lg active:scale-95 flex items-center gap-2"
                             >
                                 <ShieldCheck className="h-4 w-4" />
                                 Committee
@@ -306,7 +306,7 @@ export default function GradingWorkflowClient({
                                 placeholder="Find course or instructor..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="h-12 pl-12 pr-4 bg-white border-slate-200 rounded-2xl font-medium focus:ring-indigo-500/20"
+                                className="h-12 pl-12 pr-4 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-2xl font-medium focus:ring-indigo-500/20"
                             />
                         </div>
                     )}
@@ -328,14 +328,14 @@ export default function GradingWorkflowClient({
                                     />
                                 ))
                             ) : (
-                                <div className="py-24 flex flex-col items-center justify-center bg-white rounded-[3rem] border border-dashed border-slate-200">
-                                    <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 flex items-center justify-center mb-6">
-                                        <Inbox className="h-10 w-10 text-slate-200" />
+                                <div className="py-24 flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-700">
+                                    <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-6">
+                                        <Inbox className="h-10 w-10 text-slate-200 dark:text-slate-600" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2 text-center px-6">
+                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-2 text-center px-6">
                                         No Workflows Found
                                     </h3>
-                                    <p className="text-slate-400 font-medium text-center px-6 max-w-sm mb-8">
+                                    <p className="text-slate-400 dark:text-slate-500 font-medium text-center px-6 max-w-sm mb-8">
                                         {searchQuery ? "No results match your search criteria." : "There are currently no grading workflows to display in this category."}
                                     </p>
                                 </div>
@@ -370,33 +370,33 @@ function WorkflowCard({
             transition={{ delay: index * 0.05 }}
             layout
         >
-            <Card className="group relative overflow-hidden bg-white hover:shadow-xl transition-all duration-300 rounded-[2rem] border-slate-200/60 hover:border-indigo-100 p-0">
+            <Card className="group relative overflow-hidden bg-white dark:bg-slate-900 hover:shadow-xl transition-all duration-300 rounded-[2rem] border-slate-200/60 dark:border-slate-700/60 hover:border-indigo-100 dark:hover:border-indigo-900 p-0">
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div className="flex items-start gap-4 flex-1">
-                            <div className={`p-4 rounded-2xl bg-slate-50 text-slate-400 group-hover:scale-110 transition-all duration-300`}>
+                            <div className={`p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:scale-110 transition-all duration-300`}>
                                 <FileText className="h-6 w-6" />
                             </div>
                             <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-black tracking-tight text-slate-900">
+                                    <h3 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
                                         {courseName}
                                     </h3>
-                                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-100 bg-slate-50 text-slate-500 px-2 py-0.5 rounded-lg">
+                                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-lg">
                                         {courseCode}
                                     </Badge>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-4">
-                                    <GraduationCap className="h-4 w-4 text-slate-400" />
+                                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium mb-4">
+                                    <GraduationCap className="h-4 w-4 text-slate-400 dark:text-slate-500" />
                                     <span>Batch {batchCode}</span>
                                     <span className="mx-1">•</span>
                                     <span>Semester {workflow.grade?.semester}</span>
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400">
+                                <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
                                     <span className="flex items-center gap-1.5">
                                         <Info className="h-3 w-3" />
-                                        Last Action By: <span className="text-slate-600">{workflow.actionBy || "System"}</span>
+                                        Last Action By: <span className="text-slate-600 dark:text-slate-300">{workflow.actionBy || "System"}</span>
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <Target className="h-3 w-3" />
@@ -410,16 +410,16 @@ function WorkflowCard({
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100">
+                        <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100 dark:border-slate-800">
                             <div className="flex flex-col items-end gap-1.5">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Current Status</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Current Status</span>
                                 <StatusBadge status={status} size="lg" pill />
                             </div>
 
                             <Button
                                 onClick={() => router.push(`/dashboard/teacher/courses/${workflow.grade?.courseId}`)}
                                 variant="ghost"
-                                className="h-12 w-12 rounded-2xl flex items-center justify-center hover:bg-slate-100 p-0 text-slate-400 hover:text-indigo-600 transition-colors"
+                                className="h-12 w-12 rounded-2xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 p-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                             >
                                 <ArrowRight className="h-5 w-5" />
                             </Button>
@@ -427,10 +427,10 @@ function WorkflowCard({
                     </div>
 
                     {workflow.comments && (
-                        <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
+                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100/50 dark:border-slate-700/50">
                             <div className="flex items-start gap-2">
-                                <MessageSquare className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
-                                <p className="text-xs text-slate-500 italic leading-relaxed">
+                                <MessageSquare className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
+                                <p className="text-xs text-slate-500 dark:text-slate-400 italic leading-relaxed">
                                     "{workflow.comments}"
                                 </p>
                             </div>

@@ -198,12 +198,12 @@ export default function CommitteeReviewTab() {
     // If not a committee member, show access denied
     if (!isCommitteeMember) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4">
-                    <Shield className="h-8 w-8 text-slate-300" />
+            <div className="flex flex-col items-center justify-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                <div className="h-16 w-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                    <Shield className="h-8 w-8 text-slate-300 dark:text-slate-600" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Access Restricted</h3>
-                <p className="text-slate-500 max-w-md text-center mt-2">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Access Restricted</h3>
+                <p className="text-slate-500 dark:text-slate-400 max-w-md text-center mt-2">
                     This section is only available to Exam Committee members.
                     If you believe you should have access, please contact your department head.
                 </p>
@@ -214,23 +214,23 @@ export default function CommitteeReviewTab() {
     return (
         <div className="space-y-6">
             {/* Header Info */}
-            <div className="flex items-center gap-3 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                <div className="p-2 bg-indigo-100 rounded-xl">
-                    <ShieldCheck className="h-5 w-5 text-indigo-600" />
+            <div className="flex items-center gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl">
+                    <ShieldCheck className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div>
-                    <h3 className="font-bold text-indigo-900">Committee Review Panel</h3>
-                    <p className="text-sm text-indigo-600">Review and approve course results submitted by instructors for publishing.</p>
+                    <h3 className="font-bold text-indigo-900 dark:text-indigo-100">Committee Review Panel</h3>
+                    <p className="text-sm text-indigo-600 dark:text-indigo-400">Review and approve course results submitted by instructors for publishing.</p>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
                     <Input
                         placeholder="Search batch, course or code..."
-                        className="pl-10 bg-slate-50 border-slate-200"
+                        className="pl-10 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -243,8 +243,8 @@ export default function CommitteeReviewTab() {
                                 value={statusFilter}
                                 onValueChange={setStatusFilter}
                             >
-                                <SelectTrigger className="w-full bg-slate-50 border-slate-200">
-                                    <Filter className="h-4 w-4 mr-2 text-slate-400" />
+                                <SelectTrigger className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+                                    <Filter className="h-4 w-4 mr-2 text-slate-400 dark:text-slate-500" />
                                     <SelectValue placeholder="Filter Status" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -257,8 +257,8 @@ export default function CommitteeReviewTab() {
                                 </SelectContent>
                             </Select>
                         ) : (
-                            <div className="h-10 w-full bg-slate-50 border border-slate-200 rounded-md flex items-center px-3">
-                                <Filter className="h-4 w-4 mr-2 text-slate-400" />
+                            <div className="h-10 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md flex items-center px-3">
+                                <Filter className="h-4 w-4 mr-2 text-slate-400 dark:text-slate-500" />
                                 <span className="text-sm text-muted-foreground">Filter Status</span>
                             </div>
                         )}
@@ -273,31 +273,31 @@ export default function CommitteeReviewTab() {
             {/* Content */}
             <div className="space-y-4">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                        <RefreshCw className="h-8 w-8 text-slate-300 animate-spin mb-4" />
-                        <p className="text-slate-500">Loading committee workflows...</p>
+                    <div className="flex flex-col items-center justify-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                        <RefreshCw className="h-8 w-8 text-slate-300 dark:text-slate-600 animate-spin mb-4" />
+                        <p className="text-slate-500 dark:text-slate-400">Loading committee workflows...</p>
                     </div>
                 ) : filteredAndGroupedData.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                        <div className="h-16 w-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-4">
-                            <Inbox className="h-8 w-8 text-slate-300" />
+                    <div className="flex flex-col items-center justify-center py-20 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                        <div className="h-16 w-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-sm mb-4">
+                            <Inbox className="h-8 w-8 text-slate-300 dark:text-slate-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-900">No Results Found</h3>
-                        <p className="text-slate-500">Try adjusting your filters or search query.</p>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Results Found</h3>
+                        <p className="text-slate-500 dark:text-slate-400">Try adjusting your filters or search query.</p>
                     </div>
                 ) : (
                     filteredAndGroupedData.map((group) => (
-                        <Card key={group.id} className="overflow-hidden border-slate-200 shadow-sm hover:shadow-md transition-all p-0">
+                        <Card key={group.id} className="overflow-hidden border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all p-0">
                             <div
-                                className="p-4 flex items-center justify-between cursor-pointer bg-white hover:bg-slate-50/50 transition-colors"
+                                className="p-4 flex items-center justify-between cursor-pointer bg-white dark:bg-slate-900 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
                                 onClick={() => toggleBatch(group.id)}
                             >
                                 <div className="flex items-center gap-4">
-                                    <div className={`p-2 rounded-xl transition-colors ${expandedBatches.has(group.id) ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
+                                    <div className={`p-2 rounded-xl transition-colors ${expandedBatches.has(group.id) ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                                         <Users className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                             {group.batch ? (
                                                 <>
                                                     {group.batch.shift === 'day' ? 'D-' : group.batch.shift === 'evening' ? 'E-' : ''}
@@ -308,22 +308,22 @@ export default function CommitteeReviewTab() {
                                                 Sem {group.semester}
                                             </Badge>
                                         </h3>
-                                        <p className="text-sm text-slate-500 font-medium">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                                             {group.workflows.length} Courses
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     {/* Mini Status Summary */}
-                                    <div className="flex items-center gap-1 text-xs font-medium text-slate-400">
+                                    <div className="flex items-center gap-1 text-xs font-medium text-slate-400 dark:text-slate-500">
                                         {group.workflows.filter((w) => w.status === 'SUBMITTED_TO_COMMITTEE').length > 0 && (
-                                            <span className="flex items-center gap-1 text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md">
+                                            <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 px-2 py-1 rounded-md">
                                                 <AlertCircle className="h-3 w-3" />
                                                 {group.workflows.filter((w) => w.status === 'SUBMITTED_TO_COMMITTEE').length} Pending
                                             </span>
                                         )}
                                         {group.workflows.filter((w) => w.status === 'WITH_INSTRUCTOR').length > 0 && (
-                                            <span className="hidden md:flex items-center gap-1 text-slate-600 bg-slate-50 px-2 py-1 rounded-md">
+                                            <span className="hidden md:flex items-center gap-1 text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-md">
                                                 <Shield className="h-3 w-3" />
                                                 {group.workflows.filter((w) => w.status === 'WITH_INSTRUCTOR').length} Waiting
                                             </span>
@@ -345,10 +345,10 @@ export default function CommitteeReviewTab() {
                                         exit={{ height: 0, opacity: 0 }}
                                         transition={{ duration: 0.2 }}
                                     >
-                                        <div className="border-t border-slate-100 bg-slate-50/50 p-2 md:p-4">
-                                            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                                        <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-2 md:p-4">
+                                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                                                 <Table>
-                                                    <TableHeader className="bg-slate-50/80">
+                                                    <TableHeader className="bg-slate-50/80 dark:bg-slate-800/80">
                                                         <TableRow>
                                                             <TableHead className="w-[40%] pl-6">Course</TableHead>
                                                             <TableHead>Instructor</TableHead>
@@ -360,7 +360,7 @@ export default function CommitteeReviewTab() {
                                                         {group.workflows.map((wf, idx) => (
                                                             <TableRow
                                                                 key={getWorkflowId(wf, idx)}
-                                                                className="hover:bg-slate-50 cursor-pointer group"
+                                                                className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer group"
                                                                 onClick={() => {
                                                                     const id = wf.id || wf._id;
                                                                     if (id) navigateToDetail(id);
@@ -368,20 +368,20 @@ export default function CommitteeReviewTab() {
                                                             >
                                                                 <TableCell className="pl-6">
                                                                     <div className="flex flex-col">
-                                                                        <span className="font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                                                                        <span className="font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                                             {wf.grade?.course?.name || "Unknown Course"}
                                                                         </span>
-                                                                        <span className="text-xs text-slate-500 font-mono">
+                                                                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                                                                             {wf.grade?.course?.code || "-"}
                                                                         </span>
                                                                     </div>
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     <div className="flex items-center gap-2">
-                                                                        <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500">
+                                                                        <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold text-slate-500 dark:text-slate-400">
                                                                             {wf.grade?.instructor?.fullName?.[0] || "T"}
                                                                         </div>
-                                                                        <span className="text-sm font-medium text-slate-600">
+                                                                        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                                                             {wf.grade?.instructor?.fullName || "Teacher"}
                                                                         </span>
                                                                     </div>
@@ -391,7 +391,7 @@ export default function CommitteeReviewTab() {
                                                                 </TableCell>
                                                                 <TableCell className="text-right pr-6">
                                                                     <div className="flex justify-end">
-                                                                        <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-400" />
+                                                                        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-400" />
                                                                     </div>
                                                                 </TableCell>
                                                             </TableRow>
