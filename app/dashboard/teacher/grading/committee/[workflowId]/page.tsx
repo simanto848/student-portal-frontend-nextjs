@@ -177,15 +177,15 @@ export default function CommitteeWorkflowDetail() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'SUBMITTED_TO_COMMITTEE':
-                return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-yellow-200">Pending Review</Badge>;
+                return <Badge className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 border-yellow-200 dark:border-yellow-800">Pending Review</Badge>;
             case 'COMMITTEE_APPROVED':
-                return <Badge className="bg-green-100 text-green-800 hover:bg-green-200 border-green-200">Approved</Badge>;
+                return <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50 border-green-200 dark:border-green-800">Approved</Badge>;
             case 'PUBLISHED':
-                return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-blue-200">Published</Badge>;
+                return <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 border-blue-200 dark:border-blue-800">Published</Badge>;
             case 'RETURNED_TO_TEACHER':
-                return <Badge className="bg-red-100 text-red-800 hover:bg-red-200 border-red-200">Returned</Badge>;
+                return <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 border-red-200 dark:border-red-800">Returned</Badge>;
             case 'WITH_INSTRUCTOR':
-                return <Badge className="bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200">With Instructor</Badge>;
+                return <Badge className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700">With Instructor</Badge>;
             default:
                 return <Badge variant="outline">{status}</Badge>;
         }
@@ -239,7 +239,7 @@ export default function CommitteeWorkflowDetail() {
             <div className="flex flex-col gap-4">
                 <Button
                     variant="ghost"
-                    className="w-fit pl-0 hover:bg-transparent text-slate-500 hover:text-slate-800"
+                    className="w-fit pl-0 hover:bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                     onClick={() => router.push('/dashboard/teacher/grading?tab=committee')}
                 >
                     <ChevronLeft className="h-4 w-4 mr-2" />
@@ -250,26 +250,26 @@ export default function CommitteeWorkflowDetail() {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             {getStatusBadge(workflow.status)}
-                            <span className="text-sm text-slate-500 font-medium">
+                            <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
                                 Last updated: {format(new Date(workflow.updatedAt), "MMM d, yyyy h:mm a")}
                             </span>
                         </div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight mb-2">
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
                             {workflow.grade?.course?.name || "Unknown Course"}
                         </h1>
-                        <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                                <GraduationCap className="h-4 w-4 text-slate-500" />
+                        <div className="flex flex-wrap gap-4 text-sm text-slate-600 dark:text-slate-300">
+                            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <GraduationCap className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                                 <span className="font-bold">Batch:</span>
                                 <span>{workflow.grade?.batch?.code || workflow.grade?.batch?.name}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                                <Calendar className="h-4 w-4 text-slate-500" />
+                            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <Calendar className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                                 <span className="font-bold">Semester:</span>
                                 <span>{workflow.semester}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
-                                <FileText className="h-4 w-4 text-slate-500" />
+                            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                                <FileText className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                                 <span className="font-bold">Code:</span>
                                 <span>{workflow.grade?.course?.code}</span>
                             </div>
@@ -277,7 +277,7 @@ export default function CommitteeWorkflowDetail() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-3 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                         {workflow.status === 'SUBMITTED_TO_COMMITTEE' && (
                             <>
                                 <Button
@@ -290,7 +290,7 @@ export default function CommitteeWorkflowDetail() {
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    className="text-rose-600 border-rose-200 hover:bg-rose-50"
+                                    className="text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20"
                                     onClick={() => initiateAction('return')}
                                     disabled={!!actionLoading}
                                 >
@@ -312,7 +312,7 @@ export default function CommitteeWorkflowDetail() {
                         )}
 
                         {workflow.status === 'WITH_INSTRUCTOR' && (
-                            <div className="flex items-center gap-2 px-3 py-2 text-slate-500 text-sm italic">
+                            <div className="flex items-center gap-2 px-3 py-2 text-slate-500 dark:text-slate-400 text-sm italic">
                                 <Shield className="h-4 w-4" />
                                 Waiting for instructor submission
                             </div>
@@ -322,22 +322,22 @@ export default function CommitteeWorkflowDetail() {
             </div>
 
             {/* Content */}
-            <Card className="border-slate-200 shadow-sm overflow-hidden p-0">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100 py-4">
-                    <CardTitle className="text-lg font-bold text-slate-800">Detailed Grade Report</CardTitle>
-                    <CardDescription>
+            <Card className="border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden p-0 dark:bg-slate-900">
+                <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 py-4">
+                    <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Detailed Grade Report</CardTitle>
+                    <CardDescription className="dark:text-slate-400">
                         Complete list of student grades and breakdown. Click on a student to view detailed marks.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                     <Table>
-                        <TableHeader className="bg-slate-50">
-                            <TableRow>
-                                <TableHead className="pl-6 w-[40%]">Student</TableHead>
-                                <TableHead className="w-[20%]">Registration</TableHead>
-                                <TableHead className="text-right w-[15%]">Total Marks</TableHead>
-                                <TableHead className="text-right w-[10%]">Grade</TableHead>
-                                <TableHead className="text-right pr-6 w-[15%]">GPA</TableHead>
+                        <TableHeader className="bg-slate-50 dark:bg-slate-800">
+                            <TableRow className="dark:border-slate-700">
+                                <TableHead className="pl-6 w-[40%] dark:text-slate-300">Student</TableHead>
+                                <TableHead className="w-[20%] dark:text-slate-300">Registration</TableHead>
+                                <TableHead className="text-right w-[15%] dark:text-slate-300">Total Marks</TableHead>
+                                <TableHead className="text-right w-[10%] dark:text-slate-300">Grade</TableHead>
+                                <TableHead className="text-right pr-6 w-[15%] dark:text-slate-300">GPA</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -345,27 +345,27 @@ export default function CommitteeWorkflowDetail() {
                                 grades.map((grade) => (
                                     <TableRow
                                         key={grade.studentId}
-                                        className="hover:bg-slate-50 cursor-pointer transition-colors"
+                                        className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors dark:border-slate-700"
                                         onClick={() => setViewStudent(grade)}
                                     >
-                                        <TableCell className="pl-6 font-medium text-slate-700">
+                                        <TableCell className="pl-6 font-medium text-slate-700 dark:text-slate-200">
                                             <div className="flex flex-col">
                                                 <span>{grade.student?.fullName || "Unknown"}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-slate-500 text-sm font-mono">{grade.student?.registrationNumber || "-"}</TableCell>
-                                        <TableCell className="text-right font-medium">{grade.totalMarksObtained}</TableCell>
+                                        <TableCell className="text-slate-500 dark:text-slate-400 text-sm font-mono">{grade.student?.registrationNumber || "-"}</TableCell>
+                                        <TableCell className="text-right font-medium dark:text-slate-200">{grade.totalMarksObtained}</TableCell>
                                         <TableCell className="text-right">
-                                            <Badge variant="outline" className={`font-bold ${(grade.letterGrade || grade.grade) === 'F' ? 'text-red-600 bg-red-50 border-red-100' : 'text-slate-700'}`}>
+                                            <Badge variant="outline" className={`font-bold ${(grade.letterGrade || grade.grade) === 'F' ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800' : 'text-slate-700 dark:text-slate-300'}`}>
                                                 {grade.letterGrade || grade.grade || "-"}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="text-right pr-6 font-mono text-slate-500">{grade.gradePoint?.toFixed(2) || "-"}</TableCell>
+                                        <TableCell className="text-right pr-6 font-mono text-slate-500 dark:text-slate-400">{grade.gradePoint?.toFixed(2) || "-"}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-12 text-slate-400">
+                                <TableRow className="dark:border-slate-700">
+                                    <TableCell colSpan={5} className="text-center py-12 text-slate-400 dark:text-slate-500">
                                         No grades available for this course yet.
                                     </TableCell>
                                 </TableRow>
@@ -377,26 +377,26 @@ export default function CommitteeWorkflowDetail() {
 
             {/* Student Marks Breakdown Dialog */}
             <Dialog open={!!viewStudent} onOpenChange={(open) => !open && setViewStudent(null)}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-md dark:bg-slate-900 dark:border-slate-700">
                     <DialogHeader>
-                        <DialogTitle>Marks Breakdown</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="dark:text-white">Marks Breakdown</DialogTitle>
+                        <DialogDescription className="dark:text-slate-400">
                             Detailed score for {viewStudent?.student?.fullName} ({viewStudent?.student?.registrationNumber})
                         </DialogDescription>
                     </DialogHeader>
 
                     {viewStudent && (
                         <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
                                 <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Score</p>
-                                    <p className="text-2xl font-black text-slate-900">{viewStudent.totalMarksObtained}</p>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Score</p>
+                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{viewStudent.totalMarksObtained}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Grade Point</p>
+                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Grade Point</p>
                                     <div className="flex items-center gap-2 justify-end">
                                         <Badge className="text-lg px-3 py-1 bg-indigo-600 font-bold">{viewStudent.letterGrade || viewStudent.grade || "-"}</Badge>
-                                        <span className="text-xl font-medium text-slate-600">{viewStudent.gradePoint?.toFixed(2)}</span>
+                                        <span className="text-xl font-medium text-slate-600 dark:text-slate-300">{viewStudent.gradePoint?.toFixed(2)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -404,23 +404,23 @@ export default function CommitteeWorkflowDetail() {
                             <div className="space-y-4">
                                 {(viewStudent.courseType === 'theory' || viewStudent.courseType === 'combined') && viewStudent.theoryMarks && (
                                     <div className="space-y-3">
-                                        <h5 className="font-bold text-sm text-slate-700 border-b pb-2">Theory Component</h5>
+                                        <h5 className="font-bold text-sm text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 pb-2">Theory Component</h5>
                                         <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Attendance</span>
-                                                <span className="font-medium">{viewStudent.theoryMarks.attendance ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400">Attendance</span>
+                                                <span className="font-medium dark:text-slate-200">{viewStudent.theoryMarks.attendance ?? '-'}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Midterm</span>
-                                                <span className="font-medium">{viewStudent.theoryMarks.midterm ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400">Midterm</span>
+                                                <span className="font-medium dark:text-slate-200">{viewStudent.theoryMarks.midterm ?? '-'}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Continuous Assessment</span>
-                                                <span className="font-medium">{viewStudent.theoryMarks.continuousAssessment ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400">Continuous Assessment</span>
+                                                <span className="font-medium dark:text-slate-200">{viewStudent.theoryMarks.continuousAssessment ?? '-'}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500 font-bold">Final Exam</span>
-                                                <span className="font-bold">{viewStudent.theoryMarks.finalExam ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400 font-bold">Final Exam</span>
+                                                <span className="font-bold dark:text-white">{viewStudent.theoryMarks.finalExam ?? '-'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -428,19 +428,19 @@ export default function CommitteeWorkflowDetail() {
 
                                 {(viewStudent.courseType === 'lab' || viewStudent.courseType === 'combined') && viewStudent.labMarks && (
                                     <div className="space-y-3">
-                                        <h5 className="font-bold text-sm text-slate-700 border-b pb-2">Lab Component</h5>
+                                        <h5 className="font-bold text-sm text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 pb-2">Lab Component</h5>
                                         <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Lab Reports</span>
-                                                <span className="font-medium">{viewStudent.labMarks.labReports ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400">Lab Reports</span>
+                                                <span className="font-medium dark:text-slate-200">{viewStudent.labMarks.labReports ?? '-'}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500">Attendance</span>
-                                                <span className="font-medium">{viewStudent.labMarks.attendance ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400">Attendance</span>
+                                                <span className="font-medium dark:text-slate-200">{viewStudent.labMarks.attendance ?? '-'}</span>
                                             </div>
                                             <div className="flex justify-between">
-                                                <span className="text-slate-500 font-bold">Final Lab</span>
-                                                <span className="font-bold">{viewStudent.labMarks.finalLab ?? '-'}</span>
+                                                <span className="text-slate-500 dark:text-slate-400 font-bold">Final Lab</span>
+                                                <span className="font-bold dark:text-white">{viewStudent.labMarks.finalLab ?? '-'}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -457,10 +457,10 @@ export default function CommitteeWorkflowDetail() {
 
             {/* Return Comment Dialog */}
             <Dialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
-                <DialogContent>
+                <DialogContent className="dark:bg-slate-900 dark:border-slate-700">
                     <DialogHeader>
-                        <DialogTitle>Return Result to Teacher</DialogTitle>
-                        <DialogDescription>
+                        <DialogTitle className="dark:text-white">Return Result to Teacher</DialogTitle>
+                        <DialogDescription className="dark:text-slate-400">
                             Please provide a reason for returning this result. This will be visible to the course instructor.
                         </DialogDescription>
                     </DialogHeader>
@@ -468,7 +468,7 @@ export default function CommitteeWorkflowDetail() {
                         placeholder="e.g., Discrepancy in Question 4 marks..."
                         value={returnComment}
                         onChange={(e) => setReturnComment(e.target.value)}
-                        className="min-h-[100px]"
+                        className="min-h-[100px] dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder:text-slate-500"
                     />
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsReturnDialogOpen(false)}>Cancel</Button>

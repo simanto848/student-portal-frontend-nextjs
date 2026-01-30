@@ -8,17 +8,19 @@ import {
     Plus,
     RefreshCw,
     FileText,
-    MessageSquare,
     Clock,
     ArrowRight,
     GraduationCap,
     Info,
     Inbox,
     Target,
-    Zap,
-    Sparkles,
     AlertCircle,
-    ShieldCheck
+    ShieldCheck,
+    Send,
+    Eye,
+    Edit3,
+    CheckCircle2,
+    RotateCcw,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -29,9 +31,12 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import OTPConfirmationDialog from "@/components/ui/OTPConfirmationDialog";
+import { notifySuccess, notifyError } from "@/components/toast";
 
 import { useGradingWorkflow } from "@/hooks/queries/useTeacherQueries";
-import { ResultWorkflow } from "@/services/enrollment/courseGrade.service";
+import { ResultWorkflow, courseGradeService } from "@/services/enrollment/courseGrade.service";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { isTeacherUser } from "@/types/user";
@@ -84,6 +89,7 @@ export default function GradingWorkflowClient({
         }
     }, [activeTab]);
 
+    // Always fetch all workflows - we filter client-side for proper tab functionality
     const {
         data: fetchedWorkflows = [],
         isLoading: isQueryLoading,
@@ -91,8 +97,8 @@ export default function GradingWorkflowClient({
         error,
         refetch,
     } = useGradingWorkflow(
-        activeTab === "all" || activeTab === "committee" ? undefined : { status: statusFilter },
-        { initialData: activeTab === "all" ? initialWorkflows : undefined }
+        activeTab === "committee" ? undefined : undefined, // Always fetch all for teacher view
+        { initialData: initialWorkflows }
     );
 
     const [workflows, setWorkflows] = useState<ResultWorkflow[]>([]);
@@ -175,8 +181,34 @@ export default function GradingWorkflowClient({
 
     const isLoading = isQueryLoading || isEnriching;
 
+    // Filter workflows based on active tab status
     const filteredWorkflows = useMemo(() => {
         let list = [...workflows];
+
+        // Apply status filter based on active tab
+        if (activeTab !== "all" && activeTab !== "committee") {
+            list = list.filter(w => {
+                const status = w.status?.toUpperCase();
+                switch (activeTab) {
+                    case "pending":
+                        // Pending = DRAFT or WITH_INSTRUCTOR (not yet submitted)
+                        return status === 'DRAFT' || status === 'WITH_INSTRUCTOR' || status === 'PENDING';
+                    case "submitted":
+                        // In Review = SUBMITTED_TO_COMMITTEE
+                        return status === 'SUBMITTED_TO_COMMITTEE';
+                    case "returned":
+                        // Returned = RETURNED_TO_TEACHER
+                        return status === 'RETURNED_TO_TEACHER';
+                    case "approved":
+                        // Approved = COMMITTEE_APPROVED or PUBLISHED
+                        return status === 'COMMITTEE_APPROVED' || status === 'PUBLISHED';
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Apply search query filter
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             list = list.filter(w =>
@@ -185,22 +217,54 @@ export default function GradingWorkflowClient({
                 w.actionBy?.toLowerCase().includes(q)
             );
         }
-        return list.sort((a, b) =>
-            new Date(b.actionAt || 0).getTime() - new Date(a.actionAt || 0).getTime()
-        );
-    }, [workflows, searchQuery]);
 
-    // Calculate generic stats for display 
-    // Note: Since we fetch lazily, these stats will only reflect loaded data if we rely solely on 'workflows'.
-    //Ideally, we would have a separate 'stats' endpoint, but for now we can just display counts of what is visible or hide stats if they are misleading.
-    // However, user expected lazy loading. Let's keep stats based on what we have or maybe remove them if they are inaccurate.
-    // Given the previous code had them, let's keep them but acknowledge they might be partial if we paginate, 
-    // but here we fetch 'all' per status so it is accurate for that status.
-    // BUT 'all', 'pending' etc are disjoint arrays in previous implementation. 
-    // Here 'workflows' is just the current tab's data. 
-    // So the stats bar across top showing counts for ALL categories is tricky without fetching all.
-    // Let's remove the stats array for now to avoid confusion, OR just show count for current tab.
-    // Actually, let's just show a simple count of currently displayed items.
+        return list.sort((a, b) =>
+            new Date(b.updatedAt || b.actionAt || 0).getTime() - new Date(a.updatedAt || a.actionAt || 0).getTime()
+        );
+    }, [workflows, searchQuery, activeTab]);
+
+    // Get empty state content based on active tab
+    const getEmptyStateContent = () => {
+        switch (activeTab) {
+            case "pending":
+                return {
+                    icon: <Edit3 className="h-10 w-10 text-amber-400 dark:text-amber-500" />,
+                    title: "No Pending Workflows",
+                    description: "You have no courses with grades pending submission. Start by entering grades for your assigned courses.",
+                    iconBg: "bg-amber-50 dark:bg-amber-900/20"
+                };
+            case "submitted":
+                return {
+                    icon: <Clock className="h-10 w-10 text-indigo-400 dark:text-indigo-500" />,
+                    title: "No Courses In Review",
+                    description: "No grades are currently awaiting committee review. Submit your completed grades for approval.",
+                    iconBg: "bg-indigo-50 dark:bg-indigo-900/20"
+                };
+            case "returned":
+                return {
+                    icon: <RotateCcw className="h-10 w-10 text-rose-400 dark:text-rose-500" />,
+                    title: "No Returned Workflows",
+                    description: "Great! None of your submissions have been returned. Keep up the good work!",
+                    iconBg: "bg-rose-50 dark:bg-rose-900/20"
+                };
+            case "approved":
+                return {
+                    icon: <CheckCircle2 className="h-10 w-10 text-emerald-400 dark:text-emerald-500" />,
+                    title: "No Approved Results",
+                    description: "No grades have been approved yet. Submitted grades will appear here once approved by the committee.",
+                    iconBg: "bg-emerald-50 dark:bg-emerald-900/20"
+                };
+            default:
+                return {
+                    icon: <Inbox className="h-10 w-10 text-slate-300 dark:text-slate-600" />,
+                    title: "No Workflows Found",
+                    description: searchQuery ? "No results match your search criteria." : "There are currently no grading workflows to display.",
+                    iconBg: "bg-slate-50 dark:bg-slate-800"
+                };
+        }
+    };
+
+    const emptyState = getEmptyStateContent();
 
     return (
         <div className="space-y-8 pb-12">
@@ -316,31 +380,82 @@ export default function GradingWorkflowClient({
                 {activeTab === "committee" && isCommitteeMember ? (
                     <CommitteeReviewTab />
                 ) : (
-                    <div className="grid grid-cols-1 gap-4">
-                        <AnimatePresence mode="popLayout">
-                            {filteredWorkflows.length > 0 ? (
-                                filteredWorkflows.map((workflow, idx) => (
-                                    <WorkflowCard
-                                        key={workflow.id || workflow._id || `workflow-${idx}`}
-                                        workflow={workflow}
-                                        index={idx}
-                                        themeAccent={accentPrimary}
-                                    />
-                                ))
-                            ) : (
-                                <div className="py-24 flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-700">
-                                    <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 dark:bg-slate-800 flex items-center justify-center mb-6">
-                                        <Inbox className="h-10 w-10 text-slate-200 dark:text-slate-600" />
-                                    </div>
-                                    <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-2 text-center px-6">
-                                        No Workflows Found
-                                    </h3>
-                                    <p className="text-slate-400 dark:text-slate-500 font-medium text-center px-6 max-w-sm mb-8">
-                                        {searchQuery ? "No results match your search criteria." : "There are currently no grading workflows to display in this category."}
-                                    </p>
-                                </div>
-                            )}
-                        </AnimatePresence>
+                    <div className="space-y-4">
+                        {/* Results Count Bar */}
+                        {!isLoading && filteredWorkflows.length > 0 && (
+                            <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+                                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                                    Showing <span className="text-indigo-600 dark:text-indigo-400">{filteredWorkflows.length}</span> workflow{filteredWorkflows.length !== 1 ? 's' : ''}
+                                </span>
+                                {searchQuery && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => setSearchQuery("")}
+                                        className="text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                                    >
+                                        Clear search
+                                    </Button>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Loading State */}
+                        {isLoading && (
+                            <div className="py-24 flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-700">
+                                <RefreshCw className="h-10 w-10 text-indigo-400 dark:text-indigo-500 animate-spin mb-6" />
+                                <h3 className="text-xl font-black text-slate-800 dark:text-white tracking-tight mb-2">
+                                    Loading Workflows...
+                                </h3>
+                                <p className="text-slate-400 dark:text-slate-500 font-medium">
+                                    Fetching your grading workflow data
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Workflow Cards Grid */}
+                        {!isLoading && (
+                            <div className="grid grid-cols-1 gap-4">
+                                <AnimatePresence mode="popLayout">
+                                    {filteredWorkflows.length > 0 ? (
+                                        filteredWorkflows.map((workflow, idx) => (
+                                            <WorkflowCard
+                                                key={workflow.id || workflow._id || `workflow-${idx}`}
+                                                workflow={workflow}
+                                                index={idx}
+                                                themeAccent={accentPrimary}
+                                                onRefresh={refetch}
+                                            />
+                                        ))
+                                    ) : (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="py-24 flex flex-col items-center justify-center bg-white dark:bg-slate-900 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-700"
+                                        >
+                                            <div className={`h-24 w-24 rounded-[2.5rem] ${emptyState.iconBg} flex items-center justify-center mb-6`}>
+                                                {emptyState.icon}
+                                            </div>
+                                            <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-2 text-center px-6">
+                                                {emptyState.title}
+                                            </h3>
+                                            <p className="text-slate-400 dark:text-slate-500 font-medium text-center px-6 max-w-sm mb-8">
+                                                {emptyState.description}
+                                            </p>
+                                            {(activeTab === "pending" || activeTab === "all") && (
+                                                <Button
+                                                    onClick={() => router.push("/dashboard/teacher/courses")}
+                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl"
+                                                >
+                                                    <Plus className="h-4 w-4 mr-2" />
+                                                    Go to My Courses
+                                                </Button>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        )}
                     </div>
                 )}
             </Tabs>
@@ -348,96 +463,298 @@ export default function GradingWorkflowClient({
     );
 }
 
-function WorkflowCard({
-    workflow,
-    index,
-    themeAccent
-}: {
+interface WorkflowCardProps {
     workflow: ResultWorkflow;
     index: number;
     themeAccent: string;
-}) {
+    onRefresh: () => void;
+}
+
+function WorkflowCard({
+    workflow,
+    index,
+    themeAccent,
+    onRefresh
+}: WorkflowCardProps) {
     const router = useRouter();
-    const courseName = workflow.grade?.course?.name || "Unknown Course";
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+
+    const courseName = workflow.grade?.course?.name || workflow.grade?.course?.title || "Unknown Course";
     const courseCode = workflow.grade?.course?.code || "";
     const batchCode = workflow.grade?.batch?.code || workflow.grade?.batch?.name || "";
     const status = workflow.status;
+    const courseId = workflow.courseId || workflow.grade?.course?.id || workflow.grade?.course?._id;
+    const batchId = workflow.batchId || workflow.grade?.batch?.id || workflow.grade?.batch?._id;
+    const semester = workflow.semester || workflow.grade?.semester;
 
-    return (
-        <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            layout
-        >
-            <Card className="group relative overflow-hidden bg-white dark:bg-slate-900 hover:shadow-xl transition-all duration-300 rounded-[2rem] border-slate-200/60 dark:border-slate-700/60 hover:border-indigo-100 dark:hover:border-indigo-900 p-0">
-                <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="flex items-start gap-4 flex-1">
-                            <div className={`p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:scale-110 transition-all duration-300`}>
-                                <FileText className="h-6 w-6" />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
-                                        {courseName}
-                                    </h3>
-                                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-lg">
-                                        {courseCode}
-                                    </Badge>
-                                </div>
-                                <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium mb-4">
-                                    <GraduationCap className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-                                    <span>Batch {batchCode}</span>
-                                    <span className="mx-1">•</span>
-                                    <span>Semester {workflow.grade?.semester}</span>
-                                </div>
+    // Get status-specific styling
+    const getStatusStyles = () => {
+        switch (status) {
+            case 'DRAFT':
+            case 'WITH_INSTRUCTOR':
+                return {
+                    iconBg: 'bg-amber-50 dark:bg-amber-900/20',
+                    iconColor: 'text-amber-500 dark:text-amber-400',
+                    borderHover: 'hover:border-amber-200 dark:hover:border-amber-800'
+                };
+            case 'SUBMITTED_TO_COMMITTEE':
+                return {
+                    iconBg: 'bg-indigo-50 dark:bg-indigo-900/20',
+                    iconColor: 'text-indigo-500 dark:text-indigo-400',
+                    borderHover: 'hover:border-indigo-200 dark:hover:border-indigo-800'
+                };
+            case 'RETURNED_TO_TEACHER':
+                return {
+                    iconBg: 'bg-rose-50 dark:bg-rose-900/20',
+                    iconColor: 'text-rose-500 dark:text-rose-400',
+                    borderHover: 'hover:border-rose-200 dark:hover:border-rose-800'
+                };
+            case 'COMMITTEE_APPROVED':
+                return {
+                    iconBg: 'bg-emerald-50 dark:bg-emerald-900/20',
+                    iconColor: 'text-emerald-500 dark:text-emerald-400',
+                    borderHover: 'hover:border-emerald-200 dark:hover:border-emerald-800'
+                };
+            case 'PUBLISHED':
+                return {
+                    iconBg: 'bg-sky-50 dark:bg-sky-900/20',
+                    iconColor: 'text-sky-500 dark:text-sky-400',
+                    borderHover: 'hover:border-sky-200 dark:hover:border-sky-800'
+                };
+            default:
+                return {
+                    iconBg: 'bg-slate-50 dark:bg-slate-800',
+                    iconColor: 'text-slate-400 dark:text-slate-500',
+                    borderHover: 'hover:border-indigo-100 dark:hover:border-indigo-900'
+                };
+        }
+    };
 
-                                <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
-                                    <span className="flex items-center gap-1.5">
-                                        <Info className="h-3 w-3" />
-                                        Last Action By: <span className="text-slate-600 dark:text-slate-300">{workflow.actionBy || "System"}</span>
-                                    </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <Target className="h-3 w-3" />
-                                        {workflow.actionAt ? new Date(workflow.actionAt).toLocaleDateString(undefined, {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric'
-                                        }) : "Pending"}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+    const styles = getStatusStyles();
 
-                        <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100 dark:border-slate-800">
-                            <div className="flex flex-col items-end gap-1.5">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Current Status</span>
-                                <StatusBadge status={status} size="lg" pill />
-                            </div>
+    // Handle submit to committee
+    const handleSubmitToCommittee = async (otp: string) => {
+        if (!courseId || !batchId || !semester) {
+            notifyError("Missing course information");
+            return;
+        }
 
+        setIsSubmitting(true);
+        try {
+            await courseGradeService.submitToCommittee({
+                courseId: String(courseId),
+                batchId: String(batchId),
+                semester: Number(semester)
+            });
+            notifySuccess("Successfully submitted to Exam Committee");
+            setOtpDialogOpen(false);
+            onRefresh();
+        } catch (error: any) {
+            notifyError(error?.message || "Failed to submit to committee");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Navigate to course detail (grading tab)
+    const goToGradingPage = () => {
+        // Find the assignment ID for this course
+        router.push(`/dashboard/teacher/courses?search=${courseCode}`);
+    };
+
+    // Get action buttons based on status
+    const renderActions = () => {
+        const canSubmit = status === 'DRAFT' || status === 'RETURNED_TO_TEACHER' || status === 'WITH_INSTRUCTOR';
+        const isInReview = status === 'SUBMITTED_TO_COMMITTEE';
+        const isApproved = status === 'COMMITTEE_APPROVED';
+        const isPublished = status === 'PUBLISHED';
+
+        return (
+            <TooltipProvider>
+                <div className="flex items-center gap-2">
+                    {/* Edit/Enter Marks - only for pending/returned */}
+                    {canSubmit && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={goToGradingPage}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-amber-50 dark:hover:bg-amber-900/20 text-amber-600 dark:text-amber-400 transition-colors"
+                                >
+                                    <Edit3 className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Edit Marks</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* Submit to Committee - only for pending/returned */}
+                    {canSubmit && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={() => setOtpDialogOpen(true)}
+                                    variant="ghost"
+                                    size="sm"
+                                    disabled={isSubmitting}
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 transition-colors"
+                                >
+                                    <Send className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Submit to Committee</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* View Status - for in review */}
+                    {isInReview && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={goToGradingPage}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 transition-colors"
+                                >
+                                    <Clock className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Awaiting Committee Review</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* View Details - for approved/published */}
+                    {(isApproved || isPublished) && (
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    onClick={goToGradingPage}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 transition-colors"
+                                >
+                                    <Eye className="h-4 w-4" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>View Details</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    )}
+
+                    {/* Arrow to navigate */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
                             <Button
-                                onClick={() => router.push(`/dashboard/teacher/courses/${workflow.grade?.courseId}`)}
+                                onClick={goToGradingPage}
                                 variant="ghost"
-                                className="h-12 w-12 rounded-2xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 p-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                className="h-10 w-10 rounded-xl flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 p-0 text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                             >
                                 <ArrowRight className="h-5 w-5" />
                             </Button>
-                        </div>
-                    </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Go to Course</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
+            </TooltipProvider>
+        );
+    };
 
-                    {workflow.comments && (
-                        <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100/50 dark:border-slate-700/50">
-                            <div className="flex items-start gap-2">
-                                <MessageSquare className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 mt-0.5" />
-                                <p className="text-xs text-slate-500 dark:text-slate-400 italic leading-relaxed">
-                                    "{workflow.comments}"
-                                </p>
+    return (
+        <>
+            <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                layout
+            >
+                <Card className={`group relative overflow-hidden bg-white dark:bg-slate-900 hover:shadow-xl transition-all duration-300 rounded-4xl border-slate-200/60 dark:border-slate-700/60 ${styles.borderHover} p-0`}>
+                    <CardContent className="p-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="flex items-start gap-4 flex-1">
+                                <div className={`p-4 rounded-2xl ${styles.iconBg} ${styles.iconColor} group-hover:scale-110 transition-all duration-300`}>
+                                    <FileText className="h-6 w-6" />
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                                        <h3 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
+                                            {courseName}
+                                        </h3>
+                                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-0.5 rounded-lg">
+                                            {courseCode}
+                                        </Badge>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 font-medium mb-4">
+                                        <GraduationCap className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                                        <span>Batch {batchCode}</span>
+                                        <span className="mx-1">•</span>
+                                        <span>Semester {semester}</span>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-4 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                                        <span className="flex items-center gap-1.5">
+                                            <Info className="h-3 w-3" />
+                                            Last Action: <span className="text-slate-600 dark:text-slate-300">{workflow.actionBy || "System"}</span>
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <Target className="h-3 w-3" />
+                                            {workflow.updatedAt ? new Date(workflow.updatedAt).toLocaleDateString(undefined, {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric'
+                                            }) : "Pending"}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between md:justify-end gap-4 border-t md:border-t-0 pt-4 md:pt-0 border-slate-100 dark:border-slate-800">
+                                <div className="flex flex-col items-end gap-1.5">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Status</span>
+                                    <StatusBadge status={status} size="lg" pill />
+                                </div>
+
+                                {renderActions()}
                             </div>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
-        </motion.div>
+
+                        {/* Comments/Return Reason */}
+                        {workflow.comments && (
+                            <div className="mt-4 p-4 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border border-rose-100/50 dark:border-rose-800/50">
+                                <div className="flex items-start gap-2">
+                                    <RotateCcw className="h-4 w-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-1">Return Comment:</p>
+                                        <p className="text-xs text-rose-600/80 dark:text-rose-300 italic leading-relaxed">
+                                            &quot;{workflow.comments}&quot;
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </motion.div>
+
+            {/* OTP Dialog for Submit */}
+            <OTPConfirmationDialog
+                isOpen={otpDialogOpen}
+                onClose={() => setOtpDialogOpen(false)}
+                onConfirm={handleSubmitToCommittee}
+                purpose="result_submission"
+                title="Submit to Exam Committee"
+                description={`You are about to submit the grades for ${courseName} (${courseCode}) to the Exam Committee for review. This action requires OTP verification.`}
+            />
+        </>
     );
 }
