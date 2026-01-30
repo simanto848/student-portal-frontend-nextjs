@@ -1,15 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     Search,
-    Bell,
-    TrendingUp,
     Activity as SsidChart,
     CheckCircle2,
     Clock,
@@ -18,13 +15,8 @@ import {
     History,
     Code,
     Terminal,
-    Headset,
     ChevronDown,
     FilterX,
-    CalendarDays,
-    FileText,
-    ArrowUpRight,
-    Zap
 } from "lucide-react";
 import {
     Select,
@@ -34,11 +26,9 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-    useStudentAttendance,
-    useEnrollments,
-} from "@/hooks/queries/useEnrollmentQueries";
+import { getStudentAttendanceData } from "../actions";
 import { Attendance } from "@/services/enrollment/attendance.service";
+import { Enrollment } from "@/services/enrollment/enrollment.service";
 import { cn } from "@/lib/utils";
 import StudentLoading from "@/components/StudentLoading";
 
@@ -50,17 +40,37 @@ export default function AttendanceManagementClient() {
     const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
-    const {
-        data: attendanceList = [],
-        isLoading: attendanceLoading,
-        error: attendanceError,
-    } = useStudentAttendance(studentId);
+    // State for data fetched from actions
+    const [attendanceList, setAttendanceList] = useState<Attendance[]>([]);
+    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const { data: enrollments = [], isLoading: enrollmentsLoading } =
-        useEnrollments({ studentId });
+    // Fetch data using server actions
+    useEffect(() => {
+        async function fetchData() {
+            if (!studentId) {
+                setIsLoading(false);
+                return;
+            }
 
-    const isLoading = attendanceLoading || enrollmentsLoading;
-    const error = attendanceError ? "Failed to load attendance data." : null;
+            setIsLoading(true);
+            setError(null);
+
+            const result = await getStudentAttendanceData(studentId);
+
+            if (result.success) {
+                setAttendanceList(result.attendance || []);
+                setEnrollments(result.enrollments || []);
+            } else {
+                setError(result.error || "Failed to load attendance data.");
+            }
+
+            setIsLoading(false);
+        }
+
+        fetchData();
+    }, [studentId]);
 
     const semesters = useMemo(() => {
         const semesterSet = new Set<number>();
@@ -196,60 +206,11 @@ export default function AttendanceManagementClient() {
                 </header>
 
                 {error && (
-                    <Alert variant="destructive" className="rounded-[2rem] border-rose-100 bg-rose-50 text-rose-700 p-6">
+                    <Alert variant="destructive" className="rounded-4xl border-rose-100 bg-rose-50 text-rose-700 p-6">
                         <AlertCircle className="h-5 w-5 mr-3" />
                         <AlertDescription className="font-black uppercase tracking-tighter">{error}</AlertDescription>
                     </Alert>
                 )}
-
-                {/* Trend Section */}
-                <section>
-                    <div className="glass-panel group p-8 rounded-[3rem] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <TrendingUp className="h-40 w-40 text-[#0D9488]" />
-                        </div>
-                        <div className="flex justify-between items-end relative z-10 mb-10">
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-[#0D9488]/10 rounded-2xl text-[#0D9488]">
-                                        <TrendingUp className="h-6 w-6" />
-                                    </div>
-                                    <h3 className="font-extrabold text-slate-900 dark:text-white text-xl tracking-tight">Attendance Trend</h3>
-                                </div>
-                                <p className="text-[11px] font-bold text-slate-500 max-w-sm leading-relaxed uppercase tracking-wide">
-                                    Your consistency over the current semester showing academic persistence vectors.
-                                </p>
-                            </div>
-                            <div className="flex gap-4">
-                                <div className="p-4 rounded-2xl bg-white/40 dark:bg-black/20 border border-white flex flex-col items-center min-w-[100px]">
-                                    <span className="text-2xl font-black text-[#0D9488]">{stats.overall}%</span>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Yield</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Chart Mockup matching design */}
-                        <div className="flex items-end justify-between h-40 gap-6 px-4">
-                            {[0.4, 0.7, 0.5, 0.85, 0.95, 0.75, 1.0, 0.92].map((val, i) => (
-                                <div key={i} className="flex-1 flex flex-col justify-end gap-3 group/bar cursor-pointer">
-                                    <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-t-2xl min-h-[10px] h-full relative overflow-hidden transition-all group-hover/bar:bg-[#0D9488]/10">
-                                        <motion.div
-                                            initial={{ height: 0 }}
-                                            animate={{ height: `${val * 100}%` }}
-                                            transition={{ delay: i * 0.1, duration: 1 }}
-                                            className={cn(
-                                                "absolute bottom-0 w-full rounded-t-2xl",
-                                                val >= 0.9 ? "bg-[#0D9488] shadow-lg shadow-[#0D9488]/30" :
-                                                    val < 0.6 ? "bg-rose-500/60" : "bg-[#0D9488]/60"
-                                            )}
-                                        />
-                                    </div>
-                                    <span className="text-[9px] text-center font-black text-slate-400 uppercase tracking-widest">W{i + 1}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
 
                 {/* Stat Cards Grid */}
                 <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -368,7 +329,7 @@ export default function AttendanceManagementClient() {
             <aside className="hidden xl:flex w-[400px] flex-col gap-10 p-8 ml-10 glass-panel-right sticky top-0 h-screen overflow-y-auto no-scrollbar border-l border-white/20">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-[1.25rem] bg-gradient-to-tr from-[#0D9488] to-emerald-400 flex items-center justify-center text-white font-black shadow-xl ring-4 ring-white">
+                        <div className="w-12 h-12 rounded-[1.25rem] bg-linear-to-tr from-[#0D9488] to-emerald-400 flex items-center justify-center text-white font-black shadow-xl ring-4 ring-white">
                             S{effectiveSemester === "all" ? semesters[0]?.toString().charAt(0) : effectiveSemester.charAt(0)}
                         </div>
                         <div>
@@ -410,9 +371,9 @@ export default function AttendanceManagementClient() {
                                             initial={{ opacity: 0, x: 10 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: idx * 0.03 }}
-                                            className="flex gap-5 items-start p-5 hover:bg-white/80 dark:hover:bg-slate-800/60 rounded-[2rem] transition-all cursor-pointer group border border-transparent hover:border-white/60 hover:shadow-xl"
+                                            className="flex gap-5 items-start p-5 hover:bg-white/80 dark:hover:bg-slate-800/60 rounded-4xl transition-all cursor-pointer group border border-transparent hover:border-white/60 hover:shadow-xl"
                                         >
-                                            <div className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-slate-800/80 flex-shrink-0 flex items-center justify-center border border-white/60 dark:border-slate-700/60 shadow-sm group-hover:scale-110 transition-transform">
+                                            <div className="w-12 h-12 rounded-2xl bg-white/80 dark:bg-slate-800/80 shrink-0 flex items-center justify-center border border-white/60 dark:border-slate-700/60 shadow-sm group-hover:scale-110 transition-transform">
                                                 {item.courseId.includes("Lab") ? <Code className="h-5 w-5 text-[#0D9488]" /> : <Terminal className="h-5 w-5 text-[#0D9488]" />}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -425,7 +386,7 @@ export default function AttendanceManagementClient() {
                                                         {new Date(item.date).toLocaleDateString("en-US", { day: "2-digit", month: "short" })} • {new Date(item.markedAt || item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </p>
                                                     {item.remarks && (
-                                                        <p className="text-[10px] text-slate-400 italic font-medium truncate">"{item.remarks}"</p>
+                                                        <p className="text-[10px] text-slate-400 italic font-medium truncate">&quot;{item.remarks}&quot;</p>
                                                     )}
                                                 </div>
                                             </div>
