@@ -144,17 +144,6 @@ export const adminNavigation: NavItem[] = [
     ],
   },
   {
-    label: "Workspaces",
-    icon: Building2,
-    children: [
-      { href: "/dashboard/admin/classroom", label: "Classrooms" },
-      { href: "/dashboard/admin/classroom/assignments", label: "Assignments" },
-      { href: "/dashboard/admin/classroom/materials", label: "Materials" },
-      { href: "/dashboard/admin/classroom/submissions", label: "Submissions" },
-      { href: "/dashboard/admin/classroom/rubrics", label: "Rubrics" },
-    ],
-  },
-  {
     label: "User Management",
     icon: Users,
     children: [

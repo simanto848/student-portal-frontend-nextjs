@@ -11,7 +11,6 @@ import {
     Server,
     Activity,
     TrendingUp,
-    TrendingDown,
     AlertTriangle,
     CheckCircle,
     Database,
@@ -56,30 +55,6 @@ const organizationGrowth = [
     { month: "Oct", organizations: 67, users: 19800 },
     { month: "Nov", organizations: 78, users: 24100 },
     { month: "Dec", organizations: 92, users: 28500 },
-];
-
-const roleDistribution = [
-    { name: "Students", value: 24500, color: "hsl(234, 89%, 59%)" },
-    { name: "Teachers", value: 1850, color: "hsl(168, 76%, 42%)" },
-    { name: "Admins", value: 280, color: "hsl(38, 92%, 50%)" },
-    { name: "Moderators", value: 45, color: "hsl(199, 89%, 48%)" },
-    { name: "Super Admins", value: 5, color: "hsl(0, 84%, 60%)" },
-];
-
-const recentAlerts = [
-    { id: 1, type: "critical", message: "Database connection pool reaching limit", time: "5m ago", org: "System" },
-    { id: 2, type: "warning", message: "High API response time detected", time: "12m ago", org: "Lincoln HS" },
-    { id: 3, type: "info", message: "New organization registered", time: "28m ago", org: "Oak Valley Academy" },
-    { id: 4, type: "success", message: "Backup completed successfully", time: "1h ago", org: "System" },
-    { id: 5, type: "warning", message: "Storage usage above 80%", time: "2h ago", org: "Metro University" },
-];
-
-const organizations = [
-    { name: "Lincoln High School", users: 2450, status: "active", growth: 12 },
-    { name: "Metro University", users: 8200, status: "active", growth: 8 },
-    { name: "Oak Valley Academy", users: 890, status: "pending", growth: 0 },
-    { name: "Central Tech Institute", users: 3100, status: "active", growth: -3 },
-    { name: "Riverside College", users: 4500, status: "active", growth: 15 },
 ];
 
 const SuperAdminDashboard = () => {
@@ -318,7 +293,7 @@ const SuperAdminDashboard = () => {
                                 ) : (
                                     alerts.length > 0 ? alerts.map((alert) => (
                                         <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${alert.type === "critical" ? "bg-destructive/10" :
+                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${alert.type === "critical" ? "bg-destructive/10" :
                                                 alert.type === "warning" ? "bg-amber-100" :
                                                     alert.type === "success" ? "bg-green-100" : "bg-blue-100"
                                                 }`}>
