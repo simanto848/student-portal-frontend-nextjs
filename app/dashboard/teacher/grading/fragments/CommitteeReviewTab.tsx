@@ -14,7 +14,9 @@ import {
     Inbox,
     RefreshCw,
     Shield,
-    ShieldCheck
+    ShieldCheck,
+    Upload,
+    CheckCircle2
 } from "lucide-react";
 
 import { academicApi as api } from "@/services/academic/axios-instance";
@@ -39,7 +41,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { notifyError } from "@/components/toast";
+import { notifyError, notifySuccess } from "@/components/toast";
+import OTPConfirmationDialog from "@/components/ui/OTPConfirmationDialog";
+import { courseGradeService } from "@/services/enrollment/courseGrade.service";
 
 // Type definitions for committee workflows
 interface BatchInfo {
@@ -93,6 +97,10 @@ export default function CommitteeReviewTab() {
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedBatches, setExpandedBatches] = useState<Set<string>>(new Set());
     const [isMounted, setIsMounted] = useState(false);
+
+    // Bulk publish state
+    const [bulkPublishDialogOpen, setBulkPublishDialogOpen] = useState(false);
+    const [selectedGroupForPublish, setSelectedGroupForPublish] = useState<BatchGroup | null>(null);
 
     const isCommitteeMember = user && isTeacherUser(user) && user.isExamCommitteeMember;
 
@@ -193,6 +201,47 @@ export default function CommitteeReviewTab() {
 
     const navigateToDetail = (workflowId: string) => {
         router.push(`/dashboard/teacher/grading/committee/${workflowId}`);
+    };
+
+    // Get approved count for a group
+    const getApprovedCount = (group: BatchGroup): number => {
+        return group.workflows.filter(w => w.status === 'COMMITTEE_APPROVED').length;
+    };
+
+    // Handle bulk publish initiation
+    const handleBulkPublishClick = (group: BatchGroup, e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent toggle of the accordion
+        setSelectedGroupForPublish(group);
+        setBulkPublishDialogOpen(true);
+    };
+
+    // Handle bulk publish confirmation with OTP
+    const handleBulkPublishConfirm = async (otp: string): Promise<void> => {
+        if (!selectedGroupForPublish) return;
+
+        const batchId = selectedGroupForPublish.batch?.id || selectedGroupForPublish.batch?._id;
+        if (!batchId) {
+            throw new Error("Invalid batch information");
+        }
+
+        const response = await courseGradeService.bulkPublishResults({
+            batchId,
+            semester: selectedGroupForPublish.semester,
+            otp
+        });
+
+        if (response.success) {
+            const { publishedCount, failedCount } = response.data;
+            if (failedCount > 0) {
+                notifySuccess(`Published ${publishedCount} courses. ${failedCount} failed.`);
+            } else {
+                notifySuccess(`Successfully published all ${publishedCount} approved courses!`);
+            }
+            setSelectedGroupForPublish(null);
+            fetchWorkflows(); // Refresh data
+        } else {
+            throw new Error(response.message || "Failed to bulk publish results");
+        }
     };
 
     // If not a committee member, show access denied
@@ -328,7 +377,26 @@ export default function CommitteeReviewTab() {
                                                 {group.workflows.filter((w) => w.status === 'WITH_INSTRUCTOR').length} Waiting
                                             </span>
                                         )}
+                                        {getApprovedCount(group) > 0 && (
+                                            <span className="flex items-center gap-1 text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-md">
+                                                <CheckCircle2 className="h-3 w-3" />
+                                                {getApprovedCount(group)} Approved
+                                            </span>
+                                        )}
                                     </div>
+
+                                    {/* Bulk Publish Button */}
+                                    {getApprovedCount(group) > 0 && (
+                                        <Button
+                                            size="sm"
+                                            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-sm"
+                                            onClick={(e) => handleBulkPublishClick(group, e)}
+                                        >
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            Publish All ({getApprovedCount(group)})
+                                        </Button>
+                                    )}
+
                                     {expandedBatches.has(group.id) ? (
                                         <ChevronUp className="h-5 w-5 text-slate-400" />
                                     ) : (
@@ -407,6 +475,22 @@ export default function CommitteeReviewTab() {
                     ))
                 )}
             </div>
+
+            {/* Bulk Publish OTP Confirmation Dialog */}
+            <OTPConfirmationDialog
+                isOpen={bulkPublishDialogOpen}
+                onClose={() => {
+                    setBulkPublishDialogOpen(false);
+                    setSelectedGroupForPublish(null);
+                }}
+                onConfirm={handleBulkPublishConfirm}
+                purpose="result_publication"
+                title="Publish All Approved Results"
+                description={selectedGroupForPublish ?
+                    `You are about to publish ${getApprovedCount(selectedGroupForPublish)} approved course results for ${selectedGroupForPublish.batch?.name || 'this batch'} - Semester ${selectedGroupForPublish.semester}. This action cannot be undone.`
+                    : "Confirm bulk publish"
+                }
+            />
         </div>
     );
 }

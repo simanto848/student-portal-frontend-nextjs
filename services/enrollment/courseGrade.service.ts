@@ -230,6 +230,26 @@ export const courseGradeService = {
         }
     },
 
+    // Bulk publish all approved results for a batch and semester
+    bulkPublishResults: async (data: { batchId: string; semester: number; otp: string }): Promise<any> => {
+        try {
+            const response = await api.post('/enrollment/result-workflow/bulk-publish', data);
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    // Get summary of approved workflows for bulk publishing
+    getApprovedSummary: async (): Promise<any> => {
+        try {
+            const response = await api.get('/enrollment/result-workflow/approved-summary');
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
     // New Methods for Course Final Marks Entry
     getMarkConfig: async (courseId: string): Promise<any> => {
         try {
