@@ -16,8 +16,8 @@ import {
     courseGradeService,
     type CourseGrade,
 } from "@/services/enrollment/courseGrade.service";
-import { enrollmentService } from "@/services/enrollment/enrollment.service";
-import { Loader2, Send, Save, AlertCircle } from "lucide-react";
+import { studentService } from "@/services/user/student.service";
+import { Loader2,  Save, AlertCircle } from "lucide-react";
 import { notifyError, notifySuccess, notifyWarning } from "@/components/toast";
 import { motion } from "framer-motion";
 
@@ -25,12 +25,12 @@ interface Student {
     id: string;
     fullName: string;
     registrationNumber: string;
-    enrollmentId: string;
+    enrollmentId?: string; // Optional - student may not be enrolled
 }
 
 interface MarkEntry {
     studentId: string;
-    enrollmentId: string;
+    enrollmentId?: string; // Optional - student may not be enrolled
     theoryMarks?: {
         finalExam?: number;
         midterm?: number;
@@ -124,17 +124,13 @@ export function CourseFinalMarksEntry({
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const enrollmentsData = await enrollmentService.listEnrollments({
-                batchId,
-                courseId,
-                status: "active",
-            });
-
-            const studentList: Student[] = enrollmentsData.enrollments.map((e) => ({
-                id: String((e.student as unknown as Record<string, unknown>)?.id || (e.student as unknown as Record<string, unknown>)?._id),
-                fullName: String((e.student as unknown as Record<string, unknown>)?.fullName),
-                registrationNumber: String((e.student as unknown as Record<string, unknown>)?.registrationNumber),
-                enrollmentId: e.id,
+            // Fetch ALL students in the batch (not just enrolled ones)
+            const studentsData = await studentService.getAll({ batchId });
+            const studentList: Student[] = (studentsData.students || []).map((s) => ({
+                id: String(s.id),
+                fullName: String(s.fullName),
+                registrationNumber: String(s.registrationNumber),
+                enrollmentId: undefined, // Students may not have enrollment
             }));
             setStudents(studentList);
 

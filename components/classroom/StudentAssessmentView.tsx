@@ -68,17 +68,12 @@ export function StudentAssessmentView({
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [assessmentsData, submissionsData, enrollmentsData] =
-        await Promise.all([
-          assessmentService.list({ courseId, batchId, status: "published" }),
-          assessmentService.listSubmissions({ courseId, batchId, studentId }),
-          enrollmentService.listEnrollments({
-            courseId,
-            batchId,
-            studentId,
-            limit: 1,
-          }),
-        ]);
+      // Fetch assessments and submissions - enrollment is optional
+      const [assessmentsData, submissionsData] = await Promise.all([
+        assessmentService.list({ courseId, batchId, status: "published" }),
+        assessmentService.listSubmissions({ courseId, batchId, studentId }),
+      ]);
+
       setAssessments(
         Array.isArray(assessmentsData)
           ? assessmentsData
@@ -89,8 +84,21 @@ export function StudentAssessmentView({
           ? submissionsData
           : submissionsData.submissions || []
       );
-      const firstEnrollment = enrollmentsData?.enrollments?.[0];
-      setEnrollmentId(firstEnrollment?.id || null);
+
+      // Try to get enrollment ID (optional - student may not be enrolled)
+      try {
+        const enrollmentsData = await enrollmentService.listEnrollments({
+          courseId,
+          batchId,
+          studentId,
+          limit: 1,
+        });
+        const firstEnrollment = enrollmentsData?.enrollments?.[0];
+        setEnrollmentId(firstEnrollment?.id || null);
+      } catch {
+        // Student may not be enrolled - that's okay
+        setEnrollmentId(null);
+      }
     } catch (error) {
       toast.error("Failed to fetch assessments");
     } finally {
@@ -116,10 +124,6 @@ export function StudentAssessmentView({
 
   const handleSubmit = async () => {
     if (!selectedAssessment) return;
-    if (!enrollmentId) {
-      toast.error("Enrollment not found for this course");
-      return;
-    }
     if (!submissionContent && selectedFiles.length === 0) {
       toast.error("Please provide content or attach a file");
       return;
@@ -131,7 +135,7 @@ export function StudentAssessmentView({
 
       const formData = new FormData();
       formData.append("assessmentId", selectedAssessment.id);
-      formData.append("enrollmentId", enrollmentId);
+      if (enrollmentId) formData.append("enrollmentId", enrollmentId); // Optional
       if (submissionContent) formData.append("content", submissionContent);
       for (const file of selectedFiles) {
         formData.append("files", file);

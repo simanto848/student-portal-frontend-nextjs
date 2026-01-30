@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Loader2, UserMinus, UserCheck, Users, SearchIcon, X } from "lucide-react";
 import { Batch } from "@/services/academic/types";
 import { batchService } from "@/services/academic/batch.service";
-import { enrollmentService } from "@/services/enrollment/enrollment.service";
+import { studentService } from "@/services/user/student.service";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
@@ -39,22 +39,19 @@ export function CRManagementDialog({ open, onOpenChange, batch, onSuccess }: CRM
         if (!batch) return;
         setLoading(true);
         try {
-            const data = await enrollmentService.listEnrollments({
+            // Fetch ALL students in the batch (not just enrolled ones)
+            const data = await studentService.getAll({
                 batchId: batch.id,
-                semester: batch.currentSemester,
-                status: 'active',
                 limit: 1000
             });
 
-            const enrollments = (data as any).enrollments || [];
-            const uniqueStudentsMap = new Map();
-            enrollments.forEach((enrollment: any) => {
-                if (enrollment.studentId && !uniqueStudentsMap.has(enrollment.studentId)) {
-                    uniqueStudentsMap.set(enrollment.studentId, enrollment);
-                }
-            });
+            // Transform to match expected format (enrollment-like structure with student object)
+            const studentsList = (data.students || []).map((student) => ({
+                studentId: student.id,
+                student: student,
+            }));
 
-            setStudents(Array.from(uniqueStudentsMap.values()));
+            setStudents(studentsList);
         } catch (error) {
             console.error("Fetch students error:", error);
             toast.error("Failed to load students");

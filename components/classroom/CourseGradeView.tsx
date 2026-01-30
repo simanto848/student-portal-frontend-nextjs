@@ -15,7 +15,7 @@ import {
   courseGradeService,
   CourseGrade,
 } from "@/services/enrollment/courseGrade.service";
-import { enrollmentService } from "@/services/enrollment/enrollment.service";
+import { studentService } from "@/services/user/student.service";
 import { Loader2, Send, Lock, AlertCircle } from "lucide-react";
 import { notifyError, notifySuccess } from "@/components/toast";
 import { CourseFinalMarksEntry } from "@/components/classroom/CourseFinalMarksEntry";
@@ -47,13 +47,9 @@ export function CourseGradeView({
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Fetch enrolled students
-      const enrollmentsData = await enrollmentService.listEnrollments({
-        batchId,
-        courseId,
-        status: "active",
-      });
-      setStudents(enrollmentsData.enrollments.map((e) => e.student));
+      // Fetch ALL students in the batch (not just enrolled ones)
+      const studentsData = await studentService.getAll({ batchId });
+      setStudents((studentsData.students || []) as unknown as Record<string, unknown>[]);
 
       // Fetch existing grades
       const gradesResponse = await courseGradeService.list({

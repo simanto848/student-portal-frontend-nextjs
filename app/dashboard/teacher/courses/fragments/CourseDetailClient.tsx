@@ -32,10 +32,8 @@ import {
     batchCourseInstructorService,
     BatchCourseInstructor,
 } from "@/services/enrollment/batchCourseInstructor.service";
-import {
-    enrollmentService,
-    Enrollment,
-} from "@/services/enrollment/enrollment.service";
+import { Enrollment } from "@/services/enrollment/enrollment.service";
+import { studentService } from "@/services/user/student.service";
 import { scheduleService } from "@/services/academic/schedule.service";
 import { CourseSchedule } from "@/services/academic/types";
 import { attendanceService } from "@/services/enrollment/attendance.service";
@@ -115,10 +113,9 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
             setAssignment(assignmentData);
 
             const [studentsData, schedulesData, attendanceRes, assessmentsRes] = await Promise.all([
-                enrollmentService.listEnrollments({
+                // Fetch ALL students in the batch (not just enrolled ones)
+                studentService.getAll({
                     batchId: assignmentData.batchId,
-                    courseId: assignmentData.courseId,
-                    semester: assignmentData.semester,
                 }),
                 scheduleService.getScheduleByBatch(assignmentData.batchId),
                 attendanceService.listAttendance({
@@ -133,7 +130,17 @@ export default function CourseDetailClient({ id }: CourseDetailClientProps) {
                 }),
             ]);
 
-            setStudents(studentsData.enrollments || []);
+            // Convert students to enrollment-like format for compatibility
+            const batchStudents = (studentsData.students || []).map((student) => ({
+                id: student.id,
+                studentId: student.id,
+                batchId: assignmentData.batchId,
+                courseId: assignmentData.courseId,
+                semester: assignmentData.semester,
+                student: student,
+            })) as unknown as Enrollment[];
+
+            setStudents(batchStudents);
 
             const courseSchedules = schedulesData.filter((s: CourseSchedule) => {
                 const sessionCourse = typeof s.sessionCourseId === "object" ? s.sessionCourseId : null;

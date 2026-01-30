@@ -6,11 +6,9 @@ import {
 } from "@/components/dashboard/shared";
 import { GlassCard } from "@/components/dashboard/shared/GlassCard";
 import { Button } from "@/components/ui/button";
-import { CardContent, CardHeader } from "@/components/ui/card";
 import {
     Table,
     TableBody,
-    TableCell,
     TableHead,
     TableHeader,
     TableRow,
@@ -26,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAttendanceManagement } from "@/hooks/queries/useTeacherQueries";
 import {
-    enrollmentService,
     Enrollment,
 } from "@/services/enrollment/enrollment.service";
 import { attendanceService } from "@/services/enrollment/attendance.service";
@@ -35,7 +32,7 @@ import { notifySuccess, notifyError } from "@/components/toast";
 import { getErrorMessage, getSuccessMessage } from "@/lib/utils/toastHelpers";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
-import { Loader2, ClipboardCheck, Search, Calendar as CalendarIcon, Users, Save, RefreshCw, SearchCheck, Building2, Sparkles, GraduationCap } from "lucide-react";
+import { Loader2, ClipboardCheck, Search, Users, Save, RefreshCw, SearchCheck, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -91,35 +88,22 @@ export function AttendanceContent() {
             const assignment = courses.find((c) => c.id === selectedAssignmentId);
             if (!assignment) return;
 
-            // Fetch enrolled students
-            const enrollmentsResponse = await enrollmentService.listEnrollments({
+            // Fetch ALL students in the batch (not just enrolled ones)
+            const studentsResponse = await studentService.getAll({
                 batchId: assignment.batchId,
-                courseId: assignment.courseId,
                 limit: 100,
             });
-            let enrolledStudents = enrollmentsResponse.enrollments || [];
 
-            // Enrich students with details
-            const studentsWithDetails = await Promise.all(
-                enrolledStudents.map(async (enrollment) => {
-                    if (!enrollment.student) {
-                        try {
-                            const studentDetails = await studentService.getById(
-                                enrollment.studentId,
-                            );
-                            return {
-                                ...enrollment,
-                                student: studentDetails,
-                            };
-                        } catch (error) {
-                            return enrollment;
-                        }
-                    }
-                    return enrollment;
-                }),
-            );
-            enrolledStudents = studentsWithDetails;
-            setStudents(enrolledStudents);
+            // Convert students to enrollment-like format for compatibility
+            const batchStudents = (studentsResponse.students || []).map((student) => ({
+                id: student.id,
+                studentId: student.id,
+                batchId: assignment.batchId,
+                courseId: assignment.courseId,
+                student: student,
+            })) as Enrollment[];
+
+            setStudents(batchStudents);
 
             // Fetch existing attendance for the date
             const startDateTime = new Date(date);
@@ -148,7 +132,7 @@ export function AttendanceContent() {
 
             // Initialize attendance state
             const initialState: AttendanceState = {};
-            enrolledStudents.forEach((student) => {
+            batchStudents.forEach((student) => {
                 const record = existingAttendance.find(
                     (a: { studentId: string }) => a.studentId === student.studentId,
                 );

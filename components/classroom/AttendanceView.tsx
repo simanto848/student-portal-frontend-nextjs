@@ -23,10 +23,7 @@ import {
   attendanceService,
   Attendance,
 } from "@/services/enrollment/attendance.service";
-import {
-  enrollmentService,
-  Enrollment,
-} from "@/services/enrollment/enrollment.service";
+import { studentService } from "@/services/user/student.service";
 import {
   Loader2,
   Save,
@@ -58,18 +55,10 @@ export function AttendanceView({ courseId, batchId }: AttendanceViewProps) {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch enrolled students
-      // Ideally, we should have a method to get students for a batch/course directly or use the workspace data
-      // For now, let's list enrollments for this batch/course
-      const enrollmentsData = await enrollmentService.listEnrollments({
-        batchId,
-        courseId,
-        status: "active",
-      });
-      const enrolledStudents = enrollmentsData.enrollments.map(
-        (e) => e.student
-      );
-      setStudents(enrolledStudents);
+      // Fetch ALL students in the batch (not just enrolled ones)
+      const studentsData = await studentService.getAll({ batchId });
+      const batchStudents = studentsData.students || [];
+      setStudents(batchStudents);
 
       // Fetch existing attendance for the date
       const attendanceData = await attendanceService.listAttendance({
@@ -83,8 +72,8 @@ export function AttendanceView({ courseId, batchId }: AttendanceViewProps) {
       });
 
       // Auto-fill "present" for any student without a record (new day behavior similar to attendance page)
-      enrolledStudents.forEach((s) => {
-        const key = s?.id || s?._id;
+      batchStudents.forEach((s) => {
+        const key = s?.id;
         if (key && !attendanceMap[key]) {
           attendanceMap[key] = "present";
         }
