@@ -124,11 +124,15 @@ export function useGrade(id: string) {
 }
 
 // Fetch grades for a specific student
-export function useStudentGrades(studentId: string) {
+export function useStudentGrades(studentId: string, options?: { includeMarksBreakdown?: boolean }) {
   return useQuery({
-    queryKey: enrollmentKeys.studentGrades(studentId),
+    queryKey: [...enrollmentKeys.studentGrades(studentId), options?.includeMarksBreakdown ? 'withMarks' : 'basic'],
     queryFn: async () => {
-      const response = await courseGradeService.list({ studentId });
+      const params: any = { studentId };
+      if (options?.includeMarksBreakdown) {
+        params.includeMarksBreakdown = 'true';
+      }
+      const response = await courseGradeService.list(params);
       return extractArrayData<CourseGrade>(response, "grades");
     },
     enabled: !!studentId,

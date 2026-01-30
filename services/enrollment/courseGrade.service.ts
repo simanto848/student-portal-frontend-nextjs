@@ -1,7 +1,21 @@
 import { academicApi as api, handleApiError } from "../academic/axios-instance";
 
+export interface MarksBreakdown {
+    final: {
+        obtained: number;
+        total: number;
+    };
+    inCourse: {
+        obtained: number;
+        total: number;
+    };
+    totalObtained: number;
+    totalMarks: number;
+}
+
 export interface CourseGrade {
     id: string;
+    _id?: string;
     studentId: string;
     enrollmentId: string;
     courseId: string;
@@ -9,14 +23,28 @@ export interface CourseGrade {
     semester: number;
     totalMarksObtained: number;
     totalMarks: number;
+    percentage?: number;
     grade?: string;
+    letterGrade?: string;
     gradePoint?: number;
     remarks?: string;
     status: 'pending' | 'calculated' | 'finalized' | 'published';
     workflowStatus?: 'draft' | 'submitted' | 'approved' | 'returned' | 'return_requested' | 'return_approved';
     isPublished: boolean;
-    student?: any;
-    course?: any;
+    marksBreakdown?: MarksBreakdown;
+    student?: {
+        fullName?: string;
+        registrationNumber?: string;
+    };
+    course?: {
+        id?: string;
+        _id?: string;
+        name?: string;
+        code?: string;
+        credit?: number;
+        creditHour?: number;
+        type?: string;
+    };
     batch?: any;
     enrollment?: any;
 }
@@ -103,6 +131,17 @@ export const courseGradeService = {
     list: async (params?: any): Promise<{ grades: CourseGrade[], pagination: any }> => {
         try {
             const response = await api.get('/enrollment/grades', { params });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    listWithMarksBreakdown: async (params?: any): Promise<{ grades: CourseGrade[], pagination: any }> => {
+        try {
+            const response = await api.get('/enrollment/grades', {
+                params: { ...params, includeMarksBreakdown: 'true' }
+            });
             return response.data.data;
         } catch (error) {
             return handleApiError(error);
