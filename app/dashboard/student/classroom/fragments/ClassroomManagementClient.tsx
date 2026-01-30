@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -9,16 +10,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
     BookOpen,
     GraduationCap,
-    Users,
     Calendar,
     Search,
     AlertCircle,
     RefreshCw,
-    LayoutGrid,
-    Rocket,
-    Brain,
-    Shield,
-    Code
+    Sparkles,
+    ArrowRight,
+    Target,
+    Layers
 } from "lucide-react";
 import Link from "next/link";
 import { useStudentClassrooms } from "@/hooks/queries/useClassroomQueries";
@@ -26,8 +25,35 @@ import StudentLoading from "@/components/StudentLoading";
 import { batchService, departmentService } from "@/services/academic";
 import { notifyError } from "@/components/toast";
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 }
+    }
+} as const;
+
+const itemVariants = {
+    hidden: { y: 30, opacity: 0 },
+    visible: {
+        y: 0,
+        opacity: 1,
+        transition: { type: "spring" as const, stiffness: 100, damping: 15 }
+    }
+};
+
+const cardHoverVariants = {
+    rest: { scale: 1, y: 0 },
+    hover: {
+        scale: 1.02,
+        y: -8,
+        transition: { type: "spring" as const, stiffness: 400, damping: 17 }
+    }
+};
+
 export default function ClassroomManagementClient() {
     const [searchQuery, setSearchQuery] = useState("");
+    const [hoveredCard, setHoveredCard] = useState<string | null>(null);
     const { workspaces, isLoading, isError, error, refetch } = useStudentClassrooms();
     const [departmentMap, setDepartmentMap] = useState<Record<string, string>>({});
     const [batchMap, setBatchMap] = useState<Record<string, { name: string; shift: string }>>({});
@@ -96,162 +122,285 @@ export default function ClassroomManagementClient() {
         );
     }, [enrichedWorkspaces, searchQuery]);
 
+    // Get color theme for each card based on index
+    const getCardTheme = (index: number) => {
+        const themes = [
+            { gradient: "from-violet-500 to-purple-600", bg: "bg-violet-500", light: "bg-violet-50 dark:bg-violet-500/10", text: "text-violet-500" },
+            { gradient: "from-cyan-500 to-blue-600", bg: "bg-cyan-500", light: "bg-cyan-50 dark:bg-cyan-500/10", text: "text-cyan-500" },
+            { gradient: "from-emerald-500 to-teal-600", bg: "bg-emerald-500", light: "bg-emerald-50 dark:bg-emerald-500/10", text: "text-emerald-500" },
+            { gradient: "from-orange-500 to-red-500", bg: "bg-orange-500", light: "bg-orange-50 dark:bg-orange-500/10", text: "text-orange-500" },
+            { gradient: "from-pink-500 to-rose-600", bg: "bg-pink-500", light: "bg-pink-50 dark:bg-pink-500/10", text: "text-pink-500" },
+            { gradient: "from-indigo-500 to-blue-600", bg: "bg-indigo-500", light: "bg-indigo-50 dark:bg-indigo-500/10", text: "text-indigo-500" },
+        ];
+        return themes[index % themes.length];
+    };
+
     if (isLoading) {
         return <StudentLoading />;
     }
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-1000 relative">
-            {/* Background Aesthetic Blurs */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-[#0088A9]/10 rounded-full blur-[120px] -mr-48 -mt-24 pointer-events-none z-0" />
+        <motion.div
+            className="space-y-10 relative"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            {/* Animated Background Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <motion.div
+                    className="absolute top-20 right-20 w-72 h-72 bg-linear-to-br from-primary-nexus/20 to-cyan-500/20 rounded-full blur-3xl"
+                    animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.3, 0.5, 0.3]
+                    }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                    className="absolute bottom-40 left-10 w-96 h-96 bg-linear-to-br from-violet-500/10 to-purple-500/10 rounded-full blur-3xl"
+                    animate={{
+                        scale: [1.2, 1, 1.2],
+                        opacity: [0.2, 0.4, 0.2]
+                    }}
+                    transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                />
+            </div>
 
             {/* Premium Header */}
-            <header className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 py-10 px-10 glass-panel rounded-[3rem] border border-white/50 shadow-2xl">
-                <div className="space-y-3">
-                    <div className="flex items-center gap-5">
-                        <div className="p-4 rounded-2xl bg-white shadow-xl ring-4 ring-[#0088A9]/5">
-                            <LayoutGrid className="h-8 w-8 text-[#0088A9]" />
-                        </div>
-                        <h1 className="text-5xl font-black tracking-tighter text-gray-900 dark:text-white uppercase leading-none">Classroom <span className="text-[#0088A9]">Hub</span></h1>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <p className="text-[#0088A9] font-black uppercase tracking-[0.3em] text-[11px] bg-[#0088A9]/5 px-4 py-1.5 rounded-full border border-[#0088A9]/10">
-                            Your Classrooms
-                        </p>
-                    </div>
-                </div>
+            <motion.header variants={itemVariants} className="relative z-10">
+                <div className="glass-panel rounded-3xl p-8 border border-white/50 dark:border-slate-700/50 shadow-xl overflow-hidden">
+                    {/* Decorative Elements */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-linear-to-bl from-primary-nexus/10 to-transparent rounded-bl-full" />
+                    <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-linear-to-tr from-violet-500/10 to-transparent rounded-tr-full" />
 
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="ghost"
-                        onClick={() => refetch()}
-                        className="h-16 rounded-[2rem] border border-gray-100 bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl text-gray-500 hover:text-[#0088A9] hover:bg-white/80 font-black uppercase tracking-[0.25em] text-[10px] px-10 shadow-sm transition-all hover:scale-[1.05]"
-                    >
-                        <RefreshCw className="mr-3 h-4 w-4" />
-                        Refresh
-                    </Button>
-                    <div className="h-16 px-10 rounded-[2rem] bg-slate-900 text-white flex items-center gap-4 font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-slate-200">
-                        <BookOpen className="h-5 w-5 text-[#0088A9]" />
-                        {workspaces.length} Classrooms
+                    <div className="relative flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <motion.div
+                                    className="p-4 rounded-2xl bg-linear-to-br from-primary-nexus to-cyan-500 shadow-lg shadow-primary-nexus/25"
+                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    <Layers className="h-7 w-7 text-white" />
+                                </motion.div>
+                                <div>
+                                    <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                                        My Classrooms
+                                    </h1>
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-1">
+                                        Access your enrolled courses and learning materials
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                            <motion.div
+                                className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary-nexus/5 dark:bg-primary-nexus/10 border border-primary-nexus/20"
+                                whileHover={{ scale: 1.02 }}
+                            >
+                                <div className="p-2 rounded-xl bg-primary-nexus/10">
+                                    <BookOpen className="h-4 w-4 text-primary-nexus" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-black text-primary-nexus">{workspaces.length}</p>
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Courses</p>
+                                </div>
+                            </motion.div>
+
+                            <Button
+                                variant="outline"
+                                onClick={() => refetch()}
+                                className="h-14 px-6 rounded-2xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-sm gap-2 transition-all hover:scale-105 active:scale-95"
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                Refresh
+                            </Button>
+                        </div>
                     </div>
                 </div>
-            </header>
+            </motion.header>
 
             {isError && (
-                <Alert className="rounded-[2.5rem] border-red-100 bg-red-50/50 backdrop-blur-md p-6 animate-in slide-in-from-top-4">
-                    <AlertCircle className="h-5 w-5 text-red-500" />
-                    <AlertDescription className="font-black text-[11px] uppercase tracking-widest text-red-600 ml-4">
-                        {error instanceof Error ? error.message : "Neural link failure: Could not primary sectors."}
-                    </AlertDescription>
-                </Alert>
+                <motion.div variants={itemVariants}>
+                    <Alert className="rounded-2xl border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800/50">
+                        <AlertCircle className="h-5 w-5 text-red-500" />
+                        <AlertDescription className="font-medium text-red-700 dark:text-red-400 ml-2">
+                            {error instanceof Error ? error.message : "Failed to load classrooms. Please try again."}
+                        </AlertDescription>
+                    </Alert>
+                </motion.div>
             )}
 
-            {/* Tactical Search Bar */}
-            <div className="relative z-10 max-w-2xl mx-auto w-full">
-                <div className="relative group">
-                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                        <Search className="h-6 w-6 text-gray-400 group-focus-within:text-[#0088A9] transition-colors" />
+            {/* Search Bar */}
+            <motion.div variants={itemVariants} className="relative z-10 max-w-2xl mx-auto">
+                <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-slate-400" />
                     </div>
                     <Input
-                        placeholder="Search your workspace..."
-                        className="w-full h-16 pl-16 pr-8 rounded-full bg-white dark:bg-slate-900/80 border-none shadow-2xl text-lg font-bold placeholder:text-gray-300 dark:placeholder:text-slate-600 dark:text-white focus-visible:ring-2 focus-visible:ring-[#0088A9]/50 transition-all hover:bg-white/90 dark:hover:bg-slate-900"
+                        placeholder="Search classrooms by name, code, or batch..."
+                        className="w-full h-14 pl-14 pr-6 rounded-2xl bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shadow-lg shadow-slate-100 dark:shadow-none text-base font-medium placeholder:text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-nexus/30 focus-visible:border-primary-nexus transition-all"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                </div>
-            </div>
-
-            {/* Neural Hub Grid */}
-            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 relative z-10">
-                <AnimatePresence mode="popLayout">
-                    {filteredWorkspaces.map((ws: any, idx: number) => (
-                        <motion.div
-                            key={ws.id}
-                            initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ delay: idx * 0.05, type: "spring", stiffness: 100 }}
+                    {searchQuery && (
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                            onClick={() => setSearchQuery("")}
                         >
-                            <Link href={`/dashboard/student/classroom/${ws.id}`} className="block group">
-                                <div className="glass-panel overflow-hidden h-full rounded-[3.5rem] bg-white dark:bg-slate-900/40 border border-white dark:border-white/10 shadow-xl hover:shadow-[0_50px_100px_-30px_rgba(0,136,169,0.25)] hover:border-[#0088A9]/30 transition-all duration-700 relative flex flex-col hover:-translate-y-3">
-                                    {/* Premium Card Header */}
-                                    <div className="h-32 bg-slate-900 relative p-8 flex flex-col justify-end overflow-hidden">
-                                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-20 transition-all duration-1000 group-hover:scale-125">
-                                            <Brain className="h-40 w-40 text-[#0088A9]" />
-                                        </div>
-                                        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900 to-[#0088A9]/20" />
-                                        <div className="relative z-10 flex justify-between items-center">
-                                            <Badge className="bg-[#0088A9] text-white border-none font-black px-4 py-1 rounded-full text-[9px] uppercase tracking-[0.2em] shadow-lg shadow-[#0088A9]/30">
-                                                {ws.courseCode || "CORE-MOD"}
-                                            </Badge>
-                                            <div className="flex items-center gap-2 text-white/50">
-                                                <Calendar className="h-3 w-3" />
-                                                <span className="text-[9px] font-black uppercase tracking-widest">SEMESTER {ws.semester || "01"}</span>
+                            <span className="text-slate-400 text-sm font-bold">✕</span>
+                        </motion.button>
+                    )}
+                </div>
+            </motion.div>
+
+            {/* Classrooms Grid */}
+            <motion.div
+                className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 relative z-10"
+                variants={containerVariants}
+            >
+                <AnimatePresence mode="popLayout">
+                    {filteredWorkspaces.map((ws: any, idx: number) => {
+                        const theme = getCardTheme(idx);
+                        const isHovered = hoveredCard === ws.id;
+
+                        return (
+                            <motion.div
+                                key={ws.id}
+                                variants={itemVariants}
+                                initial="rest"
+                                whileHover="hover"
+                                animate="rest"
+                                onHoverStart={() => setHoveredCard(ws.id)}
+                                onHoverEnd={() => setHoveredCard(null)}
+                                layout
+                            >
+                                <Link href={`/dashboard/student/classroom/${ws.id}`} className="block h-full">
+                                    <motion.div
+                                        className="h-full rounded-3xl bg-white dark:bg-slate-800/80 border border-slate-100 dark:border-slate-700/50 shadow-lg hover:shadow-2xl transition-shadow duration-500 overflow-hidden group"
+                                        variants={cardHoverVariants}
+                                    >
+                                        {/* Card Header with Gradient */}
+                                        <div className={`relative h-28 bg-linear-to-br ${theme.gradient} p-6 overflow-hidden`}>
+                                            {/* Animated Pattern */}
+                                            <div className="absolute inset-0 opacity-20">
+                                                <div className="absolute top-2 right-2 w-20 h-20 border-4 border-white/30 rounded-full" />
+                                                <div className="absolute bottom-2 left-2 w-12 h-12 border-4 border-white/20 rounded-full" />
+                                                <div className="absolute top-1/2 left-1/2 w-32 h-32 border-4 border-white/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Card Content */}
-                                    <div className="p-10 flex flex-col flex-1">
-                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white leading-tight mb-4 group-hover:text-[#0088A9] transition-colors uppercase tracking-tight line-clamp-2">
-                                            {ws.courseName || ws.title || "Untitled Matrix"}
-                                        </h3>
+                                            {/* Sparkle Animation on Hover */}
+                                            <motion.div
+                                                className="absolute top-4 right-4"
+                                                animate={isHovered ? { rotate: 360, scale: [1, 1.2, 1] } : {}}
+                                                transition={{ duration: 0.6 }}
+                                            >
+                                                <Sparkles className="h-6 w-6 text-white/60" />
+                                            </motion.div>
 
-                                        <div className="flex items-center gap-3 text-gray-400 mb-8">
-                                            <div className="p-1.5 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10">
-                                                <GraduationCap className="h-3.5 w-3.5" />
-                                            </div>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.25em]">
-                                                {ws.departmentId ? `Department: ${ws.displayDeptName}` : "Advanced Classroom"}
-                                            </span>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4 py-6 border-y border-gray-50 dark:border-white/5 mb-8">
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-2 text-gray-400">
-                                                    <Users className="h-3.5 w-3.5" />
-                                                    <span className="text-[8px] font-black uppercase tracking-[0.3em]">Total Student</span>
+                                            <div className="relative flex items-center justify-between">
+                                                <Badge className="bg-white/20 backdrop-blur-sm text-white border-white/30 font-bold px-3 py-1.5 rounded-xl text-xs">
+                                                    {ws.courseCode || "COURSE"}
+                                                </Badge>
+                                                <div className="flex items-center gap-1.5 text-white/80">
+                                                    <Calendar className="h-3.5 w-3.5" />
+                                                    <span className="text-xs font-bold">Sem {ws.semester || "1"}</span>
                                                 </div>
-                                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
-                                                    {ws.totalBatchStudents || ws.studentCount || 0}
+                                            </div>
+                                        </div>
+
+                                        {/* Card Body */}
+                                        <div className="p-6 flex flex-col h-[calc(100%-7rem)]">
+                                            <h3 className="text-lg font-bold text-slate-800 dark:text-white leading-snug mb-3 line-clamp-2 group-hover:text-primary-nexus transition-colors">
+                                                {ws.courseName || ws.title || "Untitled Course"}
+                                            </h3>
+
+                                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 mb-5">
+                                                <GraduationCap className="h-4 w-4" />
+                                                <span className="text-xs font-semibold">
+                                                    {ws.displayDeptName}
                                                 </span>
                                             </div>
-                                            <div className="flex flex-col gap-1 items-end text-right">
-                                                <div className="flex items-center gap-2 text-gray-400">
-                                                    <span className="text-[8px] font-black uppercase tracking-[0.3em]">Batch</span>
-                                                    <Code className="h-3.5 w-3.5" />
-                                                </div>
-                                                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tighter">
-                                                    {ws.displayBatchName}
-                                                </span>
-                                            </div>
-                                        </div>
 
-                                        <div className="mt-auto">
-                                            <div className="w-full h-16 rounded-3xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 flex items-center justify-between px-8 text-gray-400 group-hover:bg-[#0088A9] group-hover:text-white group-hover:border-none group-hover:shadow-[0_20px_40px_-10px_rgba(0,136,169,0.3)] transition-all duration-500 font-black uppercase tracking-[0.3em] text-[10px]">
-                                                Enter Classroom
-                                                <Rocket className="h-5 w-5 transition-transform group-hover:translate-x-2 group-hover:-translate-y-2 duration-500" />
+                                            {/* Stats Row */}
+                                            <div className="grid grid-cols-2 gap-3 mb-5">
+                                                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Target className="h-3.5 w-3.5 text-slate-400" />
+                                                        <span className="text-[10px] font-bold text-slate-500 uppercase">Batch</span>
+                                                    </div>
+                                                    <p className="text-lg font-black text-slate-800 dark:text-white truncate">
+                                                        {ws.displayBatchName}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Enter Button */}
+                                            <div className="mt-auto">
+                                                <motion.div
+                                                    className={`w-full py-4 px-5 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600/50 flex items-center justify-between group-hover:bg-linear-to-r group-hover:${theme.gradient} group-hover:border-transparent transition-all duration-300`}
+                                                >
+                                                    <span className="font-bold text-sm text-slate-600 dark:text-slate-300 group-hover:text-white transition-colors">
+                                                        Enter Classroom
+                                                    </span>
+                                                    <motion.div
+                                                        animate={isHovered ? { x: [0, 5, 0] } : {}}
+                                                        transition={{ duration: 0.6, repeat: isHovered ? Infinity : 0 }}
+                                                    >
+                                                        <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-white transition-colors" />
+                                                    </motion.div>
+                                                </motion.div>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </Link>
-                        </motion.div>
-                    ))}
+                                    </motion.div>
+                                </Link>
+                            </motion.div>
+                        );
+                    })}
                 </AnimatePresence>
+            </motion.div>
 
-                {filteredWorkspaces.length === 0 && (
-                    <div className="col-span-full py-40 flex flex-col items-center justify-center glass-panel rounded-[5rem] border-dashed border-gray-300 dark:border-white/10 bg-gray-50/20 dark:bg-white/5">
-                        <div className="p-10 rounded-[3rem] bg-white dark:bg-slate-800 shadow-xl mb-10 border border-gray-50 dark:border-white/5 scale-125">
-                            <Shield className="h-16 w-16 text-gray-100 dark:text-slate-700" />
-                        </div>
-                        <h3 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tighter mb-4">No Sector Detected</h3>
-                        <p className="text-[11px] font-black text-gray-400 dark:text-slate-500 uppercase tracking-[0.4em] max-w-sm text-center leading-loose opacity-70">
-                            {searchQuery ? "Your tactical scan yielded no results in the current matrix." : "You haven't been synchronized with any neural learning hubs yet."}
+            {/* Empty State */}
+            {filteredWorkspaces.length === 0 && (
+                <motion.div
+                    variants={itemVariants}
+                    className="py-20 flex flex-col items-center justify-center"
+                >
+                    <div className="glass-panel rounded-3xl p-12 text-center max-w-md border border-slate-200 dark:border-slate-700/50">
+                        <motion.div
+                            className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-linear-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center"
+                            animate={{
+                                rotate: [0, 5, -5, 0],
+                                scale: [1, 1.05, 1]
+                            }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        >
+                            <BookOpen className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+                        </motion.div>
+                        <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-3">
+                            {searchQuery ? "No Results Found" : "No Classrooms Yet"}
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                            {searchQuery
+                                ? "Try adjusting your search terms to find what you're looking for."
+                                : "You haven't been enrolled in any classrooms yet. Check back later or contact your instructor."
+                            }
                         </p>
+                        {searchQuery && (
+                            <Button
+                                variant="outline"
+                                onClick={() => setSearchQuery("")}
+                                className="mt-6 rounded-xl"
+                            >
+                                Clear Search
+                            </Button>
+                        )}
                     </div>
-                )}
-            </div>
-        </div>
+                </motion.div>
+            )}
+        </motion.div>
     );
 }

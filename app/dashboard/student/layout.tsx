@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useEffect, useSyncExternalStore } from "react";
+import React, { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -232,7 +233,7 @@ export default function StudentLayout({
 
                 {/* Main Content Area */}
                 <main className="flex-1 flex flex-col h-full min-w-0 relative overflow-hidden bg-transparent">
-                    <div className="absolute inset-0 overflow-y-auto w-full h-full p-8 scrollbar-hide">
+                    <div className="absolute inset-0 overflow-y-auto w-full h-full p-8 pb-36 scrollbar-hide">
                         {children}
                     </div>
                 </main>
@@ -242,56 +243,59 @@ export default function StudentLayout({
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
-                    className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 px-10 pointer-events-none"
+                    className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] px-4 pointer-events-none"
                 >
-                    <div className="glass-panel px-10 py-5 rounded-full flex items-center gap-10 border border-white/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] backdrop-blur-3xl pointer-events-auto">
+                    <div className="glass-panel px-6 py-3 rounded-full flex items-center gap-6 border border-white/60 dark:border-slate-700/60 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] backdrop-blur-2xl pointer-events-auto">
                         <Link href="/dashboard/student/classroom">
-                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500 text-indigo-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
-                                    <span className="material-icons-outlined text-3xl">class</span>
+                            <button className="flex flex-col items-center group relative cursor-pointer outline-none">
+                                <div className="h-11 w-11 bg-white/90 dark:bg-slate-800/90 rounded-xl flex items-center justify-center group-hover:bg-indigo-500 text-indigo-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 dark:border-slate-700/40 group-hover:scale-110 group-active:scale-95">
+                                    <span className="material-icons-outlined text-xl">class</span>
                                 </div>
-                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
-                                    Classroom
-                                </span>
-                            </button>
-                        </Link>
-                        <Link href="/dashboard/student/assessments">
-                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-pink-500 text-pink-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
-                                    <span className="material-icons-outlined text-3xl">assignment</span>
-                                </div>
-                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
-                                    Exams
+                                <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider group-hover:text-indigo-500 transition-colors">
+                                    Class
                                 </span>
                             </button>
                         </Link>
                         <Link href="/dashboard/student/library">
-                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-yellow-500 text-yellow-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
-                                    <span className="material-icons-outlined text-3xl">library_books</span>
+                            <button className="flex flex-col items-center group relative cursor-pointer outline-none">
+                                <div className="h-11 w-11 bg-white/90 dark:bg-slate-800/90 rounded-xl flex items-center justify-center group-hover:bg-amber-500 text-amber-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 dark:border-slate-700/40 group-hover:scale-110 group-active:scale-95">
+                                    <span className="material-icons-outlined text-xl">library_books</span>
                                 </div>
-                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
+                                <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider group-hover:text-amber-500 transition-colors">
                                     Library
                                 </span>
                             </button>
                         </Link>
-                        <Link href="/dashboard/student/classes">
-                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-primary-nexus text-primary-nexus group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
-                                    <span className="material-icons-outlined text-3xl">calendar_today</span>
+
+                        {/* Center Home Button - Elevated */}
+                        <Link href="/dashboard/student">
+                            <button className="flex flex-col items-center group relative cursor-pointer outline-none -mt-4">
+                                <div className="h-14 w-14 bg-gradient-to-br from-primary-nexus to-teal-400 rounded-2xl flex items-center justify-center text-white transition-all duration-300 shadow-lg shadow-primary-nexus/30 border-2 border-white/50 group-hover:scale-110 group-active:scale-95 group-hover:shadow-xl group-hover:shadow-primary-nexus/40">
+                                    <span className="material-icons-outlined text-2xl">home</span>
                                 </div>
-                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
+                                <span className="text-[8px] font-black text-primary-nexus mt-1 uppercase tracking-wider">
+                                    Home
+                                </span>
+                            </button>
+                        </Link>
+
+                        <Link href="/dashboard/student/classes">
+                            <button className="flex flex-col items-center group relative cursor-pointer outline-none">
+                                <div className="h-11 w-11 bg-white/90 dark:bg-slate-800/90 rounded-xl flex items-center justify-center group-hover:bg-emerald-500 text-emerald-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 dark:border-slate-700/40 group-hover:scale-110 group-active:scale-95">
+                                    <span className="material-icons-outlined text-xl">calendar_today</span>
+                                </div>
+                                <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider group-hover:text-emerald-500 transition-colors">
                                     Schedule
                                 </span>
                             </button>
                         </Link>
-                        <Link href="/dashboard/student">
-                            <button className="flex flex-col items-center space-y-1 group relative p-1 cursor-pointer outline-none">
-                                <div className="h-14 w-14 bg-white/80 dark:bg-gray-800/80 rounded-2xl flex items-center justify-center group-hover:bg-primary-nexus text-primary-nexus group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 group-hover:-translate-y-1">
-                                    <span className="material-icons-outlined text-3xl">home</span>
+                        <Link href="/dashboard/student/communication">
+                            <button className="flex flex-col items-center group relative cursor-pointer outline-none">
+                                <div className="h-11 w-11 bg-white/90 dark:bg-slate-800/90 rounded-xl flex items-center justify-center group-hover:bg-violet-500 text-violet-500 group-hover:text-white transition-all duration-300 shadow-sm border border-white/40 dark:border-slate-700/40 group-hover:scale-110 group-active:scale-95">
+                                    <span className="material-icons-outlined text-xl">forum</span>
                                 </div>
-                                <span className="text-[10px] font-black dark:text-gray-300 absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-gray-900 text-white px-3 py-1 rounded-lg uppercase tracking-widest shadow-xl">
-                                    Home
+                                <span className="text-[8px] font-black text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider group-hover:text-violet-500 transition-colors">
+                                    Chat
                                 </span>
                             </button>
                         </Link>
