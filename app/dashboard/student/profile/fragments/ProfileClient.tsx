@@ -218,13 +218,13 @@ export default function ProfileClient() {
     };
 
     return (
-        <div className="h-full min-h-0 overflow-hidden -m-4 md:-m-8 bg-architectural/20">
+        <div className="h-full min-h-0 overflow-hidden bg-architectural/20">
             <ScrollArea className="h-full w-full">
                 <motion.div
                     initial="hidden"
                     animate="visible"
                     variants={containerVariants}
-                    className="p-4 md:p-8 max-w-7xl mx-auto space-y-8"
+                    className="p-4 md:p-8 space-y-8"
                 >
                     {/* Header Hero Island */}
                     <motion.div
@@ -338,7 +338,7 @@ export default function ProfileClient() {
                         <div className="lg:col-span-4 flex flex-col gap-8">
                             <NexusCard title="Academic Information" subtitle="Program & Batch" icon={GraduationCap} accent="amber">
                                 <div className="space-y-4">
-                                    <NexusInfoItem icon={Building} label="Sector" value={department?.shortName || "Unknown"} accent="teal" />
+                                    <NexusInfoItem icon={Building} label="Department" value={department?.shortName || "Unknown"} accent="teal" />
                                     <div className="p-5 glass-inner rounded-3xl border-white/40 mt-4 flex items-center justify-between">
                                         <div>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Batch</p>
