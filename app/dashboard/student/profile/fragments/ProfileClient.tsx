@@ -310,7 +310,7 @@ export default function ProfileClient() {
                     </motion.div>
 
                     {/* Detailed Content Grid */}
-                    <div className="grid gap-8 lg:grid-cols-12">
+                    <div className="grid gap-8 lg:grid-cols-12 w-full">
                         {/* Core Nexus Data */}
                         <div className="lg:col-span-8 flex flex-col gap-8">
                             <NexusCard title="Personal Information" subtitle="Basic Personal Details" icon={User} accent="teal">
