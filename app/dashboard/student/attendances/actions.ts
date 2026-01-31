@@ -3,6 +3,8 @@
 
 import { attendanceService, Attendance, AttendanceStats } from "@/services/enrollment/attendance.service";
 import { enrollmentService, Enrollment } from "@/services/enrollment/enrollment.service";
+import { courseService } from "@/services/academic/course.service";
+import { batchService } from "@/services/academic/batch.service";
 
 // Types for action responses
 export interface AttendanceActionResponse {
@@ -23,9 +25,6 @@ export interface AttendanceStatsActionResponse {
     error?: string;
 }
 
-/**
- * Fetch attendance records for a specific student
- */
 export async function getStudentAttendance(studentId: string): Promise<AttendanceActionResponse> {
     try {
         if (!studentId) {
@@ -44,9 +43,6 @@ export async function getStudentAttendance(studentId: string): Promise<Attendanc
     }
 }
 
-/**
- * Fetch enrollments for a specific student
- */
 export async function getStudentEnrollments(studentId: string): Promise<EnrollmentsActionResponse> {
     try {
         if (!studentId) {
@@ -65,9 +61,6 @@ export async function getStudentEnrollments(studentId: string): Promise<Enrollme
     }
 }
 
-/**
- * Fetch attendance statistics for a student in a specific course
- */
 export async function getAttendanceStats(
     studentId: string,
     courseId: string
@@ -87,10 +80,6 @@ export async function getAttendanceStats(
     }
 }
 
-/**
- * Fetch all attendance and enrollment data for a student
- * Combined action for efficiency
- */
 export async function getStudentAttendanceData(studentId: string): Promise<{
     success: boolean;
     attendance?: Attendance[];
@@ -102,14 +91,74 @@ export async function getStudentAttendanceData(studentId: string): Promise<{
             return { success: false, error: "Student ID is required" };
         }
 
-        // Fetch both in parallel
         const [attendanceResponse, enrollmentsResponse] = await Promise.all([
             attendanceService.listAttendance({ studentId }),
             enrollmentService.listEnrollments({ studentId })
         ]);
 
         const attendance = Array.isArray(attendanceResponse) ? attendanceResponse : (attendanceResponse?.attendance || []);
-        const enrollments = Array.isArray(enrollmentsResponse) ? enrollmentsResponse : (enrollmentsResponse?.enrollments || []);
+        let enrollments = Array.isArray(enrollmentsResponse) ? enrollmentsResponse : (enrollmentsResponse?.enrollments || []);
+        if (enrollments.length === 0 && attendance.length > 0) {
+            const uniqueCourseIds = [...new Set(attendance.map((a: any) => a.courseId).filter(Boolean))];
+            const syntheticEnrollments: Enrollment[] = [];
+
+            const sampleAttendanceForBatch = attendance[0];
+            let currentSemester = 1;
+            let sessionId = '';
+
+            if (sampleAttendanceForBatch?.batchId) {
+                try {
+                    const batch = await batchService.getBatchById(sampleAttendanceForBatch.batchId);
+                    if (batch) {
+                        currentSemester = batch.currentSemester || 1;
+                        sessionId = typeof batch.sessionId === 'object'
+                            ? ((batch.sessionId as any).id || (batch.sessionId as any)._id || '')
+                            : (batch.sessionId || '');
+                    }
+                } catch {}
+            }
+
+            for (const courseId of uniqueCourseIds) {
+                try {
+                    const course = await courseService.getCourseById(courseId);
+                    const sampleAttendance = attendance.find((a: any) => a.courseId === courseId);
+                    if (course && sampleAttendance) {
+                        syntheticEnrollments.push({
+                            id: `synthetic-${courseId}`,
+                            studentId,
+                            batchId: sampleAttendance.batchId || '',
+                            courseId: courseId,
+                            sessionId: sessionId,
+                            semester: currentSemester,
+                            status: 'active',
+                            enrollmentDate: new Date().toISOString(),
+                            course: course,
+                        } as Enrollment);
+                    }
+                } catch {
+                    const sampleAttendance = attendance.find((a: any) => a.courseId === courseId);
+                    if (sampleAttendance) {
+                        syntheticEnrollments.push({
+                            id: `synthetic-${courseId}`,
+                            studentId,
+                            batchId: sampleAttendance.batchId || '',
+                            courseId: courseId,
+                            sessionId: sessionId,
+                            semester: currentSemester,
+                            status: 'active',
+                            enrollmentDate: new Date().toISOString(),
+                            course: {
+                                id: courseId,
+                                name: 'Course',
+                                code: 'N/A',
+                            },
+                        } as Enrollment);
+                    }
+                }
+            }
+
+            enrollments = syntheticEnrollments;
+        }
 
         return {
             success: true,
