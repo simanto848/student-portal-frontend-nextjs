@@ -241,6 +241,7 @@ export type ClassroomSubmitData = z.output<typeof classroomSchema>;
 // Course Schedule Schema
 export const courseScheduleSchema = z
   .object({
+    sessionId: z.string().optional().or(z.literal("")),
     batchId: z.string().min(1, "Please select a batch"),
     sessionCourseId: z.string().min(1, "Please select a session course"),
     teacherId: z.string().optional().or(z.literal("")),

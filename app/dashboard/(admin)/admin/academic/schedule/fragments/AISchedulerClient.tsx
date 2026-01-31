@@ -189,7 +189,7 @@ export default function AISchedulerClient() {
         try {
             const result = await closeSchedulesForBatches(selectedBatchIds);
             notifySuccess(result.message);
-            loadScheduleStatus();
+            await loadScheduleStatus();
         } catch {
             notifyError("Failed to close schedules");
         } finally {
@@ -208,7 +208,7 @@ export default function AISchedulerClient() {
         try {
             const result = await closeSchedulesForSession(selectedSessionId);
             notifySuccess(result.message);
-            loadScheduleStatus();
+            await loadScheduleStatus();
         } catch {
             notifyError("Failed to close session schedules");
         } finally {

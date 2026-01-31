@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import {
@@ -11,7 +11,7 @@ import {
 } from "@/services/academic/types";
 import { Teacher } from "@/services/teacher.service";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { CalendarClock, Sparkles, Filter, Clock, MapPin, User, BookOpen } from "lucide-react";
+import { CalendarClock, Sparkles, Filter, Clock, MapPin, User, CheckCircle2, XCircle, Archive } from "lucide-react";
 import { ScheduleFormModal } from "./ScheduleFormModal";
 import { ScheduleDeleteModal } from "./ScheduleDeleteModal";
 import {
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { getScheduleStatusSummary } from "../ai-scheduler/actions";
 
 interface SearchableSchedule extends CourseSchedule {
     searchCourse: string;
@@ -63,9 +64,33 @@ export function ScheduleManagementClient() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
+    // Schedule status summary
+    const [scheduleStatus, setScheduleStatus] = useState<{ active: number; closed: number; archived: number }>({ active: 0, closed: 0, archived: 0 });
+
     // Filters
     const [selectedDay, setSelectedDay] = useState<string>("all");
     const [selectedBatch, setSelectedBatch] = useState<string>("all");
+
+    // Load schedule status summary
+    const loadScheduleStatus = async () => {
+        try {
+            const status = await getScheduleStatusSummary();
+            setScheduleStatus(status);
+        } catch {
+            // Silent fail - not critical
+        }
+    };
+
+    useEffect(() => {
+        loadScheduleStatus();
+    }, []);
+
+    // Reload status when schedules change
+    useEffect(() => {
+        if (!isSchedulesLoading) {
+            loadScheduleStatus();
+        }
+    }, [schedules, isSchedulesLoading]);
 
     const columns: Column<SearchableSchedule>[] = useMemo(() => [
         {
@@ -157,6 +182,38 @@ export function ScheduleManagementClient() {
                     </div>
                 </div>
             ),
+        },
+        {
+            header: "Status",
+            accessorKey: "status",
+            cell: (item: any) => {
+                const status = item.status || 'active';
+                const statusConfig: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
+                    active: {
+                        label: 'Active',
+                        className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                        icon: <CheckCircle2 className="w-3 h-3" />
+                    },
+                    closed: {
+                        label: 'Closed',
+                        className: 'bg-slate-100 text-slate-600 border-slate-200',
+                        icon: <XCircle className="w-3 h-3" />
+                    },
+                    archived: {
+                        label: 'Archived',
+                        className: 'bg-amber-100 text-amber-700 border-amber-200',
+                        icon: <Archive className="w-3 h-3" />
+                    }
+                };
+                const config = statusConfig[status] || statusConfig.active;
+
+                return (
+                    <Badge className={`${config.className} border text-[10px] font-bold px-2 py-0.5 flex items-center gap-1 w-fit`}>
+                        {config.icon}
+                        {config.label}
+                    </Badge>
+                );
+            }
         },
         {
             header: "Batch",
@@ -262,6 +319,14 @@ export function ScheduleManagementClient() {
                 }
             });
 
+            // For updates, ensure sessionId is included from the original schedule
+            if (selectedSchedule && !formData.has('sessionId')) {
+                const scheduleSessionId = (selectedSchedule as any).sessionId;
+                if (scheduleSessionId) {
+                    formData.append('sessionId', String(scheduleSessionId));
+                }
+            }
+
             const result = selectedSchedule
                 ? await updateScheduleAction(selectedSchedule.id, null, formData)
                 : await createScheduleAction(null, formData);
@@ -305,6 +370,54 @@ export function ScheduleManagementClient() {
                     </Button>
                 }
             />
+
+            {/* Schedule Status Summary */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-4 border border-emerald-200/60 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-emerald-500/10 rounded-xl">
+                                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600/70">Active</p>
+                                <p className="text-2xl font-black text-emerald-700">{scheduleStatus.active}</p>
+                            </div>
+                        </div>
+                        <Badge className="bg-emerald-500 text-white border-0 font-bold">Running</Badge>
+                    </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-4 border border-slate-200/60 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-slate-500/10 rounded-xl">
+                                <XCircle className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-slate-500/70">Closed</p>
+                                <p className="text-2xl font-black text-slate-600">{scheduleStatus.closed}</p>
+                            </div>
+                        </div>
+                        <Badge variant="outline" className="text-slate-500 border-slate-300 font-bold">Inactive</Badge>
+                    </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50/50 rounded-2xl p-4 border border-amber-200/60 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2.5 bg-amber-500/10 rounded-xl">
+                                <Archive className="w-5 h-5 text-amber-600" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-wider text-amber-600/70">Archived</p>
+                                <p className="text-2xl font-black text-amber-700">{scheduleStatus.archived}</p>
+                            </div>
+                        </div>
+                        <Badge className="bg-amber-100 text-amber-700 border-amber-200 font-bold">Historical</Badge>
+                    </div>
+                </div>
+            </div>
 
             {/* Premium Filters Bar */}
             <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-slate-200/60 shadow-sm flex flex-wrap items-center gap-4 transition-all hover:shadow-md">

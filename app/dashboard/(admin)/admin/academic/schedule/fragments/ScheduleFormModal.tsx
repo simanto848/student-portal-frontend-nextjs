@@ -90,8 +90,15 @@ export function ScheduleFormModal({
     const formattedInitialData = useMemo(() => {
         if (!initialData) return undefined;
 
+        // Extract sessionId from the schedule or from the sessionCourse
+        const sessionCourse = typeof initialData.sessionCourseId === 'object' ? initialData.sessionCourseId as any : null;
+        const sessionId = (initialData as any).sessionId ||
+            (sessionCourse?.sessionId && typeof sessionCourse.sessionId === 'object' ? sessionCourse.sessionId.id || sessionCourse.sessionId._id : sessionCourse?.sessionId) ||
+            "";
+
         return {
             ...initialData,
+            sessionId: sessionId,
             batchId: (initialData.batchId && typeof initialData.batchId === 'object') ? (initialData.batchId as any).id || (initialData.batchId as any)._id : initialData.batchId,
             sessionCourseId: (initialData.sessionCourseId && typeof initialData.sessionCourseId === 'object') ? (initialData.sessionCourseId as any).id || (initialData.sessionCourseId as any)._id : initialData.sessionCourseId,
             teacherId: (initialData.teacherId && typeof initialData.teacherId === 'object') ? (initialData.teacherId as any).id || (initialData.teacherId as any)._id : initialData.teacherId,
