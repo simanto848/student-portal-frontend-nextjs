@@ -84,3 +84,37 @@ export async function deleteProposal(proposalId: string): Promise<void> {
         throw new Error("Failed to delete proposal");
     }
 }
+
+// ================== Schedule Management Actions ==================
+export async function closeSchedulesForBatches(batchIds: string[]): Promise<{ success: boolean; closedCount: number; message: string }> {
+    try {
+        return await scheduleService.closeSchedulesForBatches(batchIds);
+    } catch (error) {
+        throw new Error("Failed to close schedules for batches");
+    }
+}
+
+export async function closeSchedulesForSession(sessionId: string): Promise<{ success: boolean; closedCount: number; message: string }> {
+    try {
+        return await scheduleService.closeSchedulesForSession(sessionId);
+    } catch (error) {
+        throw new Error("Failed to close schedules for session");
+    }
+}
+
+export async function reopenSchedulesForBatches(batchIds: string[]): Promise<{ success: boolean; reopenedCount: number; message: string }> {
+    try {
+        return await scheduleService.reopenSchedulesForBatches(batchIds);
+    } catch (error) {
+        throw new Error("Failed to reopen schedules");
+    }
+}
+
+export async function getScheduleStatusSummary(batchIds?: string[]): Promise<{ active: number; closed: number; archived: number }> {
+    try {
+        return await scheduleService.getScheduleStatusSummary(batchIds);
+    } catch (error) {
+        throw new Error("Failed to get schedule status summary");
+    }
+}
+

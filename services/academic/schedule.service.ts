@@ -217,5 +217,68 @@ export const scheduleService = {
         } catch (error) {
             return handleApiError(error);
         }
+    },
+
+    /**
+     * Close schedules for specific batches
+     * Closed schedules won't conflict with new schedule generation
+     */
+    closeSchedulesForBatches: async (batchIds: string[]): Promise<{ success: boolean; closedCount: number; message: string }> => {
+        try {
+            const response = await api.post('/academic/ai-schedules/close-batches', { batchIds });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    /**
+     * Close all schedules for a session
+     */
+    closeSchedulesForSession: async (sessionId: string): Promise<{ success: boolean; closedCount: number; message: string }> => {
+        try {
+            const response = await api.post('/academic/ai-schedules/close-session', { sessionId });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    /**
+     * Reopen schedules for specific batches
+     */
+    reopenSchedulesForBatches: async (batchIds: string[]): Promise<{ success: boolean; reopenedCount: number; message: string }> => {
+        try {
+            const response = await api.post('/academic/ai-schedules/reopen-batches', { batchIds });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    /**
+     * Get schedule status summary (active, closed, archived counts)
+     */
+    getScheduleStatusSummary: async (batchIds?: string[]): Promise<{ active: number; closed: number; archived: number }> => {
+        try {
+            const params = batchIds ? { batchIds: batchIds.join(',') } : {};
+            const response = await api.get('/academic/ai-schedules/status-summary', { params });
+            return response.data.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    /**
+     * Get active schedules (for weekly recurring view)
+     */
+    getActiveSchedules: async (batchIds?: string[]): Promise<CourseSchedule[]> => {
+        try {
+            const params = batchIds ? { batchIds: batchIds.join(',') } : {};
+            const response = await api.get('/academic/ai-schedules/active', { params });
+            return extractArrayData<CourseSchedule>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
     }
 };

@@ -44,7 +44,10 @@ import {
     validateSchedulePrerequisites,
     generateSchedule,
     applyProposal,
-    deleteProposal
+    deleteProposal,
+    closeSchedulesForBatches,
+    closeSchedulesForSession,
+    getScheduleStatusSummary
 } from "../ai-scheduler/actions";
 
 type SelectionMode = 'all' | 'department' | 'multi_batch' | 'single_batch';
@@ -90,6 +93,10 @@ export default function AISchedulerClient() {
     const [isLoading, setIsLoading] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
+    const [isClosingSchedules, setIsClosingSchedules] = useState(false);
+
+    // Schedule status summary (active, closed, archived counts)
+    const [scheduleStatus, setScheduleStatus] = useState<{ active: number; closed: number; archived: number }>({ active: 0, closed: 0, archived: 0 });
 
     // Validation state
     const [validationResult, setValidationResult] = useState<ScheduleValidationResult | null>(null);
@@ -152,10 +159,60 @@ export default function AISchedulerClient() {
         try {
             const data = await fetchProposals(sessionId);
             setProposals(data);
+            // Also load schedule status summary
+            loadScheduleStatus();
         } catch (error) {
             notifyError("Failed to load proposals");
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Load schedule status summary (active, closed, archived counts)
+    const loadScheduleStatus = async () => {
+        try {
+            const status = await getScheduleStatusSummary();
+            setScheduleStatus(status);
+        } catch {
+            // Silent fail - not critical
+        }
+    };
+
+    // Close schedules for selected batches (so they don't conflict with new schedules)
+    const handleCloseSchedules = async () => {
+        if (selectedBatchIds.length === 0) {
+            notifyWarning("Please select batches to close schedules for");
+            return;
+        }
+
+        setIsClosingSchedules(true);
+        try {
+            const result = await closeSchedulesForBatches(selectedBatchIds);
+            notifySuccess(result.message);
+            loadScheduleStatus();
+        } catch {
+            notifyError("Failed to close schedules");
+        } finally {
+            setIsClosingSchedules(false);
+        }
+    };
+
+    // Close all schedules for the selected session
+    const handleCloseSessionSchedules = async () => {
+        if (!selectedSessionId) {
+            notifyWarning("Please select a session first");
+            return;
+        }
+
+        setIsClosingSchedules(true);
+        try {
+            const result = await closeSchedulesForSession(selectedSessionId);
+            notifySuccess(result.message);
+            loadScheduleStatus();
+        } catch {
+            notifyError("Failed to close session schedules");
+        } finally {
+            setIsClosingSchedules(false);
         }
     };
 
@@ -799,6 +856,59 @@ export default function AISchedulerClient() {
                         )}
                     </div>
 
+                    {/* Schedule Management Section */}
+                    <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-amber-600" />
+                                <h4 className="font-semibold text-amber-800">Schedule Status</h4>
+                            </div>
+                            <div className="flex gap-4 text-sm">
+                                <span className="flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    <span className="text-slate-600">{scheduleStatus.active} Active</span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                                    <span className="text-slate-600">{scheduleStatus.closed} Closed</span>
+                                </span>
+                            </div>
+                        </div>
+                        <p className="text-sm text-amber-700">
+                            Close schedules before generating new ones to avoid classroom conflicts. Closed schedules won&apos;t interfere with new schedule generation.
+                        </p>
+                        <div className="flex gap-2">
+                            <Button
+                                onClick={handleCloseSchedules}
+                                disabled={selectedBatchIds.length === 0 || isClosingSchedules}
+                                variant="outline"
+                                size="sm"
+                                className="rounded-lg border-amber-300 text-amber-700 hover:bg-amber-100"
+                            >
+                                {isClosingSchedules ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                )}
+                                Close Selected Batch Schedules
+                            </Button>
+                            <Button
+                                onClick={handleCloseSessionSchedules}
+                                disabled={!selectedSessionId || isClosingSchedules}
+                                variant="outline"
+                                size="sm"
+                                className="rounded-lg border-amber-300 text-amber-700 hover:bg-amber-100"
+                            >
+                                {isClosingSchedules ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <XCircle className="mr-2 h-4 w-4" />
+                                )}
+                                Close All Session Schedules
+                            </Button>
+                        </div>
+                    </div>
+
                     {/* Selection Summary & Actions */}
                     <div className="flex flex-col lg:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
                         <div className="flex items-center gap-2 text-slate-600">
@@ -1006,11 +1116,11 @@ export default function AISchedulerClient() {
                                                     {proposal.metadata?.itemCount || 0} Classes
                                                 </span>
                                             </div>
-                                            {proposal.metadata?.unscheduledCount > 0 && (
+                                            {(proposal.metadata?.unscheduledCount ?? 0) > 0 && (
                                                 <div className="flex items-center gap-1 text-amber-600">
                                                     <AlertTriangle className="w-4 h-4" />
                                                     <span className="text-xs font-medium">
-                                                        {proposal.metadata.unscheduledCount} failed
+                                                        {proposal.metadata?.unscheduledCount ?? 0} failed
                                                     </span>
                                                 </div>
                                             )}
