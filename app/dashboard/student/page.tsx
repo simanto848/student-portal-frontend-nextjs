@@ -11,8 +11,8 @@ import { courseGradeService } from "@/services/enrollment/courseGrade.service";
 import { attendanceService } from "@/services/enrollment/attendance.service";
 import { borrowingService } from "@/services/library/borrowing.service";
 import { scheduleService } from "@/services/academic/schedule.service";
+import { sessionCourseService } from "@/services/academic/session-course.service";
 import { notificationService } from "@/services/notification/notification.service";
-import { enrollmentService } from "@/services/enrollment/enrollment.service";
 import { batchService } from "@/services/academic/batch.service";
 import { NotificationDropdown } from "@/components/dashboard/notifications/NotificationDropdown";
 import { useNotificationStats } from "@/hooks/queries/useNotificationQueries";
@@ -111,25 +111,39 @@ export default function StudentDashboard() {
       let mappedCourses: CourseProgress[] = [];
 
       if (batchId) {
-        // Fetch Batch Details to get Current Semester
-        const batchDetails = await batchService.getBatchById(batchId).catch(() => null);
-        const currentSemester = batchDetails?.currentSemester || 1;
-
-        // Fetch Session Courses for this Batch and Semester
-        const semesterCourses = await enrollmentService.getBatchSemesterCourses(batchId, currentSemester).catch(() => []);
+        // Fetch Session Courses for the Batch's Current Semester
+        // This uses the student-accessible endpoint and shows all courses
+        // running for the student's batch in their current semester
+        const sessionCourses = await sessionCourseService.getMyBatchSessionCourses(batchId).catch(() => []);
 
         const courseIcons: ("science" | "functions" | "palette")[] = ["science", "functions", "palette"];
         const colors = ["pink", "yellow", "indigo", "emerald", "blue", "purple"];
 
-        mappedCourses = semesterCourses.map((semCourse: any, idx: number) => {
-          const course = semCourse.course;
-          const gradeInfo = gradesList.find(g => (g.course as any)?.id === course?.id || g.courseId === course?.id);
+        // Session courses data contains the course details from the backend
+        const sessionCoursesList = Array.isArray(sessionCourses)
+          ? sessionCourses
+          : (sessionCourses as any)?.data || [];
+
+        mappedCourses = sessionCoursesList.map((sessionCourse: any, idx: number) => {
+          // Extract course details - could be nested under courseId if populated
+          const course = sessionCourse.courseId && typeof sessionCourse.courseId === 'object'
+            ? sessionCourse.courseId
+            : sessionCourse.course || sessionCourse;
+
+          const courseId = course?.id || course?._id || sessionCourse.courseId;
+
+          // Find grade info for this course if available
+          const gradeInfo = gradesList.find(g =>
+            (g.course as any)?.id === courseId ||
+            (g.course as any)?._id === courseId ||
+            g.courseId === courseId
+          );
 
           return {
-            id: semCourse.id || idx.toString(),
+            id: sessionCourse.id || sessionCourse._id || idx.toString(),
             name: course?.name || "Term Course",
             code: course?.code || "N/A",
-            professor: semCourse.instructor?.fullName || course?.instructor?.fullName || "Faculty Advisor",
+            professor: "Faculty Advisor", // Session courses don't have instructor - assigned via BatchCourseInstructor
             progress: gradeInfo?.totalMarks > 0 ? Math.round((gradeInfo.totalMarksObtained / gradeInfo.totalMarks) * 100) : 0,
             grade: gradeInfo?.grade || "N/A",
             color: colors[idx % colors.length],
@@ -361,7 +375,7 @@ export default function StudentDashboard() {
           {/* Course Progress Section */}
           <motion.section variants={itemVariants} className="space-y-8">
             <div className="flex items-center justify-between mb-4 px-2">
-              <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Course Progress</h3>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Currently Running Course</h3>
               <Link href="/dashboard/student/grades" className="text-sm font-black text-primary-nexus hover:text-primary-nexus/80 transition-colors flex items-center group cursor-pointer tracking-wide">
                 View All Courses <span className="material-icons-outlined text-lg ml-1 group-hover:translate-x-1 transition-transform">chevron_right</span>
               </Link>
@@ -400,28 +414,6 @@ export default function StudentDashboard() {
                           <div className="flex items-center gap-3">
                             <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 dark:bg-slate-900/50 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">{course.code}</span>
                             <span className="text-[11px] font-bold text-slate-500 line-clamp-1">{course.professor}</span>
-                          </div>
-                        </div>
-
-                        <div className="mt-auto space-y-4">
-                          <div className="flex items-end justify-between">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Performance Index</span>
-                              <span className="text-2xl font-black text-slate-800 tracking-tighter">{course.progress}%</span>
-                            </div>
-                            <div className="flex flex-col items-end">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Grade</span>
-                              <span className={`text-2xl font-black tracking-tighter ${colors.text}`}>{course.grade}</span>
-                            </div>
-                          </div>
-
-                          <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden p-1 shadow-inner ring-1 ring-gray-200">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${course.progress}%` }}
-                              transition={{ duration: 1.5, ease: "easeOut" }}
-                              className={`h-full rounded-full shadow-sm bg-linear-to-r ${colors.progress}`}
-                            />
                           </div>
                         </div>
                       </div>

@@ -29,6 +29,7 @@ import {
 import { useProgram } from "@/hooks/queries/useAcademicQueries";
 import { courseGradeService, CourseGrade } from "@/services/enrollment/courseGrade.service";
 import { useQuery } from "@tanstack/react-query";
+import StudentLoading from "@/components/StudentLoading";
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -207,23 +208,9 @@ export default function GradeManagementClient() {
         setExpandedSemesters(newSet);
     };
 
-    const getCGPAStatus = (cgpa: number) => {
-        if (cgpa >= 3.75) return { label: "Dean's List", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-100 dark:bg-emerald-900/40" };
-        if (cgpa >= 3.5) return { label: "First Class", color: "text-green-600 dark:text-green-400", bg: "bg-green-100 dark:bg-green-900/40" };
-        if (cgpa >= 3.0) return { label: "Second Class", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-100 dark:bg-blue-900/40" };
-        if (cgpa >= 2.5) return { label: "Good Standing", color: "text-yellow-600 dark:text-yellow-400", bg: "bg-yellow-100 dark:bg-yellow-900/40" };
-        if (cgpa >= 2.0) return { label: "Pass", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-100 dark:bg-orange-900/40" };
-        return { label: "Academic Warning", color: "text-red-600 dark:text-red-400", bg: "bg-red-100 dark:bg-red-900/40" };
-    };
-
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-full min-h-[400px]">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-12 h-12 animate-spin text-primary-nexus" />
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Loading your academic records...</p>
-                </div>
-            </div>
+            <StudentLoading />
         );
     }
 
@@ -240,8 +227,6 @@ export default function GradeManagementClient() {
             </div>
         );
     }
-
-    const cgpaStatus = getCGPAStatus(stats.cgpa);
 
     return (
         <motion.div
@@ -277,14 +262,6 @@ export default function GradeManagementClient() {
                 <Card className="glass-panel p-6 border border-white/40 dark:border-slate-700/50 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary-nexus/10 rounded-full blur-3xl -mr-10 -mt-10" />
                     <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 rounded-2xl bg-primary-nexus/10 dark:bg-primary-nexus/20">
-                                <TrendingUp className="h-6 w-6 text-primary-nexus" />
-                            </div>
-                            <Badge className={`${cgpaStatus.bg} ${cgpaStatus.color} border-0 font-bold text-xs`}>
-                                {cgpaStatus.label}
-                            </Badge>
-                        </div>
                         <h3 className="text-4xl font-black text-slate-800 dark:text-white tracking-tight">
                             {stats.cgpa.toFixed(2)}
                         </h3>
@@ -505,10 +482,10 @@ export default function GradeManagementClient() {
                                                         <thead className="bg-slate-50/80 dark:bg-slate-800/80">
                                                             <tr>
                                                                 <th className="text-left py-3 px-6 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                                                                    Course
+                                                                    Course Name
                                                                 </th>
                                                                 <th className="text-left py-3 px-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                                                                    Code
+                                                                    Course Code
                                                                 </th>
                                                                 <th className="text-center py-3 px-4 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                                                     Credit

@@ -49,6 +49,15 @@ export const sessionCourseService = {
             return handleApiError(error);
         }
     },
+    // Student-accessible endpoint to get session courses for their batch
+    getMyBatchSessionCourses: async (batchId: string): Promise<SessionCourse[]> => {
+        try {
+            const response = await api.get(`/academic/session-courses/my-batch/${batchId}`);
+            return extractArrayData<SessionCourse>(response);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
     syncSessionCourses: async (data: { sessionId: string; departmentId: string; semester: number; courseIds: string[] }): Promise<SessionCourse[]> => {
         try {
             const response = await api.post('/academic/session-courses/sync', data);
