@@ -11,7 +11,6 @@ import {
 import { toast } from "sonner";
 import {
   Search,
-  Bell,
   Activity,
   MessageCircle,
   Code,
@@ -26,13 +25,8 @@ import {
   CalendarCheck,
   FolderOpen
 } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { notificationService, NotificationItem } from "@/services/notification/notification.service";
-import { chatService, ChatGroup } from "@/services/communication/chat.service";
+import { chatService } from "@/services/communication/chat.service";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
 import { GlassCard } from "@/components/dashboard/shared/GlassCard";
@@ -227,8 +221,8 @@ export default function TeacherDashboard() {
           </div>
           <div className="flex-1 flex flex-col gap-4 overflow-y-auto pr-1 no-scrollbar">
             {recentChats.length > 0 ? (
-              recentChats.map((chat) => (
-                <Link href={`/dashboard/teacher/communication/chat/${chat.id}?type=${chat.type}`} key={chat.id}>
+              recentChats.map((chat, chatIdx) => (
+                <Link href={`/dashboard/teacher/communication/chat/${chat.id}?type=${chat.type}`} key={chat.id || `chat-${chatIdx}`}>
                   <div className="flex items-center gap-3 p-2 hover:bg-white/40 dark:hover:bg-slate-700/40 rounded-xl cursor-pointer transition-colors group">
                     <div className="relative w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-bold text-slate-500 uppercase">
                       {chat.type === "CourseChatGroup" ? (
@@ -276,7 +270,7 @@ export default function TeacherDashboard() {
         {/* Courses & Assignments Grid */}
         <div className="col-span-1 md:col-span-2 lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
           {courses.length > 0 ? courses.slice(0, 2).map((courseItem: any, index: number) => (
-            <GlassCard key={courseItem.id} className="rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group border-slate-200/50 dark:border-slate-700">
+            <GlassCard key={courseItem.id || `course-${index}`} className="rounded-3xl p-5 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group border-slate-200/50 dark:border-slate-700">
               <div className={`h-32 rounded-2xl bg-gradient-to-br ${index % 2 === 0 ? 'from-teal-400 to-[#0d9488]' : 'from-blue-400 to-indigo-600'} mb-4 relative overflow-hidden`}>
                 <div className="absolute inset-0 bg-black/10"></div>
                 <span className="absolute top-3 left-3 bg-white/20 backdrop-blur-md text-white text-xs font-bold px-2 py-1 rounded-lg border border-white/20">
@@ -321,7 +315,7 @@ export default function TeacherDashboard() {
           </div>
           <div className="flex flex-col gap-3">
             {workflows.length > 0 ? workflows.slice(0, 3).map((workflow, idx) => (
-              <div key={workflow.id} className="flex items-center justify-between p-3 rounded-2xl bg-white/40 dark:bg-slate-700/30 border border-white/50 dark:border-slate-600/50 hover:border-[#2dd4bf]/50 transition-all">
+              <div key={workflow.id || `workflow-${idx}`} className="flex items-center justify-between p-3 rounded-2xl bg-white/40 dark:bg-slate-700/30 border border-white/50 dark:border-slate-600/50 hover:border-[#2dd4bf]/50 transition-all">
                 <div className="flex items-center gap-3">
                   <div className={`w-10 h-10 rounded-xl ${idx === 0 ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-500' : idx === 1 ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500' : 'bg-purple-100 dark:bg-purple-900/30 text-purple-500'} flex items-center justify-center`}>
                     {idx === 0 ? <FileText className="w-5 h-5" /> : idx === 1 ? <FlaskConical className="w-5 h-5" /> : <Code className="w-5 h-5" />}
@@ -361,42 +355,50 @@ export default function TeacherDashboard() {
 
       {/* Quick Actions (Bottom) */}
       <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
-          <div className="flex items-center gap-3">
-            <div className="bg-teal-100 dark:bg-teal-900/30 p-2.5 rounded-xl text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
-              <PlusCircle className="w-6 h-6" />
+        <Link href="/dashboard/teacher/classroom">
+          <button className="w-full glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+            <div className="flex items-center gap-3">
+              <div className="bg-teal-100 dark:bg-teal-900/30 p-2.5 rounded-xl text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
+                <PlusCircle className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">New Assignment</span>
             </div>
-            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">New Assignment</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#2dd4bf] group-hover:translate-x-1 transition-all" />
-        </button>
-        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
-          <div className="flex items-center gap-3">
-            <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2.5 rounded-xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-              <Megaphone className="w-6 h-6" />
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#2dd4bf] group-hover:translate-x-1 transition-all" />
+          </button>
+        </Link>
+        <Link href="/dashboard/teacher/notifications/create">
+          <button className="w-full glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+            <div className="flex items-center gap-3">
+              <div className="bg-indigo-100 dark:bg-indigo-900/30 p-2.5 rounded-xl text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                <Megaphone className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Announcement</span>
             </div>
-            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Announcement</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
-        </button>
-        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
-          <div className="flex items-center gap-3">
-            <div className="bg-rose-100 dark:bg-rose-900/30 p-2.5 rounded-xl text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
-              <CalendarCheck className="w-6 h-6" />
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
+          </button>
+        </Link>
+        <Link href="/dashboard/teacher/attendance">
+          <button className="w-full glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+            <div className="flex items-center gap-3">
+              <div className="bg-rose-100 dark:bg-rose-900/30 p-2.5 rounded-xl text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
+                <CalendarCheck className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Mark Attendance</span>
             </div>
-            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Mark Attendance</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
-        </button>
-        <button className="glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
-          <div className="flex items-center gap-3">
-            <div className="bg-amber-100 dark:bg-amber-900/30 p-2.5 rounded-xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
-              <FolderOpen className="w-6 h-6" />
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-rose-500 group-hover:translate-x-1 transition-all" />
+          </button>
+        </Link>
+        <Link href="/dashboard/teacher/classroom">
+          <button className="w-full glass-panel p-5 rounded-2xl flex items-center justify-between hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all group cursor-pointer border border-white/50 dark:border-slate-700 shadow-sm active:scale-95">
+            <div className="flex items-center gap-3">
+              <div className="bg-amber-100 dark:bg-amber-900/30 p-2.5 rounded-xl text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                <FolderOpen className="w-6 h-6" />
+              </div>
+              <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Course Materials</span>
             </div>
-            <span className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-tight">Course Materials</span>
-          </div>
-          <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
-        </button>
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+          </button>
+        </Link>
       </div>
     </div>
   );

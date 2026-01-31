@@ -80,7 +80,7 @@ export function TeacherNotification({
                             {notifications.length > 0 ? (
                                 notifications.map((n, idx) => (
                                     <div
-                                        key={n.id}
+                                        key={n.id || `notification-${idx}`}
                                         onClick={() => handleNotificationClick(n)}
                                         className={cn(
                                             "px-5 py-4 hover:bg-white/60 dark:hover:bg-slate-800/40 transition-all cursor-pointer border-b border-slate-100/50 dark:border-slate-800/50 last:border-0 relative group",
@@ -148,6 +148,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
     return (
         <div className="fixed inset-0 z-999 flex items-center justify-center p-4 sm:p-6">
             <motion.div
+                key="modal-backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -155,6 +156,7 @@ function DetailModal({ notification, onClose }: { notification: any, onClose: ()
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
             <motion.div
+                key="modal-content"
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
