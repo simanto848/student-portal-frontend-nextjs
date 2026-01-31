@@ -149,7 +149,7 @@ export function BatchFormModal({
             programId: getId(selectedBatch.programId),
             departmentId: getId(selectedBatch.departmentId),
             sessionId: getId(selectedBatch.sessionId),
-            counselorId: getId(selectedBatch.counselor),
+            counselorId: selectedBatch.counselorId || "",
             currentSemester: selectedBatch.currentSemester.toString(),
             maxStudents: selectedBatch.maxStudents.toString(),
             startDate: selectedBatch.startDate

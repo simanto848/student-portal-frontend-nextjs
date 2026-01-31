@@ -9,11 +9,21 @@ import { revalidatePath } from "next/cache";
  */
 const transformBatchData = (formData: FormData) => {
     const data = Object.fromEntries(formData.entries());
+
+    // Helper to convert empty strings to undefined
+    const emptyToUndefined = (value: FormDataEntryValue | undefined) =>
+        value === "" || value === null || value === undefined ? undefined : value;
+
     return {
         ...data,
         year: data.year ? Number(data.year) : undefined,
         currentSemester: data.currentSemester ? Number(data.currentSemester) : undefined,
         maxStudents: data.maxStudents ? Number(data.maxStudents) : undefined,
+        // Handle optional fields - convert empty strings to undefined
+        counselorId: emptyToUndefined(data.counselorId),
+        startDate: emptyToUndefined(data.startDate),
+        endDate: emptyToUndefined(data.endDate),
+        code: emptyToUndefined(data.code),
     };
 };
 

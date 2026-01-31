@@ -65,6 +65,11 @@ function FormContent({
     const theme = useDashboardTheme();
     const [formData, setFormData] = useState<FormDataType>(initialData);
 
+    // Sync formData with initialData when it changes (e.g., when switching between edit items)
+    useEffect(() => {
+        setFormData(initialData);
+    }, [initialData]);
+
     const handleChange = useCallback((name: string, value: any) => {
         const setValue = (n: string, v: any) => setFormData(prev => ({ ...prev, [n]: v }));
         setValue(name, value);
