@@ -61,6 +61,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { parseISO, format as formatDate } from "date-fns";
+import { FaceEnrollmentStep } from "./FaceEnrollmentStep";
 
 interface StudentFormClientProps {
     student?: Student;
@@ -198,6 +199,8 @@ export function StudentFormClient({
         });
     };
 
+    const [enrollmentData, setEnrollmentData] = useState<{ open: boolean; studentId: string; studentName: string } | null>(null);
+
     const handleSubmit = async () => {
         for (let i = 1; i <= 5; i++) {
             if (!validateStep(i)) {
@@ -238,13 +241,19 @@ export function StudentFormClient({
             }
 
             let studentId: string;
+            let regNum: string = "";
+            let fullName: string = basic.fullName;
+
             if (isEdit) {
-                await studentService.update(student.id, dataToSend);
+                const updated = await studentService.update(student.id, dataToSend);
                 studentId = student.id;
+                regNum = updated.registrationNumber || student.registrationNumber;
                 toast.success("Student profile updated");
             } else {
                 const created = await studentService.create(dataToSend);
                 studentId = created.id;
+                regNum = created.registrationNumber;
+                fullName = created.fullName;
                 toast.success("New student added successfully");
             }
 
@@ -255,13 +264,29 @@ export function StudentFormClient({
                 toast.warning("Student saved but biometric synchronization failed.");
             }
 
+            // If new student, open enrollment modal instead of redirecting immediately
+            if (!isEdit && regNum) {
+                setIsSubmitting(false);
+                setEnrollmentData({
+                    open: true,
+                    studentId: regNum,
+                    studentName: fullName
+                });
+                return;
+            }
+
             router.push(`/dashboard/admin/users/students/${studentId}`);
             router.refresh();
         } catch (error: any) {
             toast.error(error?.message || "Protocol synchronization failed");
-        } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleEnrollmentComplete = () => {
+        setEnrollmentData(null);
+        router.push("/dashboard/admin/users/students");
+        router.refresh();
     };
 
     const steps = [
@@ -735,6 +760,16 @@ export function StudentFormClient({
                         </Button>
                     )}
                 </div>
+
+                {enrollmentData && (
+                    <FaceEnrollmentStep
+                        isOpen={enrollmentData.open}
+                        onClose={() => setEnrollmentData(null)}
+                        studentName={enrollmentData.studentName}
+                        studentId={enrollmentData.studentId}
+                        onComplete={handleEnrollmentComplete}
+                    />
+                )}
             </div>
         </div>
     );

@@ -32,13 +32,14 @@ import { notifySuccess, notifyError } from "@/components/toast";
 import { getErrorMessage, getSuccessMessage } from "@/lib/utils/toastHelpers";
 import { format } from "date-fns";
 import { useSearchParams } from "next/navigation";
-import { Loader2, ClipboardCheck, Search, Users, Save, RefreshCw, SearchCheck, GraduationCap } from "lucide-react";
+import { Loader2, ClipboardCheck, Search, Users, Save, RefreshCw, SearchCheck, GraduationCap, ScanFace } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion, Variants } from "framer-motion";
 import { DatePicker } from "@/components/ui/date-picker";
 import { AttendanceStats } from "./AttendanceStats";
 import { AttendanceRow } from "./AttendanceRow";
 import { AttendanceSummarySheet } from "./AttendanceSummarySheet";
+import { SmartAttendanceModal } from "./SmartAttendanceModal";
 
 
 interface AttendanceState {
@@ -61,10 +62,19 @@ export function AttendanceContent() {
     const [date, setDate] = useState<Date>(new Date());
     const [students, setStudents] = useState<Enrollment[]>([]);
     const [attendanceState, setAttendanceState] = useState<AttendanceState>({});
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const [showSummary, setShowSummary] = useState(false);
+    const [showSmartAttendance, setShowSmartAttendance] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [showSummary, setShowSummary] = useState(false);
+
+    // Hydration fix
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Handle URL params for course/batch selection
     useEffect(() => {
@@ -177,13 +187,16 @@ export function AttendanceContent() {
         }));
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (overrideData?: AttendanceState) => {
         const assignment = courses.find((c) => c.id === selectedAssignmentId);
         if (!assignment) return;
 
+        // Use override data if provided, otherwise use current state
+        const dataToSubmit = overrideData || attendanceState;
+
         // Validation: Check for missing remarks on 'excused' status
         const invalidAttendance = students.filter(student => {
-            const state = attendanceState[student.studentId];
+            const state = dataToSubmit[student.studentId];
             return state.status === 'excused' && !state.remarks?.trim();
         });
 
@@ -202,8 +215,8 @@ export function AttendanceContent() {
                 date: isoDate,
                 attendances: students.map((student) => ({
                     studentId: student.studentId,
-                    status: attendanceState[student.studentId].status,
-                    remarks: attendanceState[student.studentId].remarks,
+                    status: dataToSubmit[student.studentId].status,
+                    remarks: dataToSubmit[student.studentId].remarks,
                 })),
             };
 
@@ -214,6 +227,38 @@ export function AttendanceContent() {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleSmartAttendanceMark = (recognizedIds: Map<string, number>) => {
+        const newAttendanceState = { ...attendanceState };
+
+        // Loop through all currently viewed students
+        students.forEach(student => {
+            const regNum = student.student?.registrationNumber;
+            const studentId = student.studentId;
+
+            if (regNum && recognizedIds.has(regNum)) {
+                // Present
+                const confidence = recognizedIds.get(regNum) || 100;
+                newAttendanceState[studentId] = {
+                    status: "present",
+                    remarks: `Verified Face ID (Conf: ${confidence.toFixed(0)}%)`
+                };
+            } else {
+                // Absent
+                newAttendanceState[studentId] = {
+                    status: "absent",
+                    remarks: "Auto-marked: Not detected in scan"
+                };
+            }
+        });
+
+        setAttendanceState(newAttendanceState);
+        setShowSmartAttendance(false);
+        notifySuccess(`Auto-marked attendance for ${students.length} students`);
+
+        // Auto-submit
+        handleSubmit(newAttendanceState);
     };
 
     const filteredStudents = useMemo(() => {
@@ -261,7 +306,7 @@ export function AttendanceContent() {
         visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
     };
 
-    if (coursesLoading) {
+    if (coursesLoading || !mounted) {
         return <DashboardSkeleton layout="hero-table" rowCount={8} withLayout={false} />;
     }
 
@@ -309,6 +354,19 @@ export function AttendanceContent() {
                 </div>
             </GlassCard>
 
+            {/* Smart Actions Bar */}
+            {selectedCourse && (
+                <div className="flex flex-wrap gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <Button
+                        onClick={() => setShowSmartAttendance(true)}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 rounded-xl h-12 px-6 font-bold"
+                    >
+                        <ScanFace className="w-5 h-5 mr-2" />
+                        Start Smart Attendance
+                    </Button>
+                </div>
+            )}
+
             {selectedCourse && (
                 <AttendanceSummarySheet
                     isOpen={showSummary}
@@ -317,6 +375,15 @@ export function AttendanceContent() {
                     batchId={selectedCourse.batchId}
                     courseCode={selectedCourse.course?.code}
                     batchName={selectedCourse.batch?.name}
+                />
+            )}
+
+            {selectedCourse && (
+                <SmartAttendanceModal
+                    isOpen={showSmartAttendance}
+                    onClose={() => setShowSmartAttendance(false)}
+                    students={students}
+                    onMarkAttendance={handleSmartAttendanceMark}
                 />
             )}
 
@@ -477,7 +544,7 @@ export function AttendanceContent() {
                                         <Button
                                             size="lg"
                                             className="w-full md:w-auto bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold text-base"
-                                            onClick={handleSubmit}
+                                            onClick={() => handleSubmit()}
                                             disabled={saving}
                                         >
                                             {saving ? (

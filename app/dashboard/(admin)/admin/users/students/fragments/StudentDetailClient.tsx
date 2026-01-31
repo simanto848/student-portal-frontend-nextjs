@@ -51,6 +51,8 @@ interface StudentDetailClientProps {
     sessions: any[];
 }
 
+import { FaceEnrollmentStep } from "./FaceEnrollmentStep";
+
 export function StudentDetailClient({
     student,
     profile,
@@ -61,6 +63,7 @@ export function StudentDetailClient({
 }: StudentDetailClientProps) {
     const router = useRouter();
     const [isDeleting, setIsDeleting] = useState(false);
+    const [enrollmentOpen, setEnrollmentOpen] = useState(false);
 
     const handleDelete = async () => {
         if (!confirm(`Are you sure you want to suspend ${student.fullName}?`)) return;
@@ -301,10 +304,30 @@ export function StudentDetailClient({
                             <ActionButton label="View Transcripts" icon={Layers} color="slate" />
                             <ActionButton label="Financial Info" icon={CreditCard} color="slate" />
                             <ActionButton label="Attendance Log" icon={Clock} color="slate" />
+                            <ActionButton
+                                label="Enroll Face ID"
+                                icon={Sparkles}
+                                color="amber"
+                                onClick={() => setEnrollmentOpen(true)}
+                            />
                         </div>
                     </Card>
                 </div>
             </div>
+
+            {student.registrationNumber && (
+                <FaceEnrollmentStep
+                    isOpen={enrollmentOpen}
+                    onClose={() => setEnrollmentOpen(false)}
+                    studentName={student.fullName}
+                    studentId={student.registrationNumber}
+                    onComplete={() => {
+                        setEnrollmentOpen(false);
+                        notifySuccess("Face enrollment completed successfully");
+                        router.refresh();
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -376,11 +399,13 @@ function StatItem({ label, value, highlighted = false }: { label: string; value:
     );
 }
 
-function ActionButton({ label, icon: Icon, color }: { label: string; icon: any; color: string }) {
+function ActionButton({ label, icon: Icon, color, onClick }: { label: string; icon: any; color: string; onClick?: () => void }) {
     return (
-        <button className="w-full h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between px-6 group hover:bg-slate-900 hover:text-white transition-all active:scale-95 duration-500">
+        <button
+            onClick={onClick}
+            className={`w-full h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between px-6 group hover:bg-slate-900 hover:text-white transition-all active:scale-95 duration-500`}>
             <div className="flex items-center gap-4">
-                <Icon className="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
+                <Icon className={`w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors`} />
                 <span className="text-xs font-black uppercase tracking-widest">{label}</span>
             </div>
             <ArrowLeft className="w-4 h-4 rotate-180 group-hover:translate-x-1 transition-transform" />
