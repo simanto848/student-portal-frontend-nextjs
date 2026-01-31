@@ -247,12 +247,69 @@ export interface CourseSyllabus {
   publishedAt?: string;
 }
 
+export interface ScheduleProposalItem {
+  sessionCourseId: string;
+  batchId: string;
+  classroomId: string;
+  teacherId?: string;
+  daysOfWeek: string[];
+  startTime: string;
+  endTime: string;
+  classType?: string;
+  batchName?: string;
+  batchShift?: string;
+  courseName?: string;
+  courseCode?: string;
+  teacherName?: string;
+  roomName?: string;
+}
+
+export interface ScheduleProposalMetadata {
+  generatedAt?: string;
+  itemCount?: number;
+  totalTasks?: number;
+  unscheduledCount?: number;
+  conflictsCount?: number;
+  warningsCount?: number;
+  selectionMode?: string;
+  batchIds?: string[];
+  departmentId?: string;
+  algorithm?: string;
+  appliedAt?: string;
+  schedulesCreated?: number;
+  classDurationMinutes?: number;
+  classDurations?: {
+    theory?: number;
+    lab?: number;
+    project?: number;
+  };
+  workingDays?: string[];
+  shiftConfig?: {
+    day?: {
+      startHour?: number;
+      startMinute?: number;
+      endHour?: number;
+      endMinute?: number;
+      breakStart?: string;
+      breakEnd?: string;
+    };
+    evening?: {
+      startHour?: number;
+      startMinute?: number;
+      endHour?: number;
+      endMinute?: number;
+      breakStart?: string;
+      breakEnd?: string;
+    };
+  };
+}
+
 export interface ScheduleProposal {
   id: string;
   sessionId: string;
   generatedBy: string;
   status: "pending" | "approved" | "rejected";
-  scheduleData: any[]; // JSON array
-  metadata?: any;
+  scheduleData: ScheduleProposalItem[];
+  metadata?: ScheduleProposalMetadata;
   createdAt: string;
 }

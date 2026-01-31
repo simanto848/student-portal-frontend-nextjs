@@ -301,7 +301,7 @@ export function ScheduleManagementClient() {
                         className="rounded-xl border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 hover:text-amber-800 transition-all font-bold gap-2"
                     >
                         <Sparkles className="w-4 h-4" />
-                        AI Scheduler
+                        AUTO Scheduler
                     </Button>
                 }
             />

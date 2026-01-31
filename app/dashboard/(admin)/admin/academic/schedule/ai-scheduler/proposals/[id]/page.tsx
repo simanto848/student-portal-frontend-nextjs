@@ -10,7 +10,6 @@ import {
     ArrowLeft,
     CheckCircle2,
     Clock,
-    Calendar,
     MapPin,
     Users,
     BookOpen,
@@ -20,7 +19,8 @@ import {
     Layers,
     Sun,
     Moon,
-    Zap
+    Zap,
+    User2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -34,9 +34,13 @@ interface ProposalScheduleItem {
     startTime?: string;
     endTime?: string;
     courseName?: string;
+    courseCode?: string;
     sessionCourseId?: string;
     roomName?: string;
     classroomId?: string;
+    teacherName?: string;
+    teacherId?: string;
+    classType?: string;
 }
 
 const dayColors: Record<string, string> = {
@@ -171,7 +175,7 @@ export default function ProposalDetailsPage() {
                     </div>
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">Proposal Not Found</h2>
                     <p className="text-slate-500 mb-6 max-w-md text-center">
-                        The proposal you're looking for doesn't exist or has been removed.
+                        The proposal you&apos;re looking for doesn&apos;t exist or has been removed.
                     </p>
                     <Button
                         onClick={() => router.back()}
@@ -363,6 +367,7 @@ export default function ProposalDetailsPage() {
                                                 <tr className="bg-slate-50/50">
                                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Day & Time</th>
                                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Course</th>
+                                                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Teacher</th>
                                                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Location</th>
                                                 </tr>
                                             </thead>
@@ -395,7 +400,20 @@ export default function ProposalDetailsPage() {
                                                                 <div className="p-2 bg-purple-100 rounded-lg shrink-0">
                                                                     <BookOpen className="w-4 h-4 text-purple-600" />
                                                                 </div>
-                                                                <span className="text-slate-700 font-semibold">{item.courseName || item.sessionCourseId}</span>
+                                                                <div>
+                                                                    <span className="text-slate-700 font-semibold block">{item.courseName || item.sessionCourseId}</span>
+                                                                    {item.classType && (
+                                                                        <span className="text-xs text-slate-400">{item.classType}</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-blue-100 rounded-lg shrink-0">
+                                                                    <User2 className="w-4 h-4 text-blue-600" />
+                                                                </div>
+                                                                <span className="text-slate-600 font-medium">{item.teacherName || 'Not Assigned'}</span>
                                                             </div>
                                                         </td>
                                                         <td className="px-6 py-4">
