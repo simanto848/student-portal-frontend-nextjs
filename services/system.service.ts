@@ -132,17 +132,5 @@ export const systemService = {
     getApiStats: async (): Promise<ApiStats> => {
         const response = await api.get("/system/api-stats");
         return response.data.data;
-    },
-
-    getOrganizations: async (): Promise<Organization[]> => {
-        const response = await api.get("/system/organizations");
-        return response.data.data;
     }
 };
-
-export interface Organization {
-    name: string;
-    users: number;
-    status: "active" | "inactive" | "pending";
-    growth: number;
-}
