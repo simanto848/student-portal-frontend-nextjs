@@ -13,7 +13,6 @@ import {
   CheckSquare,
   Bell,
   Activity,
-  Shield,
   Database,
   Flag,
   FileWarning,
@@ -56,11 +55,6 @@ export const superAdminNavigation: NavItem[] = [
     href: "/dashboard/super-admin/users",
     label: "All Users",
     icon: Users,
-  },
-  {
-    href: "/dashboard/super-admin/roles",
-    label: "Role Management",
-    icon: Shield,
   },
   {
     href: "/dashboard/super-admin/database",
