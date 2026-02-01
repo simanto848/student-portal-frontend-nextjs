@@ -29,9 +29,10 @@ export function ClassroomDeleteModal({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white">
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-amber-500 to-orange-400" />
                 <div className="p-8">
-                    <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 ring-8 ring-red-50/50">
-                        <AlertTriangle className="h-8 w-8 text-red-600" />
+                    <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 ring-8 ring-amber-50/50">
+                        <AlertTriangle className="h-8 w-8 text-amber-600" />
                     </div>
 
                     <DialogHeader className="text-left p-0">
@@ -44,7 +45,7 @@ export function ClassroomDeleteModal({
                     </DialogHeader>
                 </div>
 
-                <div className="bg-slate-50 px-8 py-5 flex justify-end gap-3 border-t border-slate-100">
+                <div className="bg-amber-50/50 px-8 py-5 flex justify-end gap-3 border-t border-amber-100">
                     <Button
                         variant="ghost"
                         onClick={onClose}
@@ -57,7 +58,7 @@ export function ClassroomDeleteModal({
                         variant="destructive"
                         onClick={onConfirm}
                         disabled={isDeleting}
-                        className="rounded-xl px-6 font-bold shadow-lg shadow-red-200 transition-all active:scale-95 flex items-center gap-2"
+                        className="rounded-xl px-6 font-bold shadow-lg shadow-amber-200 transition-all active:scale-95 flex items-center gap-2 bg-amber-600 hover:bg-amber-700"
                     >
                         {isDeleting ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

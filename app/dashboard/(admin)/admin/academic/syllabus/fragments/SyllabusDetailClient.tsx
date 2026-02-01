@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { CourseSyllabus, academicService } from "@/services/academic.service";
 import { notifyError } from "@/components/toast";
@@ -99,7 +98,7 @@ export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) 
                 {/* Overview Card */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:col-span-2 lg:col-span-3 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 md:col-span-2 lg:col-span-3 hover:shadow-md transition-shadow"
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-amber-50 rounded-lg border border-amber-100">
@@ -110,10 +109,10 @@ export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) 
                     <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{syllabus.overview || "No overview provided."}</p>
                 </motion.div>
 
-                {/* Objectives */}
+                {/* Objectives Card */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 hover:shadow-md transition-shadow"
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-amber-50 rounded-lg">
@@ -124,27 +123,27 @@ export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) 
                     <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{syllabus.objectives || "No objectives listed."}</p>
                 </motion.div>
 
-                {/* Prerequisites */}
+                {/* Prerequisites Card */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 hover:shadow-md transition-shadow"
                 >
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-slate-50 rounded-lg">
-                            <GitMerge className="h-5 w-5 text-slate-600" />
+                        <div className="p-2 bg-amber-50 rounded-lg">
+                            <GitMerge className="h-5 w-5 text-amber-600" />
                         </div>
                         <h2 className="text-lg font-bold text-slate-900">Prerequisites</h2>
                     </div>
                     <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{syllabus.prerequisites || "No prerequisites listed."}</p>
                 </motion.div>
 
-                {/* Grading */}
+                {/* Grading Policy Card */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 hover:shadow-md transition-shadow"
                 >
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-amber-50 rounded-lg">
+                        <div className="p-2 bg-amber-50 rounded-lg border border-amber-100">
                             <ShieldCheck className="h-5 w-5 text-amber-600" />
                         </div>
                         <h2 className="text-lg font-bold text-slate-900">Grading Policy</h2>
@@ -152,14 +151,14 @@ export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) 
                     <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap">{syllabus.gradingPolicy || "No policy defined."}</p>
                 </motion.div>
 
-                {/* Policies */}
+                {/* Policies Card */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 lg:col-span-2 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-2xl shadow-sm border border-amber-100/60 p-6 hover:shadow-md transition-shadow lg:col-span-2"
                 >
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-slate-50 rounded-lg">
-                            <FileText className="h-5 w-5 text-slate-600" />
+                        <div className="p-2 bg-amber-50 rounded-lg">
+                            <FileText className="h-5 w-5 text-amber-600" />
                         </div>
                         <h2 className="text-lg font-bold text-slate-900">Course Policies</h2>
                     </div>
@@ -169,7 +168,7 @@ export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) 
                 {/* Status card - Full Width */}
                 <motion.div
                     variants={itemVariants}
-                    className="bg-slate-900 rounded-2xl p-6 md:col-span-2 lg:col-span-3 text-white overflow-hidden relative group"
+                    className="bg-amber-900 rounded-2xl p-6 lg:col-span-3 text-white overflow-hidden relative group"
                 >
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                         <ShieldCheck className="h-32 w-32" />
@@ -182,28 +181,28 @@ export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) 
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10">
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Current Status</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Current Status</label>
                             <div className="mt-2 text-lg font-bold">
                                 <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ring-1 ring-inset ${syllabus.status === 'Published'
-                                        ? 'bg-amber-500/20 text-amber-400 ring-amber-500/30'
-                                        : 'bg-slate-700 text-slate-300 ring-slate-600'
+                                    ? 'bg-amber-500/20 text-amber-400 ring-amber-500/30'
+                                    : 'bg-slate-700 text-slate-300 ring-slate-600'
                                     }`}>
                                     {syllabus.status}
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Version Tag</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Version Tag</label>
                             <p className="text-lg font-bold text-white mt-1">v{syllabus.version}</p>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Approved At</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Approved At</label>
                             <p className="text-lg font-bold text-white mt-1">
                                 {syllabus.approvedAt ? new Date(syllabus.approvedAt).toLocaleDateString() : "Pending"}
                             </p>
                         </div>
                         <div>
-                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Published At</label>
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-amber-300">Published At</label>
                             <p className="text-lg font-bold text-white mt-1">
                                 {syllabus.publishedAt ? new Date(syllabus.publishedAt).toLocaleDateString() : "Not Published"}
                             </p>

@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ScheduleDetailClient } from "../fragments/ScheduleDetailClient";
 import { Metadata } from "next";
 import { academicService } from "@/services/academic.service";
@@ -46,9 +45,7 @@ export default async function ScheduleDetailsPage({ params }: ScheduleDetailsPag
         }
 
         return (
-            <DashboardLayout>
-                <ScheduleDetailClient schedule={schedule} teacher={teacher} />
-            </DashboardLayout>
+            <ScheduleDetailClient schedule={schedule} teacher={teacher} />
         );
     } catch (error) {
         notFound();

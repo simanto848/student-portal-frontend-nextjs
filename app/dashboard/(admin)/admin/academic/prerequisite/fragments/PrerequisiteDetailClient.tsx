@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { academicService, CoursePrerequisite, AcademicApiError } from "@/services/academic.service";
 import { notifyError } from "@/components/toast";
@@ -41,11 +40,9 @@ export default function PrerequisiteDetailClient({ id }: PrerequisiteDetailClien
 
     if (isLoading) {
         return (
-            <DashboardLayout>
-                <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
-                </div>
-            </DashboardLayout>
+            <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500"></div>
+            </div>
         );
     }
 
@@ -90,107 +87,105 @@ export default function PrerequisiteDetailClient({ id }: PrerequisiteDetailClien
     };
 
     return (
-        <DashboardLayout>
-            <motion.div
-                initial="hidden"
-                animate="visible"
-                variants={containerVariants}
-                className="space-y-6"
-            >
-                {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => router.back()}
-                        className="text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
-                    >
-                        <ArrowLeft className="h-6 w-6" />
-                    </Button>
-                    <div>
-                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Prerequisite Details</h1>
-                        <p className="text-slate-500 font-medium">Course Dependency Information</p>
+        <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="space-y-6"
+        >
+            {/* Header */}
+            <div className="flex items-center gap-4">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => router.back()}
+                    className="text-slate-600 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                >
+                    <ArrowLeft className="h-6 w-6" />
+                </Button>
+                <div>
+                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Prerequisite Details</h1>
+                    <p className="text-slate-500 font-medium">Course Dependency Information</p>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="grid gap-8 md:grid-cols-2">
+                {/* Main Course Card */}
+                <motion.div
+                    variants={itemVariants}
+                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-md transition-shadow relative overflow-hidden group"
+                >
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <BookOpen className="h-24 w-24 text-slate-900" />
                     </div>
-                </div>
 
-                {/* Content */}
-                <div className="grid gap-8 md:grid-cols-2">
-                    {/* Main Course Card */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-md transition-shadow relative overflow-hidden group"
-                    >
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <BookOpen className="h-24 w-24 text-slate-900" />
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="p-3 bg-slate-900 rounded-2xl">
+                            <BookOpen className="h-6 w-6 text-white" />
                         </div>
-
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="p-3 bg-slate-900 rounded-2xl">
-                                <BookOpen className="h-6 w-6 text-white" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900">Target Course</h2>
-                        </div>
-
-                        <div className="space-y-8">
-                            <div>
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Course Name</label>
-                                <p className="text-xl font-bold text-slate-900 mt-2 leading-tight">{getName(prerequisite.courseId)}</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-8 pt-4 border-t border-slate-100">
-                                <div>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Course Code</label>
-                                    <p className="text-lg font-bold text-slate-700 mt-2">{getCode(prerequisite.courseId)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Credits</label>
-                                    <p className="text-lg font-bold text-amber-600 mt-2">{getCredit(prerequisite.courseId)} CR</p>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-
-                    {/* Prerequisite Course Card */}
-                    <motion.div
-                        variants={itemVariants}
-                        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-md transition-shadow relative overflow-hidden group"
-                    >
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                            <GitMerge className="h-24 w-24 text-amber-600" />
-                        </div>
-
-                        <div className="flex items-center gap-4 mb-8">
-                            <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100">
-                                <GitMerge className="h-6 w-6 text-amber-600" />
-                            </div>
-                            <h2 className="text-xl font-bold text-slate-900">Prerequisite Requirement</h2>
-                        </div>
-
-                        <div className="space-y-8">
-                            <div>
-                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Prerequisite Course Name</label>
-                                <p className="text-xl font-bold text-amber-700 mt-2 leading-tight">{getName(prerequisite.prerequisiteId)}</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-8 pt-4 border-t border-slate-100">
-                                <div>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Prerequisite Code</label>
-                                    <p className="text-lg font-bold text-slate-700 mt-2">{getCode(prerequisite.prerequisiteId)}</p>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Credits</label>
-                                    <p className="text-lg font-bold text-amber-600 mt-2">{getCredit(prerequisite.prerequisiteId)} CR</p>
-                                </div>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* Connection Arrow (Visual Decor) */}
-                <div className="hidden md:flex justify-center -my-3 relative z-10">
-                    <div className="bg-amber-50 p-2 rounded-full border border-amber-100 shadow-sm">
-                        <GitMerge className="h-5 w-5 text-amber-600 rotate-90" />
+                        <h2 className="text-xl font-bold text-slate-900">Target Course</h2>
                     </div>
+
+                    <div className="space-y-8">
+                        <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Course Name</label>
+                            <p className="text-xl font-bold text-slate-900 mt-2 leading-tight">{getName(prerequisite.courseId)}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-8 pt-4 border-t border-slate-100">
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Course Code</label>
+                                <p className="text-lg font-bold text-slate-700 mt-2">{getCode(prerequisite.courseId)}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Credits</label>
+                                <p className="text-lg font-bold text-amber-600 mt-2">{getCredit(prerequisite.courseId)} CR</p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+
+                {/* Prerequisite Course Card */}
+                <motion.div
+                    variants={itemVariants}
+                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:shadow-md transition-shadow relative overflow-hidden group"
+                >
+                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <GitMerge className="h-24 w-24 text-amber-600" />
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="p-3 bg-amber-50 rounded-2xl border border-amber-100">
+                            <GitMerge className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <h2 className="text-xl font-bold text-slate-900">Prerequisite Requirement</h2>
+                    </div>
+
+                    <div className="space-y-8">
+                        <div>
+                            <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Prerequisite Course Name</label>
+                            <p className="text-xl font-bold text-amber-700 mt-2 leading-tight">{getName(prerequisite.prerequisiteId)}</p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-8 pt-4 border-t border-slate-100">
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Prerequisite Code</label>
+                                <p className="text-lg font-bold text-slate-700 mt-2">{getCode(prerequisite.prerequisiteId)}</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-slate-400">Credits</label>
+                                <p className="text-lg font-bold text-amber-600 mt-2">{getCredit(prerequisite.prerequisiteId)} CR</p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Connection Arrow (Visual Decor) */}
+            <div className="hidden md:flex justify-center -my-3 relative z-10">
+                <div className="bg-amber-50 p-2 rounded-full border border-amber-100 shadow-sm">
+                    <GitMerge className="h-5 w-5 text-amber-600 rotate-90" />
                 </div>
-            </motion.div>
-        </DashboardLayout>
+            </div>
+        </motion.div>
     );
 }

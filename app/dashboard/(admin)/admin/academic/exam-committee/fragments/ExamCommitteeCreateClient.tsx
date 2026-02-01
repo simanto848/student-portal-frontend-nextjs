@@ -135,7 +135,7 @@ export function ExamCommitteeCreateClient({
                 />
             </div>
 
-            <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-[2rem] overflow-hidden">
+            <Card className="border-slate-200/60 shadow-xl shadow-slate-200/40 rounded-4xl overflow-hidden">
                 <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
                     <CardTitle className="text-xl font-bold text-slate-900 flex items-center gap-2">
                         Member Assignment Details

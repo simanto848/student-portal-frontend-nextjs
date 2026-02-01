@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import SyllabusDetailClient from "../fragments/SyllabusDetailClient";
 import { Metadata } from "next";
 
@@ -13,8 +12,6 @@ interface SyllabusDetailsPageProps {
 
 export default function SyllabusDetailsPage({ params }: SyllabusDetailsPageProps) {
     return (
-        <DashboardLayout>
-            <SyllabusDetailClient id={params.id} />
-        </DashboardLayout>
+        <SyllabusDetailClient id={params.id} />
     );
 }
