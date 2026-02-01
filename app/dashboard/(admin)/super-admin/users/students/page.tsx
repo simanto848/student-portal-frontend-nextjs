@@ -282,7 +282,7 @@ export default function StudentsPage() {
                   <SearchableSelect
                     options={[
                       { label: "All Departments", value: "all" },
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                       
                       ...departments.map((d) => ({
                         label: d.name,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -302,7 +302,7 @@ export default function StudentsPage() {
                   <SearchableSelect
                     options={[
                       { label: "All Programs", value: "all" },
-                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                       
                       ...programs.map((p) => ({
                         label: p.name,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -343,7 +343,7 @@ export default function StudentsPage() {
                           if (shift === "all") return true;
                           return String(b.shift || "").toLowerCase() === shift;
                         })
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                         
                         .map((b) => ({
                           label: getBatchLabel(b),
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -471,7 +471,7 @@ export default function StudentsPage() {
                             student.departmentId}
                         </td>
                         <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
-                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          { }
                           {(() => {
                             const fromList = batches.find((b) => ((b as any).id || (b as any)._id) === student.batchId);
                             if (fromList) return getBatchLabel(fromList);

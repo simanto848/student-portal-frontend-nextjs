@@ -2,32 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { motion } from "framer-motion";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  studentService,
-  StudentUpdatePayload,
-} from "@/services/user/student.service";
-import {
-  studentProfileService,
-  StudentProfilePayload,
-} from "@/services/user/studentProfile.service";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { studentService, StudentUpdatePayload } from "@/services/user/student.service";
+import { studentProfileService, StudentProfilePayload } from "@/services/user/studentProfile.service";
 import { departmentService } from "@/services/academic/department.service";
 import { programService } from "@/services/academic/program.service";
 import { batchService } from "@/services/academic/batch.service";
 import { sessionService } from "@/services/academic/session.service";
 import { toast } from "sonner";
-import { Users, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { Users, ArrowLeft, Loader2, CheckCircle2, GraduationCap, User, Home, Phone } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function EditStudentPage() {
   const params = useParams();
@@ -38,35 +27,30 @@ export default function EditStudentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
-  // Data for dropdowns
   const [departments, setDepartments] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
   const [batches, setBatches] = useState<any[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
 
-  // Form Data
   const [formData, setFormData] = useState<StudentUpdatePayload>({});
   const [profileData, setProfileData] = useState<StudentProfilePayload>({});
   const [hasProfile, setHasProfile] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      fetchInitialData();
-    }
+    if (id) { fetchInitialData(); }
   }, [id]);
 
   const fetchInitialData = async () => {
     setIsLoading(true);
     try {
-      const [student, profile, depts, progs, batchesData, sessionsData] =
-        await Promise.all([
-          studentService.getById(id),
-          studentProfileService.get(id).catch(() => null),
-          departmentService.getAllDepartments(),
-          programService.getAllPrograms(),
-          batchService.getAllBatches(),
-          sessionService.getAllSessions(),
-        ]);
+      const [student, profile, depts, progs, batchesData, sessionsData] = await Promise.all([
+        studentService.getById(id),
+        studentProfileService.get(id).catch(() => null),
+        departmentService.getAllDepartments(),
+        programService.getAllPrograms(),
+        batchService.getAllBatches(),
+        sessionService.getAllSessions(),
+      ]);
 
       setDepartments(Array.isArray(depts) ? depts : []);
       setPrograms(Array.isArray(progs) ? progs : []);
@@ -80,9 +64,7 @@ export default function EditStudentPage() {
         batchId: student.batchId,
         sessionId: student.sessionId,
         enrollmentStatus: student.enrollmentStatus,
-        admissionDate: student.admissionDate
-          ? new Date(student.admissionDate).toISOString().split("T")[0]
-          : "",
+        admissionDate: student.admissionDate ? new Date(student.admissionDate).toISOString().split("T")[0] : "",
       });
 
       if (profile) {
@@ -90,9 +72,7 @@ export default function EditStudentPage() {
         setProfileData({
           studentMobile: profile.studentMobile,
           gender: profile.gender as any,
-          dateOfBirth: profile.dateOfBirth
-            ? new Date(profile.dateOfBirth).toISOString().split("T")[0]
-            : "",
+          dateOfBirth: profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split("T")[0] : "",
           bloodGroup: profile.bloodGroup as any,
           father: profile.father,
           mother: profile.mother,
@@ -122,22 +102,13 @@ export default function EditStudentPage() {
     setProfileData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleNestedProfileChange = (
-    parent: string,
-    key: string,
-    value: any
-  ) => {
-    setProfileData((prev) => ({
-      ...prev,
-      [parent]: { ...(prev as any)[parent], [key]: value },
-    }));
+  const handleNestedProfileChange = (parent: string, key: string, value: any) => {
+    setProfileData((prev) => ({ ...prev, [parent]: { ...(prev as any)[parent], [key]: value } }));
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Update Student
-      // Update Student
       let dataToSend: StudentUpdatePayload | FormData = formData;
 
       if (profilePicture) {
@@ -148,10 +119,6 @@ export default function EditStudentPage() {
       }
 
       await studentService.update(id, dataToSend);
-
-      // Update Profile
-      // Update Profile
-      // Use upsert to handle both create and update scenarios
       await studentProfileService.upsert(id, profileData);
 
       toast.success("Student updated successfully");
@@ -166,498 +133,184 @@ export default function EditStudentPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout>
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-[#588157]" />
-        </div>
-      </DashboardLayout>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
     );
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-full hover:bg-[#dad7cd] transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-[#344e41]" />
-          </button>
-          <PageHeader
-            title="Edit Student"
-            subtitle="Update student information"
-            icon={Users}
-          />
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Edit Student"
+        subtitle="Update student information"
+        icon={GraduationCap}
+        onBack={() => router.push(`/dashboard/admin/users/students/${id}`)}
+      />
 
-        <Card className="border-[#a3b18a]/30">
-          <CardContent className="p-6 space-y-6">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <Card className="border-slate-200 dark:border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Academic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#344e41]">
-                  Full Name
-                </label>
-                <Input
-                  value={formData.fullName}
-                  onChange={(e) => handleChange("fullName", e.target.value)}
-                />
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Full Name</label>
+                <Input value={formData.fullName} onChange={(e) => handleChange("fullName", e.target.value)} className="border-slate-200 dark:border-slate-700" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#344e41]">
-                  Department
-                </label>
-                <Select
-                  value={formData.departmentId}
-                  onValueChange={(v) => handleChange("departmentId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {departments.map((d) => (
-                      <SelectItem key={d.id || d._id} value={d.id || d._id}>
-                        {d.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Department</label>
+                <Select value={formData.departmentId} onValueChange={(v) => handleChange("departmentId", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Department" /></SelectTrigger>
+                  <SelectContent>{departments.map((d) => <SelectItem key={d.id || d._id} value={d.id || d._id}>{d.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#344e41]">
-                  Program
-                </label>
-                <Select
-                  value={formData.programId}
-                  onValueChange={(v) => handleChange("programId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Program" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {programs.map((p) => (
-                      <SelectItem key={p.id || p._id} value={p.id || p._id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Program</label>
+                <Select value={formData.programId} onValueChange={(v) => handleChange("programId", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Program" /></SelectTrigger>
+                  <SelectContent>{programs.map((p) => <SelectItem key={p.id || p._id} value={p.id || p._id}>{p.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#344e41]">
-                  Batch
-                </label>
-                <Select
-                  value={formData.batchId}
-                  onValueChange={(v) => handleChange("batchId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Batch" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {batches.map((b) => (
-                      <SelectItem key={b.id || b._id} value={b.id || b._id}>
-                        {b.code ??
-                          (b.shift
-                            ? `${b.shift === "evening" ? "E" : "D"}-${b.name}`
-                            : b.name)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Batch</label>
+                <Select value={formData.batchId} onValueChange={(v) => handleChange("batchId", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Batch" /></SelectTrigger>
+                  <SelectContent>{batches.map((b) => <SelectItem key={b.id || b._id} value={b.id || b._id}>{b.code ?? (b.shift ? `${b.shift === "evening" ? "E" : "D"}-${b.name}` : b.name)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#344e41]">
-                  Session
-                </label>
-                <Select
-                  value={formData.sessionId}
-                  onValueChange={(v) => handleChange("sessionId", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Session" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sessions.map((s) => (
-                      <SelectItem key={s.id || s._id} value={s.id || s._id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Session</label>
+                <Select value={formData.sessionId} onValueChange={(v) => handleChange("sessionId", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Session" /></SelectTrigger>
+                  <SelectContent>{sessions.map((s) => <SelectItem key={s.id || s._id} value={s.id || s._id}>{s.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-[#344e41]">
-                  Status
-                </label>
-                <Select
-                  value={formData.enrollmentStatus}
-                  onValueChange={(v) => handleChange("enrollmentStatus", v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      "not_enrolled",
-                      "enrolled",
-                      "graduated",
-                      "dropped_out",
-                      "suspended",
-                      "on_leave",
-                      "transferred_out",
-                      "transferred_in",
-                    ].map((s) => (
-                      <SelectItem key={s} value={s} className="capitalize">
-                        {s.replace("_", " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Status</label>
+                <Select value={formData.enrollmentStatus} onValueChange={(v) => handleChange("enrollmentStatus", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Status" /></SelectTrigger>
+                  <SelectContent>{["not_enrolled", "enrolled", "graduated", "dropped_out", "suspended", "on_leave", "transferred_out", "transferred_in"].map((s) => <SelectItem key={s} value={s} className="capitalize">{s.replace("_", " ")}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="border-t border-[#a3b18a]/20 pt-6">
-              <h3 className="text-lg font-semibold text-[#344e41] mb-4">
-                Profile Information
-              </h3>
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Mobile
-                  </label>
-                  <Input
-                    value={profileData.studentMobile || ""}
-                    onChange={(e) =>
-                      handleProfileChange("studentMobile", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Profile Picture
-                  </label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      setProfilePicture(file || null);
-                    }}
-                    className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
-                  />
-                  {profilePicture && (
-                    <p className="text-xs text-[#588157]">
-                      Selected: {profilePicture.name}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Gender
-                  </label>
-                  <Select
-                    value={profileData.gender || ""}
-                    onValueChange={(v) => handleProfileChange("gender", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Father's Name
-                  </label>
-                  <Input
-                    value={profileData.father?.name || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "father",
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Mother's Name
-                  </label>
-                  <Input
-                    value={profileData.mother?.name || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "mother",
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Religion
-                  </label>
-                  <Select
-                    value={profileData.religion || ""}
-                    onValueChange={(v) => handleProfileChange("religion", v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Religion" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[
-                        "Islam",
-                        "Hinduism",
-                        "Christianity",
-                        "Buddhism",
-                        "Other",
-                      ].map((r) => (
-                        <SelectItem key={r} value={r}>
-                          {r}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Marital Status
-                  </label>
-                  <Select
-                    value={profileData.maritalStatus || ""}
-                    onValueChange={(v) =>
-                      handleProfileChange("maritalStatus", v)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {["Single", "Married", "Divorced", "Widowed"].map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    Nationality
-                  </label>
-                  <Input
-                    value={profileData.nationality || ""}
-                    onChange={(e) =>
-                      handleProfileChange("nationality", e.target.value)
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#344e41]">
-                    NID / Passport
-                  </label>
-                  <Input
-                    value={profileData.nidOrPassportNo || ""}
-                    onChange={(e) =>
-                      handleProfileChange("nidOrPassportNo", e.target.value)
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-[#a3b18a]/20 pt-6">
-              <h3 className="text-lg font-semibold text-[#344e41] mb-4">
-                Address Information
-              </h3>
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-4">
-                  <h4 className="text-md font-medium text-[#344e41]">
-                    Permanent Address
-                  </h4>
-                  <Input
-                    placeholder="Street"
-                    value={profileData.permanentAddress?.street || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "permanentAddress",
-                        "street",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="City"
-                    value={profileData.permanentAddress?.city || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "permanentAddress",
-                        "city",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="Country"
-                    value={profileData.permanentAddress?.country || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "permanentAddress",
-                        "country",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-4">
-                  <h4 className="text-md font-medium text-[#344e41]">
-                    Mailing Address
-                  </h4>
-                  <Input
-                    placeholder="Street"
-                    value={profileData.mailingAddress?.street || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "mailingAddress",
-                        "street",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="City"
-                    value={profileData.mailingAddress?.city || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "mailingAddress",
-                        "city",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="Country"
-                    value={profileData.mailingAddress?.country || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "mailingAddress",
-                        "country",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-[#a3b18a]/20 pt-6">
-              <h3 className="text-lg font-semibold text-[#344e41] mb-4">
-                Guardian & Emergency Contact
-              </h3>
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-4">
-                  <h4 className="text-md font-medium text-[#344e41]">
-                    Guardian
-                  </h4>
-                  <Input
-                    placeholder="Name"
-                    value={profileData.guardian?.name || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "guardian",
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="Cell"
-                    value={profileData.guardian?.cell || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "guardian",
-                        "cell",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="Occupation"
-                    value={profileData.guardian?.occupation || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "guardian",
-                        "occupation",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-                <div className="space-y-4">
-                  <h4 className="text-md font-medium text-[#344e41]">
-                    Emergency Contact
-                  </h4>
-                  <Input
-                    placeholder="Name"
-                    value={profileData.emergencyContact?.name || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "emergencyContact",
-                        "name",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="Cell"
-                    value={profileData.emergencyContact?.cell || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "emergencyContact",
-                        "cell",
-                        e.target.value
-                      )
-                    }
-                  />
-                  <Input
-                    placeholder="Relation"
-                    value={profileData.emergencyContact?.relation || ""}
-                    onChange={(e) =>
-                      handleNestedProfileChange(
-                        "emergencyContact",
-                        "relation",
-                        e.target.value
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4">
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="bg-[#588157] text-white"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                )}
-                Save Changes
-              </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-    </DashboardLayout>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }}>
+        <Card className="border-slate-200 dark:border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2"><User className="h-5 w-5" /> Profile Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mobile</label>
+                <Input value={profileData.studentMobile || ""} onChange={(e) => handleProfileChange("studentMobile", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Profile Picture</label>
+                <Input type="file" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; setProfilePicture(file || null); }} className="border-slate-200 dark:border-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                {profilePicture && <p className="text-sm text-indigo-600 dark:text-indigo-400">Selected: {profilePicture.name}</p>}
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Gender</label>
+                <Select value={profileData.gender || ""} onValueChange={(v) => handleProfileChange("gender", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Gender" /></SelectTrigger>
+                  <SelectContent><SelectItem value="Male">Male</SelectItem><SelectItem value="Female">Female</SelectItem><SelectItem value="Other">Other</SelectItem></SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Father&apos;s Name</label>
+                <Input value={profileData.father?.name || ""} onChange={(e) => handleNestedProfileChange("father", "name", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Mother&apos;s Name</label>
+                <Input value={profileData.mother?.name || ""} onChange={(e) => handleNestedProfileChange("mother", "name", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Religion</label>
+                <Select value={profileData.religion || ""} onValueChange={(v) => handleProfileChange("religion", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Religion" /></SelectTrigger>
+                  <SelectContent>{["Islam", "Hinduism", "Christianity", "Buddhism", "Other"].map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Marital Status</label>
+                <Select value={profileData.maritalStatus || ""} onValueChange={(v) => handleProfileChange("maritalStatus", v)}>
+                  <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select Status" /></SelectTrigger>
+                  <SelectContent>{["Single", "Married", "Divorced", "Widowed"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nationality</label>
+                <Input value={profileData.nationality || ""} onChange={(e) => handleProfileChange("nationality", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">NID / Passport</label>
+                <Input value={profileData.nidOrPassportNo || ""} onChange={(e) => handleProfileChange("nidOrPassportNo", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.2 }}>
+        <Card className="border-slate-200 dark:border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2"><Home className="h-5 w-5" /> Address Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-slate-700 dark:text-slate-300">Permanent Address</h4>
+                <Input placeholder="Street" value={profileData.permanentAddress?.street || ""} onChange={(e) => handleNestedProfileChange("permanentAddress", "street", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="City" value={profileData.permanentAddress?.city || ""} onChange={(e) => handleNestedProfileChange("permanentAddress", "city", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="Country" value={profileData.permanentAddress?.country || ""} onChange={(e) => handleNestedProfileChange("permanentAddress", "country", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-slate-700 dark:text-slate-300">Mailing Address</h4>
+                <Input placeholder="Street" value={profileData.mailingAddress?.street || ""} onChange={(e) => handleNestedProfileChange("mailingAddress", "street", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="City" value={profileData.mailingAddress?.city || ""} onChange={(e) => handleNestedProfileChange("mailingAddress", "city", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="Country" value={profileData.mailingAddress?.country || ""} onChange={(e) => handleNestedProfileChange("mailingAddress", "country", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.3 }}>
+        <Card className="border-slate-200 dark:border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2"><Phone className="h-5 w-5" /> Guardian & Emergency Contact</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-slate-700 dark:text-slate-300">Guardian</h4>
+                <Input placeholder="Name" value={profileData.guardian?.name || ""} onChange={(e) => handleNestedProfileChange("guardian", "name", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="Cell" value={profileData.guardian?.cell || ""} onChange={(e) => handleNestedProfileChange("guardian", "cell", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="Occupation" value={profileData.guardian?.occupation || ""} onChange={(e) => handleNestedProfileChange("guardian", "occupation", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-slate-700 dark:text-slate-300">Emergency Contact</h4>
+                <Input placeholder="Name" value={profileData.emergencyContact?.name || ""} onChange={(e) => handleNestedProfileChange("emergencyContact", "name", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="Cell" value={profileData.emergencyContact?.cell || ""} onChange={(e) => handleNestedProfileChange("emergencyContact", "cell", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+                <Input placeholder="Relation" value={profileData.emergencyContact?.relation || ""} onChange={(e) => handleNestedProfileChange("emergencyContact", "relation", e.target.value)} className="border-slate-200 dark:border-slate-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.4 }} className="flex justify-end">
+        <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
+          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+          Save Changes
+        </Button>
+      </motion.div>
+    </div>
   );
 }

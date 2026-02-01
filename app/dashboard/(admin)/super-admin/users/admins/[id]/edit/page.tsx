@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { motion } from "framer-motion";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { adminService, Admin, AdminRole } from "@/services/user/admin.service";
 import { adminProfileService, AdminProfile, AdminAddress } from "@/services/user/adminProfile.service";
 import { toast } from "sonner";
-import { Shield, User } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Shield, User, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function EditAdminPage() {
     const params = useParams();
@@ -77,7 +78,7 @@ export default function EditAdminPage() {
                     if ((p.addresses || []).length) setShowAddressSection(true);
                     setShowProfileSection(true);
                 }
-            } catch (_) {
+            } catch {
                 setProfile(null);
             }
         } catch (error) {
@@ -119,7 +120,7 @@ export default function EditAdminPage() {
         if (!admin) return;
         setIsSaving(true);
         try {
-            let updatePayload: any = {
+            const updatePayload: any = {
                 fullName: form.fullName.trim(),
                 role: form.role,
                 joiningDate: form.joiningDate || undefined,
@@ -138,7 +139,6 @@ export default function EditAdminPage() {
                 if (showAddressSection && addresses.length > 0) updatePayload.profile.addresses = addresses.map(a => ({ ...a }));
             }
 
-            // Handle profile picture
             let dataToSend: any = updatePayload;
 
             if (profilePicture) {
@@ -160,11 +160,9 @@ export default function EditAdminPage() {
 
     if (isLoading) {
         return (
-            <DashboardLayout>
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]" />
-                </div>
-            </DashboardLayout>
+            <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
         );
     }
 
@@ -173,238 +171,293 @@ export default function EditAdminPage() {
     }
 
     return (
-        <DashboardLayout>
+        <div className="space-y-6">
+            <PageHeader
+                title={`Edit ${admin.fullName}`}
+                subtitle="Update administrator information"
+                icon={Shield}
+                onBack={() => router.push(`/dashboard/admin/users/admins/${admin.id}`)}
+            />
+
             <form onSubmit={handleSubmit} className="space-y-6">
-                <PageHeader
-                    title={`Edit ${admin.fullName}`}
-                    subtitle="Update administrator information"
-                    icon={Shield}
-                />
-
-                <Card className="border-[#a3b18a]/30">
-                    <CardContent className="p-6 space-y-4">
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#344e41]">Full Name</label>
-                                <Input
-                                    value={form.fullName}
-                                    onChange={(e) => handleChange("fullName", e.target.value)}
-                                    className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                    required
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#344e41]">Role</label>
-                                <Select value={form.role} onValueChange={(value) => handleChange("role", value)}>
-                                    <SelectTrigger className="bg-white border-[#a3b18a]/60 text-[#344e41]">
-                                        <SelectValue placeholder="Select role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="super_admin">Super Admin</SelectItem>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                        <SelectItem value="moderator">Moderator</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#344e41]">Joining Date</label>
-                                <Input
-                                    type="date"
-                                    value={form.joiningDate}
-                                    onChange={(e) => handleChange("joiningDate", e.target.value)}
-                                    className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-[#344e41]">Registration Number</label>
-                                <Input
-                                    value={form.registrationNumber}
-                                    onChange={(e) => handleChange("registrationNumber", e.target.value)}
-                                    className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                    required
-                                />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Profile Section */}
-                <Card className="border-[#a3b18a]/30">
-                    <CardContent className="p-6 space-y-4">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <User className="h-5 w-5 text-[#344e41]" />
-                                <h3 className="text-lg font-semibold text-[#344e41]">Profile Information</h3>
-                                {profile && (
-                                    <Badge className="ml-2 bg-[#588157] text-white">Existing: {profile.firstName} {profile.lastName}</Badge>
-                                )}
-                            </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    type="button"
-                                    variant={showProfileSection ? "default" : "outline"}
-                                    onClick={() => setShowProfileSection(v => !v)}
-                                    className={showProfileSection ? "bg-[#588157] text-white" : "border-[#a3b18a] text-[#344e41]"}
-                                >
-                                    {showProfileSection ? "Hide Profile" : "Add/Edit Profile"}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant={showAddressSection ? "default" : "outline"}
-                                    onClick={() => setShowAddressSection(v => !v)}
-                                    className={showAddressSection ? "bg-[#588157] text-white" : "border-[#a3b18a] text-[#344e41]"}
-                                >
-                                    {showAddressSection ? "Hide Addresses" : "Addresses"}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {showProfileSection && (
-                            <div className="grid gap-4 md:grid-cols-2 pt-4 border-t border-[#a3b18a]/30">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <Card className="border-slate-200 dark:border-slate-700">
+                        <CardHeader>
+                            <CardTitle className="text-lg">Basic Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-4 md:grid-cols-2">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-[#344e41]">First Name <span className="text-red-500">*</span></label>
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
                                     <Input
-                                        value={profileForm.firstName}
-                                        onChange={(e) => handleProfileChange("firstName", e.target.value)}
-                                        className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                        placeholder="Jane"
+                                        value={form.fullName}
+                                        onChange={(e) => handleChange("fullName", e.target.value)}
+                                        className="border-slate-200 dark:border-slate-700"
+                                        required
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-[#344e41]">Last Name <span className="text-red-500">*</span></label>
-                                    <Input
-                                        value={profileForm.lastName}
-                                        onChange={(e) => handleProfileChange("lastName", e.target.value)}
-                                        className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                        placeholder="Doe"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-[#344e41]">Middle Name</label>
-                                    <Input
-                                        value={profileForm.middleName}
-                                        onChange={(e) => handleProfileChange("middleName", e.target.value)}
-                                        className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                        placeholder="Optional"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-[#344e41]">Phone Number</label>
-                                    <Input
-                                        value={profileForm.phoneNumber}
-                                        onChange={(e) => handleProfileChange("phoneNumber", e.target.value)}
-                                        className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                        placeholder="+1 234 567 890"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-[#344e41]">Date of Birth</label>
-                                    <Input
-                                        type="date"
-                                        value={profileForm.dateOfBirth}
-                                        onChange={(e) => handleProfileChange("dateOfBirth", e.target.value)}
-                                        className="bg-white border-[#a3b18a]/60 text-[#344e41]"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-[#344e41]">Gender</label>
-                                    <Select value={profileForm.gender} onValueChange={(value) => handleProfileChange("gender", value)}>
-                                        <SelectTrigger className="bg-white border-[#a3b18a]/60 text-[#344e41]">
-                                            <SelectValue placeholder="Select gender" />
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Role</label>
+                                    <Select value={form.role} onValueChange={(value) => handleChange("role", value)}>
+                                        <SelectTrigger className="border-slate-200 dark:border-slate-700">
+                                            <SelectValue placeholder="Select role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="Male">Male</SelectItem>
-                                            <SelectItem value="Female">Female</SelectItem>
-                                            <SelectItem value="Other">Other</SelectItem>
+                                            <SelectItem value="super_admin">Super Admin</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                            <SelectItem value="moderator">Moderator</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="space-y-2 md:col-span-2">
-                                    <label className="text-sm font-medium text-[#344e41] flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Joining Date</label>
                                     <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            setProfilePicture(file || null);
-                                        }}
-                                        className="bg-white border-[#a3b18a]/60 text-[#344e41] file:bg-[#588157] file:text-white file:border-0 file:rounded-md file:px-2 file:py-1 file:mr-4 file:hover:bg-[#3a5a40] transition-colors"
+                                        type="date"
+                                        value={form.joiningDate}
+                                        onChange={(e) => handleChange("joiningDate", e.target.value)}
+                                        className="border-slate-200 dark:border-slate-700"
                                     />
-                                    {profilePicture && <p className="text-xs text-[#588157]">Selected: {profilePicture.name}</p>}
-                                </div>
-                            </div>
-                        )}
-
-                        {showAddressSection && (
-                            <div className="space-y-6 pt-4 border-t border-[#a3b18a]/30">
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#344e41]">Street</label>
-                                        <Input value={addressDraft.street} onChange={e => setAddressDraft(d => ({ ...d, street: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#344e41]">City</label>
-                                        <Input value={addressDraft.city} onChange={e => setAddressDraft(d => ({ ...d, city: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#344e41]">State</label>
-                                        <Input value={addressDraft.state} onChange={e => setAddressDraft(d => ({ ...d, state: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#344e41]">Zip Code</label>
-                                        <Input value={addressDraft.zipCode} onChange={e => setAddressDraft(d => ({ ...d, zipCode: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium text-[#344e41]">Country</label>
-                                        <Input value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className="bg-white border-[#a3b18a]/60 text-[#344e41]" />
-                                    </div>
-                                    <div className="space-y-2 flex items-end">
-                                        <Button type="button" variant="outline" onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))} className={`border-[#a3b18a] ${addressDraft.isPrimary ? 'bg-[#588157] text-white' : 'text-[#344e41]'}`}>{addressDraft.isPrimary ? 'Primary' : 'Set Primary'}</Button>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3">
-                                    <Button type="button" onClick={addAddress} className="bg-[#588157] hover:bg-[#3a5a40] text-white" disabled={!addressDraft.street && !addressDraft.city && !addressDraft.country}>Add Address</Button>
-                                    <Button type="button" variant="outline" onClick={() => setAddressDraft({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false })} className="border-[#a3b18a] text-[#344e41]">Clear</Button>
                                 </div>
                                 <div className="space-y-2">
-                                    <p className="text-sm font-medium text-[#344e41]">Addresses</p>
-                                    {addresses.length === 0 && <p className="text-xs text-[#344e41]/60">No addresses yet.</p>}
-                                    <div className="space-y-2">
-                                        {addresses.map((a, i) => (
-                                            <div key={i} className="flex items-center justify-between bg-white/60 border border-[#a3b18a]/40 rounded p-3">
-                                                <div className="text-sm text-[#344e41]">
-                                                    <p className="font-medium">{a.street || '(No street)'}{a.city ? ', ' + a.city : ''}{a.state ? ', ' + a.state : ''}</p>
-                                                    <p className="text-xs text-[#344e41]/70">{a.country || 'No country'}{a.zipCode ? ' - ' + a.zipCode : ''}</p>
-                                                    {a.isPrimary && <Badge className="mt-1 bg-[#588157] text-white">Primary</Badge>}
-                                                </div>
-                                                <div className="flex gap-2">
-                                                    {!a.isPrimary && <Button size="sm" variant="outline" onClick={() => togglePrimary(i)} className="border-[#a3b18a] text-[#344e41]">Make Primary</Button>}
-                                                    <Button size="sm" variant="outline" onClick={() => removeAddress(i)} className="border-red-300 text-red-600 hover:bg-red-500/10">Remove</Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Registration Number</label>
+                                    <Input
+                                        value={form.registrationNumber}
+                                        onChange={(e) => handleChange("registrationNumber", e.target.value)}
+                                        className="border-slate-200 dark:border-slate-700"
+                                        required
+                                    />
                                 </div>
                             </div>
-                        )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </motion.div>
 
-                <div className="flex items-center justify-end gap-3">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                >
+                    <Card className="border-slate-200 dark:border-slate-700">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <User className="h-5 w-5 text-slate-600" />
+                                    <CardTitle className="text-lg">Profile Information</CardTitle>
+                                    {profile && (
+                                        <Badge variant="secondary" className="ml-2">Existing: {profile.firstName} {profile.lastName}</Badge>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <Button
+                                        type="button"
+                                        variant={showProfileSection ? "default" : "outline"}
+                                        onClick={() => setShowProfileSection(v => !v)}
+                                        className={cn(showProfileSection && "bg-indigo-600 hover:bg-indigo-700")}
+                                        size="sm"
+                                    >
+                                        {showProfileSection ? "Hide Profile" : "Add/Edit Profile"}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant={showAddressSection ? "default" : "outline"}
+                                        onClick={() => setShowAddressSection(v => !v)}
+                                        className={cn(showAddressSection && "bg-indigo-600 hover:bg-indigo-700")}
+                                        size="sm"
+                                    >
+                                        {showAddressSection ? "Hide Addresses" : "Addresses"}
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {showProfileSection && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="grid gap-4 md:grid-cols-2 pt-4 border-t border-slate-200 dark:border-slate-700"
+                                >
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name <span className="text-red-500">*</span></label>
+                                        <Input
+                                            value={profileForm.firstName}
+                                            onChange={(e) => handleProfileChange("firstName", e.target.value)}
+                                            className="border-slate-200 dark:border-slate-700"
+                                            placeholder="Jane"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name <span className="text-red-500">*</span></label>
+                                        <Input
+                                            value={profileForm.lastName}
+                                            onChange={(e) => handleProfileChange("lastName", e.target.value)}
+                                            className="border-slate-200 dark:border-slate-700"
+                                            placeholder="Doe"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Middle Name</label>
+                                        <Input
+                                            value={profileForm.middleName}
+                                            onChange={(e) => handleProfileChange("middleName", e.target.value)}
+                                            className="border-slate-200 dark:border-slate-700"
+                                            placeholder="Optional"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label>
+                                        <Input
+                                            value={profileForm.phoneNumber}
+                                            onChange={(e) => handleProfileChange("phoneNumber", e.target.value)}
+                                            className="border-slate-200 dark:border-slate-700"
+                                            placeholder="+1 234 567 890"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</label>
+                                        <Input
+                                            type="date"
+                                            value={profileForm.dateOfBirth}
+                                            onChange={(e) => handleProfileChange("dateOfBirth", e.target.value)}
+                                            className="border-slate-200 dark:border-slate-700"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Gender</label>
+                                        <Select value={profileForm.gender} onValueChange={(value) => handleProfileChange("gender", value)}>
+                                            <SelectTrigger className="border-slate-200 dark:border-slate-700">
+                                                <SelectValue placeholder="Select gender" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Male">Male</SelectItem>
+                                                <SelectItem value="Female">Female</SelectItem>
+                                                <SelectItem value="Other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-2 md:col-span-2">
+                                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                setProfilePicture(file || null);
+                                            }}
+                                            className="border-slate-200 dark:border-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                        />
+                                        {profilePicture && <p className="text-sm text-indigo-600 dark:text-indigo-400">Selected: {profilePicture.name}</p>}
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            {showAddressSection && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="space-y-6 pt-4 border-t border-slate-200 dark:border-slate-700"
+                                >
+                                    <div className="grid gap-4 md:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Street</label>
+                                            <Input value={addressDraft.street} onChange={e => setAddressDraft(d => ({ ...d, street: e.target.value }))} className="border-slate-200 dark:border-slate-700" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">City</label>
+                                            <Input value={addressDraft.city} onChange={e => setAddressDraft(d => ({ ...d, city: e.target.value }))} className="border-slate-200 dark:border-slate-700" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">State</label>
+                                            <Input value={addressDraft.state} onChange={e => setAddressDraft(d => ({ ...d, state: e.target.value }))} className="border-slate-200 dark:border-slate-700" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Zip Code</label>
+                                            <Input value={addressDraft.zipCode} onChange={e => setAddressDraft(d => ({ ...d, zipCode: e.target.value }))} className="border-slate-200 dark:border-slate-700" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Country</label>
+                                            <Input value={addressDraft.country} onChange={e => setAddressDraft(d => ({ ...d, country: e.target.value }))} className="border-slate-200 dark:border-slate-700" />
+                                        </div>
+                                        <div className="space-y-2 flex items-end">
+                                            <Button 
+                                                type="button" 
+                                                variant={addressDraft.isPrimary ? "default" : "outline"} 
+                                                onClick={() => setAddressDraft(d => ({ ...d, isPrimary: !d.isPrimary }))}
+                                                className={cn(addressDraft.isPrimary && "bg-indigo-600 hover:bg-indigo-700")}
+                                            >
+                                                {addressDraft.isPrimary ? 'Primary' : 'Set Primary'}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Button type="button" onClick={addAddress} className="bg-indigo-600 hover:bg-indigo-700" disabled={!addressDraft.street && !addressDraft.city && !addressDraft.country}>
+                                            Add Address
+                                        </Button>
+                                        <Button type="button" variant="outline" onClick={() => setAddressDraft({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false })}>
+                                            Clear
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Addresses</p>
+                                        {addresses.length === 0 && <p className="text-sm text-slate-500 dark:text-slate-400">No addresses yet.</p>}
+                                        <div className="space-y-2">
+                                            {addresses.map((a, i) => (
+                                                <motion.div 
+                                                    key={i} 
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3"
+                                                >
+                                                    <div className="text-sm text-slate-700 dark:text-slate-300">
+                                                        <p className="font-medium">{a.street || '(No street)'}{a.city ? ', ' + a.city : ''}{a.state ? ', ' + a.state : ''}</p>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400">{a.country || 'No country'}{a.zipCode ? ' - ' + a.zipCode : ''}</p>
+                                                        {a.isPrimary && <Badge className="mt-1 bg-indigo-600">Primary</Badge>}
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        {!a.isPrimary && <Button size="sm" variant="outline" onClick={() => togglePrimary(i)}>Make Primary</Button>}
+                                                        <Button size="sm" variant="outline" onClick={() => removeAddress(i)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">Remove</Button>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                    className="flex items-center justify-end gap-3"
+                >
                     <Button
                         type="button"
                         variant="outline"
-                        className="border-[#a3b18a] text-[#344e41]"
                         onClick={() => router.back()}
                         disabled={isSaving}
                     >
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={isSaving} className="bg-[#588157] hover:bg-[#3a5a40] text-white">
-                        {isSaving ? "Saving..." : "Save Changes"}
+                    <Button type="submit" disabled={isSaving} className="bg-indigo-600 hover:bg-indigo-700">
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Saving...
+                            </>
+                        ) : (
+                            "Save Changes"
+                        )}
                     </Button>
-                </div>
+                </motion.div>
             </form>
-        </DashboardLayout>
+        </div>
     );
 }

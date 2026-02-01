@@ -59,7 +59,7 @@ export function SyllabusManagementClient() {
             header: "Status",
             accessorKey: "status",
             cell: (item) => {
-                let variant: "default" | "secondary" | "destructive" | "outline" = "outline";
+                const variant: "default" | "secondary" | "destructive" | "outline" = "outline";
                 let className = "";
 
                 switch (item.status) {

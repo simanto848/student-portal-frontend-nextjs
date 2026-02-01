@@ -27,7 +27,7 @@ export default function TeacherQuizDetailPage() {
   const [batchStudents, setBatchStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   useEffect(() => {
     fetchData();
   }, [quizId]);
