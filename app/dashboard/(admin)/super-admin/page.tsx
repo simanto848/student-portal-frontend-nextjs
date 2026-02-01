@@ -1,78 +1,72 @@
 "use client";
 import { useEffect, useState } from "react";
-import { systemService, DatabaseStats } from "@/services/system.service";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-    Building2,
-    Users,
+    systemService,
+    DatabaseStats,
+    SystemAlert,
+    ApiStats,
+    ActivityLog,
+    SystemHealth
+} from "@/services/system.service";
+import {
     Server,
     Activity,
-    TrendingUp,
-    AlertTriangle,
-    CheckCircle,
     Database,
-    Cpu,
-    HardDrive,
-    Globe,
     Shield,
-    Zap,
+    Users,
+    GraduationCap,
+    AlertTriangle,
     RefreshCw,
-    ArrowUpRight,
+    Cpu,
+    Clock,
+    HardDrive
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { StatsCard } from "@/components/dashboard/shared/StatsCard";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
-    LineChart,
-    Line,
+    AreaChart,
+    Area,
     XAxis,
     YAxis,
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    AreaChart,
-    Area,
-    PieChart,
-    Pie,
-    Cell,
+    BarChart,
+    Bar
 } from "recharts";
-import { Progress } from "@/components/ui/progress";
+import { useAuth } from "@/contexts/AuthContext";
+import { motion } from "framer-motion";
 
-const systemMetrics = [
-    { time: "00:00", cpu: 45, memory: 62, requests: 1200 },
-    { time: "04:00", cpu: 32, memory: 58, requests: 800 },
-    { time: "08:00", cpu: 68, memory: 71, requests: 3200 },
-    { time: "12:00", cpu: 82, memory: 78, requests: 4500 },
-    { time: "16:00", cpu: 75, memory: 74, requests: 3800 },
-    { time: "20:00", cpu: 58, memory: 68, requests: 2100 },
-    { time: "Now", cpu: 52, memory: 65, requests: 1800 },
-];
-
-const organizationGrowth = [
-    { month: "Jul", organizations: 45, users: 12000 },
-    { month: "Aug", organizations: 52, users: 14500 },
-    { month: "Sep", organizations: 58, users: 16200 },
-    { month: "Oct", organizations: 67, users: 19800 },
-    { month: "Nov", organizations: 78, users: 24100 },
-    { month: "Dec", organizations: 92, users: 28500 },
-];
-
-const SuperAdminDashboard = () => {
-    const [stats, setStats] = useState<DatabaseStats | null>(null);
-    const [alerts, setAlerts] = useState<any[]>([]);
+export default function SuperAdminDashboard() {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [dbStats, setDbStats] = useState<DatabaseStats | null>(null);
+    const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+    const [apiStats, setApiStats] = useState<ApiStats | null>(null);
+    const [logs, setLogs] = useState<ActivityLog[]>([]);
+    const [health, setHealth] = useState<SystemHealth | null>(null);
 
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [dbStats, systemAlerts] = await Promise.all([
+            const [db, sysAlerts, api, sysLogs, sysHealth] = await Promise.all([
                 systemService.getDatabaseStats(),
-                systemService.getAlerts()
+                systemService.getAlerts(),
+                systemService.getApiStats(),
+                systemService.getLogs({ level: "error" }),
+                systemService.getHealth()
             ]);
-            setStats(dbStats);
-            setAlerts(systemAlerts);
+
+            setDbStats(db);
+            setAlerts(sysAlerts);
+            setApiStats(api);
+            setLogs(sysLogs);
+            setHealth(sysHealth);
         } catch (error) {
-            console.error(error);
+            console.error("Failed to fetch dashboard data:", error);
         } finally {
             setLoading(false);
         }
@@ -80,172 +74,241 @@ const SuperAdminDashboard = () => {
 
     useEffect(() => {
         fetchData();
+        // Refresh every minute
+        const interval = setInterval(fetchData, 60000);
+        return () => clearInterval(interval);
     }, []);
 
+    // Helper to extract collection count
+    const getCollectionCount = (name: string) => {
+        if (!dbStats?.databases) return 0;
+        // Search across all databases provided in stats
+        for (const db of dbStats.databases) {
+            const col = db.collectionDetails.find(c => c.name === name || c.name === name + "s"); // simple plural check
+            if (col) return col.count;
+        }
+        // Fallback for mock data if specific collection not found
+        return 0;
+    };
+
+    // Mock historical data for charts if real API mostly returns snapshots
+    const cpuData = health?.cpu.load.map((val, i) => ({ time: `Core ${i}`, value: val })) ||
+        Array(8).fill(0).map((_, i) => ({ time: `Core ${i}`, value: Math.random() * 50 + 20 }));
+
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-foreground">System Overview</h1>
-                        <p className="text-muted-foreground mt-1">
-                            Complete platform monitoring and control center
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Button variant="outline" size="sm" onClick={fetchData}>
-                            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Refresh
-                        </Button>
-                        <Button className="bg-destructive hover:bg-destructive/90">
-                            <Shield className="h-4 w-4 mr-2" />
-                            Security Scan
-                        </Button>
-                    </div>
+        <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                        Good Morning, {user?.fullName?.split(" ")[0]}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        Here's what's happening with your system today.
+                    </p>
                 </div>
-
-                {/* System Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card className="border-l-4 border-l-green-600 shadow-sm">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">System Uptime</p>
-                                    <p className="text-2xl font-bold text-foreground">99.98%</p>
-                                    <div className="flex items-center gap-1 mt-1">
-                                        <CheckCircle className="h-3 w-3 text-green-600" />
-                                        <span className="text-xs text-green-600">All systems operational</span>
-                                    </div>
-                                </div>
-                                <div className="h-12 w-12 rounded-xl bg-green-100 flex items-center justify-center">
-                                    <Server className="h-6 w-6 text-green-600" />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-l-4 border-l-amber-500 shadow-sm">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-muted-foreground">Active Alerts</p>
-                                    <p className="text-2xl font-bold text-foreground">
-                                        {loading ? "..." : alerts.length}
-                                    </p>
-                                    <div className="flex items-center gap-1 mt-1">
-                                        <AlertTriangle className="h-3 w-3 text-amber-500" />
-                                        <span className="text-xs text-amber-500">System generated</span>
-                                    </div>
-                                </div>
-                                <div className="h-12 w-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                                    <Activity className="h-6 w-6 text-amber-500" />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                <div className="flex items-center gap-2">
+                    <Button variant="outline" onClick={fetchData} disabled={loading}>
+                        <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
+                    </Button>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Security Scan
+                    </Button>
                 </div>
+            </div>
 
-                {/* System Resources */}
-                <Card className="shadow-sm">
+            {/* Critical Stats Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatsCard
+                    title="System Health"
+                    value={health?.server.status || "Healthy"}
+                    icon={Activity}
+                    className="border-l-4 border-l-green-500"
+                    iconClassName="text-green-500"
+                    iconBgClassName="bg-green-500/10"
+                    description={`Uptime: ${health ? Math.floor(health.server.uptime / 3600) + 'h' : 'Loading...'}`}
+                    loading={loading}
+                />
+                <StatsCard
+                    title="API Requests"
+                    value={apiStats?.requests.total.toLocaleString() || "0"}
+                    icon={Server}
+                    className="border-l-4 border-l-blue-500"
+                    iconClassName="text-blue-500"
+                    iconBgClassName="bg-blue-500/10"
+                    description={`${apiStats?.requests.error || 0} Errors (24h)`}
+                    loading={loading}
+                    trend={{ value: 12, label: "vs yesterday", positive: true }}
+                />
+                <StatsCard
+                    title="Total Students"
+                    value={getCollectionCount("student").toLocaleString()}
+                    icon={Users}
+                    className="border-l-4 border-l-indigo-500"
+                    iconClassName="text-indigo-500"
+                    iconBgClassName="bg-indigo-500/10"
+                    description="Active enrollments"
+                    loading={loading}
+                />
+                <StatsCard
+                    title="Total Teachers"
+                    value={getCollectionCount("teacher").toLocaleString()}
+                    icon={GraduationCap}
+                    className="border-l-4 border-l-purple-500"
+                    iconClassName="text-purple-500"
+                    iconBgClassName="bg-purple-500/10"
+                    description="Faculty members"
+                    loading={loading}
+                />
+            </div>
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* CPU Usage Chart */}
+                <Card className="col-span-2 shadow-md border-slate-200 dark:border-slate-800">
                     <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <CardTitle>System Resources</CardTitle>
-                                <CardDescription>Real-time server performance</CardDescription>
-                            </div>
-                            <Badge variant="outline" className="bg-green-100 text-green-600 border-green-200">
-                                <Zap className="h-3 w-3 mr-1" />
-                                Healthy
-                            </Badge>
-                        </div>
+                        <CardTitle className="flex items-center gap-2">
+                            <Cpu className="h-5 w-5 text-indigo-500" />
+                            System Resources
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={cpuData}>
+                                <defs>
+                                    <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" vertical={false} />
+                                <XAxis dataKey="time" className="text-xs" tick={{ fill: '#94a3b8' }} />
+                                <YAxis className="text-xs" tick={{ fill: '#94a3b8' }} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Area type="monotone" dataKey="value" stroke="#6366f1" fillOpacity={1} fill="url(#colorCpu)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+
+                {/* Alerts Feed */}
+                <Card className="shadow-md border-slate-200 dark:border-slate-800">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                            Recent Alerts
+                            <Badge variant="secondary" className="ml-auto">{alerts.length}</Badge>
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-6">
-                            <div className="grid grid-cols-3 gap-4">
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <Cpu className="h-5 w-5 mx-auto text-primary mb-1" />
-                                    <p className="text-2xl font-bold text-foreground">52%</p>
-                                    <p className="text-xs text-muted-foreground">CPU Usage</p>
+                        <ScrollArea className="h-[300px] pr-4">
+                            {loading ? (
+                                <div className="space-y-4">
+                                    {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse" />)}
                                 </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <Database className="h-5 w-5 mx-auto text-indigo-500 mb-1" />
-                                    <p className="text-2xl font-bold text-foreground">65%</p>
-                                    <p className="text-xs text-muted-foreground">Memory</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {alerts.length === 0 ? (
+                                        <p className="text-center text-slate-500 mt-10">No active alerts</p>
+                                    ) : alerts.map((alert) => (
+                                        <div key={alert.id} className="flex gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+                                            <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${alert.type === 'critical' ? 'bg-red-500' :
+                                                    alert.type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                                                }`} />
+                                            <div>
+                                                <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{alert.message}</p>
+                                                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                                                    <Clock className="h-3 w-3" />
+                                                    {alert.time}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="text-center p-3 rounded-lg bg-muted/50">
-                                    <HardDrive className="h-5 w-5 mx-auto text-amber-500 mb-1" />
-                                    <p className="text-2xl font-bold text-foreground">78%</p>
-                                    <p className="text-xs text-muted-foreground">Storage</p>
+                            )}
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Infrastructure & Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card className="shadow-md border-slate-200 dark:border-slate-800">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Database className="h-5 w-5 text-slate-500" />
+                            Database Status
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    <HardDrive className="h-5 w-5 text-slate-400" />
+                                    <span className="font-medium text-sm">Storage Usage</span>
                                 </div>
+                                <span className="font-bold text-slate-800 dark:text-slate-100">
+                                    {dbStats?.size || "0 GB"}
+                                </span>
                             </div>
-                            <div className="h-48">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={systemMetrics}>
-                                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                        <XAxis dataKey="time" tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                                        <YAxis tick={{ fontSize: 12 }} className="text-muted-foreground" />
-                                        <Tooltip
-                                            contentStyle={{
-                                                backgroundColor: "hsl(var(--card))",
-                                                border: "1px solid hsl(var(--border))",
-                                                borderRadius: "8px",
-                                            }}
-                                        />
-                                        <Area type="monotone" dataKey="cpu" stroke="hsl(234, 89%, 59%)" fill="hsl(234, 89%, 59%)" fillOpacity={0.2} />
-                                        <Area type="monotone" dataKey="memory" stroke="hsl(168, 76%, 42%)" fill="hsl(168, 76%, 42%)" fillOpacity={0.2} />
-                                    </AreaChart>
-                                </ResponsiveContainer>
+                            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    <Activity className="h-5 w-5 text-slate-400" />
+                                    <span className="font-medium text-sm">Active Connections</span>
+                                </div>
+                                <span className="font-bold text-slate-800 dark:text-slate-100">
+                                    {dbStats?.connections || 0}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                    <Database className="h-5 w-5 text-slate-400" />
+                                    <span className="font-medium text-sm">Total Collections</span>
+                                </div>
+                                <span className="font-bold text-slate-800 dark:text-slate-100">
+                                    {dbStats?.collections || 0}
+                                </span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                {/* Alerts */}
-                <div className="grid grid-cols-1 gap-6">
-                    {/* Recent Alerts */}
-                    <Card className="shadow-sm">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <CardTitle>Recent Alerts</CardTitle>
-                                <Button variant="ghost" size="sm">View All</Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                {loading ? (
-                                    <div className="text-center py-4 text-muted-foreground">Loading alerts...</div>
-                                ) : (
-                                    alerts.length > 0 ? alerts.map((alert) => (
-                                        <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                                            <div className={`h-8 w-8 rounded-full flex items-center justify-center shrink-0 ${alert.type === "critical" ? "bg-destructive/10" :
-                                                alert.type === "warning" ? "bg-amber-100" :
-                                                    alert.type === "success" ? "bg-green-100" : "bg-blue-100"
-                                                }`}>
-                                                {alert.type === "critical" && <AlertTriangle className="h-4 w-4 text-destructive" />}
-                                                {alert.type === "warning" && <AlertTriangle className="h-4 w-4 text-amber-600" />}
-                                                {alert.type === "success" && <CheckCircle className="h-4 w-4 text-green-600" />}
-                                                {alert.type === "info" && <Activity className="h-4 w-4 text-blue-600" />}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-foreground truncate">{alert.message}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-xs text-muted-foreground">System</span>
-                                                    <span className="text-xs text-muted-foreground">•</span>
-                                                    <span className="text-xs text-muted-foreground">{alert.time}</span>
-                                                </div>
-                                            </div>
+                <Card className="shadow-md border-slate-200 dark:border-slate-800">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Server className="h-5 w-5 text-slate-500" />
+                            Recent Error Logs
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ScrollArea className="h-[200px]">
+                            {loading ? (
+                                <div className="space-y-2">
+                                    {[1, 2, 3].map(i => <div key={i} className="h-8 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />)}
+                                </div>
+                            ) : logs.length === 0 ? (
+                                <div className="flex h-full items-center justify-center text-slate-500 text-sm">
+                                    No recent critical errors found.
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {logs.map((log) => (
+                                        <div key={log._id} className="text-xs p-2 rounded bg-red-50 dark:bg-red-900/10 text-red-700 dark:text-red-300 border border-red-100 dark:border-red-900/20 font-mono">
+                                            <span className="font-bold mr-2">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                                            {log.message}
                                         </div>
-                                    )) : (
-                                        <div className="text-center py-4 text-muted-foreground">No recent alerts</div>
                                     ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                                </div>
+                            )}
+                        </ScrollArea>
+                    </CardContent>
+                </Card>
             </div>
-        </DashboardLayout>
-    );
-};
 
-export default SuperAdminDashboard;
+        </div>
+    );
+}

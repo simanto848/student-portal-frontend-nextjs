@@ -23,6 +23,7 @@ import {
   Server,
   FileCheck,
   Megaphone,
+  Shield,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { User, UserRole, isTeacherUser } from "@/types/user";
@@ -35,6 +36,7 @@ export interface NavItem {
   roles?: UserRole[];
   condition?: (user: User) => boolean;
   badge?: number;
+  group?: string;
 }
 
 export interface NavChildItem {
@@ -46,56 +48,83 @@ export interface NavChildItem {
 
 // ===================== Super Admin Navigation (System Level) =====================
 export const superAdminNavigation: NavItem[] = [
+  // Overview
   {
     href: "/dashboard/super-admin",
     label: "Dashboard",
     icon: LayoutDashboard,
-  },
-  {
-    href: "/dashboard/super-admin/users",
-    label: "All Users",
-    icon: Users,
-  },
-  {
-    href: "/dashboard/super-admin/database",
-    label: "Database",
-    icon: Database,
-  },
-  {
-    href: "/dashboard/super-admin/health",
-    label: "System Health",
-    icon: Server,
-  },
-  {
-    href: "/dashboard/super-admin/logs",
-    label: "Activity Logs",
-    icon: Activity,
-  },
-  {
-    href: "/dashboard/super-admin/api",
-    label: "API Management",
-    icon: Globe,
-  },
-  {
-    href: "/dashboard/super-admin/monitoring",
-    label: "Monitoring",
-    icon: Activity,
-  },
-  {
-    href: "/dashboard/super-admin/reports",
-    label: "System Reports",
-    icon: FileText,
+    group: "Overview",
   },
   {
     href: "/dashboard/super-admin/alerts",
     label: "Alerts",
     icon: Bell,
     badge: 5,
+    group: "Overview",
+  },
+  // User Management
+  {
+    href: "/dashboard/super-admin/admins",
+    label: "Admins",
+    icon: Shield,
+    group: "User Management",
   },
   {
-    href: "/dashboard/super-admin/settings",
-    label: "Settings",
-    icon: Settings,
+    href: "/dashboard/super-admin/teachers",
+    label: "Teachers",
+    icon: GraduationCap,
+    group: "User Management",
+  },
+  {
+    href: "/dashboard/super-admin/students",
+    label: "Students",
+    icon: Users,
+    group: "User Management",
+  },
+  {
+    href: "/dashboard/super-admin/staff",
+    label: "Staff",
+    icon: Users,
+    group: "User Management",
+  },
+  // System
+  {
+    href: "/dashboard/super-admin/health",
+    label: "System Health",
+    icon: Server,
+    group: "System",
+  },
+  {
+    href: "/dashboard/super-admin/database",
+    label: "Database",
+    icon: Database,
+    group: "System",
+  },
+  {
+    href: "/dashboard/super-admin/logs",
+    label: "Logs",
+    icon: Activity,
+    group: "System",
+  },
+  // Monitoring
+  {
+    href: "/dashboard/super-admin/api",
+    label: "API",
+    icon: Globe,
+    group: "Monitoring",
+  },
+  {
+    href: "/dashboard/super-admin/monitoring",
+    label: "Monitoring",
+    icon: Activity,
+    group: "Monitoring",
+  },
+  // Reports
+  {
+    href: "/dashboard/super-admin/reports",
+    label: "Reports",
+    icon: FileText,
+    group: "Reports",
   },
 ];
 
