@@ -3,21 +3,31 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { systemService, DatabaseStats } from "@/services/system.service";
-import { Database, HardDrive, Share2, Activity, RefreshCw } from "lucide-react";
+import { systemService, DatabaseStats, DatabaseInfo } from "@/services/system.service";
+import { Database, HardDrive, Share2, Activity, RefreshCw, FolderOpen, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
 
 export default function DatabaseStatusPage() {
     const [stats, setStats] = useState<DatabaseStats | null>(null);
     const [loading, setLoading] = useState(true);
+    const [selectedDbName, setSelectedDbName] = useState<string>("");
 
     const fetchStats = async () => {
         try {
             setLoading(true);
             const data = await systemService.getDatabaseStats();
             setStats(data);
+            // Select the first database by default if none selected
+            if (!selectedDbName && data.databases && data.databases.length > 0) {
+                // Prefer user service db or first one
+                const defaultDb = data.databases.find(db => db.name.includes("user")) || data.databases[0];
+                setSelectedDbName(defaultDb.name);
+            }
         } catch (error) {
             toast.error("Failed to fetch database stats");
         } finally {
@@ -39,6 +49,8 @@ export default function DatabaseStatusPage() {
         );
     }
 
+    const selectedDb = stats?.databases?.find(db => db.name === selectedDbName);
+
     const operationsData = stats ? [
         { name: 'Reads', value: stats.operations.reads, color: '#4ade80' },
         { name: 'Writes', value: stats.operations.writes, color: '#facc15' },
@@ -54,16 +66,36 @@ export default function DatabaseStatusPage() {
                         <h1 className="text-3xl font-bold tracking-tight">Database Status</h1>
                         <p className="text-muted-foreground">MongoDB cluster metrics and performance</p>
                     </div>
-                    <Button onClick={fetchStats} variant="outline" size="sm" className="gap-2">
-                        <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                        Refresh
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        {stats?.databases && (
+                            <Select value={selectedDbName} onValueChange={setSelectedDbName}>
+                                <SelectTrigger className="w-[200px]">
+                                    <SelectValue placeholder="Select Database" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {stats.databases.map((db) => (
+                                        <SelectItem key={db.name} value={db.name}>
+                                            <div className="flex items-center gap-2">
+                                                <Database className="h-4 w-4 text-muted-foreground" />
+                                                <span>{db.name}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                        <Button onClick={fetchStats} variant="outline" size="sm" className="gap-2">
+                            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                            Refresh
+                        </Button>
+                    </div>
                 </div>
 
+                {/* Global Cluster Stats */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Connection</CardTitle>
+                            <CardTitle className="text-sm font-medium">Global Status</CardTitle>
                             <Share2 className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -76,13 +108,28 @@ export default function DatabaseStatusPage() {
 
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Storage Size</CardTitle>
+                            <CardTitle className="text-sm font-medium">Cluster Operations</CardTitle>
+                            <Activity className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {stats ? (stats.operations.reads + stats.operations.writes + stats.operations.updates + stats.operations.deletes).toLocaleString() : 0} ops
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Total operations since restart
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Selected DB Size</CardTitle>
                             <HardDrive className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats?.size}</div>
+                            <div className="text-2xl font-bold">{selectedDb?.storageSize || "N/A"}</div>
                             <p className="text-xs text-muted-foreground">
-                                Total Documents: {stats?.documents.toLocaleString()}
+                                Data Size: {selectedDb?.dataSize || "N/A"}
                             </p>
                         </CardContent>
                     </Card>
@@ -90,37 +137,22 @@ export default function DatabaseStatusPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Collections</CardTitle>
-                            <Database className="h-4 w-4 text-muted-foreground" />
+                            <Layers className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div className="text-2xl font-bold">{stats?.collections}</div>
+                            <div className="text-2xl font-bold">{selectedDb?.collections || 0}</div>
                             <p className="text-xs text-muted-foreground">
-                                Indexed: {stats?.collections} (100%)
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Throughput</CardTitle>
-                            <Activity className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {stats ? (stats.operations.reads + stats.operations.writes + stats.operations.updates + stats.operations.deletes) : 0} ops/s
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Peak: 1,240 ops/s
+                                Objects: {selectedDb?.objects.toLocaleString() || 0}
                             </p>
                         </CardContent>
                     </Card>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-3">
                     <Card className="col-span-1">
                         <CardHeader>
                             <CardTitle>Operation Distribution</CardTitle>
-                            <CardDescription>Breakdown of database operations</CardDescription>
+                            <CardDescription>Global breakdown of database operations</CardDescription>
                         </CardHeader>
                         <CardContent className="h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
@@ -145,29 +177,46 @@ export default function DatabaseStatusPage() {
                         </CardContent>
                     </Card>
 
-                    <Card className="col-span-1">
+                    <Card className="col-span-2">
                         <CardHeader>
-                            <CardTitle>Top Collections</CardTitle>
-                            <CardDescription>Largest collections by document count</CardDescription>
+                            <CardTitle>Collection Details - {selectedDbName}</CardTitle>
+                            <CardDescription>Detailed statistics for collections in {selectedDbName}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {stats?.topCollections?.length ? stats.topCollections.map((col) => (
-                                    <div key={col.name} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                            <div className="bg-primary/10 p-2 rounded-full">
-                                                <Database className="h-4 w-4 text-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="font-medium">{col.name}</p>
-                                                <p className="text-xs text-muted-foreground">{col.size}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-sm font-bold">{col.count.toLocaleString()} docs</div>
-                                    </div>
-                                )) : (
-                                    <p className="text-center text-muted-foreground py-4">No collection data available</p>
-                                )}
+                            <div className="rounded-md border">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead className="w-[200px]">Collection Name</TableHead>
+                                            <TableHead className="text-right">Documents</TableHead>
+                                            <TableHead className="text-right">Size</TableHead>
+                                            <TableHead className="text-right">Storage</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {selectedDb?.collectionDetails?.length ? (
+                                            selectedDb.collectionDetails.map((col) => (
+                                                <TableRow key={col.name}>
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex items-center gap-2">
+                                                            <FolderOpen className="h-4 w-4 text-blue-500" />
+                                                            {col.name}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">{col.count.toLocaleString()}</TableCell>
+                                                    <TableCell className="text-right">{col.size}</TableCell>
+                                                    <TableCell className="text-right">{col.storageSize}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="h-24 text-center">
+                                                    No collections found in this database.
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </div>
                         </CardContent>
                     </Card>

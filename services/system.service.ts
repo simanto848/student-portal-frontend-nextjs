@@ -1,4 +1,4 @@
-import { academicApi as api } from "@/lib/api";
+import { userApi as api } from "@/lib/api";
 
 export interface SystemHealth {
     server: {
@@ -21,40 +21,54 @@ export interface SystemHealth {
     };
 }
 
+export interface CollectionDetail {
+    name: string;
+    count: number;
+    size: string;
+    storageSize: string;
+}
+
+export interface DatabaseInfo {
+    name: string;
+    sizeOnDisk: string;
+    empty: boolean;
+    collections: number;
+    objects: number;
+    avgObjSize: number;
+    dataSize: string;
+    storageSize: string;
+    indexes: number;
+    indexSize: string;
+    collectionDetails: CollectionDetail[];
+}
+
 export interface DatabaseStats {
     status: string;
+    host: string;
     collections: number;
     documents: number;
     size: string;
     connections: number;
     operations: {
-        reads: string;
-        writes: string;
-        updates: string;
-        deletes: string;
+        reads: number;
+        writes: number;
+        updates: number;
+        deletes: number;
     };
-    counts: {
-        totalUsers: number;
-        students: number;
-        teachers: number;
-        admins: number;
-        staff: number;
-        organizations: number;
-    };
-    breakdown: {
-        name: string;
-        count: number;
-        color: string;
-    }[];
+    // Legacy support or current db summary
     topCollections: {
         name: string;
         count: number;
-        size: string;
+        size: string; // KB or MB string
     }[];
+
+    // New field for all DBs
+    databases: DatabaseInfo[];
 }
 
 export interface ActivityLog {
-    id: string;
+    _id: string;
+    id?: string;
     level: "info" | "warn" | "error";
     message: string;
     timestamp: string;
@@ -91,32 +105,37 @@ export interface ApiStats {
 
 export const systemService = {
     getHealth: async (): Promise<SystemHealth> => {
-        const response = await api.get("/user/system/health");
+        const response = await api.get("/system/health");
         return response.data.data;
     },
 
     getDatabaseStats: async (): Promise<DatabaseStats> => {
-        const response = await api.get("/user/system/database");
+        const response = await api.get("/system/database");
         return response.data.data;
     },
 
-    getLogs: async (): Promise<ActivityLog[]> => {
-        const response = await api.get("/user/system/logs");
+    getLogs: async (filters?: { service?: string; level?: string; search?: string }): Promise<ActivityLog[]> => {
+        const params = new URLSearchParams();
+        if (filters?.service) params.append("service", filters.service);
+        if (filters?.level) params.append("level", filters.level);
+        if (filters?.search) params.append("search", filters.search);
+
+        const response = await api.get(`/system/logs?${params.toString()}`);
         return response.data.data;
     },
 
     getAlerts: async (): Promise<SystemAlert[]> => {
-        const response = await api.get("/user/system/alerts");
+        const response = await api.get("/system/alerts");
         return response.data.data;
     },
 
     getApiStats: async (): Promise<ApiStats> => {
-        const response = await api.get("/user/system/api-stats");
+        const response = await api.get("/system/api-stats");
         return response.data.data;
     },
 
     getOrganizations: async (): Promise<Organization[]> => {
-        const response = await api.get("/user/system/organizations");
+        const response = await api.get("/system/organizations");
         return response.data.data;
     }
 };

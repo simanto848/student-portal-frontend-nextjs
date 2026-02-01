@@ -53,11 +53,6 @@ export const superAdminNavigation: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    href: "/dashboard/super-admin/organizations",
-    label: "Organizations",
-    icon: Building2,
-  },
-  {
     href: "/dashboard/super-admin/users",
     label: "All Users",
     icon: Users,
