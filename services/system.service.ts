@@ -77,8 +77,8 @@ export interface ActivityLog {
 }
 
 export interface SystemAlert {
-    id: number;
-    type: "critical" | "warning" | "info";
+    id: string; // Changed to string for stable IDs
+    type: "critical" | "warning" | "info" | "success";
     message: string;
     time: string;
 }

@@ -12,12 +12,16 @@ interface DashboardLayoutProps {
     children: React.ReactNode;
 }
 
+import { AlertsProvider } from "@/contexts/AlertsContext";
+
 export function DashboardLayout({ children }: DashboardLayoutProps) {
     return (
         <DashboardThemeProvider>
-            <DashboardLayoutInner>
-                {children}
-            </DashboardLayoutInner>
+            <AlertsProvider>
+                <DashboardLayoutInner>
+                    {children}
+                </DashboardLayoutInner>
+            </AlertsProvider>
         </DashboardThemeProvider>
     );
 }

@@ -17,9 +17,10 @@ import {
   User
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAlerts } from "@/contexts/AlertsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   getNavigationForUser,
   getDashboardTitle,
@@ -59,6 +60,28 @@ export function Sidebar({
   const dashboardTitle = useMemo(() => {
     return user ? getDashboardTitle(user.role) : "Dashboard";
   }, [user]);
+
+  const { unreadCount } = useAlerts();
+
+  // Inject badge into navigation items
+  const displayItems = useMemo(() => {
+    return navigationItems.map(item => {
+      if (item.href === '/dashboard/super-admin/alerts') {
+        return { ...item, badge: unreadCount > 0 ? unreadCount : undefined };
+      }
+      // Also check children if any
+      if (item.children) {
+        const newChildren = item.children.map(child => {
+          if (child.href === '/dashboard/super-admin/alerts') {
+            return { ...child, badge: unreadCount > 0 ? unreadCount : undefined };
+          }
+          return child;
+        });
+        return { ...item, children: newChildren };
+      }
+      return item;
+    });
+  }, [navigationItems, unreadCount]);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) =>
@@ -255,7 +278,7 @@ export function Sidebar({
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto py-4 scrollbar-none">
         <div className="px-3 space-y-1.5">
-          {navigationItems.map(renderNavItem)}
+          {displayItems.map(renderNavItem)}
         </div>
       </div>
 
