@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import {
@@ -206,65 +205,63 @@ export default function BatchManagementClient() {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <PageHeader
-                    title="Batch Management"
-                    subtitle="Manage student batches"
-                    actionLabel="Add Batch"
-                    onAction={handleCreate}
-                    icon={Users}
-                />
+        <div className="space-y-6">
+            <PageHeader
+                title="Batch Management"
+                subtitle="Manage student batches"
+                actionLabel="Add Batch"
+                onAction={handleCreate}
+                icon={Users}
+            />
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-                    </div>
-                ) : (
-                    <DataTable
-                        data={batches.map((b) => ({
-                            ...b,
-                            displayName: getBatchDisplayName(b),
-                            programName: getName(b.programId),
-                            departmentName: getName(b.departmentId),
-                            sessionName: getName(b.sessionId),
-                            counselorName:
-                                b.counselor?.fullName ||
-                                (typeof b.counselorId === "string"
-                                    ? teachers.find((t) => t.id === b.counselorId)?.fullName
-                                    : "Not Assigned") ||
-                                "Not Assigned",
-                        }))}
-                        columns={columns}
-                        searchKey="displayName"
-                        searchPlaceholder="Search by batch name..."
-                        onView={(item) =>
-                            router.push(`/dashboard/admin/academic/batch/${item.id}`)
-                        }
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
-                )}
-
-                <BatchDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    isDeleting={isDeleting}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                </div>
+            ) : (
+                <DataTable
+                    data={batches.map((b) => ({
+                        ...b,
+                        displayName: getBatchDisplayName(b),
+                        programName: getName(b.programId),
+                        departmentName: getName(b.departmentId),
+                        sessionName: getName(b.sessionId),
+                        counselorName:
+                            b.counselor?.fullName ||
+                            (typeof b.counselorId === "string"
+                                ? teachers.find((t) => t.id === b.counselorId)?.fullName
+                                : "Not Assigned") ||
+                            "Not Assigned",
+                    }))}
+                    columns={columns}
+                    searchKey="displayName"
+                    searchPlaceholder="Search by batch name..."
+                    onView={(item) =>
+                        router.push(`/dashboard/admin/academic/batch/${item.id}`)
+                    }
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
                 />
+            )}
 
-                <BatchFormModal
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSubmit={handleFormSubmit}
-                    selectedBatch={selectedBatch}
-                    isSubmitting={isSubmitting}
-                    programs={programs}
-                    departments={departments}
-                    sessions={sessions}
-                    teachers={teachers}
-                />
-            </div>
-        </DashboardLayout>
+            <BatchDeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isDeleting={isDeleting}
+            />
+
+            <BatchFormModal
+                isOpen={isFormModalOpen}
+                onClose={() => setIsFormModalOpen(false)}
+                onSubmit={handleFormSubmit}
+                selectedBatch={selectedBatch}
+                isSubmitting={isSubmitting}
+                programs={programs}
+                departments={departments}
+                sessions={sessions}
+                teachers={teachers}
+            />
+        </div>
     );
 }

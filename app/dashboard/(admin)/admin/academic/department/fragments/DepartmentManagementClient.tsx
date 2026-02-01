@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { Badge } from "@/components/ui/badge";
@@ -213,50 +212,48 @@ export default function DepartmentManagementClient() {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <PageHeader
-                    title="Department Management"
-                    subtitle="Manage university departments"
-                    actionLabel="Add New Department"
-                    onAction={handleCreate}
-                    icon={Building}
-                />
+        <div className="space-y-6">
+            <PageHeader
+                title="Department Management"
+                subtitle="Manage university departments"
+                actionLabel="Add New Department"
+                onAction={handleCreate}
+                icon={Building}
+            />
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-                    </div>
-                ) : (
-                    <DataTable
-                        data={departments}
-                        columns={columns}
-                        searchKey="name"
-                        searchPlaceholder="Search department by name..."
-                        onView={handleView}
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
-                )}
-
-                <DepartmentDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    isDeleting={isDeleting}
-                    departmentName={selectedDepartment?.name || ""}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                </div>
+            ) : (
+                <DataTable
+                    data={departments}
+                    columns={columns}
+                    searchKey="name"
+                    searchPlaceholder="Search department by name..."
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
                 />
+            )}
 
-                <DepartmentFormModal
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSubmit={handleFormSubmit}
-                    selectedDepartment={selectedDepartment}
-                    isSubmitting={isSubmitting}
-                    faculties={faculties}
-                    teachers={teachers}
-                />
-            </div>
-        </DashboardLayout>
+            <DepartmentDeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isDeleting={isDeleting}
+                departmentName={selectedDepartment?.name || ""}
+            />
+
+            <DepartmentFormModal
+                isOpen={isFormModalOpen}
+                onClose={() => setIsFormModalOpen(false)}
+                onSubmit={handleFormSubmit}
+                selectedDepartment={selectedDepartment}
+                isSubmitting={isSubmitting}
+                faculties={faculties}
+                teachers={teachers}
+            />
+        </div>
     );
 }

@@ -1,4 +1,5 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { requireUser } from "@/lib/auth/userAuth";
+import { UserRole } from "@/types/user";
 import { SyllabusManagementClient } from "./fragments/SyllabusManagementClient";
 import { Metadata } from "next";
 
@@ -8,9 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function SyllabusManagementPage() {
-  return (
-    <DashboardLayout>
-      <SyllabusManagementClient />
-    </DashboardLayout>
-  );
+  return <SyllabusManagementClient />;
 }

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import {
@@ -177,51 +176,49 @@ export default function ProgramManagementClient() {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <PageHeader
-                    title="Program Management"
-                    subtitle="Manage academic programs and degrees"
-                    actionLabel="Add New Program"
-                    onAction={handleCreate}
-                    icon={GraduationCap}
-                />
+        <div className="space-y-6">
+            <PageHeader
+                title="Program Management"
+                subtitle="Manage academic programs and degrees"
+                actionLabel="Add New Program"
+                onAction={handleCreate}
+                icon={GraduationCap}
+            />
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-                    </div>
-                ) : (
-                    <DataTable
-                        data={programs}
-                        columns={columns}
-                        searchKey="name"
-                        searchPlaceholder="Search program by name..."
-                        onView={(item) =>
-                            router.push(`/dashboard/admin/academic/program/${item.id}`)
-                        }
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
-                )}
-
-                <ProgramDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    isDeleting={isDeleting}
-                    programName={selectedProgram?.name || ""}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                </div>
+            ) : (
+                <DataTable
+                    data={programs}
+                    columns={columns}
+                    searchKey="name"
+                    searchPlaceholder="Search program by name..."
+                    onView={(item) =>
+                        router.push(`/dashboard/admin/academic/program/${item.id}`)
+                    }
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
                 />
+            )}
 
-                <ProgramFormModal
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSubmit={handleFormSubmit}
-                    selectedProgram={selectedProgram}
-                    isSubmitting={isSubmitting}
-                    departments={departments}
-                />
-            </div>
-        </DashboardLayout>
+            <ProgramDeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isDeleting={isDeleting}
+                programName={selectedProgram?.name || ""}
+            />
+
+            <ProgramFormModal
+                isOpen={isFormModalOpen}
+                onClose={() => setIsFormModalOpen(false)}
+                onSubmit={handleFormSubmit}
+                selectedProgram={selectedProgram}
+                isSubmitting={isSubmitting}
+                departments={departments}
+            />
+        </div>
     );
 }

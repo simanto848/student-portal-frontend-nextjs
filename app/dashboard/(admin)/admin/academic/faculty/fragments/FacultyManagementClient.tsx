@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { Badge } from "@/components/ui/badge";
@@ -279,72 +278,70 @@ export default function FacultyManagementClient() {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <PageHeader
-                    title="Faculty Management"
-                    subtitle="Manage university faculties and schools"
-                    actionLabel="Add New Faculty"
-                    onAction={handleCreate}
-                    icon={Building2}
-                />
+        <div className="space-y-6">
+            <PageHeader
+                title="Faculty Management"
+                subtitle="Manage university faculties and schools"
+                actionLabel="Add New Faculty"
+                onAction={handleCreate}
+                icon={Building2}
+            />
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-                    </div>
-                ) : (
-                    <DataTable
-                        data={faculties}
-                        columns={columns}
-                        searchKey="name"
-                        searchPlaceholder="Search faculty by name..."
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
-                )}
-
-                <FacultyDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    isDeleting={isDeleting}
-                    facultyName={selectedFaculty?.name || ""}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                </div>
+            ) : (
+                <DataTable
+                    data={faculties}
+                    columns={columns}
+                    searchKey="name"
+                    searchPlaceholder="Search faculty by name..."
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
                 />
+            )}
 
-                <FacultyFormModal
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSubmit={handleFormSubmit}
-                    selectedFaculty={selectedFaculty}
-                    isSubmitting={isSubmitting}
-                    title={selectedFaculty ? "Edit Faculty" : "Add New Faculty"}
-                    description={selectedFaculty ? "Update faculty information" : "Create a new faculty"}
-                    fields={formFields}
-                    initialData={
-                        selectedFaculty
-                            ? {
-                                name: selectedFaculty.name,
-                                email: selectedFaculty.email,
-                                phone: selectedFaculty.phone || "",
-                                status: selectedFaculty.status ? "true" : "false",
-                            }
-                            : { status: "true" }
-                    }
-                />
+            <FacultyDeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isDeleting={isDeleting}
+                facultyName={selectedFaculty?.name || ""}
+            />
 
-                <FacultyFormModal
-                    isOpen={isAssignDeanModalOpen}
-                    onClose={() => setIsAssignDeanModalOpen(false)}
-                    onSubmit={handleAssignDeanSubmit}
-                    selectedFaculty={selectedFaculty}
-                    isSubmitting={isSubmitting}
-                    title="Assign Dean"
-                    description={`Assign a dean to ${selectedFaculty?.name}`}
-                    fields={assignDeanFields}
-                    initialData={{ deanId: selectedFaculty?.deanId || "" }}
-                />
-            </div>
-        </DashboardLayout>
+            <FacultyFormModal
+                isOpen={isFormModalOpen}
+                onClose={() => setIsFormModalOpen(false)}
+                onSubmit={handleFormSubmit}
+                selectedFaculty={selectedFaculty}
+                isSubmitting={isSubmitting}
+                title={selectedFaculty ? "Edit Faculty" : "Add New Faculty"}
+                description={selectedFaculty ? "Update faculty information" : "Create a new faculty"}
+                fields={formFields}
+                initialData={
+                    selectedFaculty
+                        ? {
+                            name: selectedFaculty.name,
+                            email: selectedFaculty.email,
+                            phone: selectedFaculty.phone || "",
+                            status: selectedFaculty.status ? "true" : "false",
+                        }
+                        : { status: "true" }
+                }
+            />
+
+            <FacultyFormModal
+                isOpen={isAssignDeanModalOpen}
+                onClose={() => setIsAssignDeanModalOpen(false)}
+                onSubmit={handleAssignDeanSubmit}
+                selectedFaculty={selectedFaculty}
+                isSubmitting={isSubmitting}
+                title="Assign Dean"
+                description={`Assign a dean to ${selectedFaculty?.name}`}
+                fields={assignDeanFields}
+                initialData={{ deanId: selectedFaculty?.deanId || "" }}
+            />
+        </div>
     );
 }

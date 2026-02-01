@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ExamCommitteeManagementClient } from "./fragments/ExamCommitteeManagementClient";
 import { Metadata } from "next";
 
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ExamCommitteePage() {
-  return (
-    <DashboardLayout>
-      <ExamCommitteeManagementClient />
-    </DashboardLayout>
-  );
+  return <ExamCommitteeManagementClient />;
 }

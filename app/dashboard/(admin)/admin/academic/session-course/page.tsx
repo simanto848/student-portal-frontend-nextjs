@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { SessionCourseManagementClient } from "./fragments/SessionCourseManagementClient";
 import { Metadata } from "next";
 
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function SessionCourseManagementPage() {
-  return (
-    <DashboardLayout>
-      <SessionCourseManagementClient />
-    </DashboardLayout>
-  );
+  return <SessionCourseManagementClient />;
 }

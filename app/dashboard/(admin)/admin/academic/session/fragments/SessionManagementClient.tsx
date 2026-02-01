@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import {
@@ -147,50 +146,48 @@ export default function SessionManagementClient() {
     };
 
     return (
-        <DashboardLayout>
-            <div className="space-y-6">
-                <PageHeader
-                    title="Session Management"
-                    subtitle="Manage academic sessions and terms"
-                    actionLabel="Add New Session"
-                    onAction={handleCreate}
-                    icon={CalendarRange}
-                />
+        <div className="space-y-6">
+            <PageHeader
+                title="Session Management"
+                subtitle="Manage academic sessions and terms"
+                actionLabel="Add New Session"
+                onAction={handleCreate}
+                icon={CalendarRange}
+            />
 
-                {isLoading ? (
-                    <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
-                    </div>
-                ) : (
-                    <DataTable
-                        data={sessions}
-                        columns={columns}
-                        searchKey="name"
-                        searchPlaceholder="Search session by name..."
-                        onView={(item) =>
-                            router.push(`/dashboard/admin/academic/session/${item.id}`)
-                        }
-                        onEdit={handleEdit}
-                        onDelete={handleDeleteClick}
-                    />
-                )}
-
-                <SessionDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => setIsDeleteModalOpen(false)}
-                    onConfirm={handleConfirmDelete}
-                    isDeleting={isDeleting}
-                    sessionName={selectedSession?.name || ""}
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
+                </div>
+            ) : (
+                <DataTable
+                    data={sessions}
+                    columns={columns}
+                    searchKey="name"
+                    searchPlaceholder="Search session by name..."
+                    onView={(item) =>
+                        router.push(`/dashboard/admin/academic/session/${item.id}`)
+                    }
+                    onEdit={handleEdit}
+                    onDelete={handleDeleteClick}
                 />
+            )}
 
-                <SessionFormModal
-                    isOpen={isFormModalOpen}
-                    onClose={() => setIsFormModalOpen(false)}
-                    onSubmit={handleFormSubmit}
-                    selectedSession={selectedSession}
-                    isSubmitting={isSubmitting}
-                />
-            </div>
-        </DashboardLayout>
+            <SessionDeleteModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                isDeleting={isDeleting}
+                sessionName={selectedSession?.name || ""}
+            />
+
+            <SessionFormModal
+                isOpen={isFormModalOpen}
+                onClose={() => setIsFormModalOpen(false)}
+                onSubmit={handleFormSubmit}
+                selectedSession={selectedSession}
+                isSubmitting={isSubmitting}
+            />
+        </div>
     );
 }

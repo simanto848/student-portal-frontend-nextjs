@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ClassroomManagementClient } from "./fragments/ClassroomManagementClient";
 
 export const metadata = {
@@ -7,9 +6,5 @@ export const metadata = {
 };
 
 export default function ClassroomManagementPage() {
-  return (
-    <DashboardLayout>
-      <ClassroomManagementClient />
-    </DashboardLayout>
-  );
+  return <ClassroomManagementClient />;
 }

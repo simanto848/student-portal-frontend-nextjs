@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ScheduleManagementClient } from "./fragments/ScheduleManagementClient";
 import { Metadata } from "next";
 
@@ -8,9 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function SchedulePage() {
-  return (
-    <DashboardLayout>
-      <ScheduleManagementClient />
-    </DashboardLayout>
-  );
+  return <ScheduleManagementClient />;
 }

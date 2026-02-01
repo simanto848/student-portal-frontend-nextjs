@@ -1,4 +1,5 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { requireUser } from "@/lib/auth/userAuth";
+import { UserRole } from "@/types/user";
 import { CourseManagementClient } from "./fragments/CourseManagementClient";
 
 export const metadata = {
@@ -6,10 +7,8 @@ export const metadata = {
   description: "Manage academic courses and curriculum",
 };
 
-export default function CourseManagementPage() {
-  return (
-    <DashboardLayout>
-      <CourseManagementClient />
-    </DashboardLayout>
-  );
+export default async function CourseManagementPage() {
+  await requireUser("/login", [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.MODERATOR]);
+
+  return <CourseManagementClient />;
 }

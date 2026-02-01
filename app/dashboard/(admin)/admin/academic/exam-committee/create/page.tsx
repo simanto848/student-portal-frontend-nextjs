@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { ExamCommitteeCreateClient } from "../fragments/ExamCommitteeCreateClient";
 import { Metadata } from "next";
 import { academicService } from "@/services/academic.service";
@@ -17,12 +16,10 @@ export default async function CreateExamCommitteePage() {
   ]);
 
   return (
-    <DashboardLayout>
       <ExamCommitteeCreateClient
         departments={Array.isArray(departments) ? departments : []}
         batches={Array.isArray(batches) ? batches : []}
         teachers={Array.isArray(teachers) ? teachers : []}
       />
-    </DashboardLayout>
   );
 }

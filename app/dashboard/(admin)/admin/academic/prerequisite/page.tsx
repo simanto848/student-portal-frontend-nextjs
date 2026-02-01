@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { PrerequisiteManagementClient } from "./fragments/PrerequisiteManagementClient";
 
 export const metadata = {
@@ -7,9 +6,5 @@ export const metadata = {
 };
 
 export default function CoursePrerequisiteManagementPage() {
-  return (
-    <DashboardLayout>
-      <PrerequisiteManagementClient />
-    </DashboardLayout>
-  );
+  return <PrerequisiteManagementClient />;
 }
