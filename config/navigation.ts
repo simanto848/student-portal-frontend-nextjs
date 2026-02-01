@@ -64,25 +64,25 @@ export const superAdminNavigation: NavItem[] = [
   },
   // User Management
   {
-    href: "/dashboard/super-admin/admins",
+    href: "/dashboard/super-admin/users/admins",
     label: "Admins",
     icon: Shield,
     group: "User Management",
   },
   {
-    href: "/dashboard/super-admin/teachers",
+    href: "/dashboard/super-admin/users/faculty",
     label: "Teachers",
     icon: GraduationCap,
     group: "User Management",
   },
   {
-    href: "/dashboard/super-admin/students",
+    href: "/dashboard/super-admin/users/students",
     label: "Students",
     icon: Users,
     group: "User Management",
   },
   {
-    href: "/dashboard/super-admin/staff",
+    href: "/dashboard/super-admin/users/staff",
     label: "Staff",
     icon: Users,
     group: "User Management",

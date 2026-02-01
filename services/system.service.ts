@@ -64,6 +64,14 @@ export interface DatabaseStats {
 
     // New field for all DBs
     databases: DatabaseInfo[];
+
+    // Application specific counts often returned with stats
+    counts?: {
+        admins: number;
+        teachers: number;
+        staff: number;
+        students: number;
+    };
 }
 
 export interface ActivityLog {
