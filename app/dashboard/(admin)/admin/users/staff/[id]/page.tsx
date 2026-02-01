@@ -1,7 +1,8 @@
 import { staffService } from "@/services/user/staff.service";
 import { staffProfileService } from "@/services/user/staffProfile.service";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { StaffDetailClient } from "../fragments/StaffDetailClient";
+import { requireUser } from "@/lib/auth/userAuth";
+import { UserRole } from "@/types/user";
 import { notFound } from "next/navigation";
 
 interface StaffDetailsPageProps {
@@ -9,24 +10,24 @@ interface StaffDetailsPageProps {
 }
 
 export default async function StaffDetailsPage({ params }: StaffDetailsPageProps) {
+  await requireUser("/login", [UserRole.ADMIN, UserRole.SUPER_ADMIN]);
+
   const { id } = await params;
 
+  let staff, profile;
   try {
-    const [staff, profile] = await Promise.all([
+    [staff, profile] = await Promise.all([
       staffService.getById(id),
       staffProfileService.get(id).catch(() => null)
     ]);
-
     if (!staff) {
       return notFound();
     }
-
-    return (
-      <DashboardLayout>
-        <StaffDetailClient staff={staff} profile={profile} />
-      </DashboardLayout>
-    );
-  } catch (error) {
+  } catch {
     return notFound();
   }
+
+  return (
+    <StaffDetailClient staff={staff} profile={profile} />
+  );
 }

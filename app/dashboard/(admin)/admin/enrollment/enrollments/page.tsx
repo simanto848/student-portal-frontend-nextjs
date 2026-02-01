@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { enrollmentService } from "@/services/enrollment/enrollment.service";
 import { batchService } from "@/services/academic/batch.service";
 import { courseService } from "@/services/academic/course.service";
@@ -6,6 +5,7 @@ import { studentService } from "@/services/user/student.service";
 import { EnrollmentManagementClient } from "./fragments/EnrollmentManagementClient";
 import { Metadata } from "next";
 import { requireUser } from "@/lib/auth/userAuth";
+import { UserRole } from "@/types/user";
 
 export const metadata: Metadata = {
     title: "Presence Lifecycle | Guardian Intelligence",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function EnrollmentsPage() {
-    await requireUser('/login');
+    await requireUser('/login', [UserRole.ADMIN, UserRole.SUPER_ADMIN]);
 
     const [enrollmentData, allCourses, allBatches, allStudentsRes] = await Promise.all([
         enrollmentService.listEnrollments({}).catch(() => ({ enrollments: [] })),
@@ -26,13 +26,11 @@ export default async function EnrollmentsPage() {
     const allStudents = allStudentsRes.students || [];
 
     return (
-        <DashboardLayout>
-            <EnrollmentManagementClient
-                initialEnrollments={enrichedEnrollments}
-                courses={allCourses}
-                batches={allBatches}
-                students={allStudents}
-            />
-        </DashboardLayout>
+        <EnrollmentManagementClient
+            initialEnrollments={enrichedEnrollments}
+            courses={allCourses}
+            batches={allBatches}
+            students={allStudents}
+        />
     );
 }

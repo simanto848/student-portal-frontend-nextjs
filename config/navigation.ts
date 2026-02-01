@@ -171,27 +171,10 @@ export const adminNavigation: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/admin/approvals",
-    label: "Approvals",
-    icon: FileCheck,
-    badge: 8,
-  },
-  {
     href: "/dashboard/admin/reports",
     label: "Reports",
     icon: FileText,
-  },
-  {
-    href: "/dashboard/admin/messages",
-    label: "Messages",
-    icon: MessageSquare,
-    badge: 3,
-  },
-  {
-    href: "/dashboard/admin/settings",
-    label: "Settings",
-    icon: Settings,
-  },
+  }
 ];
 
 // ===================== Moderator Navigation (Support/Content) =====================

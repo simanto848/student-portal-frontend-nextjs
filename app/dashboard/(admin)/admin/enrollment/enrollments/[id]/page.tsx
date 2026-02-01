@@ -6,7 +6,7 @@ import { EnrollmentDetailClient } from "../fragments/EnrollmentDetailClient";
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/userAuth";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { UserRole } from "@/types/user";
 
 export const metadata: Metadata = {
   title: "Lifecycle Detail | Guardian Intelligence",
@@ -18,34 +18,31 @@ interface PageProps {
 }
 
 export default async function EnrollmentDetailsPage({ params }: PageProps) {
-  await requireUser('/login');
+  await requireUser('/login', [UserRole.ADMIN, UserRole.SUPER_ADMIN]);
 
   const { id } = await params;
 
+  let enrollment, student, course, batch;
   try {
-    const enrollment = await enrollmentService.getEnrollment(id);
-
+    enrollment = await enrollmentService.getEnrollment(id);
     if (!enrollment) {
       return notFound();
     }
-
-    const [student, course, batch] = await Promise.all([
+    [student, course, batch] = await Promise.all([
       studentService.getById(enrollment.studentId).catch(() => null),
       courseService.getCourseById(enrollment.courseId).catch(() => null),
       batchService.getBatchById(enrollment.batchId).catch(() => null),
     ]);
-
-    return (
-      <DashboardLayout>
-        <EnrollmentDetailClient
-          enrollment={enrollment}
-          student={student}
-          course={course}
-          batch={batch}
-        />
-      </DashboardLayout>
-    );
-  } catch (error) {
+  } catch {
     return notFound();
   }
+
+  return (
+    <EnrollmentDetailClient
+      enrollment={enrollment}
+      student={student}
+      course={course}
+      batch={batch}
+    />
+  );
 }
