@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { motion } from "framer-motion";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import { DeleteModal } from "@/components/dashboard/shared/DeleteModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { StatsCard } from "@/components/dashboard/shared/StatsCard";
 import {
   adminService,
   Admin,
@@ -19,11 +20,14 @@ import { toast } from "sonner";
 import {
   Shield,
   ShieldCheck,
-  UserPlus,
-  RefreshCcw,
-  UserCog,
+  RefreshCw,
+  Users,
+  Trash2,
+  RotateCcw,
+  AlertTriangle
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const roleBadge = (role: AdminRole) => {
   const map: Record<
@@ -32,20 +36,28 @@ const roleBadge = (role: AdminRole) => {
   > = {
     super_admin: {
       label: "Super Admin",
-      className: "bg-purple-600",
+      className: "bg-purple-600 hover:bg-purple-700",
       Icon: ShieldCheck,
     },
-    admin: { label: "Admin", className: "bg-emerald-600", Icon: Shield },
-    moderator: { label: "Moderator", className: "bg-blue-600", Icon: Shield },
+    admin: { 
+      label: "Admin", 
+      className: "bg-emerald-600 hover:bg-emerald-700", 
+      Icon: Shield 
+    },
+    moderator: { 
+      label: "Moderator", 
+      className: "bg-blue-600 hover:bg-blue-700", 
+      Icon: Shield 
+    },
   };
   const { label, className, Icon } = map[role] || {
     label: role || "Unknown",
-    className: "bg-slate-500",
+    className: "bg-slate-500 hover:bg-slate-600",
     Icon: Shield,
   };
   return (
     <Badge
-      className={`${className} hover:opacity-90 text-white flex items-center gap-1`}
+      className={`${className} text-white flex items-center gap-1`}
     >
       <Icon className="h-3 w-3" />
       {label}
@@ -73,7 +85,7 @@ export default function AdminManagementPage() {
         accessorKey: "fullName",
         cell: (admin) => (
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-[#dad7cd]/50 overflow-hidden flex-shrink-0 border border-[#a3b18a]/30">
+            <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0 border border-slate-200 dark:border-slate-700">
               {admin.profile?.profilePicture ? (
                 <img
                   src={getImageUrl(admin.profile.profilePicture)}
@@ -89,15 +101,15 @@ export default function AdminManagementPage() {
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center">
-                  <span className="text-[#344e41] font-semibold">
+                  <span className="text-slate-600 dark:text-slate-400 font-semibold">
                     {admin.fullName.charAt(0)}
                   </span>
                 </div>
               )}
             </div>
             <div>
-              <p className="font-medium text-[#344e41]">{admin.fullName}</p>
-              <p className="text-xs text-[#344e41]/60">
+              <p className="font-medium text-slate-900 dark:text-slate-100">{admin.fullName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {admin.registrationNumber}
               </p>
             </div>
@@ -108,9 +120,9 @@ export default function AdminManagementPage() {
         header: "Email",
         accessorKey: "email",
         cell: (admin) => (
-          <div className="text-sm text-[#344e41]">
+          <div className="text-sm text-slate-700 dark:text-slate-300">
             <p>{admin.email}</p>
-            <p className="text-xs text-[#344e41]/60">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {admin.lastLoginAt
                 ? `Last login: ${new Date(admin.lastLoginAt).toLocaleString()}`
                 : "No login data"}
@@ -127,7 +139,7 @@ export default function AdminManagementPage() {
         header: "IPs",
         accessorKey: "registeredIpAddress",
         cell: (admin) => (
-          <div className="text-sm text-[#344e41]">
+          <div className="text-sm text-slate-700 dark:text-slate-300">
             {admin.registeredIpAddress &&
             admin.registeredIpAddress.length > 0 ? (
               <div className="flex flex-wrap gap-1">
@@ -135,7 +147,7 @@ export default function AdminManagementPage() {
                   <Badge
                     key={ip}
                     variant="outline"
-                    className="border-[#a3b18a] text-[#344e41]"
+                    className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300"
                   >
                     {ip}
                   </Badge>
@@ -143,14 +155,14 @@ export default function AdminManagementPage() {
                 {admin.registeredIpAddress.length > 2 && (
                   <Badge
                     variant="outline"
-                    className="border-[#a3b18a] text-[#344e41]"
+                    className="border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300"
                   >
                     +{admin.registeredIpAddress.length - 2} more
                   </Badge>
                 )}
               </div>
             ) : (
-              <span className="text-xs text-[#344e41]/60">No IPs</span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">No IPs</span>
             )}
           </div>
         ),
@@ -159,7 +171,7 @@ export default function AdminManagementPage() {
         header: "Joined",
         accessorKey: "joiningDate",
         cell: (admin) => (
-          <span className="text-sm text-[#344e41]">
+          <span className="text-sm text-slate-700 dark:text-slate-300">
             {admin.joiningDate
               ? new Date(admin.joiningDate).toLocaleDateString()
               : "N/A"}
@@ -175,7 +187,7 @@ export default function AdminManagementPage() {
     return admins.filter((admin) => admin.role === filterRole);
   }, [admins, filterRole]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setIsRefreshing(true);
     try {
       const [list, statistics] = await Promise.all([
@@ -194,13 +206,12 @@ export default function AdminManagementPage() {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [filterRole]);
 
   useEffect(() => {
     fetchData();
     if (showDeleted) fetchDeleted();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterRole, showDeleted]);
+  }, [fetchData, showDeleted]);
 
   const fetchDeleted = async () => {
     try {
@@ -240,11 +251,11 @@ export default function AdminManagementPage() {
   };
 
   const handleCreate = () => {
-    router.push("/dashboard/admin/users/admins/create");
+    router.push("/dashboard/super-admin/users/admins/create");
   };
 
   const handleEdit = (admin: Admin) => {
-    router.push(`/dashboard/admin/users/admins/${admin.id}/edit`);
+    router.push(`/dashboard/super-admin/users/admins/${admin.id}/edit`);
   };
 
   const handleDelete = (admin: Admin) => {
@@ -270,90 +281,129 @@ export default function AdminManagementPage() {
     }
   };
 
+  const getRoleStats = () => {
+    if (!stats) return [];
+    return Object.entries(stats.byRole).map(([role, value]) => ({
+      role,
+      value,
+      label: role.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())
+    }));
+  };
+
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <PageHeader
-          title="Admin Management"
-          subtitle="Monitor and control administrator accounts"
-          actionLabel="Add New Admin"
-          onAction={handleCreate}
-          icon={UserPlus}
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <PageHeader
+        title="Admin Management"
+        subtitle="Monitor and control administrator accounts with role-based access"
+        icon={Shield}
+        actionLabel="Add New Admin"
+        onAction={handleCreate}
+      />
+
+      {/* Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total Admins"
+          value={stats?.total ?? 0}
+          icon={Users}
+          className="border-l-4 border-l-indigo-500"
+          iconClassName="text-indigo-500"
+          iconBgClassName="bg-indigo-500/10"
+          loading={isLoading}
         />
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="bg-white border-none shadow-sm">
-            <CardContent className="p-5">
-              <p className="text-sm text-[#344e41]/60">Total Admins</p>
-              <p className="text-3xl font-bold text-[#344e41]">
-                {stats?.total ?? "--"}
-              </p>
-            </CardContent>
-          </Card>
-          {stats &&
-            Object.entries(stats.byRole).map(([role, value]) => (
-              <Card key={role} className="bg-white border-none shadow-sm">
-                <CardContent className="p-5">
-                  <p className="text-sm text-[#344e41]/60 capitalize">
-                    {role.replace("_", " ")}
-                  </p>
-                  <p className="text-3xl font-bold text-[#344e41]">{value}</p>
-                </CardContent>
-              </Card>
-            ))}
-        </div>
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap gap-2">
-            {["all", "super_admin", "admin", "moderator"].map((role) => (
-              <Button
-                key={role}
-                variant={filterRole === role ? "default" : "outline"}
-                className={
-                  filterRole === role
-                    ? "bg-[#588157]"
-                    : "border-[#a3b18a] text-[#344e41]"
-                }
-                onClick={() => setFilterRole(role as AdminRole | "all")}
-              >
-                {role === "all" ? "All" : role.replace("_", " ")}
-              </Button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant={showDeleted ? "default" : "outline"}
-              onClick={() => setShowDeleted((v) => !v)}
-              className={
-                showDeleted
-                  ? "bg-[#588157] text-white"
-                  : "border-[#a3b18a] text-[#344e41]"
-              }
-            >
-              <UserCog className="h-4 w-4 mr-2" />
-              {showDeleted ? "Showing Deleted" : "Show Deleted"}
-            </Button>
-            {!showDeleted && (
-              <Button
-                variant="outline"
-                onClick={fetchData}
-                disabled={isRefreshing}
-                className="border-[#a3b18a] text-[#344e41]"
-              >
-                <RefreshCcw
-                  className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
-                />
-                Refresh
-              </Button>
+        {getRoleStats().map((roleStat, index) => (
+          <StatsCard
+            key={roleStat.role}
+            title={roleStat.label}
+            value={roleStat.value}
+            icon={Shield}
+            className={cn(
+              "border-l-4",
+              index === 0 ? "border-l-purple-500" :
+              index === 1 ? "border-l-emerald-500" :
+              "border-l-blue-500"
             )}
-          </div>
-        </div>
+            iconClassName={cn(
+              index === 0 ? "text-purple-500" :
+              index === 1 ? "text-emerald-500" :
+              "text-blue-500"
+            )}
+            iconBgClassName={cn(
+              index === 0 ? "bg-purple-500/10" :
+              index === 1 ? "bg-emerald-500/10" :
+              "bg-blue-500/10"
+            )}
+            loading={isLoading}
+          />
+        ))}
+      </div>
 
-        {!showDeleted ? (
-          <div className="bg-white rounded-lg p-4 shadow-sm border border-[#a3b18a]/30">
+      {/* Filters and Actions */}
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-wrap gap-2">
+              {["all", "super_admin", "admin", "moderator"].map((role) => (
+                <Button
+                  key={role}
+                  variant={filterRole === role ? "default" : "outline"}
+                  size="sm"
+                  className={cn(
+                    filterRole === role
+                      ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                      : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  )}
+                  onClick={() => setFilterRole(role as AdminRole | "all")}
+                >
+                  {role === "all" ? "All Roles" : role.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                </Button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showDeleted ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowDeleted((v) => !v)}
+                className={cn(
+                  showDeleted
+                    ? "bg-amber-600 hover:bg-amber-700 text-white"
+                    : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                )}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {showDeleted ? "Showing Deleted" : "Show Deleted"}
+              </Button>
+              {!showDeleted && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchData}
+                  disabled={isRefreshing}
+                  className="border-slate-200 dark:border-slate-700"
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+                  />
+                  Refresh
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Content */}
+      {!showDeleted ? (
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+          <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#588157]"></div>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="rounded-full h-8 w-8 border-b-2 border-indigo-600"
+                />
               </div>
             ) : (
               <DataTable
@@ -362,99 +412,114 @@ export default function AdminManagementPage() {
                 searchKey="fullName"
                 searchPlaceholder="Search admin by name..."
                 onView={(item) =>
-                  router.push(`/dashboard/admin/users/admins/${item.id}`)
+                  router.push(`/dashboard/super-admin/users/admins/${item.id}`)
                 }
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
             )}
-          </div>
-        ) : (
-          <Card className="border-[#a3b18a]/30">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-[#344e41] mb-4">
-                Deleted Admins
-              </h2>
-              {deletedAdmins.length === 0 ? (
-                <p className="text-sm text-[#344e41]/60">No deleted admins.</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-[#dad7cd]/40">
-                      <tr>
-                        <th className="text-left p-4 text-sm font-semibold text-[#344e41]">
-                          Name
-                        </th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#344e41]">
-                          Email
-                        </th>
-                        <th className="text-left p-4 text-sm font-semibold text-[#344e41]">
-                          Role
-                        </th>
-                        <th className="text-right p-4 text-sm font-semibold text-[#344e41]">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {deletedAdmins.map((admin) => (
-                        <tr
-                          key={admin.id}
-                          className="border-b border-[#a3b18a]/20 hover:bg-[#dad7cd]/20 transition-colors"
-                        >
-                          <td className="p-4">
-                            <p className="font-medium text-[#344e41]">
-                              {admin.fullName}
-                            </p>
-                          </td>
-                          <td className="p-4 text-sm text-[#344e41]/80">
-                            {admin.email}
-                          </td>
-                          <td className="p-4">{roleBadge(admin.role)}</td>
-                          <td className="p-4">
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleRestore(admin.id)}
-                                className="border-[#588157] text-[#588157]"
-                              >
-                                Restore
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  handlePermanentDelete(
-                                    admin.id,
-                                    admin.fullName,
-                                  )
-                                }
-                                className="border-red-500 text-red-600"
-                              >
-                                Delete Permanently
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
+          <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <CardTitle>Deleted Admins</CardTitle>
+            </div>
+            <CardDescription>
+              Manage deleted admin accounts. You can restore or permanently delete them.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            {deletedAdmins.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-8 w-8 text-slate-400" />
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+                <p className="text-slate-600 dark:text-slate-400">No deleted admins found.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 dark:bg-slate-900">
+                    <tr>
+                      <th className="text-left p-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Name
+                      </th>
+                      <th className="text-left p-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Email
+                      </th>
+                      <th className="text-left p-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Role
+                      </th>
+                      <th className="text-right p-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {deletedAdmins.map((admin) => (
+                      <motion.tr
+                        key={admin.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                      >
+                        <td className="p-4">
+                          <p className="font-medium text-slate-900 dark:text-slate-100">
+                            {admin.fullName}
+                          </p>
+                        </td>
+                        <td className="p-4 text-sm text-slate-600 dark:text-slate-400">
+                          {admin.email}
+                        </td>
+                        <td className="p-4">{roleBadge(admin.role)}</td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRestore(admin.id)}
+                              className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                            >
+                              <RotateCcw className="h-4 w-4 mr-1" />
+                              Restore
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handlePermanentDelete(
+                                  admin.id,
+                                  admin.fullName,
+                                )
+                              }
+                              className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-        <DeleteModal
-          isOpen={isDeleteOpen}
-          onClose={() => setIsDeleteOpen(false)}
-          onConfirm={confirmDelete}
-          title="Delete Admin"
-          description={`Are you sure you want to delete \"${selectedAdmin?.fullName}\"? This action cannot be undone.`}
-          isDeleting={isDeleting}
-        />
-      </div>
-    </DashboardLayout>
+      <DeleteModal
+        isOpen={isDeleteOpen}
+        onClose={() => setIsDeleteOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Admin"
+        description={`Are you sure you want to delete "${selectedAdmin?.fullName}"? This action cannot be undone.`}
+        isDeleting={isDeleting}
+      />
+    </div>
   );
 }
