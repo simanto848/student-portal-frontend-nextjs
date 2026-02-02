@@ -168,6 +168,7 @@ export const adminNavigation: NavItem[] = [
       { href: "/dashboard/admin/users/staff", label: "Staff" },
       { href: "/dashboard/admin/users/faculty", label: "Faculty" },
       { href: "/dashboard/admin/users/students", label: "Students" },
+      { href: "/dashboard/admin/users/moderators", label: "Moderators" },
     ],
   },
   {

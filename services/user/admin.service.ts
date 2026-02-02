@@ -6,9 +6,11 @@ export interface Profile {
     id: string;
     firstName: string;
     lastName: string;
+    middleName?: string;
     profilePicture?: string;
     phoneNumber?: string;
-    middleName?: string;
+    dateOfBirth?: string;
+    gender?: string;
 }
 
 export interface Admin {
@@ -58,9 +60,13 @@ const normalize = (a: Record<string, unknown>): Admin => ({
     role: (a?.role as AdminRole) || "moderator",
     profile: a?.profile ? {
         id: (a.profile as any)._id || (a.profile as any).id,
-        firstName: (a.profile as any).firstName,
-        lastName: (a.profile as any).lastName,
+        firstName: (a.profile as any).firstName || "",
+        lastName: (a.profile as any).lastName || "",
+        middleName: (a.profile as any).middleName || "",
         profilePicture: (a.profile as any).profilePicture,
+        phoneNumber: (a.profile as any).phoneNumber || "",
+        dateOfBirth: (a.profile as any).dateOfBirth || "",
+        gender: (a.profile as any).gender || "",
     } : undefined,
     lastLoginAt: a?.lastLoginAt as string | undefined,
     lastLoginIp: a?.lastLoginIp as string | undefined,
