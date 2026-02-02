@@ -207,7 +207,7 @@ export function StudentManagementClient({
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">Student Management</h1>
                 </div>
                 <Button
-                    onClick={() => router.push("/dashboard/admin/users/students/create")}
+                    onClick={() => router.push("/dashboard/moderator/users/students/create")}
                     className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
                 >
                     <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
@@ -359,10 +359,10 @@ export function StudentManagementClient({
                                         <TableCell className="px-8 py-6 text-right">
                                             {activeTab === "active" ? (
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-amber-600 hover:shadow-md active:scale-95 transition-all">
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/moderator/users/students/${s.id}`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-amber-600 hover:shadow-md active:scale-95 transition-all">
                                                         <Eye className="w-4.5 h-4.5" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}/edit`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-blue-600 hover:shadow-md active:scale-95 transition-all">
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/moderator/users/students/${s.id}/edit`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-blue-600 hover:shadow-md active:scale-95 transition-all">
                                                         <Edit className="w-4.5 h-4.5" />
                                                     </Button>
                                                     <Button

@@ -11,18 +11,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { staffService, Staff, StaffRole } from "@/services/user/staff.service";
 import { toast } from "sonner";
-import { 
-  Users, 
-  Search, 
-  Plus, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  Users,
+  Search,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
   RefreshCw,
   RotateCcw,
   AlertTriangle,
-  Building2
+  Building2,
+  Ban,
+  Unlock
 } from "lucide-react";
+import { adminService } from "@/services/user/admin.service";
 import { getImageUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -128,6 +131,31 @@ export default function StaffPage() {
     }
   };
 
+  const handleBlock = async (member: Staff) => {
+    const reason = window.prompt(`Enter block reason for ${member.fullName}:`);
+    if (reason === null) return;
+
+    try {
+      await adminService.blockUser("staff", member.id, reason);
+      toast.success(`${member.fullName} blocked successfully`);
+      fetchStaff(search);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to block staff");
+    }
+  };
+
+  const handleUnblock = async (member: Staff) => {
+    if (!confirm(`Are you sure you want to unblock ${member.fullName}?`)) return;
+
+    try {
+      await adminService.unblockUser("staff", member.id);
+      toast.success(`${member.fullName} unblocked successfully`);
+      fetchStaff(search);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to unblock staff");
+    }
+  };
+
   const getRoleStats = () => {
     const stats: Record<string, number> = {};
     staff.forEach(s => {
@@ -171,18 +199,18 @@ export default function StaffPage() {
             className={cn(
               "border-l-4",
               index === 0 ? "border-l-purple-500" :
-              index === 1 ? "border-l-blue-500" :
-              "border-l-green-500"
+                index === 1 ? "border-l-blue-500" :
+                  "border-l-green-500"
             )}
             iconClassName={cn(
               index === 0 ? "text-purple-500" :
-              index === 1 ? "text-blue-500" :
-              "text-green-500"
+                index === 1 ? "text-blue-500" :
+                  "text-green-500"
             )}
             iconBgClassName={cn(
               index === 0 ? "bg-purple-500/10" :
-              index === 1 ? "bg-blue-500/10" :
-              "bg-green-500/10"
+                index === 1 ? "bg-blue-500/10" :
+                  "bg-green-500/10"
             )}
             loading={isLoading}
           />
@@ -304,7 +332,14 @@ export default function StaffPage() {
                                 <span className="text-slate-600 dark:text-slate-400 font-semibold">{member.fullName.charAt(0)}</span>
                               )}
                             </div>
-                            <p className="font-medium text-slate-900 dark:text-slate-100">{member.fullName}</p>
+                            <div className="flex flex-col">
+                              <p className="font-medium text-slate-900 dark:text-slate-100">{member.fullName}</p>
+                              {member.isBlocked && (
+                                <Badge variant="destructive" className="w-fit h-4 text-[10px] px-1.5 uppercase font-bold animate-pulse">
+                                  Blocked
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{member.email}</td>
@@ -338,6 +373,19 @@ export default function StaffPage() {
                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             >
                               <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => member.isBlocked ? handleUnblock(member) : handleBlock(member)}
+                              className={cn(
+                                member.isBlocked
+                                  ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                  : "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                              )}
+                              title={member.isBlocked ? "Unblock Staff" : "Block Staff"}
+                            >
+                              {member.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                             </Button>
                             <Button
                               variant="ghost"

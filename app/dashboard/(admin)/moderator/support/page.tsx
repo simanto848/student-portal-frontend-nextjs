@@ -232,7 +232,7 @@ export default function SupportTicketsPage() {
                                     <div
                                         key={ticket.id}
                                         className="flex items-start justify-between p-4 rounded-lg border border-[#a3b18a]/30 hover:bg-[#dad7cd]/20 transition-colors cursor-pointer"
-                                        onClick={() => router.push(`/dashboard/admin/support/${ticket.id}`)}
+                                        onClick={() => router.push(`/dashboard/moderator/support/${ticket.id}`)}
                                     >
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 flex-wrap mb-1">

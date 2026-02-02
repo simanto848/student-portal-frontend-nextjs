@@ -59,7 +59,7 @@ export default function TicketDetailPage() {
             setTicket(data);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to load ticket");
-            router.push("/dashboard/admin/support");
+            router.push("/dashboard/moderator/support");
         } finally {
             setIsLoading(false);
         }
@@ -187,7 +187,7 @@ export default function TicketDetailPage() {
                     <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => router.push("/dashboard/admin/support")}
+                        onClick={() => router.push("/dashboard/moderator/support")}
                     >
                         <ArrowLeft className="h-5 w-5" />
                     </Button>

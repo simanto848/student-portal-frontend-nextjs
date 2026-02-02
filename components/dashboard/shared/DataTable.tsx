@@ -28,6 +28,7 @@ interface DataTableProps<T> {
     onEdit?: (item: T) => void;
     onDelete?: (item: T) => void;
     onView?: (item: T) => void;
+    renderExtraActions?: (item: T) => React.ReactNode;
     searchKey: keyof T;
     searchPlaceholder?: string;
 }
@@ -38,6 +39,7 @@ export function DataTable<T extends { id: string | number }>({
     onEdit,
     onDelete,
     onView,
+    renderExtraActions,
     searchKey,
     searchPlaceholder = "Search...",
 }: DataTableProps<T>) {
@@ -144,6 +146,7 @@ export function DataTable<T extends { id: string | number }>({
                                         ))}
                                         <TableCell className="text-right space-x-1 py-4 pr-6">
                                             <div className="flex items-center justify-end gap-1">
+                                                {renderExtraActions && renderExtraActions(item)}
                                                 {onView && (
                                                     <Button
                                                         variant="ghost"
@@ -209,6 +212,7 @@ export function DataTable<T extends { id: string | number }>({
                                     </div>
                                 ))}
                                 <div className={`flex justify-end gap-3 mt-4 pt-4 border-t ${theme.colors.sidebar.borderSubtle}`}>
+                                    {renderExtraActions && renderExtraActions(item)}
                                     {onView && (
                                         <Button
                                             variant="outline"

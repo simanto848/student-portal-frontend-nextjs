@@ -12,19 +12,22 @@ import { Badge } from "@/components/ui/badge";
 import { teacherService, Teacher, TeacherDesignation } from "@/services/user/teacher.service";
 import { Pagination } from "@/types/api";
 import { toast } from "sonner";
-import { 
-  GraduationCap, 
-  Search, 
-  Plus, 
-  Eye, 
-  Edit, 
-  Trash2, 
+import {
+  GraduationCap,
+  Search,
+  Plus,
+  Eye,
+  Edit,
+  Trash2,
   RefreshCw,
   Users,
   RotateCcw,
   AlertTriangle,
-  BookOpen
+  BookOpen,
+  Ban,
+  Unlock
 } from "lucide-react";
+import { adminService } from "@/services/user/admin.service";
 import { getImageUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -120,6 +123,31 @@ export default function TeachersPage() {
     }
   };
 
+  const handleBlock = async (teacher: Teacher) => {
+    const reason = window.prompt(`Enter block reason for ${teacher.fullName}:`);
+    if (reason === null) return;
+
+    try {
+      await adminService.blockUser("teacher", teacher.id, reason);
+      toast.success(`${teacher.fullName} blocked successfully`);
+      fetchTeachers(search);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to block teacher");
+    }
+  };
+
+  const handleUnblock = async (teacher: Teacher) => {
+    if (!confirm(`Are you sure you want to unblock ${teacher.fullName}?`)) return;
+
+    try {
+      await adminService.unblockUser("teacher", teacher.id);
+      toast.success(`${teacher.fullName} unblocked successfully`);
+      fetchTeachers(search);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to unblock teacher");
+    }
+  };
+
   const getDesignationStats = () => {
     const stats: Record<string, number> = {};
     teachers.forEach(t => {
@@ -163,18 +191,18 @@ export default function TeachersPage() {
             className={cn(
               "border-l-4",
               index === 0 ? "border-l-purple-500" :
-              index === 1 ? "border-l-cyan-500" :
-              "border-l-green-500"
+                index === 1 ? "border-l-cyan-500" :
+                  "border-l-green-500"
             )}
             iconClassName={cn(
               index === 0 ? "text-purple-500" :
-              index === 1 ? "text-cyan-500" :
-              "text-green-500"
+                index === 1 ? "text-cyan-500" :
+                  "text-green-500"
             )}
             iconBgClassName={cn(
               index === 0 ? "bg-purple-500/10" :
-              index === 1 ? "bg-cyan-500/10" :
-              "bg-green-500/10"
+                index === 1 ? "bg-cyan-500/10" :
+                  "bg-green-500/10"
             )}
             loading={isLoading}
           />
@@ -296,7 +324,14 @@ export default function TeachersPage() {
                                 <span className="text-slate-600 dark:text-slate-400 font-semibold">{teacher.fullName.charAt(0)}</span>
                               )}
                             </div>
-                            <p className="font-medium text-slate-900 dark:text-slate-100">{teacher.fullName}</p>
+                            <div className="flex flex-col">
+                              <p className="font-medium text-slate-900 dark:text-slate-100">{teacher.fullName}</p>
+                              {teacher.isBlocked && (
+                                <Badge variant="destructive" className="w-fit h-4 text-[10px] px-1.5 uppercase font-bold animate-pulse">
+                                  Blocked
+                                </Badge>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="p-4 text-sm text-slate-600 dark:text-slate-400">{teacher.email}</td>
@@ -330,6 +365,19 @@ export default function TeachersPage() {
                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             >
                               <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => teacher.isBlocked ? handleUnblock(teacher) : handleBlock(teacher)}
+                              className={cn(
+                                teacher.isBlocked
+                                  ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                  : "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                              )}
+                              title={teacher.isBlocked ? "Unblock Teacher" : "Block Teacher"}
+                            >
+                              {teacher.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                             </Button>
                             <Button
                               variant="ghost"

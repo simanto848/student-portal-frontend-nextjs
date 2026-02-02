@@ -17,6 +17,7 @@ import {
 import { departmentService } from "@/services/academic/department.service";
 import { programService } from "@/services/academic/program.service";
 import { batchService } from "@/services/academic/batch.service";
+import { adminService } from "@/services/user/admin.service";
 import { Department, Program, Batch } from "@/services/academic/types";
 import { toast } from "sonner";
 import {
@@ -31,7 +32,9 @@ import {
   AlertTriangle,
   GraduationCap,
   UserCheck,
-  UserX
+  UserX,
+  Ban,
+  Unlock
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -195,6 +198,34 @@ export default function StudentsPage() {
     }
   };
 
+  const handleBlock = async (id: string, name: string) => {
+    const reason = window.prompt(`Enter block reason for ${name}:`);
+    if (reason === null) return;
+    if (!reason.trim()) {
+      toast.error("Reason is required to block a user");
+      return;
+    }
+
+    try {
+      await adminService.blockUser("student", id, reason);
+      toast.success(`${name} blocked successfully`);
+      fetchStudents(search);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to block student");
+    }
+  };
+
+  const handleUnblock = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to unblock ${name}?`)) return;
+    try {
+      await adminService.unblockUser("student", id);
+      toast.success(`${name} unblocked successfully`);
+      fetchStudents(search);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to unblock student");
+    }
+  };
+
   const getStatusStats = () => {
     const stats: Record<string, number> = {};
     students.forEach(s => {
@@ -238,18 +269,18 @@ export default function StudentsPage() {
             className={cn(
               "border-l-4",
               index === 0 ? "border-l-blue-500" :
-              index === 1 ? "border-l-purple-500" :
-              "border-l-orange-500"
+                index === 1 ? "border-l-purple-500" :
+                  "border-l-orange-500"
             )}
             iconClassName={cn(
               index === 0 ? "text-blue-500" :
-              index === 1 ? "text-purple-500" :
-              "text-orange-500"
+                index === 1 ? "text-purple-500" :
+                  "text-orange-500"
             )}
             iconBgClassName={cn(
               index === 0 ? "bg-blue-500/10" :
-              index === 1 ? "bg-purple-500/10" :
-              "bg-orange-500/10"
+                index === 1 ? "bg-purple-500/10" :
+                  "bg-orange-500/10"
             )}
             loading={isLoading}
           />
@@ -282,7 +313,7 @@ export default function StudentsPage() {
                   <SearchableSelect
                     options={[
                       { label: "All Departments", value: "all" },
-                       
+
                       ...departments.map((d) => ({
                         label: d.name,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -302,7 +333,7 @@ export default function StudentsPage() {
                   <SearchableSelect
                     options={[
                       { label: "All Programs", value: "all" },
-                       
+
                       ...programs.map((p) => ({
                         label: p.name,
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -343,7 +374,7 @@ export default function StudentsPage() {
                           if (shift === "all") return true;
                           return String(b.shift || "").toLowerCase() === shift;
                         })
-                         
+
                         .map((b) => ({
                           label: getBatchLabel(b),
                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -480,9 +511,17 @@ export default function StudentsPage() {
                           })()}
                         </td>
                         <td className="p-4">
-                          <Badge className={`${statusColors[student.enrollmentStatus]} text-white`}>
-                            {statusLabels[student.enrollmentStatus]}
-                          </Badge>
+                          <div className="flex flex-col gap-1">
+                            <Badge className={`${statusColors[student.enrollmentStatus]} text-white`}>
+                              {statusLabels[student.enrollmentStatus]}
+                            </Badge>
+                            {student.isBlocked && (
+                              <Badge variant="destructive" className="flex items-center gap-1">
+                                <Ban className="h-3 w-3" />
+                                Blocked
+                              </Badge>
+                            )}
+                          </div>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center justify-end gap-2">
@@ -501,6 +540,22 @@ export default function StudentsPage() {
                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                             >
                               <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => student.isBlocked
+                                ? handleUnblock(student.id, student.fullName)
+                                : handleBlock(student.id, student.fullName)
+                              }
+                              className={cn(
+                                student.isBlocked
+                                  ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                                  : "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                              )}
+                              title={student.isBlocked ? "Unblock Student" : "Block Student"}
+                            >
+                              {student.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
                             </Button>
                             <Button
                               variant="ghost"

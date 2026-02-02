@@ -30,6 +30,10 @@ export interface Staff {
   lastLoginIp?: string;
   createdAt?: string;
   updatedAt?: string;
+  isBlocked: boolean;
+  blockedAt?: string;
+  blockedBy?: string;
+  blockReason?: string;
 }
 
 export interface StaffCreatePayload {
@@ -69,6 +73,10 @@ const normalize = (s: Record<string, unknown>): Staff => ({
   lastLoginIp: s?.lastLoginIp as string | undefined,
   createdAt: s?.createdAt as string | undefined,
   updatedAt: s?.updatedAt as string | undefined,
+  isBlocked: !!(s?.isBlocked),
+  blockedAt: s?.blockedAt as string | undefined,
+  blockedBy: s?.blockedBy as string | undefined,
+  blockReason: s?.blockReason as string | undefined,
 });
 
 export const staffService = {

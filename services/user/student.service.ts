@@ -70,6 +70,8 @@ export interface Student {
   expectedGraduationDate?: string;
   actualGraduationDate?: string;
   profile?: Profile;
+  isBlocked: boolean;
+  blockReason?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -138,6 +140,8 @@ const normalize = (s: Record<string, unknown>): Student => ({
       emergencyContact: (s.profile as any).emergencyContact,
     }
     : undefined,
+  isBlocked: !!s?.isBlocked,
+  blockReason: s?.blockReason as string | undefined,
   createdAt: s?.createdAt as string | undefined,
   updatedAt: s?.updatedAt as string | undefined,
 });

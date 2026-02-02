@@ -45,6 +45,7 @@ const navItems = [
     { href: "/dashboard/student/classroom", label: "Classroom", icon: "school" },
     { href: "/dashboard/student/communication", label: "Chat", icon: "forum" },
     { href: "/dashboard/student/library", label: "Library", icon: "local_library" },
+    { href: "/dashboard/student/support", label: "Support", icon: "support_agent" },
 ];
 
 export default function StudentLayout({

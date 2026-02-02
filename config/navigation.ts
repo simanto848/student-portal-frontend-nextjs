@@ -207,6 +207,16 @@ export const moderatorNavigation: NavItem[] = [
     icon: MessageSquare,
     badge: 4,
   },
+  // User Management
+  {
+    label: "User Management",
+    icon: Users,
+    children: [
+      { href: "/dashboard/moderator/users/staff", label: "Staff" },
+      { href: "/dashboard/moderator/users/faculty", label: "Faculty" },
+      { href: "/dashboard/moderator/users/students", label: "Students" },
+    ],
+  },
   // Tools Section
   {
     href: "/dashboard/moderator/activity",

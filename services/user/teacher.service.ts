@@ -18,6 +18,10 @@ export interface Teacher {
   lastLoginIp?: string;
   createdAt?: string;
   updatedAt?: string;
+  isBlocked: boolean;
+  blockedAt?: string;
+  blockedBy?: string;
+  blockReason?: string;
 }
 
 export interface TeacherCreatePayload {
@@ -57,6 +61,10 @@ const normalize = (t: any): Teacher => ({
   lastLoginIp: t?.lastLoginIp,
   createdAt: t?.createdAt,
   updatedAt: t?.updatedAt,
+  isBlocked: !!t?.isBlocked,
+  blockedAt: t?.blockedAt,
+  blockedBy: t?.blockedBy,
+  blockReason: t?.blockReason,
 });
 
 export const teacherService = {

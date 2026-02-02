@@ -22,6 +22,8 @@ export interface Admin {
     lastLoginIp?: string;
     joiningDate?: string;
     registeredIpAddress?: string[];
+    isBlocked: boolean;
+    blockReason?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -64,6 +66,8 @@ const normalize = (a: Record<string, unknown>): Admin => ({
     lastLoginIp: a?.lastLoginIp as string | undefined,
     joiningDate: a?.joiningDate as string | undefined,
     registeredIpAddress: (a?.registeredIpAddress as string[]) || [],
+    isBlocked: !!a?.isBlocked,
+    blockReason: a?.blockReason as string | undefined,
     createdAt: a?.createdAt as string | undefined,
     updatedAt: a?.updatedAt as string | undefined,
 });
@@ -207,6 +211,31 @@ export const adminService = {
             const response = await api.put(`/user/admins/${id}/registered-ips`, { ipAddresses });
             const data = response.data?.data || response.data;
             return extractAdmin(data);
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    blockUser: async (userType: string, userId: string, reason: string): Promise<any> => {
+        try {
+            const response = await api.post("/user/admins/users/block", {
+                userType,
+                userId,
+                reason
+            });
+            return response.data?.data || response.data;
+        } catch (error) {
+            return handleApiError(error);
+        }
+    },
+
+    unblockUser: async (userType: string, userId: string): Promise<any> => {
+        try {
+            const response = await api.post("/user/admins/users/unblock", {
+                userType,
+                userId
+            });
+            return response.data?.data || response.data;
         } catch (error) {
             return handleApiError(error);
         }

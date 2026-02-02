@@ -24,8 +24,11 @@ import {
   Users,
   Trash2,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Ban,
+  Unlock,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { getImageUrl } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -39,15 +42,15 @@ const roleBadge = (role: AdminRole) => {
       className: "bg-purple-600 hover:bg-purple-700",
       Icon: ShieldCheck,
     },
-    admin: { 
-      label: "Admin", 
-      className: "bg-emerald-600 hover:bg-emerald-700", 
-      Icon: Shield 
+    admin: {
+      label: "Admin",
+      className: "bg-emerald-600 hover:bg-emerald-700",
+      Icon: Shield
     },
-    moderator: { 
-      label: "Moderator", 
-      className: "bg-blue-600 hover:bg-blue-700", 
-      Icon: Shield 
+    moderator: {
+      label: "Moderator",
+      className: "bg-blue-600 hover:bg-blue-700",
+      Icon: Shield
     },
   };
   const { label, className, Icon } = map[role] || {
@@ -66,6 +69,7 @@ const roleBadge = (role: AdminRole) => {
 };
 
 export default function AdminManagementPage() {
+  const { user: currentUser } = useAuth();
   const router = useRouter();
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [stats, setStats] = useState<AdminStatistics | null>(null);
@@ -91,13 +95,6 @@ export default function AdminManagementPage() {
                   src={getImageUrl(admin.profile.profilePicture)}
                   alt={admin.fullName}
                   className="h-full w-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "";
-                    (e.target as HTMLImageElement).style.display = "none";
-                    (
-                      e.target as HTMLImageElement
-                    ).nextElementSibling?.classList.remove("hidden");
-                  }}
                 />
               ) : (
                 <div className="h-full w-full flex items-center justify-center">
@@ -108,7 +105,14 @@ export default function AdminManagementPage() {
               )}
             </div>
             <div>
-              <p className="font-medium text-slate-900 dark:text-slate-100">{admin.fullName}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-slate-900 dark:text-slate-100">{admin.fullName}</p>
+                {admin.isBlocked && (
+                  <Badge variant="destructive" className="h-4 text-[10px] px-1.5 uppercase font-bold animate-pulse">
+                    Blocked
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {admin.registrationNumber}
               </p>
@@ -141,7 +145,7 @@ export default function AdminManagementPage() {
         cell: (admin) => (
           <div className="text-sm text-slate-700 dark:text-slate-300">
             {admin.registeredIpAddress &&
-            admin.registeredIpAddress.length > 0 ? (
+              admin.registeredIpAddress.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {admin.registeredIpAddress.slice(0, 2).map((ip) => (
                   <Badge
@@ -263,6 +267,48 @@ export default function AdminManagementPage() {
     setIsDeleteOpen(true);
   };
 
+  const canBlockAdmin = (targetAdmin: Admin) => {
+    if (!currentUser) return false;
+    const currentRole = currentUser.role;
+
+    // Super admin can block anyone except self and other super admins (though they can block admins)
+    if (currentRole === 'super_admin') {
+      return targetAdmin.id !== currentUser.id && targetAdmin.role !== 'super_admin';
+    }
+
+    // Admin can only block moderators
+    if (currentRole === 'admin') {
+      return targetAdmin.role === 'moderator';
+    }
+
+    return false;
+  };
+
+  const handleBlock = async (admin: Admin) => {
+    const reason = window.prompt(`Enter block reason for ${admin.fullName}:`);
+    if (reason === null) return;
+
+    try {
+      await adminService.blockUser("admin", admin.id, reason);
+      toast.success(`${admin.fullName} blocked successfully`);
+      fetchData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to block user");
+    }
+  };
+
+  const handleUnblock = async (admin: Admin) => {
+    if (!confirm(`Are you sure you want to unblock ${admin.fullName}?`)) return;
+
+    try {
+      await adminService.unblockUser("admin", admin.id);
+      toast.success(`${admin.fullName} unblocked successfully`);
+      fetchData();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to unblock user");
+    }
+  };
+
   const confirmDelete = async () => {
     if (!selectedAdmin) return;
     setIsDeleting(true);
@@ -321,18 +367,18 @@ export default function AdminManagementPage() {
             className={cn(
               "border-l-4",
               index === 0 ? "border-l-purple-500" :
-              index === 1 ? "border-l-emerald-500" :
-              "border-l-blue-500"
+                index === 1 ? "border-l-emerald-500" :
+                  "border-l-blue-500"
             )}
             iconClassName={cn(
               index === 0 ? "text-purple-500" :
-              index === 1 ? "text-emerald-500" :
-              "text-blue-500"
+                index === 1 ? "text-emerald-500" :
+                  "text-blue-500"
             )}
             iconBgClassName={cn(
               index === 0 ? "bg-purple-500/10" :
-              index === 1 ? "bg-emerald-500/10" :
-              "bg-blue-500/10"
+                index === 1 ? "bg-emerald-500/10" :
+                  "bg-blue-500/10"
             )}
             loading={isLoading}
           />
@@ -414,8 +460,25 @@ export default function AdminManagementPage() {
                 onView={(item) =>
                   router.push(`/dashboard/super-admin/users/admins/${item.id}`)
                 }
-                onEdit={handleEdit}
                 onDelete={handleDelete}
+                renderExtraActions={(admin) => (
+                  canBlockAdmin(admin) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => admin.isBlocked ? handleUnblock(admin) : handleBlock(admin)}
+                      className={cn(
+                        "h-9 w-9 rounded-lg transition-colors",
+                        admin.isBlocked
+                          ? "text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50"
+                          : "text-amber-500 hover:text-amber-600 hover:bg-amber-50"
+                      )}
+                      title={admin.isBlocked ? "Unblock User" : "Block User"}
+                    >
+                      {admin.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+                    </Button>
+                  )
+                )}
               />
             )}
           </CardContent>

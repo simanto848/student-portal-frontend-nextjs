@@ -80,7 +80,7 @@ export function FacultyManagementClient({
             header: "Name",
             accessorKey: "fullName",
             cell: (teacher) => (
-                <div className="flex items-center gap-4 group cursor-pointer" onClick={() => router.push(`/dashboard/admin/users/faculty/${teacher.id}`)}>
+                <div className="flex items-center gap-4 group cursor-pointer" onClick={() => router.push(`/dashboard/moderator/users/faculty/${teacher.id}`)}>
                     <div className="relative">
                         <div className="h-12 w-12 rounded-2xl bg-slate-100 overflow-hidden flex-shrink-0 border-2 border-white shadow-md transition-transform group-hover:scale-110 duration-500">
                             {teacher.profile?.profilePicture ? (
@@ -259,7 +259,7 @@ export function FacultyManagementClient({
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
-                        onClick={() => router.push("/dashboard/admin/users/faculty/create")}
+                        onClick={() => router.push("/dashboard/moderator/users/faculty/create")}
                         className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
                     >
                         <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -306,8 +306,8 @@ export function FacultyManagementClient({
                                 columns={columns}
                                 searchKey="fullName"
                                 searchPlaceholder="Search academic staff..."
-                                onView={(item) => router.push(`/dashboard/admin/users/faculty/${item.id}`)}
-                                onEdit={(item) => router.push(`/dashboard/admin/users/faculty/${item.id}/edit`)}
+                                onView={(item) => router.push(`/dashboard/moderator/users/faculty/${item.id}`)}
+                                onEdit={(item) => router.push(`/dashboard/moderator/users/faculty/${item.id}/edit`)}
                                 onDelete={handleDelete}
                                 renderExtraActions={(teacher) => (
                                     <Button
