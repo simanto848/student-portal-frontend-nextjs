@@ -33,8 +33,7 @@ export function SyllabusManagementClient() {
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-    const [selectedSyllabus, setSelectedSyllabus] =
-        useState<CourseSyllabus | null>(null);
+    const [selectedSyllabus, setSelectedSyllabus] = useState<CourseSyllabus | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 

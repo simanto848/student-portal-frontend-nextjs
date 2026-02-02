@@ -1084,7 +1084,6 @@ export const useDeletePrerequisite = () => {
 };
 
 // ===================== Syllabus Queries =====================
-
 export const useSyllabi = (
   options?: Omit<
     UseQueryOptions<CourseSyllabus[], ApiError>,
@@ -1095,7 +1094,7 @@ export const useSyllabi = (
     queryKey: academicKeys.syllabi(),
     queryFn: async () => {
       try {
-        const response = await academicApi.get("/syllabi");
+        const response = await academicApi.get("/courses/syllabus");
         return extractArrayData<CourseSyllabus>(response);
       } catch (error) {
         return handleApiError(error);
@@ -1116,7 +1115,7 @@ export const useSyllabus = (
     queryKey: academicKeys.syllabus(id),
     queryFn: async () => {
       try {
-        const response = await academicApi.get(`/syllabi/${id}`);
+        const response = await academicApi.get(`/courses/syllabus/${id}`);
         return extractItemData<CourseSyllabus>(response);
       } catch (error) {
         return handleApiError(error);
@@ -1133,7 +1132,7 @@ export const useCreateSyllabus = () => {
   return useMutation({
     mutationFn: async (data: Partial<CourseSyllabus>) => {
       try {
-        const response = await academicApi.post("/syllabi", data);
+        const response = await academicApi.post("/courses/syllabus", data);
         return extractItemData<CourseSyllabus>(response);
       } catch (error) {
         return handleApiError(error);
@@ -1157,7 +1156,7 @@ export const useUpdateSyllabus = () => {
       data: Partial<CourseSyllabus>;
     }) => {
       try {
-        const response = await academicApi.patch(`/syllabi/${id}`, data);
+        const response = await academicApi.patch(`/courses/syllabus/${id}`, data);
         return extractItemData<CourseSyllabus>(response);
       } catch (error) {
         return handleApiError(error);
@@ -1176,7 +1175,7 @@ export const useDeleteSyllabus = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       try {
-        await academicApi.delete(`/syllabi/${id}`);
+        await academicApi.delete(`/courses/syllabus/${id}`);
       } catch (error) {
         return handleApiError(error);
       }

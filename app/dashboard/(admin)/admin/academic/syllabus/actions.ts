@@ -12,7 +12,7 @@ export async function createSyllabusAction(state: any, formData: FormData) {
     return await createFormAction(
         {
             method: "post",
-            endpoint: "/academic/syllabi",
+            endpoint: "/academic/courses/syllabus",
             onSuccess: revalidateSyllabus,
         },
         state,
@@ -24,7 +24,7 @@ export async function updateSyllabusAction(id: string, state: any, formData: For
     return await createFormAction(
         {
             method: "patch",
-            endpoint: `/academic/syllabi/${id}`,
+            endpoint: `/academic/courses/syllabus/${id}`,
             onSuccess: revalidateSyllabus,
         },
         state,
@@ -36,7 +36,7 @@ export async function deleteSyllabusAction(id: string, state: any, formData: For
     return await createFormAction(
         {
             method: "delete",
-            endpoint: `/academic/syllabi/${id}`,
+            endpoint: `/academic/courses/syllabus/${id}`,
             onSuccess: revalidateSyllabus,
         },
         state,

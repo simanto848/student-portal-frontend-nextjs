@@ -2,39 +2,39 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { CourseSyllabus, academicService } from "@/services/academic.service";
+import { syllabusService, AcademicApiError } from "@/services/academic.service";
 import { notifyError } from "@/components/toast";
 import { ArrowLeft, BookOpenCheck, FileText, ListChecks, ShieldCheck, GitMerge } from "lucide-react";
 import { motion } from "framer-motion";
 
-interface SyllabusDetailClientProps {
-    id: string;
-}
-
-export default function SyllabusDetailClient({ id }: SyllabusDetailClientProps) {
+export default function SyllabusDetailClient() {
     const router = useRouter();
-    const [syllabus, setSyllabus] = useState<CourseSyllabus | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const params = useParams();
+    const id = params.id as string;
 
-    useEffect(() => {
-        if (id) {
-            fetchSyllabus();
-        }
-    }, [id]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [syllabus, setSyllabus] = useState<any>(null);
 
     const fetchSyllabus = async () => {
         setIsLoading(true);
         try {
-            const data = await academicService.getSyllabusById(id);
+            const data = await syllabusService.getSyllabusById(id);
             setSyllabus(data);
-        } catch (error: any) {
-            notifyError(error?.message || "Failed to load syllabus details");
+        } catch (error) {
+            const message = error instanceof AcademicApiError ? error.message : "Failed to load session details";
+            notifyError(message);
             router.push("/dashboard/admin/academic/syllabus");
         } finally {
             setIsLoading(false);
         }
-    };
+    }
+
+    useEffect(() => {
+        fetchSyllabus();
+    }, [id]);
+
 
     if (isLoading) {
         return (

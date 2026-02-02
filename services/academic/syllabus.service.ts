@@ -4,7 +4,7 @@ import { CourseSyllabus } from './types';
 export const syllabusService = {
     getAllSyllabi: async (): Promise<CourseSyllabus[]> => {
         try {
-            const response = await api.get('/academic/syllabus');
+            const response = await api.get('/academic/courses/syllabus');
             return extractArrayData<CourseSyllabus>(response);
         } catch (error) {
             return handleApiError(error);
@@ -12,7 +12,7 @@ export const syllabusService = {
     },
     getSyllabusById: async (id: string): Promise<CourseSyllabus> => {
         try {
-            const response = await api.get(`/academic/syllabus/${id}`);
+            const response = await api.get(`/academic/courses/syllabus/${id}`);
             return extractItemData<CourseSyllabus>(response);
         } catch (error) {
             return handleApiError(error);
@@ -20,7 +20,7 @@ export const syllabusService = {
     },
     createSyllabus: async (data: Partial<CourseSyllabus>): Promise<CourseSyllabus> => {
         try {
-            const response = await api.post('/academic/syllabus', data);
+            const response = await api.post('/academic/courses/syllabus', data);
             return extractItemData<CourseSyllabus>(response);
         } catch (error) {
             return handleApiError(error);
@@ -28,7 +28,7 @@ export const syllabusService = {
     },
     updateSyllabus: async (id: string, data: Partial<CourseSyllabus>): Promise<CourseSyllabus> => {
         try {
-            const response = await api.patch(`/academic/syllabus/${id}`, data);
+            const response = await api.patch(`/academic/courses/syllabus/${id}`, data);
             return extractItemData<CourseSyllabus>(response);
         } catch (error) {
             return handleApiError(error);
@@ -43,7 +43,7 @@ export const syllabusService = {
     },
     approveSyllabus: async (id: string): Promise<CourseSyllabus> => {
         try {
-            const response = await api.post(`/academic/syllabus/${id}/approve`);
+            const response = await api.post(`/academic/courses/syllabus/${id}/approve`);
             return extractItemData<CourseSyllabus>(response);
         } catch (error) {
             return handleApiError(error);
@@ -51,7 +51,7 @@ export const syllabusService = {
     },
     publishSyllabus: async (id: string): Promise<CourseSyllabus> => {
         try {
-            const response = await api.post(`/academic/syllabus/${id}/publish`);
+            const response = await api.post(`/academic/courses/syllabus/${id}/publish`);
             return extractItemData<CourseSyllabus>(response);
         } catch (error) {
             return handleApiError(error);
