@@ -8,10 +8,22 @@ import { revalidatePath } from "next/cache";
  * Common transformation for batch form data
  */
 const transformBatchData = (formData: FormData) => {
-    const data = Object.fromEntries(formData.entries());
+    const rawData = Object.fromEntries(formData.entries());
+
+    // Helper to extract value regardless of prefix (e.g., "1_name" -> "name")
+    const data: any = {};
+    Object.entries(rawData).forEach(([key, value]) => {
+        let cleanKey = key;
+        if (/^\d+_/.test(key)) {
+            cleanKey = key.replace(/^\d+_/, '');
+        } else if (key.includes('.')) {
+            cleanKey = key.split('.').pop() || key;
+        }
+        data[cleanKey] = value;
+    });
 
     // Helper to convert empty strings to undefined
-    const emptyToUndefined = (value: FormDataEntryValue | undefined) =>
+    const emptyToUndefined = (value: any) =>
         value === "" || value === null || value === undefined ? undefined : value;
 
     return {
@@ -21,8 +33,8 @@ const transformBatchData = (formData: FormData) => {
         maxStudents: data.maxStudents ? Number(data.maxStudents) : undefined,
         // Handle optional fields - convert empty strings to undefined
         counselorId: emptyToUndefined(data.counselorId),
-        startDate: emptyToUndefined(data.startDate),
-        endDate: emptyToUndefined(data.endDate),
+        startDate: data.startDate ? new Date(data.startDate as string).toISOString() : undefined,
+        endDate: data.endDate ? new Date(data.endDate as string).toISOString() : undefined,
         code: emptyToUndefined(data.code),
     };
 };

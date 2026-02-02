@@ -96,15 +96,24 @@ function formDataToObject(formData: FormData): Record<string, unknown> {
     const obj: Record<string, unknown> = {};
 
     formData.forEach((value, key) => {
+        // Strip prefixes like "1_" or "$ACTION_ID_0." that Next.js might add
+        // Only strip numeric prefixes like "1_name" -> "name" or action prefixes
+        let cleanKey = key;
+        if (/^\d+_/.test(key)) {
+            cleanKey = key.replace(/^\d+_/, '');
+        } else if (key.includes('.')) {
+            cleanKey = key.split('.').pop() || key;
+        }
+
         // Handle multiple values with same key (e.g., checkboxes)
-        if (obj[key]) {
-            if (Array.isArray(obj[key])) {
-                (obj[key] as unknown[]).push(value);
+        if (obj[cleanKey]) {
+            if (Array.isArray(obj[cleanKey])) {
+                (obj[cleanKey] as unknown[]).push(value);
             } else {
-                obj[key] = [obj[key], value];
+                obj[cleanKey] = [obj[cleanKey], value];
             }
         } else {
-            obj[key] = value;
+            obj[cleanKey] = value;
         }
     });
 

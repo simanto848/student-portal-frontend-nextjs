@@ -8,8 +8,23 @@ import { revalidatePath } from "next/cache";
  * Common transformation for faculty form data
  */
 const transformFacultyData = (formData: FormData) => {
-    const data = Object.fromEntries(formData.entries());
-    return data;
+    const rawData = Object.fromEntries(formData.entries());
+
+    const data: any = {};
+    Object.entries(rawData).forEach(([key, value]) => {
+        let cleanKey = key;
+        if (/^\d+_/.test(key)) {
+            cleanKey = key.replace(/^\d+_/, '');
+        } else if (key.includes('.')) {
+            cleanKey = key.split('.').pop() || key;
+        }
+        data[cleanKey] = value;
+    });
+
+    return {
+        ...data,
+        establishedAt: data.establishedAt ? new Date(data.establishedAt as string).toISOString() : undefined,
+    };
 };
 
 /**

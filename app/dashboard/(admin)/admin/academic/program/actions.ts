@@ -8,7 +8,19 @@ import { revalidatePath } from "next/cache";
  * Common transformation for program form data
  */
 const transformProgramData = (formData: FormData) => {
-    const data = Object.fromEntries(formData.entries());
+    const rawData = Object.fromEntries(formData.entries());
+
+    const data: any = {};
+    Object.entries(rawData).forEach(([key, value]) => {
+        let cleanKey = key;
+        if (/^\d+_/.test(key)) {
+            cleanKey = key.replace(/^\d+_/, '');
+        } else if (key.includes('.')) {
+            cleanKey = key.split('.').pop() || key;
+        }
+        data[cleanKey] = value;
+    });
+
     return {
         ...data,
         duration: data.duration ? Number(data.duration) : undefined,

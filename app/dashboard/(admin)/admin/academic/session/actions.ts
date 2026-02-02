@@ -8,10 +8,24 @@ import { revalidatePath } from "next/cache";
  * Common transformation for session form data
  */
 const transformSessionData = (formData: FormData) => {
-    const data = Object.fromEntries(formData.entries());
+    const rawData = Object.fromEntries(formData.entries());
+
+    const data: any = {};
+    Object.entries(rawData).forEach(([key, value]) => {
+        let cleanKey = key;
+        if (/^\d+_/.test(key)) {
+            cleanKey = key.replace(/^\d+_/, '');
+        } else if (key.includes('.')) {
+            cleanKey = key.split('.').pop() || key;
+        }
+        data[cleanKey] = value;
+    });
+
     return {
         ...data,
         year: data.year ? Number(data.year) : undefined,
+        startDate: data.startDate ? new Date(data.startDate as string).toISOString() : undefined,
+        endDate: data.endDate ? new Date(data.endDate as string).toISOString() : undefined,
     };
 };
 
