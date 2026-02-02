@@ -15,6 +15,8 @@ import { PrerequisiteDeleteModal } from "./PrerequisiteDeleteModal";
 import {
     usePrerequisites,
     useCourses,
+    useDepartments,
+    useSessions,
 } from "@/hooks/queries/useAcademicQueries";
 import {
     createPrerequisiteAction,
@@ -31,6 +33,8 @@ export function PrerequisiteManagementClient() {
     const router = useRouter();
     const { data: prerequisitesData = [], isLoading, refetch } = usePrerequisites();
     const { data: coursesData = [] } = useCourses();
+    const { data: departments = [] } = useDepartments();
+    const { data: sessions = [] } = useSessions();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
@@ -192,6 +196,8 @@ export function PrerequisiteManagementClient() {
                 onSubmit={handleFormSubmit}
                 selectedPrerequisite={selectedPrerequisite}
                 courses={coursesData}
+                departments={departments}
+                sessions={sessions}
                 isSubmitting={isSubmitting}
             />
         </div>

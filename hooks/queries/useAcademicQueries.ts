@@ -621,13 +621,16 @@ export const useDeleteBatch = () => {
 // ===================== Course Queries =====================
 
 export const useCourses = (
+  params?: Record<string, any>,
   options?: Omit<UseQueryOptions<Course[], ApiError>, "queryKey" | "queryFn">,
 ) => {
   return useQuery({
-    queryKey: academicKeys.courses(),
+    queryKey: params
+      ? [...academicKeys.courses(), params]
+      : academicKeys.courses(),
     queryFn: async () => {
       try {
-        const response = await academicApi.get("/courses");
+        const response = await academicApi.get("/courses", { params });
         return extractArrayData<Course>(response);
       } catch (error) {
         return handleApiError(error);
@@ -1035,7 +1038,7 @@ export const usePrerequisites = (
     queryKey: academicKeys.prerequisites(),
     queryFn: async () => {
       try {
-        const response = await academicApi.get("/prerequisites");
+        const response = await academicApi.get("/courses/prerequisites");
         return extractArrayData<CoursePrerequisite>(response);
       } catch (error) {
         return handleApiError(error);

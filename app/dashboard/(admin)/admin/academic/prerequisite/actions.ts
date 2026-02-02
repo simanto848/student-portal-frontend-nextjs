@@ -9,7 +9,7 @@ export async function createPrerequisiteAction(state: any, formData: FormData) {
     return await createFormAction(
         {
             method: "post",
-            endpoint: "/academic/prerequisites",
+            endpoint: "/academic/courses/prerequisites",
             onSuccess: revalidatePrerequisite,
         },
         state,
@@ -21,7 +21,7 @@ export async function updatePrerequisiteAction(id: string, state: any, formData:
     return await createFormAction(
         {
             method: "patch",
-            endpoint: `/academic/prerequisites/${id}`,
+            endpoint: `/academic/courses/prerequisites/${id}`,
             onSuccess: revalidatePrerequisite,
         },
         state,
@@ -33,7 +33,7 @@ export async function deletePrerequisiteAction(id: string, state: any, formData:
     return await createFormAction(
         {
             method: "delete",
-            endpoint: `/academic/prerequisites/${id}`,
+            endpoint: `/academic/courses/prerequisites/${id}`,
             onSuccess: revalidatePrerequisite,
         },
         state,
