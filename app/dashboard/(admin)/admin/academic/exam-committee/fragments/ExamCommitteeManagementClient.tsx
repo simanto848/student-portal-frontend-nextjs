@@ -5,18 +5,14 @@ import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { DataTable, Column } from "@/components/dashboard/shared/DataTable";
 import {
     ExamCommittee,
-    Department,
-    Batch
 } from "@/services/academic/types";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { ShieldCheck, Users, Search, Filter } from "lucide-react";
+import { ShieldCheck, Users, Filter } from "lucide-react";
 import { ExamCommitteeFormModal } from "./ExamCommitteeFormModal";
-import { ExamCommitteeDeleteModal } from "./ExamCommitteeDeleteModal";
 import { ExamCommitteeViewModal } from "./ExamCommitteeViewModal";
 import {
     addCommitteeMemberAction,
     updateCommitteeMemberAction,
-    removeCommitteeMemberAction
 } from "../actions";
 import {
     useExamCommittees,
@@ -40,12 +36,10 @@ export function ExamCommitteeManagementClient() {
     const { data: batches = [] } = useBatches();
     const { data: teachers = [] } = useTeachers();
 
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [isFormModalOpen, setIsFormModalOpen] = useState(false);
     const [isViewModalOpen, setIsViewModalOpen] = useState(false);
     const [selectedMember, setSelectedMember] = useState<ExamCommittee | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
 
     // Filters
     const [selectedShift, setSelectedShift] = useState<string>("all");
@@ -95,8 +89,8 @@ export function ExamCommitteeManagementClient() {
             accessorKey: "status",
             cell: (item) => (
                 <Badge className={`px-2.5 py-1 rounded-lg text-xs font-bold ring-1 ring-inset shadow-none border-none ${item.status
-                        ? "bg-amber-50 text-amber-700 ring-amber-200"
-                        : "bg-slate-50 text-slate-500 ring-slate-200"
+                    ? "bg-amber-50 text-amber-700 ring-amber-200"
+                    : "bg-slate-50 text-slate-500 ring-slate-200"
                     }`}>
                     {item.status ? "Active" : "Inactive"}
                 </Badge>
@@ -105,15 +99,40 @@ export function ExamCommitteeManagementClient() {
     ], []);
 
     const filteredData = useMemo(() => {
-        return examCommittees.filter((member) => {
+        const data = examCommittees.filter((member) => {
             const shiftMatch = selectedShift === "all" || member.shift === selectedShift;
-            const deptId = typeof member.departmentId === 'object' ? (member.departmentId as any).id : member.departmentId;
+
+            const deptId = (member.departmentId && typeof member.departmentId === 'object')
+                ? (member.departmentId as any).id
+                : member.departmentId;
             const deptMatch = selectedDept === "all" || deptId === selectedDept;
-            const batchId = typeof member.batchId === 'object' ? (member.batchId as any).id : member.batchId;
+
+            const batchId = (member.batchId && typeof member.batchId === 'object')
+                ? (member.batchId as any).id
+                : member.batchId;
             const batchMatch = selectedBatch === "all" || batchId === selectedBatch;
+
             return shiftMatch && deptMatch && batchMatch;
         });
-    }, [examCommittees, selectedShift, selectedDept, selectedBatch]);
+
+        return data.map(committee => {
+            const foundTeacher = teachers.find(t => t.id === committee.teacherId);
+            const teacher = foundTeacher || committee.teacher;
+
+            const deptId = (committee.departmentId && typeof committee.departmentId === 'object')
+                ? (committee.departmentId as any).id
+                : committee.departmentId;
+            const foundDept = departments.find(d => d.id === deptId);
+            const department = foundDept || committee.department;
+
+            return {
+                ...committee,
+                teacher,
+                department,
+                teacherName: teacher?.fullName || "Unknown",
+            };
+        });
+    }, [examCommittees, selectedShift, selectedDept, selectedBatch, teachers, departments]);
 
     const handleCreate = () => {
         setSelectedMember(null);
@@ -128,32 +147,6 @@ export function ExamCommitteeManagementClient() {
     const handleView = (member: ExamCommittee) => {
         setSelectedMember(member);
         setIsViewModalOpen(true);
-    };
-
-    const handleDeleteClick = (member: ExamCommittee) => {
-        setSelectedMember(member);
-        setIsDeleteModalOpen(true);
-    };
-
-    const handleConfirmDelete = async () => {
-        if (!selectedMember) return;
-        setIsDeleting(true);
-        try {
-            const formData = new FormData();
-            const result = await removeCommitteeMemberAction(selectedMember.id, null, formData);
-            if (result.success) {
-                notifySuccess("Member removed successfully");
-                setIsDeleteModalOpen(false);
-                refetch();
-            } else {
-                notifyError(result.message || "Failed to remove member");
-            }
-        } catch (error: any) {
-            notifyError(error?.message || "Failed to remove member");
-        } finally {
-            setIsDeleting(false);
-            setSelectedMember(null);
-        }
     };
 
     const handleFormSubmit = async (data: any) => {
@@ -193,13 +186,22 @@ export function ExamCommitteeManagementClient() {
 
     return (
         <div className="space-y-6">
-            <PageHeader
-                title="Exam Committee"
-                subtitle="Manage and assign teachers to departmental exam committees"
-                actionLabel="Assign Member"
-                onAction={handleCreate}
-                icon={ShieldCheck}
-            />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <PageHeader
+                    title="Exam Committee"
+                    subtitle="Manage and assign teachers to departmental exam committees"
+                    icon={ShieldCheck}
+                />
+                <div className="flex items-center gap-3">
+                    <Button
+                        onClick={handleCreate}
+                        className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold transition-all shadow-lg shadow-slate-200 active:scale-95 flex items-center gap-2"
+                    >
+                        <Users className="w-4 h-4" />
+                        Assign Member
+                    </Button>
+                </div>
+            </div>
 
             {/* Premium Filters Bar */}
             <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-slate-200/60 shadow-sm flex flex-wrap items-center gap-4 transition-all hover:shadow-md">
@@ -264,11 +266,10 @@ export function ExamCommitteeManagementClient() {
                 <DataTable
                     data={filteredData}
                     columns={columns}
-                    searchKey="teacher"
+                    searchKey="teacherName"
                     searchPlaceholder="Search by teacher name..."
                     onView={handleView}
                     onEdit={handleEdit}
-                    onDelete={handleDeleteClick}
                 />
             )}
 
@@ -281,14 +282,6 @@ export function ExamCommitteeManagementClient() {
                 batches={batches}
                 teachers={teachers}
                 isSubmitting={isSubmitting}
-            />
-
-            <ExamCommitteeDeleteModal
-                isOpen={isDeleteModalOpen}
-                onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={handleConfirmDelete}
-                selectedMember={selectedMember}
-                isDeleting={isDeleting}
             />
 
             <ExamCommitteeViewModal

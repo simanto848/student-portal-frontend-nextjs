@@ -75,10 +75,14 @@ export function ExamCommitteeFormModal({
         if (isOpen) {
             if (initialData) {
                 form.reset({
-                    departmentId: typeof initialData.departmentId === 'object' ? (initialData.departmentId as any).id : initialData.departmentId,
+                    departmentId: (initialData.departmentId && typeof initialData.departmentId === 'object')
+                        ? (initialData.departmentId as any).id
+                        : (initialData.departmentId || ""),
                     teacherId: initialData.teacherId,
                     shift: (initialData.shift as "day" | "evening") || "day",
-                    batchId: typeof initialData.batchId === 'object' ? (initialData.batchId as any).id : (initialData.batchId || null),
+                    batchId: (initialData.batchId && typeof initialData.batchId === 'object')
+                        ? (initialData.batchId as any).id
+                        : (initialData.batchId || null),
                     status: !!initialData.status,
                 });
             } else {
@@ -98,7 +102,9 @@ export function ExamCommitteeFormModal({
     const filteredBatches = useMemo(() => {
         if (!selectedDept) return batches;
         return batches.filter((b) => {
-            const bDeptId = typeof b.departmentId === 'object' ? (b.departmentId as any).id : b.departmentId;
+            const bDeptId = (b.departmentId && typeof b.departmentId === 'object')
+                ? (b.departmentId as any).id
+                : b.departmentId;
             return bDeptId === selectedDept;
         });
     }, [selectedDept, batches]);

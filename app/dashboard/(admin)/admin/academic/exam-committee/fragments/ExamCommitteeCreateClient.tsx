@@ -72,7 +72,9 @@ export function ExamCommitteeCreateClient({
     const filteredBatches = useMemo(() => {
         if (!selectedDept) return batches;
         return batches.filter((b) => {
-            const bDeptId = typeof b.departmentId === 'object' ? (b.departmentId as any).id : b.departmentId;
+            const bDeptId = (b.departmentId && typeof b.departmentId === 'object')
+                ? (b.departmentId as any).id
+                : b.departmentId;
             return bDeptId === selectedDept;
         });
     }, [selectedDept, batches]);
