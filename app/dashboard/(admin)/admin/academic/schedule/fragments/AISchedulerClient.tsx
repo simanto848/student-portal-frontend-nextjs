@@ -3,14 +3,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
-    Loader2,
-    Sparkles,
     CheckCircle,
     Clock,
     AlertCircle,
@@ -30,16 +29,20 @@ import {
     XCircle,
     BookOpen,
     Settings,
-    ChevronDown
+    ChevronDown,
+    MapPin,
+    Loader2, // Restored
+    Sparkles // Restored
 } from "lucide-react";
 import { notifySuccess, notifyError, notifyWarning } from "@/components/toast";
 import { ScheduleGenerationOptions, ScheduleValidationResult } from "@/services/academic/schedule.service";
-import { Session, ScheduleProposal, Department, Batch } from "@/services/academic/types";
+
 import Link from "next/link";
 import {
-    fetchSessions,
+    fetchSessions, // Added fetchSessions
     fetchDepartments,
     fetchBatches,
+    fetchClassrooms, // Added import
     fetchProposals,
     validateSchedulePrerequisites,
     generateSchedule,
@@ -49,6 +52,7 @@ import {
     closeSchedulesForSession,
     getScheduleStatusSummary
 } from "../ai-scheduler/actions";
+import { TimePicker } from "@/components/ui/time-picker"; // Added TimePicker import
 
 type SelectionMode = 'all' | 'department' | 'multi_batch' | 'single_batch';
 
@@ -61,6 +65,8 @@ interface UnassignedCourse {
     semester: number;
 }
 
+import { Session, ScheduleProposal, Department, Batch, Classroom } from "@/services/academic/types";
+
 export default function AISchedulerClient() {
     // State for data
     const [sessions, setSessions] = useState<Session[]>([]);
@@ -68,6 +74,7 @@ export default function AISchedulerClient() {
     const [proposals, setProposals] = useState<ScheduleProposal[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [batches, setBatches] = useState<Batch[]>([]);
+    const [classrooms, setClassrooms] = useState<Classroom[]>([]); // Added classrooms state
 
     // Selection state
     const [selectionMode, setSelectionMode] = useState<SelectionMode>('all');
@@ -86,8 +93,14 @@ export default function AISchedulerClient() {
     // Custom time settings
     const [dayStartTime, setDayStartTime] = useState<string>("08:00");
     const [dayEndTime, setDayEndTime] = useState<string>("15:00");
+    const [breakStartTime, setBreakStartTime] = useState<string>("13:00"); // Added break start
+    const [breakEndTime, setBreakEndTime] = useState<string>("14:00");   // Added break end
     const [eveningStartTime, setEveningStartTime] = useState<string>("15:30");
     const [eveningEndTime, setEveningEndTime] = useState<string>("21:00");
+
+    // Room preferences
+    const [preferredTheoryRoom, setPreferredTheoryRoom] = useState<string>("");
+    const [preferredLabRoom, setPreferredLabRoom] = useState<string>("");
 
     // Loading states
     const [isLoading, setIsLoading] = useState(false);
@@ -106,6 +119,7 @@ export default function AISchedulerClient() {
     useEffect(() => {
         loadSessions();
         loadDepartments();
+        loadClassrooms(); // Load classrooms
     }, []);
 
     useEffect(() => {
@@ -138,6 +152,15 @@ export default function AISchedulerClient() {
             setBatches(data);
         } catch (error) {
             notifyError("Failed to load batches");
+        }
+    };
+
+    const loadClassrooms = async () => {
+        try {
+            const data = await fetchClassrooms();
+            setClassrooms(data);
+        } catch (error) {
+            notifyError("Failed to load classrooms");
         }
     };
 
@@ -232,13 +255,17 @@ export default function AISchedulerClient() {
                 day: {
                     startTime: dayStartTime,
                     endTime: dayEndTime,
-                    breakStart: "12:00",
-                    breakEnd: "13:00"
+                    breakStart: breakStartTime, // Use state
+                    breakEnd: breakEndTime     // Use state
                 },
                 evening: {
                     startTime: eveningStartTime,
                     endTime: eveningEndTime
                 }
+            },
+            preferredRooms: {
+                theory: preferredTheoryRoom || undefined,
+                lab: preferredLabRoom || undefined
             }
         };
 
@@ -257,7 +284,7 @@ export default function AISchedulerClient() {
         }
 
         return options;
-    }, [selectedSessionId, selectionMode, selectedDepartmentId, selectedBatchIds, classDurationMinutes, labDurationMinutes, offDays, dayStartTime, dayEndTime, eveningStartTime, eveningEndTime]);
+    }, [selectedSessionId, selectionMode, selectedDepartmentId, selectedBatchIds, classDurationMinutes, labDurationMinutes, offDays, dayStartTime, dayEndTime, breakStartTime, breakEndTime, eveningStartTime, eveningEndTime, preferredTheoryRoom, preferredLabRoom]);
 
     // Validate prerequisites
     const handleValidate = async () => {
@@ -626,8 +653,8 @@ export default function AISchedulerClient() {
                                             onClick={() => handleBatchToggle(batch.id)}
                                             className={`
                                                 cursor-pointer p-3 rounded-xl border-2 transition-all
-                                                ${isSelected 
-                                                    ? 'border-violet-500 bg-violet-50' 
+                                                ${isSelected
+                                                    ? 'border-violet-500 bg-violet-50'
                                                     : 'border-slate-200 bg-white hover:border-slate-300'}
                                             `}
                                         >
@@ -702,23 +729,19 @@ export default function AISchedulerClient() {
                                             Theory Class Duration
                                         </label>
                                         <div className="flex items-center gap-2">
-                                            <Select
-                                                value={classDurationMinutes.toString()}
-                                                onValueChange={(v) => setClassDurationMinutes(parseInt(v))}
-                                            >
-                                                <SelectTrigger className="rounded-xl border-slate-200 bg-white focus:ring-violet-500 h-10">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-xl">
-                                                    <SelectItem value="45">45 minutes</SelectItem>
-                                                    <SelectItem value="50">50 minutes</SelectItem>
-                                                    <SelectItem value="55">55 minutes</SelectItem>
-                                                    <SelectItem value="60">1 hour</SelectItem>
-                                                    <SelectItem value="75">1 hour 15 minutes</SelectItem>
-                                                    <SelectItem value="90">1 hour 30 minutes</SelectItem>
-                                                    <SelectItem value="120">2 hours</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative w-full">
+                                                    <Input
+                                                        type="number"
+                                                        value={classDurationMinutes}
+                                                        onChange={(e) => setClassDurationMinutes(parseInt(e.target.value) || 0)}
+                                                        className="pr-16"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                                                        minutes
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -729,20 +752,19 @@ export default function AISchedulerClient() {
                                             Lab/Project Duration
                                         </label>
                                         <div className="flex items-center gap-2">
-                                            <Select
-                                                value={labDurationMinutes.toString()}
-                                                onValueChange={(v) => setLabDurationMinutes(parseInt(v))}
-                                            >
-                                                <SelectTrigger className="rounded-xl border-slate-200 bg-white focus:ring-violet-500 h-10">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent className="rounded-xl">
-                                                    <SelectItem value="90">1 hour 30 minutes</SelectItem>
-                                                    <SelectItem value="120">2 hours</SelectItem>
-                                                    <SelectItem value="150">2 hours 30 minutes</SelectItem>
-                                                    <SelectItem value="180">3 hours</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <div className="flex items-center gap-2">
+                                                <div className="relative w-full">
+                                                    <Input
+                                                        type="number"
+                                                        value={labDurationMinutes}
+                                                        onChange={(e) => setLabDurationMinutes(parseInt(e.target.value) || 0)}
+                                                        className="pr-16"
+                                                    />
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
+                                                        minutes
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -765,11 +787,10 @@ export default function AISchedulerClient() {
                                                         setOffDays([...offDays, day]);
                                                     }
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                                    offDays.includes(day)
-                                                        ? 'bg-red-100 text-red-700 border-2 border-red-300'
-                                                        : 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
-                                                }`}
+                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${offDays.includes(day)
+                                                    ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                                                    : 'bg-emerald-50 text-emerald-700 border-2 border-emerald-200'
+                                                    }`}
                                             >
                                                 {day}
                                                 <span className="ml-1 text-xs">
@@ -791,7 +812,7 @@ export default function AISchedulerClient() {
                                     </label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {/* Day Shift Times */}
-                                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 space-y-3">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Sun className="w-4 h-4 text-amber-600" />
                                                 <span className="text-sm font-semibold text-amber-800">Day Shift</span>
@@ -799,21 +820,25 @@ export default function AISchedulerClient() {
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div>
                                                     <label className="text-xs text-slate-500">Start</label>
-                                                    <input
-                                                        type="time"
-                                                        value={dayStartTime}
-                                                        onChange={(e) => setDayStartTime(e.target.value)}
-                                                        className="w-full px-2 py-1 border rounded-lg text-sm"
-                                                    />
+                                                    <TimePicker value={dayStartTime} onChange={setDayStartTime} />
                                                 </div>
                                                 <div>
                                                     <label className="text-xs text-slate-500">End</label>
-                                                    <input
-                                                        type="time"
-                                                        value={dayEndTime}
-                                                        onChange={(e) => setDayEndTime(e.target.value)}
-                                                        className="w-full px-2 py-1 border rounded-lg text-sm"
-                                                    />
+                                                    <TimePicker value={dayEndTime} onChange={setDayEndTime} />
+                                                </div>
+                                            </div>
+
+                                            <div className="pt-2 border-t border-amber-200/50">
+                                                <span className="text-xs font-semibold text-amber-800 mb-1 block">Break Time</span>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">Start</label>
+                                                        <TimePicker value={breakStartTime} onChange={setBreakStartTime} />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-slate-500">End</label>
+                                                        <TimePicker value={breakEndTime} onChange={setBreakEndTime} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -827,23 +852,55 @@ export default function AISchedulerClient() {
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div>
                                                     <label className="text-xs text-slate-500">Start</label>
-                                                    <input
-                                                        type="time"
-                                                        value={eveningStartTime}
-                                                        onChange={(e) => setEveningStartTime(e.target.value)}
-                                                        className="w-full px-2 py-1 border rounded-lg text-sm"
-                                                    />
+                                                    <TimePicker value={eveningStartTime} onChange={setEveningStartTime} />
                                                 </div>
                                                 <div>
                                                     <label className="text-xs text-slate-500">End</label>
-                                                    <input
-                                                        type="time"
-                                                        value={eveningEndTime}
-                                                        onChange={(e) => setEveningEndTime(e.target.value)}
-                                                        className="w-full px-2 py-1 border rounded-lg text-sm"
-                                                    />
+                                                    <TimePicker value={eveningEndTime} onChange={setEveningEndTime} />
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Room Preferences */}
+                                <div className="space-y-3 pt-4 border-t border-slate-200">
+                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-slate-400" />
+                                        Room Preferences (Optional)
+                                    </label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-slate-500">Preferred Theory Room</label>
+                                            <Select value={preferredTheoryRoom || "any"} onValueChange={(v) => setPreferredTheoryRoom(v === "any" ? "" : v)}>
+                                                <SelectTrigger className="bg-white border-slate-200">
+                                                    <SelectValue placeholder="Any Available Room" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="any">Any Available Room</SelectItem>
+                                                    {classrooms.filter(c => ['Lecture Hall', 'Seminar Room'].includes(c.roomType)).map(c => (
+                                                        <SelectItem key={c.id} value={c.id}>
+                                                            {c.roomNumber} ({c.capacity} cap)
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-slate-500">Preferred Lab Room</label>
+                                            <Select value={preferredLabRoom || "any"} onValueChange={(v) => setPreferredLabRoom(v === "any" ? "" : v)}>
+                                                <SelectTrigger className="bg-white border-slate-200">
+                                                    <SelectValue placeholder="Any Available Room" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="any">Any Available Room</SelectItem>
+                                                    {classrooms.filter(c => ['Laboratory', 'Computer Lab'].includes(c.roomType)).map(c => (
+                                                        <SelectItem key={c.id} value={c.id}>
+                                                            {c.roomNumber} ({c.capacity} cap)
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         </div>
                                     </div>
                                 </div>
@@ -960,11 +1017,10 @@ export default function AISchedulerClient() {
 
             {/* Validation Results */}
             {showValidation && validationResult && (
-                <Card className={`border-2 rounded-2xl overflow-hidden p-0 ${
-                    validationResult.valid 
-                        ? 'border-emerald-200 bg-emerald-50/50' 
-                        : 'border-red-200 bg-red-50/50'
-                }`}>
+                <Card className={`border-2 rounded-2xl overflow-hidden p-0 ${validationResult.valid
+                    ? 'border-emerald-200 bg-emerald-50/50'
+                    : 'border-red-200 bg-red-50/50'
+                    }`}>
                     <CardHeader className="pb-3">
                         <div className="flex items-center gap-3">
                             {validationResult.valid ? (
@@ -1076,11 +1132,10 @@ export default function AISchedulerClient() {
                                     key={proposal.id}
                                     className="group relative overflow-hidden border-0 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-slate-300/50 transition-all duration-300 bg-white rounded-2xl p-0"
                                 >
-                                    <div className={`absolute top-0 left-0 w-1.5 h-full ${
-                                        proposal.status === 'approved' ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' :
+                                    <div className={`absolute top-0 left-0 w-1.5 h-full ${proposal.status === 'approved' ? 'bg-gradient-to-b from-emerald-400 to-emerald-600' :
                                         proposal.status === 'rejected' ? 'bg-gradient-to-b from-red-400 to-red-600' :
-                                        'bg-gradient-to-b from-amber-400 to-amber-600'
-                                    }`} />
+                                            'bg-gradient-to-b from-amber-400 to-amber-600'
+                                        }`} />
 
                                     <CardHeader className="pb-3">
                                         <div className="flex justify-between items-start gap-3">

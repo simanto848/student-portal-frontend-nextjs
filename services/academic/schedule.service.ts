@@ -34,6 +34,10 @@ export interface ScheduleGenerationOptions {
     workingDays?: DayOfWeek[];      // e.g., ['Saturday', 'Sunday', 'Wednesday', 'Thursday']
     offDays?: DayOfWeek[];          // e.g., ['Monday', 'Tuesday', 'Friday']
     customTimeSlots?: CustomTimeSlots; // Custom start/end times for day and evening shifts
+    preferredRooms?: {
+        theory?: string;
+        lab?: string;
+    };
 }
 
 export interface ScheduleValidationResult {

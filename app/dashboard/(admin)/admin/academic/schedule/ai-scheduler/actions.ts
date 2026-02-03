@@ -4,7 +4,8 @@ import { scheduleService, ScheduleGenerationOptions, ScheduleValidationResult, S
 import { sessionService } from "@/services/academic/session.service";
 import { departmentService } from "@/services/academic/department.service";
 import { batchService } from "@/services/academic/batch.service";
-import { Session, ScheduleProposal, Department, Batch } from "@/services/academic/types";
+import { classroomService } from "@/services/academic/classroom.service";
+import { Session, ScheduleProposal, Department, Batch, Classroom } from "@/services/academic/types";
 
 // ================== Data Fetching Actions ==================
 export async function fetchSessions(): Promise<Session[]> {
@@ -28,6 +29,14 @@ export async function fetchBatches(): Promise<Batch[]> {
         return await batchService.getAllBatches({ status: true });
     } catch (error) {
         throw new Error("Failed to load batches");
+    }
+}
+
+export async function fetchClassrooms(): Promise<Classroom[]> {
+    try {
+        return await classroomService.getAllClassrooms();
+    } catch (error) {
+        throw new Error("Failed to load classrooms");
     }
 }
 
