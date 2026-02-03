@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Camera, RefreshCw, CheckCircle2, UserPlus, X, AlertTriangle } from "lucide-react";
+import { Camera, RefreshCw, CheckCircle2, UserPlus, X, AlertTriangle, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -28,6 +28,7 @@ export function FaceEnrollmentStep({
     const [capturedImages, setCapturedImages] = useState<string[]>([]);
     const [isCapturing, setIsCapturing] = useState(false);
     const [isTraining, setIsTraining] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Start Camera when component opens
     useEffect(() => {
@@ -61,6 +62,37 @@ export function FaceEnrollmentStep({
             }
         };
     }, [isOpen]);
+
+    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = e.target.files;
+        if (!files) return;
+
+        const remainingSlots = 10 - capturedImages.length;
+        if (remainingSlots <= 0) {
+            toast.info("Limit reached (10 images)");
+            return;
+        }
+
+        const filesArray = Array.from(files).slice(0, remainingSlots);
+
+        filesArray.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCapturedImages(prev => {
+                    if (prev.length >= 10) return prev;
+                    return [...prev, reader.result as string];
+                });
+            };
+            reader.readAsDataURL(file);
+        });
+
+        if (files.length > remainingSlots) {
+            toast.info(`Only ${remainingSlots} images were added (total limit is 10)`);
+        }
+
+        // Reset input
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
 
     const captureImage = async () => {
         if (!videoRef.current || !canvasRef.current) return;
@@ -172,7 +204,7 @@ export function FaceEnrollmentStep({
                             <div className="absolute inset-0 border-[3px] border-dashed border-emerald-500/30 m-8 rounded-full pointer-events-none opacity-50" />
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3 justify-between">
                             <Button
                                 variant="outline"
                                 onClick={handleSkip}
@@ -181,15 +213,36 @@ export function FaceEnrollmentStep({
                                 Skip
                             </Button>
 
-                            <Button
-                                size="lg"
-                                onClick={captureImage}
-                                disabled={capturedImages.length >= 10 || isTraining}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl px-8"
-                            >
-                                <Camera className="w-5 h-5 mr-2" />
-                                Capture ({capturedImages.length}/10)
-                            </Button>
+                            <div className="flex gap-2">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    className="hidden"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleUpload}
+                                />
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={capturedImages.length >= 10 || isTraining}
+                                    className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-xl"
+                                >
+                                    <Upload className="w-5 h-5 mr-2" />
+                                    Upload
+                                </Button>
+
+                                <Button
+                                    size="lg"
+                                    onClick={captureImage}
+                                    disabled={capturedImages.length >= 10 || isTraining}
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl px-4"
+                                >
+                                    <Camera className="w-5 h-5 mr-2" />
+                                    ({capturedImages.length}/10)
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
