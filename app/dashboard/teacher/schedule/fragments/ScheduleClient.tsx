@@ -9,26 +9,15 @@ import {
     Users,
     BookOpen,
     Trophy,
-    ChevronRight,
-    Search,
-    LayoutGrid,
-    LayoutList,
-    Download,
-    ClipboardCheck,
-    UserCheck,
-    UserX,
-    AlertCircle
 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
     Tabs,
     TabsList,
     TabsTrigger
 } from "@/components/ui/tabs";
-import { useDashboardTheme } from "@/contexts/DashboardThemeContext";
 import { CourseSchedule, Batch, Classroom, Course } from "@/services/academic/types";
 
 interface ScheduleClientProps {
@@ -46,18 +35,9 @@ const DAYS = [
 ];
 
 export default function ScheduleClient({ initialSchedules }: ScheduleClientProps) {
-    const theme = useDashboardTheme();
-    const [viewMode, setViewMode] = useState<'daily' | 'weekly'>('daily');
     const [selectedDay, setSelectedDay] = useState(
         new Date().toLocaleDateString('en-US', { weekday: 'long' })
     );
-    const [showAttendanceModal, setShowAttendanceModal] = useState(false);
-    const [selectedSchedule, setSelectedSchedule] = useState<CourseSchedule | null>(null);
-    const [attendanceStatus, setAttendanceStatus] = useState<Record<string, 'present' | 'absent' | 'late'>>({});
-
-    const accentPrimary = theme.colors.accent.primary;
-    const accentBgSubtle = accentPrimary.replace('text-', 'bg-') + '/10';
-    const accentBorder = accentPrimary.replace('text-', 'border-') + '/20';
 
     const getCourseInfo = (schedule: CourseSchedule) => {
         if (typeof schedule.sessionCourseId === 'object' && 'courseId' in schedule.sessionCourseId) {
@@ -149,16 +129,6 @@ export default function ScheduleClient({ initialSchedules }: ScheduleClientProps
                         ))}
                     </TabsList>
                 </Tabs>
-
-                <div className="flex items-center gap-3 w-full md:w-auto">
-                    <Button variant="outline" className="h-12 border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 rounded-xl font-bold flex-1 md:flex-none hover:text-[#2dd4bf] hover:border-[#2dd4bf]/20">
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                    </Button>
-                    <Button className="h-12 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold uppercase text-xs tracking-widest flex-1 md:flex-none">
-                        Mark Attendance
-                    </Button>
-                </div>
             </div>
 
             {/* Schedule Body */}
@@ -195,7 +165,7 @@ export default function ScheduleClient({ initialSchedules }: ScheduleClientProps
                                             </div>
 
                                             <div className="space-y-2 mb-6">
-                                                <h3 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight line-clamp-2 leading-tight min-h-[3rem]">
+                                                <h3 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight line-clamp-2 leading-tight min-h-12">
                                                     {course.name}
                                                 </h3>
                                                 <p className="text-xs font-bold uppercase tracking-widest text-[#2dd4bf]">
@@ -234,23 +204,6 @@ export default function ScheduleClient({ initialSchedules }: ScheduleClientProps
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <div className="flex gap-3 mt-6">
-                                                <Button 
-                                                    className="flex-1 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 rounded-xl font-bold uppercase text-xs tracking-widest h-10 transition-all"
-                                                    onClick={() => {
-                                                        setSelectedSchedule(schedule);
-                                                        setShowAttendanceModal(true);
-                                                    }}
-                                                >
-                                                    <ClipboardCheck className="h-4 w-4 mr-2" />
-                                                    Mark Attendance
-                                                </Button>
-                                                <Button variant="outline" className="flex-1 bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600 font-bold uppercase text-xs tracking-widest h-10 rounded-xl transition-all">
-                                                    <BookOpen className="h-4 w-4 mr-2" />
-                                                    Materials
-                                                </Button>
-                                            </div>
                                         </CardContent>
                                     </Card>
                                 );
@@ -264,126 +217,13 @@ export default function ScheduleClient({ initialSchedules }: ScheduleClientProps
                                     Relax! No Classes Scheduled
                                 </h3>
                                 <p className="text-slate-500 dark:text-slate-400 font-medium text-center px-6 max-w-sm">
-                                    You don't have any classes assigned for <span className="text-[#2dd4bf] font-bold">{selectedDay}</span>. Enjoy your break!
+                                    You don&apos;t have any classes assigned for <span className="text-[#2dd4bf] font-bold">{selectedDay}</span>. Enjoy your break!
                                 </p>
                             </div>
                         )}
                     </motion.div>
                 </AnimatePresence>
             </div>
-
-            {/* Attendance Modal */}
-            {showAttendanceModal && selectedSchedule && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="glass-panel rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                        <ClipboardCheck className="text-[#2dd4bf] w-5 h-5" />
-                                        Mark Attendance
-                                    </h2>
-                                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                                        {getCourseInfo(selectedSchedule).name} • {getBatchName(selectedSchedule)}
-                                    </p>
-                                </div>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 w-8 p-0 rounded-lg border-slate-200 dark:border-slate-700"
-                                    onClick={() => setShowAttendanceModal(false)}
-                                >
-                                    ×
-                                </Button>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-6">
-                            {/* Quick Actions */}
-                            <div className="grid grid-cols-3 gap-4">
-                                <Button
-                                    className="h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl"
-                                    onClick={() => {
-                                        // Mark all as present logic
-                                        setAttendanceStatus(prev => {
-                                            const updated = { ...prev };
-                                            // This would need student data - for now just UI demonstration
-                                            return updated;
-                                        });
-                                    }}
-                                >
-                                    <UserCheck className="h-4 w-4 mr-2" />
-                                    Mark All Present
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="h-12 border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-xl"
-                                    onClick={() => {
-                                        // Mark all as absent logic
-                                        setAttendanceStatus(prev => {
-                                            const updated = { ...prev };
-                                            // This would need student data - for now just UI demonstration
-                                            return updated;
-                                        });
-                                    }}
-                                >
-                                    <UserX className="h-4 w-4 mr-2" />
-                                    Mark All Absent
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    className="h-12 border-amber-200 text-amber-600 hover:bg-amber-50 font-bold rounded-xl"
-                                    onClick={() => {
-                                        // Mark all as late logic
-                                        setAttendanceStatus(prev => {
-                                            const updated = { ...prev };
-                                            // This would need student data - for now just UI demonstration
-                                            return updated;
-                                        });
-                                    }}
-                                >
-                                    <AlertCircle className="h-4 w-4 mr-2" />
-                                    Mark All Late
-                                </Button>
-                            </div>
-
-                            {/* Attendance List */}
-                            <div className="space-y-3">
-                                <h3 className="font-bold text-slate-800 dark:text-white">Student List</h3>
-                                <div className="text-center py-8 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200 dark:border-slate-700">
-                                    <Users className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                                    <p className="text-slate-500 dark:text-slate-400 font-medium">
-                                        Student enrollment data will be loaded here
-                                    </p>
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                                        Connect with attendance service to fetch enrolled students
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Submit Button */}
-                            <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-                                <Button
-                                    variant="outline"
-                                    className="flex-1 h-12 border-slate-200 dark:border-slate-700 font-bold rounded-xl"
-                                    onClick={() => setShowAttendanceModal(false)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    className="flex-1 h-12 bg-[#2dd4bf] hover:bg-[#26b3a2] text-white shadow-lg shadow-teal-500/20 font-bold rounded-xl"
-                                    onClick={() => {
-                                        // Save attendance logic
-                                        setShowAttendanceModal(false);
-                                    }}
-                                >
-                                    Save Attendance
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

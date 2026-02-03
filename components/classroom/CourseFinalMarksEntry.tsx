@@ -17,7 +17,7 @@ import {
     type CourseGrade,
 } from "@/services/enrollment/courseGrade.service";
 import { studentService } from "@/services/user/student.service";
-import { Loader2,  Save, AlertCircle } from "lucide-react";
+import { Loader2, Save, AlertCircle } from "lucide-react";
 import { notifyError, notifySuccess, notifyWarning } from "@/components/toast";
 import { motion } from "framer-motion";
 
@@ -33,9 +33,19 @@ interface MarkEntry {
     enrollmentId?: string; // Optional - student may not be enrolled
     theoryMarks?: {
         finalExam?: number;
+        finalExamQuestions?: {
+            q1?: number;
+            q2?: number;
+            q3?: number;
+            q4?: number;
+            q5?: number;
+            q6?: number;
+        };
         midterm?: number;
         attendance?: number;
-        continuousAssessment?: number;
+        classTest?: number;
+        assignment?: number;
+        continuousAssessment?: number; // Legacy
     };
     labMarks?: {
         labReports?: number;
@@ -68,7 +78,7 @@ function MarkInputField({
 }) {
     return (
         <div className="flex flex-col items-center group">
-            <div className="relative w-20">
+            <div className="relative w-16 md:w-20">
                 <Input
                     disabled={disabled}
                     type="number"
@@ -76,21 +86,24 @@ function MarkInputField({
                     max={maxValue}
                     value={value ?? ""}
                     onChange={(e) => {
-                        const newVal = e.target.value ? parseInt(e.target.value) : undefined;
+                        const val = e.target.value;
+                        const newVal = val === "" ? undefined : parseFloat(val);
                         if (newVal !== undefined && newVal > maxValue) return;
                         onChange(newVal);
                     }}
-                    className={`h-11 rounded-xl text-center font-bold text-lg transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${error
+                    className={`h-10 rounded-lg text-center font-bold text-sm transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${error
                         ? "border-red-300 bg-red-50 text-red-900 focus:ring-red-200"
-                        : "border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#2dd4bf]/50 focus:border-[#2dd4bf] focus:ring-4 focus:ring-[#2dd4bf]/10 focus:bg-white text-slate-700 placeholder:text-slate-200"
+                        : "border-slate-200 bg-slate-50/50 hover:bg-white hover:border-[#2dd4bf]/50 focus:border-[#2dd4bf] focus:ring-2 focus:ring-[#2dd4bf]/10 focus:bg-white text-slate-700 placeholder:text-slate-200"
                         }`}
                     placeholder="-"
                 />
             </div>
             {error && (
-                <span className="text-red-500 text-[10px] font-bold mt-1.5 animate-in fade-in slide-in-from-top-1">
-                    {error}
-                </span>
+                <div className="absolute mt-10 z-50">
+                    <span className="bg-red-100 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
+                        {error}
+                    </span>
+                </div>
             )}
         </div>
     );
@@ -118,7 +131,6 @@ export function CourseFinalMarksEntry({
     );
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState<Map<string, string>>(new Map());
 
     const fetchData = useCallback(async () => {
@@ -157,16 +169,20 @@ export function CourseFinalMarksEntry({
                 );
 
                 if (existingGrade) {
+                    const gradeRecord = existingGrade as unknown as Record<string, unknown>;
                     entries.set(student.id, {
                         studentId: student.id,
                         enrollmentId: student.enrollmentId,
-                        theoryMarks: (existingGrade as unknown as Record<string, unknown>).theoryMarks as Record<string, number> | undefined,
-                        labMarks: (existingGrade as unknown as Record<string, unknown>).labMarks as Record<string, number> | undefined,
+                        theoryMarks: gradeRecord.theoryMarks as any,
+                        labMarks: gradeRecord.labMarks as any,
                     });
                 } else {
                     entries.set(student.id, {
                         studentId: student.id,
                         enrollmentId: student.enrollmentId,
+                        theoryMarks: {
+                            finalExamQuestions: {}
+                        }
                     });
                 }
             }
@@ -189,22 +205,26 @@ export function CourseFinalMarksEntry({
     ) => {
         const entry = markEntries.get(studentId) || {
             studentId,
-            enrollmentId:
-                students.find((s) => s.id === studentId)?.enrollmentId || "",
+            enrollmentId: "",
+            theoryMarks: { finalExamQuestions: {} }
         };
 
         const keys = path.split(".");
-        const current = JSON.parse(JSON.stringify(entry)); // Deep copy
-        let target: Record<string, unknown> = current;
+        // Deep copy of entry to Avoid mutation
+        const current = JSON.parse(JSON.stringify(entry));
 
+        let target: any = current;
         for (let i = 0; i < keys.length - 1; i++) {
             if (!target[keys[i]]) target[keys[i]] = {};
-            target = target[keys[i]] as Record<string, unknown>;
+            target = target[keys[i]];
         }
+        target[keys[keys.length - 1]] = value;
 
-        (target as Record<string, unknown>)[keys[keys.length - 1]] = value;
-        setMarkEntries(new Map(markEntries.set(studentId, current as MarkEntry)));
+        const newEntries = new Map(markEntries);
+        newEntries.set(studentId, current);
+        setMarkEntries(newEntries);
 
+        // Clear errors for this field
         const errorKey = `${studentId}.${path}`;
         if (errors.has(errorKey)) {
             const newErrors = new Map(errors);
@@ -213,19 +233,38 @@ export function CourseFinalMarksEntry({
         }
     };
 
-    const calculateTheoryTotal = (studentId: string): number => {
+    const calculateTheoryTotal = (studentId: string): { incourse: number, final: number, total: number } => {
         const entry = markEntries.get(studentId);
-        if (!entry?.theoryMarks) return 0;
-        const { finalExam = 0, midterm = 0, attendance = 0, continuousAssessment = 0 } =
-            entry.theoryMarks;
-        return finalExam + midterm + attendance + continuousAssessment;
+        if (!entry?.theoryMarks) return { incourse: 0, final: 0, total: 0 };
+
+        const { midterm = 0, attendance = 0, classTest = 0, assignment = 0, continuousAssessment = 0, finalExamQuestions } = entry.theoryMarks;
+
+        // Incourse = MT(20) + CT(10) + Asgn(10) + Att(10)
+        // Ignoring continuousAssessment if new fields are used, but for safety include it if others are 0? 
+        // Let's stick to the new fields primarily.
+        const incourse = (midterm || 0) + (attendance || 0) + (classTest || 0) + (assignment || 0);
+
+        // Final from Questions
+        let final = 0;
+        if (finalExamQuestions) {
+            final = (finalExamQuestions.q1 || 0) +
+                (finalExamQuestions.q2 || 0) +
+                (finalExamQuestions.q3 || 0) +
+                (finalExamQuestions.q4 || 0) +
+                (finalExamQuestions.q5 || 0) +
+                (finalExamQuestions.q6 || 0);
+        } else {
+            // Fallback
+            final = entry.theoryMarks.finalExam || 0;
+        }
+
+        return { incourse, final, total: incourse + final };
     };
 
     const calculateLabTotal = (studentId: string): number => {
         const entry = markEntries.get(studentId);
         if (!entry?.labMarks) return 0;
-        const { labReports = 0, attendance = 0, finalLab = 0 } =
-            entry.labMarks;
+        const { labReports = 0, attendance = 0, finalLab = 0 } = entry.labMarks;
         return labReports + attendance + finalLab;
     };
 
@@ -236,20 +275,48 @@ export function CourseFinalMarksEntry({
 
         if (markConfig?.courseType === "theory" && entry?.theoryMarks) {
             const theory = entry.theoryMarks;
-            if (theory.finalExam !== undefined && theory.finalExam > 50) {
-                newErrors.set(`${studentId}.theory.finalExam`, "Cannot exceed 50");
-                isValid = false;
+
+            // Question Validation logic
+            if (theory.finalExamQuestions) {
+                const q = theory.finalExamQuestions;
+
+                // Group A (1-3) Max 2
+                const countA = ['q1', 'q2', 'q3'].filter(k => (q as any)[k] !== undefined && (q as any)[k] !== null && String((q as any)[k]) !== '').length;
+                if (countA > 2) {
+                    ['q1', 'q2', 'q3'].forEach(k => newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 2 in Group A"));
+                    isValid = false;
+                }
+
+                // Group B (4-5) Max 1
+                const countB = ['q4', 'q5'].filter(k => (q as any)[k] !== undefined && (q as any)[k] !== null && String((q as any)[k]) !== '').length;
+                if (countB > 1) {
+                    ['q4', 'q5'].forEach(k => newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 1 in Group B"));
+                    isValid = false;
+                }
+
+                // Individual Mark Validation (12.5)
+                ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].forEach(k => {
+                    if ((q as any)[k] > 12.5) {
+                        newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 12.5");
+                        isValid = false;
+                    }
+                });
             }
+
             if (theory.midterm !== undefined && theory.midterm > 20) {
-                newErrors.set(`${studentId}.theory.midterm`, "Cannot exceed 20");
+                newErrors.set(`${studentId}.theoryMarks.midterm`, "Max 20");
                 isValid = false;
             }
             if (theory.attendance !== undefined && theory.attendance > 10) {
-                newErrors.set(`${studentId}.theory.attendance`, "Cannot exceed 10");
+                newErrors.set(`${studentId}.theoryMarks.attendance`, "Max 10");
                 isValid = false;
             }
-            if (theory.continuousAssessment !== undefined && theory.continuousAssessment > 20) {
-                newErrors.set(`${studentId}.theory.continuous`, "Cannot exceed 20");
+            if (theory.classTest !== undefined && theory.classTest > 10) {
+                newErrors.set(`${studentId}.theoryMarks.classTest`, "Max 10");
+                isValid = false;
+            }
+            if (theory.assignment !== undefined && theory.assignment > 10) {
+                newErrors.set(`${studentId}.theoryMarks.assignment`, "Max 10");
                 isValid = false;
             }
         }
@@ -257,15 +324,15 @@ export function CourseFinalMarksEntry({
         if (markConfig?.courseType === "lab" && entry?.labMarks) {
             const lab = entry.labMarks;
             if (lab.labReports !== undefined && lab.labReports > 10) {
-                newErrors.set(`${studentId}.lab.reports`, "Cannot exceed 10");
+                newErrors.set(`${studentId}.labMarks.labReports`, "Max 10");
                 isValid = false;
             }
             if (lab.attendance !== undefined && lab.attendance > 10) {
-                newErrors.set(`${studentId}.lab.attendance`, "Cannot exceed 10");
+                newErrors.set(`${studentId}.labMarks.attendance`, "Max 10");
                 isValid = false;
             }
             if (lab.finalLab !== undefined && lab.finalLab > 30) {
-                newErrors.set(`${studentId}.lab.final`, "Cannot exceed 30");
+                newErrors.set(`${studentId}.labMarks.finalLab`, "Max 30");
                 isValid = false;
             }
         }
@@ -291,9 +358,7 @@ export function CourseFinalMarksEntry({
             }
 
             const entries = Array.from(markEntries.values()).filter(
-                (e) =>
-                    e.theoryMarks ||
-                    e.labMarks
+                (e) => e.theoryMarks || e.labMarks
             );
 
             if (entries.length === 0) {
@@ -301,6 +366,9 @@ export function CourseFinalMarksEntry({
                 setIsSaving(false);
                 return;
             }
+
+            // Clean up entries to ensure finalExam is updated from questions before sending?
+            // Backend handles it, but sending questions is key.
 
             const result = await courseGradeService.bulkSaveMarks({
                 courseId,
@@ -312,75 +380,15 @@ export function CourseFinalMarksEntry({
             if (result.failureCount === 0) {
                 notifySuccess(`All marks saved successfully (${result.successCount} students)`);
             } else {
-                notifyWarning(
-                    `${result.successCount} saved, ${result.failureCount} failed`
-                );
+                notifyWarning(`${result.successCount} saved, ${result.failureCount} failed`);
             }
 
-            // Trigger grade summary refresh after save
-            if (onSave) {
-                onSave();
-            }
+            if (onSave) onSave();
         } catch (error) {
             notifyError("Failed to save marks");
             console.error(error);
         } finally {
             setIsSaving(false);
-        }
-    };
-
-    const handleSubmitToCommittee = async () => {
-        if (!confirm("Are you sure you want to submit these marks to the Exam Committee? You won't be able to edit after submission.")) {
-            return;
-        }
-
-        setIsSubmitting(true);
-        try {
-            let allValid = true;
-            for (const student of students) {
-                if (!validateEntry(student.id)) {
-                    allValid = false;
-                }
-            }
-
-            if (!allValid) {
-                notifyError("Please fix validation errors before submitting");
-                setIsSubmitting(false);
-                return;
-            }
-
-            const entries = Array.from(markEntries.values()).filter(
-                (e) =>
-                    e.theoryMarks ||
-                    e.labMarks
-            );
-
-            if (entries.length === 0) {
-                notifyError("No marks entered");
-                setIsSubmitting(false);
-                return;
-            }
-
-            await courseGradeService.bulkSaveMarks({
-                courseId,
-                batchId,
-                semester,
-                entries,
-            });
-
-            await courseGradeService.submitToCommittee({
-                courseId,
-                batchId,
-                semester,
-            });
-
-            notifySuccess("Marks submitted to Exam Committee successfully");
-            fetchData();
-        } catch (error) {
-            notifyError("Failed to submit marks");
-            console.error(error);
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -392,257 +400,269 @@ export function CourseFinalMarksEntry({
         );
     }
 
-    if (!markConfig) {
-        return (
-            <Card className="border-2 border-red-200 bg-red-50">
-                <CardContent className="pt-6">
-                    <div className="flex items-center gap-2 text-red-700">
-                        <AlertCircle className="h-5 w-5" />
-                        <span>Unable to load mark configuration for this course</span>
-                    </div>
-                </CardContent>
-            </Card>
-        );
-    }
+    if (!markConfig) return null;
+
+    const isTheory = markConfig.courseType === "theory" || markConfig.courseType === "combined";
+    const isLab = markConfig.courseType === "lab" || markConfig.courseType === "combined";
 
     return (
         <div className="space-y-6">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[2.5rem] border border-slate-200/60 p-8 shadow-sm"
+                className="bg-white rounded-[2rem] border border-slate-200/60 p-6 shadow-sm overflow-hidden"
             >
-                <div className="mb-6">
-                    <h3 className="text-2xl font-black text-slate-900 mb-2">
-                        Mark Entry: {markConfig.courseType.toUpperCase()} Course
-                    </h3>
-                    <p className="text-slate-500 font-medium">
-                        Enter marks for all students. Total marks: {markConfig.totalMarks}
-                    </p>
+                <div className="mb-6 flex justify-between items-center">
+                    <div>
+                        <h3 className="text-xl font-black text-slate-900 mb-1">
+                            Mark Entry: {markConfig.courseType.toUpperCase()}
+                        </h3>
+                        <p className="text-slate-500 font-medium text-sm">
+                            Enter marks for all students.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto pb-4">
                     <Table>
                         <TableHeader>
-                            <TableRow className="bg-slate-50">
-                                <TableHead className="font-black text-slate-900 sticky left-0 bg-slate-50 z-10">
-                                    Student Name
+                            <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                                <TableHead className="font-black text-slate-800 border-b border-slate-200 min-w-[200px]" rowSpan={2}>
+                                    Student
                                 </TableHead>
-                                <TableHead className="font-black text-slate-900">
-                                    Reg. No.
-                                </TableHead>
+                                {isTheory && (
+                                    <>
+                                        <TableHead className="font-black text-center text-slate-800 border-b border-slate-200 border-l" colSpan={4}>
+                                            In-Course
+                                        </TableHead>
+                                        <TableHead className="font-black text-center text-slate-900 bg-slate-100 border-b border-slate-200 border-l border-r" rowSpan={2}>
+                                            Total
+                                        </TableHead>
+                                        <TableHead className="font-black text-center text-slate-800 border-b border-slate-200" colSpan={6}>
+                                            Final
+                                        </TableHead>
+                                        <TableHead className="font-black text-center text-slate-900 bg-slate-100 border-b border-slate-200 border-l border-r" rowSpan={2}>
+                                            Final Total
+                                        </TableHead>
+                                        <TableHead className="font-black text-center text-slate-900 bg-slate-200 border-b border-slate-300" rowSpan={2}>
+                                            Grand Total
+                                        </TableHead>
+                                    </>
+                                )}
+                                {isLab && <TableHead className="text-center border-b border-slate-200" colSpan={4}>Lab Assessment</TableHead>}
+                            </TableRow>
+                            <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
+                                {isTheory && (
+                                    <>
+                                        {/* Incourse Columns */}
+                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l">Mid Term(20)</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500">Class Test(10)</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500">Assignment(10)</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500">Attendance(10)</TableHead>
 
-                                {(markConfig.courseType === "theory" ||
-                                    markConfig.courseType === "combined") && (
-                                        <>
-                                            <TableHead className="font-black text-slate-900">
-                                                Final Exam (50)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Midterm (20)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Attendance (10)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Assessment (20)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Theory Total
-                                            </TableHead>
-                                        </>
-                                    )}
-
-                                {(markConfig.courseType === "lab" ||
-                                    markConfig.courseType === "combined") && (
-                                        <>
-                                            <TableHead className="font-black text-slate-900">
-                                                Lab Reports (10)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Lab Attendance (10)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Final Lab (30)
-                                            </TableHead>
-                                            <TableHead className="font-black text-slate-900">
-                                                Lab Total
-                                            </TableHead>
-                                        </>
-                                    )}
+                                        {/* Final Columns */}
+                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l">Q1</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500">Q2</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500">Q3</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l border-slate-200">Q4</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500">Q5</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l border-slate-200">Q6</TableHead>
+                                    </>
+                                )}
+                                {isLab && (
+                                    <>
+                                        <TableHead>Reports(10)</TableHead>
+                                        <TableHead>Attendance(10)</TableHead>
+                                        <TableHead>Final(30)</TableHead>
+                                        <TableHead>Total(50)</TableHead>
+                                    </>
+                                )}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {students.map((student) => (
-                                <TableRow key={student.id} className="hover:bg-slate-50">
-                                    <TableCell className="font-medium sticky left-0 bg-white z-10">
-                                        {student.fullName}
-                                    </TableCell>
-                                    <TableCell className="text-sm text-slate-600">
-                                        {student.registrationNumber}
-                                    </TableCell>
+                            {students.map((student) => {
+                                const totals = calculateTheoryTotal(student.id);
+                                return (
+                                    <TableRow key={student.id} className="hover:bg-slate-50 group">
+                                        <TableCell className="font-medium bg-white group-hover:bg-slate-50 sticky left-0 z-10 border-r border-slate-100 shadow-[1px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                                            <div>
+                                                <div className="text-sm font-bold text-slate-900">{student.fullName}</div>
+                                                <div className="text-xs text-slate-500">{student.registrationNumber}</div>
+                                            </div>
+                                        </TableCell>
 
-                                    {(markConfig.courseType === "theory" ||
-                                        markConfig.courseType === "combined") && (
+                                        {isTheory && (
                                             <>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={50}
-                                                        value={
-                                                            markEntries.get(student.id)?.theoryMarks
-                                                                ?.finalExam
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "theoryMarks.finalExam",
-                                                                val
-                                                            )
-                                                        }
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theory.finalExam`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
+                                                {/* Incourse Inputs */}
+                                                <TableCell className="p-2 border-l border-slate-100">
                                                     <MarkInputField
                                                         maxValue={20}
-                                                        value={
-                                                            markEntries.get(student.id)?.theoryMarks?.midterm
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "theoryMarks.midterm",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.theory.midterm`)}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.midterm}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.midterm", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.midterm`)}
                                                     />
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="p-2">
                                                     <MarkInputField
                                                         maxValue={10}
-                                                        value={
-                                                            markEntries.get(student.id)?.theoryMarks
-                                                                ?.attendance
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "theoryMarks.attendance",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.theory.attendance`)}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.classTest}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.classTest", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.classTest`)}
                                                     />
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="p-2">
                                                     <MarkInputField
-                                                        maxValue={20}
-                                                        value={
-                                                            markEntries.get(student.id)?.theoryMarks
-                                                                ?.continuousAssessment
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "theoryMarks.continuousAssessment",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.theory.continuous`)}
+                                                        maxValue={10}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.assignment}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.assignment", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.assignment`)}
                                                     />
                                                 </TableCell>
-                                                <TableCell className="font-black bg-[#2dd4bf]/10 text-[#2dd4bf]">
-                                                    {calculateTheoryTotal(student.id)}/100
+                                                <TableCell className="p-2">
+                                                    <MarkInputField
+                                                        maxValue={10}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.attendance}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.attendance", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.attendance`)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
+                                                    {totals.incourse}
+                                                </TableCell>
+
+                                                {/* Final Inputs - Group A */}
+                                                <TableCell className="p-2 border-l border-slate-100 bg-blue-50/10">
+                                                    <MarkInputField
+                                                        maxValue={12.5}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q1}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q1", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q1`)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell className="p-2 bg-blue-50/10">
+                                                    <MarkInputField
+                                                        maxValue={12.5}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q2}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q2", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q2`)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell className="p-2 bg-blue-50/10">
+                                                    <MarkInputField
+                                                        maxValue={12.5}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q3}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q3", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q3`)}
+                                                    />
+                                                </TableCell>
+
+                                                {/* Group B */}
+                                                <TableCell className="p-2 border-l border-slate-100 bg-emerald-50/10">
+                                                    <MarkInputField
+                                                        maxValue={12.5}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q4}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q4", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q4`)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell className="p-2 bg-emerald-50/10">
+                                                    <MarkInputField
+                                                        maxValue={12.5}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q5}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q5", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q5`)}
+                                                    />
+                                                </TableCell>
+
+                                                {/* Group C */}
+                                                <TableCell className="p-2 border-l border-slate-100 bg-purple-50/10">
+                                                    <MarkInputField
+                                                        maxValue={12.5}
+                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q6}
+                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q6", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q6`)}
+                                                    />
+                                                </TableCell>
+
+                                                <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
+                                                    {totals.final}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-center font-black text-white bg-slate-900 rounded-r-lg">
+                                                    {totals.total}
                                                 </TableCell>
                                             </>
                                         )}
-
-                                    {(markConfig.courseType === "lab" ||
-                                        markConfig.courseType === "combined") && (
+                                        {isLab && (
                                             <>
                                                 <TableCell>
                                                     <MarkInputField
                                                         maxValue={10}
-                                                        value={
-                                                            markEntries.get(student.id)?.labMarks?.labReports
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "labMarks.labReports",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.lab.reports`)}
+                                                        value={markEntries.get(student.id)?.labMarks?.labReports}
+                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.labReports", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.labMarks.labReports`)}
                                                     />
                                                 </TableCell>
                                                 <TableCell>
                                                     <MarkInputField
                                                         maxValue={10}
-                                                        value={
-                                                            markEntries.get(student.id)?.labMarks?.attendance
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "labMarks.attendance",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.lab.attendance`)}
+                                                        value={markEntries.get(student.id)?.labMarks?.attendance}
+                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.attendance", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.labMarks.attendance`)}
                                                     />
                                                 </TableCell>
                                                 <TableCell>
                                                     <MarkInputField
                                                         maxValue={30}
-                                                        value={
-                                                            markEntries.get(student.id)?.labMarks?.finalLab
-                                                        }
-                                                        onChange={(val) =>
-                                                            updateMarkEntry(
-                                                                student.id,
-                                                                "labMarks.finalLab",
-                                                                val
-                                                            )
-                                                        }
-                                                        error={errors.get(`${student.id}.lab.final`)}
+                                                        value={markEntries.get(student.id)?.labMarks?.finalLab}
+                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.finalLab", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.labMarks.finalLab`)}
                                                     />
                                                 </TableCell>
-                                                <TableCell className="font-black bg-[#2dd4bf]/10 text-[#2dd4bf]">
+                                                <TableCell className="font-bold text-center">
                                                     {calculateLabTotal(student.id)}/50
                                                 </TableCell>
                                             </>
                                         )}
-                                </TableRow>
-                            ))}
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </div>
 
                 <div className="flex gap-4 mt-8 justify-end">
                     {!isLocked && (
-                        <>
-                            <Button
-                                onClick={handleSaveDraft}
-                                disabled={isSaving || isSubmitting}
-                                variant="outline"
-                                className="h-11 px-6 rounded-xl font-black text-[10px] uppercase tracking-widest border-2 text-slate-500 hover:text-[#2dd4bf] hover:border-[#2dd4bf] hover:bg-[#2dd4bf]/5 transition-all"
-                            >
-                                {isSaving ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Saving...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 h-4 w-4" />
-                                        Save Draft
-                                    </>
-                                )}
-                            </Button>
-                        </>
+                        <Button
+                            onClick={handleSaveDraft}
+                            disabled={isSaving}
+                            variant="outline"
+                            className="h-11 px-6 rounded-xl font-black text-xs uppercase tracking-widest border-2 text-slate-500 hover:text-[#2dd4bf] hover:border-[#2dd4bf] hover:bg-[#2dd4bf]/5 transition-all"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Save Draft
+                                </>
+                            )}
+                        </Button>
                     )}
                 </div>
             </motion.div >
