@@ -50,11 +50,18 @@ interface MarkEntry {
     labMarks?: {
         labReports?: number;
         attendance?: number;
+        quizViva?: number;
         finalLab?: number;
     };
     theoryWeightage?: number;
     labWeightage?: number;
 }
+
+// ... (StartLine 59 to 263 skipped for brevity as they are unchanged usually, but here I am replacing a block, so I need to be careful. I will use separate replace calls if the file is too big or chunks are far apart. 
+// Actually, the `MarkEntry` interface is at top. `calculateLabTotal` is around 264. `validateEntry` is around 271. Table structure is further down. 
+// I should probably do multiple edits or one Main edit if they are contiguous enough. They are somewhat spread out.
+// Let's use `multi_replace_file_content` since I need to touch multiple places.)
+
 
 interface MarkConfig {
     courseId: string;
@@ -264,8 +271,8 @@ export function CourseFinalMarksEntry({
     const calculateLabTotal = (studentId: string): number => {
         const entry = markEntries.get(studentId);
         if (!entry?.labMarks) return 0;
-        const { labReports = 0, attendance = 0, finalLab = 0 } = entry.labMarks;
-        return labReports + attendance + finalLab;
+        const { labReports = 0, attendance = 0, quizViva = 0, finalLab = 0 } = entry.labMarks;
+        return labReports + attendance + quizViva + finalLab;
     };
 
     const validateEntry = (studentId: string): boolean => {
@@ -331,8 +338,12 @@ export function CourseFinalMarksEntry({
                 newErrors.set(`${studentId}.labMarks.attendance`, "Max 10");
                 isValid = false;
             }
-            if (lab.finalLab !== undefined && lab.finalLab > 30) {
-                newErrors.set(`${studentId}.labMarks.finalLab`, "Max 30");
+            if (lab.quizViva !== undefined && lab.quizViva > 10) {
+                newErrors.set(`${studentId}.labMarks.quizViva`, "Max 10");
+                isValid = false;
+            }
+            if (lab.finalLab !== undefined && lab.finalLab > 20) {
+                newErrors.set(`${studentId}.labMarks.finalLab`, "Max 20");
                 isValid = false;
             }
         }
@@ -473,7 +484,8 @@ export function CourseFinalMarksEntry({
                                     <>
                                         <TableHead>Reports(10)</TableHead>
                                         <TableHead>Attendance(10)</TableHead>
-                                        <TableHead>Final(30)</TableHead>
+                                        <TableHead>Quiz/Viva(10)</TableHead>
+                                        <TableHead>Final(20)</TableHead>
                                         <TableHead>Total(50)</TableHead>
                                     </>
                                 )}
@@ -624,7 +636,16 @@ export function CourseFinalMarksEntry({
                                                 </TableCell>
                                                 <TableCell>
                                                     <MarkInputField
-                                                        maxValue={30}
+                                                        maxValue={10}
+                                                        value={markEntries.get(student.id)?.labMarks?.quizViva}
+                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.quizViva", val)}
+                                                        disabled={isLocked}
+                                                        error={errors.get(`${student.id}.labMarks.quizViva`)}
+                                                    />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <MarkInputField
+                                                        maxValue={20}
                                                         value={markEntries.get(student.id)?.labMarks?.finalLab}
                                                         onChange={(val) => updateMarkEntry(student.id, "labMarks.finalLab", val)}
                                                         disabled={isLocked}

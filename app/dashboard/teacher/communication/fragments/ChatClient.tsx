@@ -133,18 +133,6 @@ export default function ChatClient({ chatGroupId, chatGroupType }: ChatClientPro
                                     </span>
                                 </div>
                             </div>
-
-                            <div className="hidden sm:flex flex-col">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">Audience</span>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <div className="p-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
-                                        <MessageSquare className="h-3 w-3" />
-                                    </div>
-                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                        {headerInfo.studentCount || 0} Students
-                                    </span>
-                                </div>
-                            </div>
                         </div>
                     )}
 
