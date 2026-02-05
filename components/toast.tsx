@@ -76,7 +76,7 @@ const getToastStyle = (type: ToastType) => {
     case "error":
       return `${baseStyle} bg-error! text-white!`;
     case "info":
-      return `${baseStyle} bg-info! text-white!`;
+      return `${baseStyle} bg-info! text-slate-800!`;
     case "warning":
       return `${baseStyle} bg-warning! text-white!`;
     case "loading":
