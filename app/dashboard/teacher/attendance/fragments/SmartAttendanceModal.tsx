@@ -141,7 +141,7 @@ export function SmartAttendanceModal({ isOpen, onClose, students, onMarkAttendan
             faces.forEach(face => {
                 // Filter by enrollment: only verify if student is in this batch
                 const isEnrolled = students.some(s => s.student?.registrationNumber === face.id);
-                if (isEnrolled && face.accuracy > 50) { // Threshold 50%
+                if (isEnrolled && face.accuracy > 55) { // Threshold 55%
                     const currentScore = next.get(face.id) || 0;
                     next.set(face.id, Math.max(currentScore, face.accuracy));
                 }
@@ -188,8 +188,6 @@ export function SmartAttendanceModal({ isOpen, onClose, students, onMarkAttendan
 
                             {/* Face Overlay Boxes */}
                             {currentFaces.map((face, idx) => {
-                                // Simple list based overlay or box drawing could go here
-                                // For MVP, we skip complex canvas overlay logic here to keep component simple
                                 return null;
                             })}
 
