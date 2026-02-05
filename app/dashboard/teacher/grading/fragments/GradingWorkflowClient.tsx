@@ -66,7 +66,6 @@ export default function GradingWorkflowClient({
     const { user } = useAuth();
     const isCommitteeMember = user && isTeacherUser(user) && user.isExamCommitteeMember;
 
-    // Update URL when tab changes
     const handleTabChange = (tab: string) => {
         setActiveTab(tab as TabType);
         const url = new URL(window.location.href);
@@ -78,7 +77,6 @@ export default function GradingWorkflowClient({
         router.replace(url.pathname + url.search, { scroll: false });
     };
 
-    // Map tab to backend status filter
     const statusFilter = useMemo(() => {
         switch (activeTab) {
             case "pending": return "pending";
@@ -89,7 +87,6 @@ export default function GradingWorkflowClient({
         }
     }, [activeTab]);
 
-    // Always fetch all workflows - we filter client-side for proper tab functionality
     const {
         data: fetchedWorkflows = [],
         isLoading: isQueryLoading,
@@ -97,15 +94,13 @@ export default function GradingWorkflowClient({
         error,
         refetch,
     } = useGradingWorkflow(
-        activeTab === "committee" ? undefined : undefined, // Always fetch all for teacher view
+        activeTab === "committee" ? undefined : undefined,
         { initialData: initialWorkflows }
     );
 
     const [workflows, setWorkflows] = useState<ResultWorkflow[]>([]);
     const [isEnriching, setIsEnriching] = useState(false);
 
-    // Effect to enrich data when fetchedWorkflows changes
-    // Effect to enrich data when fetchedWorkflows changes
     useEffect(() => {
         const enrich = async () => {
             if (!fetchedWorkflows.length) {
@@ -122,7 +117,6 @@ export default function GradingWorkflowClient({
                 if (!w.grade?.batch?.name && !w.grade?.batch?.code && w.batchId) uniqueBatchIds.add(w.batchId);
             });
 
-            // If nothing to enrich, just set
             if (uniqueCourseIds.size === 0 && uniqueBatchIds.size === 0) {
                 setWorkflows(fetchedWorkflows);
                 setIsEnriching(false);
@@ -130,8 +124,6 @@ export default function GradingWorkflowClient({
             }
 
             try {
-                // We use import() here or rely on imported services if top-level
-                // Ideally imports are top-level. I will assume they are or will add them.
                 const { courseService } = await import("@/services/academic/course.service");
                 const { batchService } = await import("@/services/academic/batch.service");
 
@@ -166,7 +158,7 @@ export default function GradingWorkflowClient({
                         semester: w.semester
                     }
                 }));
-                const typedEnriched: any[] = enriched; // Temporary cast to fix type error during enrichment
+                const typedEnriched: any[] = enriched;
                 setWorkflows(typedEnriched as ResultWorkflow[]);
             } catch (err) {
                 console.error("Enrichment failed", err);
@@ -180,27 +172,19 @@ export default function GradingWorkflowClient({
     }, [fetchedWorkflows]);
 
     const isLoading = isQueryLoading || isEnriching;
-
-    // Filter workflows based on active tab status
     const filteredWorkflows = useMemo(() => {
         let list = [...workflows];
-
-        // Apply status filter based on active tab
         if (activeTab !== "all" && activeTab !== "committee") {
             list = list.filter(w => {
                 const status = w.status?.toUpperCase();
                 switch (activeTab) {
                     case "pending":
-                        // Pending = DRAFT or WITH_INSTRUCTOR (not yet submitted)
                         return status === 'DRAFT' || status === 'WITH_INSTRUCTOR' || status === 'PENDING';
                     case "submitted":
-                        // In Review = SUBMITTED_TO_COMMITTEE
                         return status === 'SUBMITTED_TO_COMMITTEE';
                     case "returned":
-                        // Returned = RETURNED_TO_TEACHER
                         return status === 'RETURNED_TO_TEACHER';
                     case "approved":
-                        // Approved = COMMITTEE_APPROVED or PUBLISHED
                         return status === 'COMMITTEE_APPROVED' || status === 'PUBLISHED';
                     default:
                         return true;
@@ -208,7 +192,6 @@ export default function GradingWorkflowClient({
             });
         }
 
-        // Apply search query filter
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             list = list.filter(w =>
@@ -223,7 +206,6 @@ export default function GradingWorkflowClient({
         );
     }, [workflows, searchQuery, activeTab]);
 
-    // Get empty state content based on active tab
     const getEmptyStateContent = () => {
         switch (activeTab) {
             case "pending":
@@ -292,19 +274,12 @@ export default function GradingWorkflowClient({
 
                     <div className="flex flex-col gap-3">
                         <Button
-                            onClick={() => router.push("/dashboard/teacher/courses")}
-                            className={`h-14 px-8 ${accentPrimary.replace('text-', 'bg-')} hover:opacity-90 text-white shadow-xl shadow-indigo-600/20 rounded-2xl font-black uppercase text-xs tracking-[0.15em] w-full transition-all active:scale-95 flex items-center gap-3`}
-                        >
-                            <Plus className="h-5 w-5" />
-                            Input New Grades
-                        </Button>
-                        <Button
                             variant="outline"
                             onClick={() => refetch()}
                             className="h-12 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2"
                         >
                             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                            Sync Status
+                            Refresh
                         </Button>
                     </div>
                 </div>
