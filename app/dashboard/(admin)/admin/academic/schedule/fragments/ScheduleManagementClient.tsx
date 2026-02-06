@@ -37,6 +37,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { getScheduleStatusSummary } from "../ai-scheduler/actions";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface SearchableSchedule extends CourseSchedule {
     searchCourse: string;
@@ -446,7 +452,7 @@ export function ScheduleManagementClient() {
                         <SelectContent className="rounded-xl border-slate-200 max-h-[300px]">
                             <SelectItem value="all">All Batches</SelectItem>
                             {batches.map((batch) => (
-                                <SelectItem key={batch.id} value={batch.id}>{batch.name}</SelectItem>
+                                <SelectItem key={batch.id} value={batch.id}>{batch.code || batch.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -470,15 +476,88 @@ export function ScheduleManagementClient() {
                     </div>
                 </div>
             ) : (
-                <DataTable
-                    data={filteredData}
-                    columns={columns}
-                    searchKey="searchCourse"
-                    searchPlaceholder="Search by course name..."
-                    onView={handleView}
-                    onEdit={handleEdit}
-                    onDelete={handleDeleteClick}
-                />
+                <div className="space-y-4">
+                    {/* Group by Batch Accordion */}
+                    <div className="grid gap-4">
+                        {batches.filter(b => selectedBatch === "all" || b.id === selectedBatch).map(batch => {
+                            const batchSchedules = filteredData.filter(s => {
+                                const sBatchId = typeof s.batchId === 'object' ? (s.batchId as any).id : s.batchId;
+                                return sBatchId === batch.id;
+                            });
+
+                            if (batchSchedules.length === 0 && selectedBatch !== "all") return null;
+
+                            // Calculate daily stats
+                            const classesPerDay = batchSchedules.reduce((acc, curr) => {
+                                curr.daysOfWeek?.forEach(day => {
+                                    acc[day] = (acc[day] || 0) + 1;
+                                });
+                                return acc;
+                            }, {} as Record<string, number>);
+
+                            return (
+                                <Accordion type="single" collapsible key={batch.id} className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
+                                    <AccordionItem value={batch.id} className="border-0">
+                                        <AccordionTrigger className="px-6 py-4 hover:bg-slate-50/50 transition-colors">
+                                            <div className="flex items-center gap-4 w-full pr-4">
+                                                <Badge className="bg-slate-900 text-white border-none text-sm font-bold px-3 py-1.5 h-auto">
+                                                    {batch.code || batch.name}
+                                                </Badge>
+                                                <div className="flex flex-col items-start gap-1">
+                                                    <span className="text-sm font-semibold text-slate-700">
+                                                        Semester {batch.currentSemester} • {typeof batch.departmentId === 'object' ? (batch.departmentId as any).shortName : (batch as any).departmentName || 'Unknown Dept'}
+                                                    </span>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                        <span className="font-medium bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full border border-amber-100">
+                                                            {batchSchedules.length} Classes
+                                                        </span>
+                                                        <span className="text-slate-400">•</span>
+                                                        <span>{batch.shift === 'day' ? 'Day Shift' : 'Evening Shift'}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="px-6 pb-6 pt-2">
+                                            {batchSchedules.length > 0 ? (
+                                                <div className="rounded-xl border border-slate-200/60 overflow-hidden">
+                                                    <DataTable
+                                                        data={batchSchedules}
+                                                        columns={columns}
+                                                        searchKey="searchCourse"
+                                                        searchPlaceholder="Search courses in this batch..."
+                                                        onView={handleView}
+                                                        onEdit={handleEdit}
+                                                        onDelete={handleDeleteClick}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="text-center py-8 bg-slate-50/50 rounded-xl border-2 border-dashed border-slate-200">
+                                                    <p className="text-slate-500 font-medium">No schedule entries found for this batch</p>
+                                                    <Button variant="link" onClick={handleCreate} className="text-amber-600 font-bold mt-1">
+                                                        Add First Class
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            );
+                        })}
+
+                        {batches.filter(b => selectedBatch === "all" || b.id === selectedBatch).length === 0 && (
+                            <div className="text-center py-12 bg-white/60 rounded-3xl border border-slate-200 border-dashed">
+                                <div className="p-4 bg-slate-100/50 rounded-full w-fit mx-auto mb-4">
+                                    <Filter className="w-8 h-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-700">No batches match your filter</h3>
+                                <p className="text-slate-500 mt-1 mb-4">Try adjusting the batch selector.</p>
+                                <Button onClick={clearFilters} variant="outline" className="border-amber-200 text-amber-700 hover:bg-amber-50">
+                                    Clear Filters
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
             )}
 
             <ScheduleFormModal
