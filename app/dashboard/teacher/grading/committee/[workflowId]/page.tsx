@@ -24,15 +24,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { isTeacherUser } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
 import {
     Dialog,
     DialogContent,
@@ -45,35 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 import OTPConfirmationDialog from "@/components/ui/OTPConfirmationDialog";
 import { notifyError, notifySuccess } from "@/components/toast";
 import { courseGradeService, ResultWorkflow } from "@/services/enrollment/courseGrade.service";
-
-interface TheoryMarks {
-    attendance?: number | string | null;
-    midterm?: number | string | null;
-    continuousAssessment?: number | string | null;
-    finalExam?: number | string | null;
-}
-
-interface LabMarks {
-    labReports?: number | string | null;
-    attendance?: number | string | null;
-    finalLab?: number | string | null;
-}
-
-interface StudentGradeDetail {
-    studentId: string;
-    enrollmentId: string;
-    totalMarksObtained: number;
-    grade?: string;
-    letterGrade?: string;
-    gradePoint: number;
-    student: {
-        fullName: string;
-        registrationNumber: string;
-    };
-    courseType?: "theory" | "lab" | "combined";
-    theoryMarks?: TheoryMarks;
-    labMarks?: LabMarks;
-}
+import { CourseFinalMarksEntry } from "@/components/classroom/CourseFinalMarksEntry";
 
 export default function CommitteeWorkflowDetail() {
     const params = useParams();
@@ -82,10 +45,8 @@ export default function CommitteeWorkflowDetail() {
     const workflowId = params.workflowId as string;
 
     const [workflow, setWorkflow] = useState<ResultWorkflow | null>(null);
-    const [grades, setGrades] = useState<StudentGradeDetail[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
-    const [viewStudent, setViewStudent] = useState<StudentGradeDetail | null>(null);
 
     const [otpDialogOpen, setOtpDialogOpen] = useState(false);
     const [otpActionType, setOtpActionType] = useState<'approve' | 'return' | 'publish' | null>(null);
@@ -106,17 +67,6 @@ export default function CommitteeWorkflowDetail() {
             setLoading(true);
             const wf = await courseGradeService.getWorkflowById(workflowId);
             setWorkflow(wf);
-
-            // Fetch Grades
-            const response = await api.get('/enrollment/grades', {
-                params: {
-                    batchId: wf.grade?.batch?._id || wf.batchId,
-                    courseId: wf.grade?.course?._id || wf.courseId
-                }
-            });
-            const gradesData = response.data.data?.students || response.data.data || [];
-            setGrades(Array.isArray(gradesData) ? gradesData : []);
-
         } catch (error) {
             console.error("Failed to fetch details:", error);
             notifyError("Failed to load workflow details.");
@@ -261,7 +211,17 @@ export default function CommitteeWorkflowDetail() {
                             <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                                 <GraduationCap className="h-4 w-4 text-slate-500 dark:text-slate-400" />
                                 <span className="font-bold">Batch:</span>
-                                <span>{workflow.grade?.batch?.code || workflow.grade?.batch?.name}</span>
+                                <span>
+                                    {(() => {
+                                        const batch = workflow.grade?.batch;
+                                        if (!batch) return "-";
+                                        return batch.code
+                                            ? (batch.shift
+                                                ? `${batch.shift === "evening" ? "E" : "D"}-${batch.name}`
+                                                : batch.name)
+                                            : batch.name;
+                                    })()}
+                                </span>
                             </div>
                             <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">
                                 <Calendar className="h-4 w-4 text-slate-500 dark:text-slate-400" />
@@ -321,139 +281,13 @@ export default function CommitteeWorkflowDetail() {
                 </div>
             </div>
 
-            {/* Content */}
-            <Card className="border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden p-0 dark:bg-slate-900">
-                <CardHeader className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700 py-4">
-                    <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Detailed Grade Report</CardTitle>
-                    <CardDescription className="dark:text-slate-400">
-                        Complete list of student grades and breakdown. Click on a student to view detailed marks.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <Table>
-                        <TableHeader className="bg-slate-50 dark:bg-slate-800">
-                            <TableRow className="dark:border-slate-700">
-                                <TableHead className="pl-6 w-[40%] dark:text-slate-300">Student</TableHead>
-                                <TableHead className="w-[20%] dark:text-slate-300">Registration</TableHead>
-                                <TableHead className="text-right w-[15%] dark:text-slate-300">Total Marks</TableHead>
-                                <TableHead className="text-right w-[10%] dark:text-slate-300">Grade</TableHead>
-                                <TableHead className="text-right pr-6 w-[15%] dark:text-slate-300">GPA</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {grades.length > 0 ? (
-                                grades.map((grade) => (
-                                    <TableRow
-                                        key={grade.studentId}
-                                        className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors dark:border-slate-700"
-                                        onClick={() => setViewStudent(grade)}
-                                    >
-                                        <TableCell className="pl-6 font-medium text-slate-700 dark:text-slate-200">
-                                            <div className="flex flex-col">
-                                                <span>{grade.student?.fullName || "Unknown"}</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-slate-500 dark:text-slate-400 text-sm font-mono">{grade.student?.registrationNumber || "-"}</TableCell>
-                                        <TableCell className="text-right font-medium dark:text-slate-200">{grade.totalMarksObtained}</TableCell>
-                                        <TableCell className="text-right">
-                                            <Badge variant="outline" className={`font-bold ${(grade.letterGrade || grade.grade) === 'F' ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-800' : 'text-slate-700 dark:text-slate-300'}`}>
-                                                {grade.letterGrade || grade.grade || "-"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="text-right pr-6 font-mono text-slate-500 dark:text-slate-400">{grade.gradePoint?.toFixed(2) || "-"}</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow className="dark:border-slate-700">
-                                    <TableCell colSpan={5} className="text-center py-12 text-slate-400 dark:text-slate-500">
-                                        No grades available for this course yet.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
-            {/* Student Marks Breakdown Dialog */}
-            <Dialog open={!!viewStudent} onOpenChange={(open) => !open && setViewStudent(null)}>
-                <DialogContent className="max-w-md dark:bg-slate-900 dark:border-slate-700">
-                    <DialogHeader>
-                        <DialogTitle className="dark:text-white">Marks Breakdown</DialogTitle>
-                        <DialogDescription className="dark:text-slate-400">
-                            Detailed score for {viewStudent?.student?.fullName} ({viewStudent?.student?.registrationNumber})
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    {viewStudent && (
-                        <div className="space-y-6">
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
-                                <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Total Score</p>
-                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{viewStudent.totalMarksObtained}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Grade Point</p>
-                                    <div className="flex items-center gap-2 justify-end">
-                                        <Badge className="text-lg px-3 py-1 bg-indigo-600 font-bold">{viewStudent.letterGrade || viewStudent.grade || "-"}</Badge>
-                                        <span className="text-xl font-medium text-slate-600 dark:text-slate-300">{viewStudent.gradePoint?.toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                {(viewStudent.courseType === 'theory' || viewStudent.courseType === 'combined') && viewStudent.theoryMarks && (
-                                    <div className="space-y-3">
-                                        <h5 className="font-bold text-sm text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 pb-2">Theory Component</h5>
-                                        <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400">Attendance</span>
-                                                <span className="font-medium dark:text-slate-200">{viewStudent.theoryMarks.attendance ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400">Midterm</span>
-                                                <span className="font-medium dark:text-slate-200">{viewStudent.theoryMarks.midterm ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400">Continuous Assessment</span>
-                                                <span className="font-medium dark:text-slate-200">{viewStudent.theoryMarks.continuousAssessment ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400 font-bold">Final Exam</span>
-                                                <span className="font-bold dark:text-white">{viewStudent.theoryMarks.finalExam ?? '-'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {(viewStudent.courseType === 'lab' || viewStudent.courseType === 'combined') && viewStudent.labMarks && (
-                                    <div className="space-y-3">
-                                        <h5 className="font-bold text-sm text-slate-700 dark:text-slate-300 border-b dark:border-slate-700 pb-2">Lab Component</h5>
-                                        <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm">
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400">Lab Reports</span>
-                                                <span className="font-medium dark:text-slate-200">{viewStudent.labMarks.labReports ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400">Attendance</span>
-                                                <span className="font-medium dark:text-slate-200">{viewStudent.labMarks.attendance ?? '-'}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                                <span className="text-slate-500 dark:text-slate-400 font-bold">Final Lab</span>
-                                                <span className="font-bold dark:text-white">{viewStudent.labMarks.finalLab ?? '-'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    <DialogFooter>
-                        <Button onClick={() => setViewStudent(null)}>Close</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {/* Detailed Marks View (Reusing Teacher's component in read-only mode) */}
+            <CourseFinalMarksEntry
+                courseId={workflow.grade?.course?._id || workflow.courseId}
+                batchId={workflow.grade?.batch?._id || workflow.batchId}
+                semester={workflow.semester}
+                isLocked={true}
+            />
 
             {/* Return Comment Dialog */}
             <Dialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>

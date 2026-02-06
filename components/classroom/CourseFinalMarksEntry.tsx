@@ -25,12 +25,12 @@ interface Student {
     id: string;
     fullName: string;
     registrationNumber: string;
-    enrollmentId?: string; // Optional - student may not be enrolled
+    enrollmentId?: string;
 }
 
 interface MarkEntry {
     studentId: string;
-    enrollmentId?: string; // Optional - student may not be enrolled
+    enrollmentId?: string;
     theoryMarks?: {
         finalExam?: number;
         finalExamQuestions?: {
@@ -45,7 +45,7 @@ interface MarkEntry {
         attendance?: number;
         classTest?: number;
         assignment?: number;
-        continuousAssessment?: number; // Legacy
+        continuousAssessment?: number;
     };
     labMarks?: {
         labReports?: number;
@@ -55,13 +55,9 @@ interface MarkEntry {
     };
     theoryWeightage?: number;
     labWeightage?: number;
+    letterGrade?: string;
+    gradePoint?: number;
 }
-
-// ... (StartLine 59 to 263 skipped for brevity as they are unchanged usually, but here I am replacing a block, so I need to be careful. I will use separate replace calls if the file is too big or chunks are far apart. 
-// Actually, the `MarkEntry` interface is at top. `calculateLabTotal` is around 264. `validateEntry` is around 271. Table structure is further down. 
-// I should probably do multiple edits or one Main edit if they are contiguous enough. They are somewhat spread out.
-// Let's use `multi_replace_file_content` since I need to touch multiple places.)
-
 
 interface MarkConfig {
     courseId: string;
@@ -143,34 +139,30 @@ export function CourseFinalMarksEntry({
     const fetchData = useCallback(async () => {
         setIsLoading(true);
         try {
-            // Fetch ALL students in the batch (not just enrolled ones)
             const studentsData = await studentService.getAll({ batchId });
             const studentList: Student[] = (studentsData.students || []).map((s) => ({
                 id: String(s.id),
                 fullName: String(s.fullName),
                 registrationNumber: String(s.registrationNumber),
-                enrollmentId: undefined, // Students may not have enrollment
+                enrollmentId: undefined,
             }));
             setStudents(studentList);
 
             const config = await courseGradeService.getMarkConfig(courseId);
             setMarkConfig(config);
 
-            // Fetch existing marks for the course/batch/semester
             const gradesResponse = await courseGradeService.list({
                 courseId,
                 batchId,
                 semester,
             });
 
-            // Handle both array and object response formats
             const existingGradesList = Array.isArray(gradesResponse)
                 ? gradesResponse
                 : gradesResponse?.grades || [];
 
             const entries = new Map<string, MarkEntry>();
             for (const student of studentList) {
-                // Find existing grade for this student
                 const existingGrade = existingGradesList.find(
                     (g: CourseGrade) => String(g.studentId) === student.id
                 );
@@ -182,6 +174,8 @@ export function CourseFinalMarksEntry({
                         enrollmentId: student.enrollmentId,
                         theoryMarks: gradeRecord.theoryMarks as any,
                         labMarks: gradeRecord.labMarks as any,
+                        letterGrade: gradeRecord.letterGrade as string,
+                        gradePoint: gradeRecord.gradePoint as number,
                     });
                 } else {
                     entries.set(student.id, {
@@ -217,7 +211,6 @@ export function CourseFinalMarksEntry({
         };
 
         const keys = path.split(".");
-        // Deep copy of entry to Avoid mutation
         const current = JSON.parse(JSON.stringify(entry));
 
         let target: any = current;
@@ -231,7 +224,6 @@ export function CourseFinalMarksEntry({
         newEntries.set(studentId, current);
         setMarkEntries(newEntries);
 
-        // Clear errors for this field
         const errorKey = `${studentId}.${path}`;
         if (errors.has(errorKey)) {
             const newErrors = new Map(errors);
@@ -245,13 +237,8 @@ export function CourseFinalMarksEntry({
         if (!entry?.theoryMarks) return { incourse: 0, final: 0, total: 0 };
 
         const { midterm = 0, attendance = 0, classTest = 0, assignment = 0, continuousAssessment = 0, finalExamQuestions } = entry.theoryMarks;
-
-        // Incourse = MT(20) + CT(10) + Asgn(10) + Att(10)
-        // Ignoring continuousAssessment if new fields are used, but for safety include it if others are 0? 
-        // Let's stick to the new fields primarily.
         const incourse = (midterm || 0) + (attendance || 0) + (classTest || 0) + (assignment || 0);
 
-        // Final from Questions
         let final = 0;
         if (finalExamQuestions) {
             final = (finalExamQuestions.q1 || 0) +
@@ -261,7 +248,6 @@ export function CourseFinalMarksEntry({
                 (finalExamQuestions.q5 || 0) +
                 (finalExamQuestions.q6 || 0);
         } else {
-            // Fallback
             final = entry.theoryMarks.finalExam || 0;
         }
 
@@ -282,26 +268,20 @@ export function CourseFinalMarksEntry({
 
         if (markConfig?.courseType === "theory" && entry?.theoryMarks) {
             const theory = entry.theoryMarks;
-
-            // Question Validation logic
             if (theory.finalExamQuestions) {
                 const q = theory.finalExamQuestions;
-
-                // Group A (1-3) Max 2
                 const countA = ['q1', 'q2', 'q3'].filter(k => (q as any)[k] !== undefined && (q as any)[k] !== null && String((q as any)[k]) !== '').length;
                 if (countA > 2) {
                     ['q1', 'q2', 'q3'].forEach(k => newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 2 in Group A"));
                     isValid = false;
                 }
 
-                // Group B (4-5) Max 1
                 const countB = ['q4', 'q5'].filter(k => (q as any)[k] !== undefined && (q as any)[k] !== null && String((q as any)[k]) !== '').length;
                 if (countB > 1) {
                     ['q4', 'q5'].forEach(k => newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 1 in Group B"));
                     isValid = false;
                 }
 
-                // Individual Mark Validation (12.5)
                 ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].forEach(k => {
                     if ((q as any)[k] > 12.5) {
                         newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 12.5");
@@ -377,9 +357,6 @@ export function CourseFinalMarksEntry({
                 setIsSaving(false);
                 return;
             }
-
-            // Clean up entries to ensure finalExam is updated from questions before sending?
-            // Backend handles it, but sending questions is key.
 
             const result = await courseGradeService.bulkSaveMarks({
                 courseId,
@@ -458,6 +435,12 @@ export function CourseFinalMarksEntry({
                                         <TableHead className="font-black text-center text-slate-900 bg-slate-200 border-b border-slate-300" rowSpan={2}>
                                             Grand Total
                                         </TableHead>
+                                        <TableHead className="font-black text-center text-slate-900 bg-slate-300 border-b border-slate-300 border-l" rowSpan={2}>
+                                            Grade
+                                        </TableHead>
+                                        <TableHead className="font-black text-center text-slate-900 bg-slate-300 border-b border-slate-300 border-l" rowSpan={2}>
+                                            Point
+                                        </TableHead>
                                     </>
                                 )}
                                 {isLab && <TableHead className="text-center border-b border-slate-200" colSpan={4}>Lab Assessment</TableHead>}
@@ -487,6 +470,8 @@ export function CourseFinalMarksEntry({
                                         <TableHead>Quiz/Viva(10)</TableHead>
                                         <TableHead>Final(20)</TableHead>
                                         <TableHead>Total(50)</TableHead>
+                                        <TableHead>Grade</TableHead>
+                                        <TableHead>Point</TableHead>
                                     </>
                                 )}
                             </TableRow>
@@ -609,8 +594,14 @@ export function CourseFinalMarksEntry({
                                                 <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
                                                     {totals.final}
                                                 </TableCell>
-                                                <TableCell className="p-4 text-center font-black text-white bg-slate-900 rounded-r-lg">
+                                                <TableCell className="p-4 text-center font-black text-white bg-slate-900 border-r border-slate-800">
                                                     {totals.total}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-center font-black text-slate-900 bg-amber-200">
+                                                    {markEntries.get(student.id)?.letterGrade || "-"}
+                                                </TableCell>
+                                                <TableCell className="p-4 text-center font-black text-slate-900 bg-amber-200 rounded-r-lg">
+                                                    {markEntries.get(student.id)?.gradePoint?.toFixed(2) || "-"}
                                                 </TableCell>
                                             </>
                                         )}
@@ -654,6 +645,12 @@ export function CourseFinalMarksEntry({
                                                 </TableCell>
                                                 <TableCell className="font-bold text-center">
                                                     {calculateLabTotal(student.id)}/50
+                                                </TableCell>
+                                                <TableCell className="font-bold text-center bg-amber-100/50">
+                                                    {markEntries.get(student.id)?.letterGrade || "-"}
+                                                </TableCell>
+                                                <TableCell className="font-bold text-center bg-amber-100/50">
+                                                    {markEntries.get(student.id)?.gradePoint?.toFixed(2) || "-"}
                                                 </TableCell>
                                             </>
                                         )}
