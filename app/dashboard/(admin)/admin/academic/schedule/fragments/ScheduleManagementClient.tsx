@@ -23,10 +23,12 @@ import {
     useSchedules,
     useBatches,
     useClassrooms,
-    useSessionCourses
+    useSessionCourses,
+    useDepartments
 } from "@/hooks/queries/useAcademicQueries";
 import { useTeachers } from "@/hooks/queries/useTeacherQueries";
 import { Badge } from "@/components/ui/badge";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
     Select,
     SelectContent,
@@ -70,20 +72,52 @@ export function ScheduleManagementClient() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    // Schedule status summary
     const [scheduleStatus, setScheduleStatus] = useState<{ active: number; closed: number; archived: number }>({ active: 0, closed: 0, archived: 0 });
 
     // Filters
     const [selectedDay, setSelectedDay] = useState<string>("all");
+    const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
     const [selectedBatch, setSelectedBatch] = useState<string>("all");
+    const [selectedTeacher, setSelectedTeacher] = useState<string>("all");
 
-    // Load schedule status summary
+    // Fetch Departments
+    const { data: departments = [] } = useDepartments();
+    const filteredBatchOptions = useMemo(() => {
+        let opts = batches;
+        if (selectedDepartment !== "all") {
+            opts = opts.filter(b => {
+                const deptId = typeof b.departmentId === 'object' ? b.departmentId.id : b.departmentId;
+                return deptId === selectedDepartment;
+            });
+        }
+        return opts.map(b => ({
+            value: b.id,
+            label: b.code || b.name,
+            description: `${b.name} • Sem ${b.currentSemester}`
+        }));
+    }, [batches, selectedDepartment]);
+
+    const filteredTeacherOptions = useMemo(() => {
+        let opts = teachers;
+        if (selectedDepartment !== "all") {
+            opts = opts.filter(t => {
+                if (!t.departmentId) return true;
+                return t.departmentId === selectedDepartment;
+            });
+        }
+        return opts.map(t => ({
+            value: t.id,
+            label: t.fullName,
+            description: t.email
+        }));
+    }, [teachers, selectedDepartment]);
+
     const loadScheduleStatus = async () => {
         try {
             const status = await getScheduleStatusSummary();
             setScheduleStatus(status);
         } catch {
-            // Silent fail - not critical
+            // Silent fail
         }
     };
 
@@ -91,7 +125,6 @@ export function ScheduleManagementClient() {
         loadScheduleStatus();
     }, []);
 
-    // Reload status when schedules change
     useEffect(() => {
         if (!isSchedulesLoading) {
             loadScheduleStatus();
@@ -268,9 +301,26 @@ export function ScheduleManagementClient() {
             const dayMatch = selectedDay === "all" || s.daysOfWeek?.includes(selectedDay as any);
             const batchId = typeof s.batchId === 'object' ? (s.batchId as any).id : s.batchId;
             const batchMatch = selectedBatch === "all" || batchId === selectedBatch;
-            return dayMatch && batchMatch;
+
+            let departmentMatch = true;
+            if (selectedDepartment !== "all") {
+                const batch = typeof s.batchId === 'object' ? (s.batchId as any) : batches.find(b => b.id === s.batchId);
+                const batchDeptId = typeof batch?.departmentId === 'object' ? batch.departmentId.id : batch?.departmentId;
+                if (batch) {
+                    departmentMatch = batchDeptId === selectedDepartment;
+                } else {
+                    const sessionCourse = typeof s.sessionCourseId === 'object' ? (s.sessionCourseId as any) : sessionCourses.find(sc => sc.id === s.sessionCourseId);
+                    const courseDeptId = typeof sessionCourse?.departmentId === 'object' ? sessionCourse.departmentId.id : sessionCourse?.departmentId;
+                    departmentMatch = courseDeptId === selectedDepartment;
+                }
+            }
+
+            const teacherId = typeof s.teacherId === 'object' ? (s.teacherId as any)._id || (s.teacherId as any).id : s.teacherId;
+            const teacherMatch = selectedTeacher === "all" || teacherId === selectedTeacher;
+
+            return dayMatch && batchMatch && departmentMatch && teacherMatch;
         });
-    }, [searchableData, selectedDay, selectedBatch]);
+    }, [searchableData, selectedDay, selectedBatch, selectedDepartment, selectedTeacher, batches, sessionCourses]);
 
     const handleCreate = () => {
         setSelectedSchedule(null);
@@ -325,7 +375,6 @@ export function ScheduleManagementClient() {
                 }
             });
 
-            // For updates, ensure sessionId is included from the original schedule
             if (selectedSchedule && !formData.has('sessionId')) {
                 const scheduleSessionId = (selectedSchedule as any).sessionId;
                 if (scheduleSessionId) {
@@ -354,7 +403,9 @@ export function ScheduleManagementClient() {
 
     const clearFilters = () => {
         setSelectedDay("all");
+        setSelectedDepartment("all");
         setSelectedBatch("all");
+        setSelectedTeacher("all");
     };
 
     return (
@@ -426,47 +477,79 @@ export function ScheduleManagementClient() {
             </div>
 
             {/* Premium Filters Bar */}
-            <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-slate-200/60 shadow-sm flex flex-wrap items-center gap-4 transition-all hover:shadow-md">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-xl border border-amber-100/50">
-                    <Filter className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Refine View</span>
+            <div className="bg-white/60 backdrop-blur-md rounded-3xl p-5 border border-slate-200/60 shadow-sm flex flex-col gap-4 transition-all hover:shadow-md">
+                <div className="flex items-center gap-2 text-slate-700">
+                    <div className="p-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-100/50">
+                        <Filter className="w-4 h-4" />
+                    </div>
+                    <span className="text-sm font-bold uppercase tracking-wider">Advanced Filters</span>
                 </div>
 
-                <div className="flex flex-wrap gap-3 flex-1">
-                    <Select value={selectedDay} onValueChange={setSelectedDay}>
-                        <SelectTrigger className="w-[180px] rounded-xl border-slate-200 bg-white/50 focus:ring-amber-500 font-medium">
-                            <SelectValue placeholder="Day of Week" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-slate-200">
-                            <SelectItem value="all">Every Day</SelectItem>
-                            {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(day => (
-                                <SelectItem key={day} value={day}>{day}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Department Filter */}
+                    <div className="w-[200px]">
+                        <Select value={selectedDepartment} onValueChange={(val) => {
+                            setSelectedDepartment(val);
+                            setSelectedBatch("all");
+                            setSelectedTeacher("all");
+                        }}>
+                            <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white/50 focus:ring-amber-500 font-medium h-12">
+                                <SelectValue placeholder="All Departments" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                                <SelectItem value="all">Every Department</SelectItem>
+                                {departments.map(dept => (
+                                    <SelectItem key={dept.id} value={dept.id}>{dept.shortName} - {dept.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                    <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-                        <SelectTrigger className="w-[200px] rounded-xl border-slate-200 bg-white/50 focus:ring-amber-500 font-medium">
-                            <SelectValue placeholder="Batch" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl border-slate-200 max-h-[300px]">
-                            <SelectItem value="all">All Batches</SelectItem>
-                            {batches.map((batch) => (
-                                <SelectItem key={batch.id} value={batch.id}>{batch.code || batch.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    {/* Batch Filter (Searchable) */}
+                    <div className="w-[220px]">
+                        <SearchableSelect
+                            options={[{ value: "all", label: "All Batches" }, ...filteredBatchOptions]}
+                            value={selectedBatch}
+                            onChange={setSelectedBatch}
+                            placeholder="Select Batch..."
+                        />
+                    </div>
+
+                    {/* Teacher Filter (Searchable) */}
+                    <div className="w-[220px]">
+                        <SearchableSelect
+                            options={[{ value: "all", label: "All Teachers" }, ...filteredTeacherOptions]}
+                            value={selectedTeacher}
+                            onChange={setSelectedTeacher}
+                            placeholder="Select Teacher..."
+                        />
+                    </div>
+
+                    {/* Day Filter */}
+                    <div className="w-[160px]">
+                        <Select value={selectedDay} onValueChange={setSelectedDay}>
+                            <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white/50 focus:ring-amber-500 font-medium h-12">
+                                <SelectValue placeholder="Day of Week" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-slate-200">
+                                <SelectItem value="all">Every Day</SelectItem>
+                                {["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(day => (
+                                    <SelectItem key={day} value={day}>{day}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {(selectedDay !== "all" || selectedBatch !== "all" || selectedDepartment !== "all" || selectedTeacher !== "all") && (
+                        <Button
+                            variant="ghost"
+                            onClick={clearFilters}
+                            className="text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all h-12 px-4"
+                        >
+                            Reset
+                        </Button>
+                    )}
                 </div>
-
-                {(selectedDay !== "all" || selectedBatch !== "all") && (
-                    <Button
-                        variant="ghost"
-                        onClick={clearFilters}
-                        className="text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
-                    >
-                        Reset
-                    </Button>
-                )}
             </div>
 
             {isSchedulesLoading ? (
@@ -486,8 +569,7 @@ export function ScheduleManagementClient() {
                             });
 
                             if (batchSchedules.length === 0 && selectedBatch !== "all") return null;
-
-                            // Calculate daily stats
+                            
                             const classesPerDay = batchSchedules.reduce((acc, curr) => {
                                 curr.daysOfWeek?.forEach(day => {
                                     acc[day] = (acc[day] || 0) + 1;

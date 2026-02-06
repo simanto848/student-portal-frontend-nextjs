@@ -19,7 +19,24 @@ import { adminNavigation, NavItem } from "@/config/navigation";
 
 const GROUP_ORDER = ["Overview", "Academic Management", "Enrollment Management", "User Management", "Actions"];
 
-export function AdminSidebar({ isCollapsed, toggleCollapse, className, onClose }: { isCollapsed: boolean; toggleCollapse: () => void; className?: string; onClose?: () => void }) {
+interface SidebarStats {
+    students: number;
+    teachers: number;
+}
+
+export function AdminSidebar({
+    isCollapsed,
+    toggleCollapse,
+    className,
+    onClose,
+    stats
+}: {
+    isCollapsed: boolean;
+    toggleCollapse: () => void;
+    className?: string;
+    onClose?: () => void;
+    stats?: SidebarStats;
+}) {
     const pathname = usePathname();
     const { logout, user } = useAuth();
 
@@ -93,11 +110,11 @@ export function AdminSidebar({ isCollapsed, toggleCollapse, className, onClose }
                 <div className="p-4 pb-2">
                     <div className="grid grid-cols-2 gap-2">
                         <div className="bg-white rounded-lg p-3 border border-amber-100 shadow-sm">
-                            <p className="text-2xl font-bold text-amber-600">2,450</p>
+                            <p className="text-2xl font-bold text-amber-600">{stats?.students?.toLocaleString() || "..."}</p>
                             <p className="text-xs text-slate-500">Students</p>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-amber-100 shadow-sm">
-                            <p className="text-2xl font-bold text-emerald-600">96</p>
+                            <p className="text-2xl font-bold text-emerald-600">{stats?.teachers?.toLocaleString() || "..."}</p>
                             <p className="text-xs text-slate-500">Teachers</p>
                         </div>
                     </div>

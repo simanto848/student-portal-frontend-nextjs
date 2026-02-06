@@ -71,6 +71,7 @@ export interface DatabaseStats {
         teachers: number;
         staff: number;
         students: number;
+        courses: number;
     };
 }
 
