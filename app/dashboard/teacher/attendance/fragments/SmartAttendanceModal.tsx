@@ -9,7 +9,7 @@ import { Enrollment } from "@/services/enrollment/enrollment.service";
 
 const PYTHON_API_URL = "http://localhost:5000";
 const CAPTURE_INTERVAL_MS = 1000; // Capture every 1 second
-const ANALYSIS_DURATION_MS = 10000; // Analyze for 10 seconds
+const ANALYSIS_DURATION_MS = 20000; // Analyze for 20 seconds
 
 interface SmartAttendanceModalProps {
     isOpen: boolean;
@@ -122,7 +122,10 @@ export function SmartAttendanceModal({ isOpen, onClose, students, onMarkAttendan
             const res = await fetch(`${PYTHON_API_URL}/api/recognize`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData })
+                body: JSON.stringify({
+                    image: imageData,
+                    requireLiveness: false // Disable liveness check as requested
+                })
             });
             const data = await res.json();
 
@@ -139,9 +142,8 @@ export function SmartAttendanceModal({ isOpen, onClose, students, onMarkAttendan
         setRecognizedStudents(prev => {
             const next = new Map(prev);
             faces.forEach(face => {
-                // Filter by enrollment: only verify if student is in this batch
                 const isEnrolled = students.some(s => s.student?.registrationNumber === face.id);
-                if (isEnrolled && face.accuracy > 55) { // Threshold 55%
+                if (isEnrolled && face.accuracy > 40) { // Threshold 40%
                     const currentScore = next.get(face.id) || 0;
                     next.set(face.id, Math.max(currentScore, face.accuracy));
                 }
@@ -188,7 +190,59 @@ export function SmartAttendanceModal({ isOpen, onClose, students, onMarkAttendan
 
                             {/* Face Overlay Boxes */}
                             {currentFaces.map((face, idx) => {
-                                return null;
+                                // face.box is [top, right, bottom, left] from original image
+                                // Video is mirrored (scale-x-[-1]), so we need to flip the horizontal coordinates visually.
+                                // Actually, if we apply the boxes inside the same container that has scale-x-[-1] applied, 
+                                // they will flip with it! 
+                                // BUT the detected coordinates are from the *unflipped* image sent to backend.
+                                // The video element is visually flipped.
+                                // If we place divs absolutely on top of the video, we should probably NOT flip the container of the boxes,
+                                // but flip the coordinates manually OR apply the same transform.
+                                // Let's try applying the same transform to the box container? 
+                                // No, the text would be backwards.
+
+                                // Let's calculate percentages based on the canvas size used for sending.
+                                const videoWidth = canvasRef.current?.width || 640;
+                                const videoHeight = canvasRef.current?.height || 480;
+
+                                const [top, right, bottom, left] = face.box;
+                                const width = right - left;
+                                const height = bottom - top;
+
+                                // Calculate percentages
+                                const topPct = (top / videoHeight) * 100;
+                                const leftPct = (left / videoWidth) * 100;
+                                const widthPct = (width / videoWidth) * 100;
+                                const heightPct = (height / videoHeight) * 100;
+
+                                // Since the video is mirrored with scale-x-[-1], to align the box:
+                                // The visual "left" is actually (100 - rightPct)%
+                                // simpler: (100 - (leftPct + widthPct))%
+                                const visualLeftPct = 100 - (leftPct + widthPct);
+
+                                const isUnknown = face.name === "Unknown" || face.accuracy < 40;
+                                const color = isUnknown ? "#ef4444" : "#2dd4bf"; // Red or Teal
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="absolute border-2 flex items-end justify-center pointer-events-none transition-all duration-200"
+                                        style={{
+                                            top: `${topPct}%`,
+                                            left: `${visualLeftPct}%`,
+                                            width: `${widthPct}%`,
+                                            height: `${heightPct}%`,
+                                            borderColor: color,
+                                            zIndex: 10
+                                        }}
+                                    >
+                                        <div
+                                            className="bg-black/70 text-white text-[10px] px-1 py-0.5 rounded-b mb-[-20px] whitespace-nowrap"
+                                        >
+                                            {face.name} ({face.accuracy.toFixed(0)}%)
+                                        </div>
+                                    </div>
+                                );
                             })}
 
                             {isScanning && (
