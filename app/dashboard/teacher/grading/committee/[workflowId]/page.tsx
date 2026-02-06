@@ -16,7 +16,6 @@ import {
     Calendar,
     FileText,
     Shield,
-    ShieldAlert
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -62,14 +61,18 @@ export default function CommitteeWorkflowDetail() {
         }
     }, [workflowId, isCommitteeMember]);
 
+
+
     const fetchData = async () => {
         try {
             setLoading(true);
             const wf = await courseGradeService.getWorkflowById(workflowId);
             setWorkflow(wf);
-        } catch (error) {
-            console.error("Failed to fetch details:", error);
-            notifyError("Failed to load workflow details.");
+        } catch (error: any) {
+            if (error?.statusCode !== 404) {
+                console.error("Failed to fetch details:", error);
+            }
+            setWorkflow(null);
         } finally {
             setLoading(false);
         }
@@ -141,47 +144,32 @@ export default function CommitteeWorkflowDetail() {
         }
     };
 
-    // Loading state
-    if (authLoading || loading) {
+    if (!workflow && !loading) {
         return (
-            <div className="flex h-[50vh] w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            </div>
-        );
-    }
-
-    // Access denied for non-committee members
-    if (!isCommitteeMember) {
-        return (
-            <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
-                <div className="rounded-full bg-red-100 p-6 dark:bg-red-900/20">
-                    <ShieldAlert className="h-12 w-12 text-red-600 dark:text-red-400" />
+            <div className="flex flex-col items-center justify-center h-[60vh] gap-6 text-center px-4">
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-full">
+                    <AlertCircle className="h-16 w-16 text-slate-400 dark:text-slate-500" />
                 </div>
-                <div className="space-y-2">
-                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                        Access Restricted
-                    </h1>
-                    <p className="max-w-md text-slate-600 dark:text-slate-400">
-                        You do not have permission to view this page.
-                        This area is restricted to assigned Exam Committee members only.
+                <div className="space-y-2 max-w-md">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                        Workflow Unavailable
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400">
+                        This grading workflow could not be found or has not been submitted to the exam committee yet.
                     </p>
                 </div>
-                <Button variant="outline" onClick={() => router.push('/dashboard/teacher/grading')}>
-                    Back to Grading
+                <Button
+                    onClick={() => router.push('/dashboard/teacher/grading')}
+                    className="mt-2 font-bold"
+                >
+                    <ChevronLeft className="h-4 w-4 mr-2" />
+                    Back to Grading Dashboard
                 </Button>
             </div>
         );
     }
 
-    if (!workflow) {
-        return (
-            <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
-                <AlertCircle className="h-12 w-12 text-slate-300" />
-                <h2 className="text-xl font-bold text-slate-700">Workflow Not Found</h2>
-                <Button variant="outline" onClick={() => router.push('/dashboard/teacher/grading')}>Back to Grading</Button>
-            </div>
-        );
-    }
+    if (!workflow) return null;
 
     return (
         <div className="space-y-6 w-full mx-auto pb-12">
@@ -281,7 +269,6 @@ export default function CommitteeWorkflowDetail() {
                 </div>
             </div>
 
-            {/* Detailed Marks View (Reusing Teacher's component in read-only mode) */}
             <CourseFinalMarksEntry
                 courseId={workflow.grade?.course?._id || workflow.courseId}
                 batchId={workflow.grade?.batch?._id || workflow.batchId}
@@ -289,7 +276,6 @@ export default function CommitteeWorkflowDetail() {
                 isLocked={true}
             />
 
-            {/* Return Comment Dialog */}
             <Dialog open={isReturnDialogOpen} onOpenChange={setIsReturnDialogOpen}>
                 <DialogContent className="dark:bg-slate-900 dark:border-slate-700">
                     <DialogHeader>
