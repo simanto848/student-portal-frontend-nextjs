@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -22,8 +21,11 @@ import {
 } from "@/components/ui/tabs";
 import {
     Student,
-    EnrollmentStatus
+    EnrollmentStatus,
+    studentService
 } from "@/services/user/student.service";
+import { debounce } from "lodash";
+import { Loader2 } from "lucide-react";
 import {
     Search,
     Mail,
@@ -35,9 +37,7 @@ import {
     RotateCcw,
     XCircle,
     GraduationCap,
-    Filter,
     User as UserIcon,
-    ChevronDown,
     Building2,
     BookOpen,
     Layers,
@@ -49,22 +49,7 @@ import { getImageUrl, cn } from "@/lib/utils";
 import { notifySuccess, notifyError } from "@/components/toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { deleteStudentAction, restoreStudentAction, permanentDeleteStudentAction } from "../actions";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-
-interface StudentManagementClientProps {
-    initialStudents: Student[];
-    deletedStudents: Student[];
-    departments: any[];
-    programs: any[];
-    batches: any[];
-    sessions: any[];
-}
 
 const statusColors: Record<EnrollmentStatus, string> = {
     not_enrolled: "bg-slate-100 text-slate-600",
@@ -77,6 +62,17 @@ const statusColors: Record<EnrollmentStatus, string> = {
     transferred_in: "bg-indigo-100 text-indigo-700",
 };
 
+interface StudentManagementClientProps {
+    initialStudents: Student[];
+    deletedStudents: Student[];
+    departments: any[];
+    programs: any[];
+    batches: any[];
+    sessions: any[];
+}
+
+
+
 export function StudentManagementClient({
     initialStudents,
     deletedStudents: initialDeletedStudents,
@@ -86,16 +82,89 @@ export function StudentManagementClient({
     sessions
 }: StudentManagementClientProps) {
     const router = useRouter();
-    const [students, setStudents] = useState(initialStudents);
-    const [deletedStudents, setDeletedStudents] = useState(initialDeletedStudents);
+    const [students, setStudents] = useState<Student[]>(initialStudents);
+    const [deletedStudents, setDeletedStudents] = useState<Student[]>(initialDeletedStudents);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeTab, setActiveTab] = useState("active");
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const observer = useRef<IntersectionObserver | null>(null);
 
     // Filters
     const [deptFilter, setDeptFilter] = useState("all");
     const [progFilter, setProgFilter] = useState("all");
     const [batchFilter, setBatchFilter] = useState("all");
     const [shiftFilter, setShiftFilter] = useState("all");
+
+    const fetchStudents = async (currPage: number, reset: boolean = false) => {
+        if (activeTab !== "active") return;
+
+        setLoading(true);
+        try {
+            const params: any = {
+                page: currPage,
+                limit: 10,
+                search: searchTerm,
+            };
+
+            if (deptFilter !== "all") params.departmentId = deptFilter;
+            if (progFilter !== "all") params.programId = progFilter;
+            if (batchFilter !== "all") params.batchId = batchFilter;
+            if (shiftFilter !== "all") params.shift = shiftFilter;
+
+            const res = await studentService.getAll(params);
+            if (reset) {
+                setStudents(res.students);
+            } else {
+                setStudents(prev => {
+                    const existingIds = new Set(prev.map(s => s.id));
+                    const newStudents = res.students.filter(s => !existingIds.has(s.id));
+                    return [...prev, ...newStudents];
+                });
+            }
+
+            setHasMore(res.students.length === 10);
+        } catch (error) {
+            notifyError("Failed to fetch students");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleFilterChange = useCallback(debounce(() => {
+        setPage(1);
+        setHasMore(true);
+        fetchStudents(1, true);
+    }, 500), [searchTerm, deptFilter, progFilter, batchFilter, shiftFilter, activeTab]);
+
+    useEffect(() => {
+        if (activeTab === "active") {
+            handleFilterChange();
+        }
+        return () => {
+            handleFilterChange.cancel();
+        }
+    }, [searchTerm, deptFilter, progFilter, batchFilter, shiftFilter, activeTab, handleFilterChange]);
+
+    const lastStudentElementRef = useCallback((node: HTMLTableRowElement) => {
+        if (loading) return;
+        if (observer.current) observer.current.disconnect();
+
+        observer.current = new IntersectionObserver(entries => {
+            if (entries[0].isIntersecting && hasMore) {
+                setPage(prevPage => {
+                    const nextPage = prevPage + 1;
+                    fetchStudents(nextPage, false);
+                    return nextPage;
+                });
+            }
+        });
+
+        if (node) observer.current.observe(node);
+    }, [loading, hasMore]);
 
     const handleDelete = async (student: Student) => {
         if (!confirm(`Are you sure you want to suspend ${student.fullName}?`)) return;
@@ -171,22 +240,14 @@ export function StudentManagementClient({
         }
     };
 
-    const filteredStudents = (activeTab === "active" ? students : deletedStudents).filter(s => {
-        const matchesSearch = s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.email.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesDept = deptFilter === "all" || s.departmentId === deptFilter;
-        const matchesProg = progFilter === "all" || s.programId === progFilter;
-        const matchesBatch = batchFilter === "all" || s.batchId === batchFilter;
-
-        let matchesShift = true;
-        if (shiftFilter !== "all") {
-            const shift = batches.find(b => (b.id || b._id) === s.batchId)?.shift;
-            matchesShift = String(shift || "").toLowerCase() === shiftFilter;
-        }
-
-        return matchesSearch && matchesDept && matchesProg && matchesBatch && matchesShift;
-    });
+    const filteredStudents = activeTab === "active"
+        ? students
+        : deletedStudents.filter(s => {
+            const matchesSearch = s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                s.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                s.email.toLowerCase().includes(searchTerm.toLowerCase());
+            return matchesSearch;
+        });
 
     const getBatchLabel = (bId: string) => {
         const b = batches.find(x => (x.id || x._id) === bId);
@@ -283,118 +344,136 @@ export function StudentManagementClient({
                         </TableHeader>
                         <TableBody>
                             <AnimatePresence mode="popLayout">
-                                {filteredStudents.map((s) => (
-                                    <motion.tr
-                                        layout
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        key={s.id}
-                                        className="group border-b border-slate-50 last:border-none hover:bg-amber-50/30 transition-colors"
-                                    >
-                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
-                                            <div className="flex items-center gap-5">
-                                                <div className="h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-100 group-hover:border-amber-200 transition-all shadow-sm">
-                                                    {s.profile?.profilePicture ? (
-                                                        <img
-                                                            src={getImageUrl(s.profile.profilePicture)}
-                                                            alt={s.fullName}
-                                                            className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                        />
-                                                    ) : (
-                                                        <div className="h-full w-full flex items-center justify-center font-black text-slate-400 group-hover:text-amber-600 transition-colors">
-                                                            {s.fullName.charAt(0)}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <div className="flex flex-col">
-                                                        <p className="font-black text-slate-900 tracking-tight leading-none mb-1.5 group-hover:text-amber-700 transition-colors">{s.fullName}</p>
-                                                        {s.isBlocked && (
-                                                            <Badge variant="destructive" className="w-fit h-4 text-[9px] px-1.5 uppercase font-black animate-pulse bg-red-600 text-white border-none">
-                                                                Blocked
-                                                            </Badge>
+                                {filteredStudents.map((s, index) => {
+                                    const isLast = index === filteredStudents.length - 1;
+                                    return (
+                                        <motion.tr
+                                            layout
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            key={s.id}
+                                            className="group border-b border-slate-50 last:border-none hover:bg-amber-50/30 transition-colors"
+                                        >
+                                            <TableCell className="px-4 py-4 md:px-8 md:py-6">
+                                                <div className="flex items-center gap-5">
+                                                    <div className="h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-100 group-hover:border-amber-200 transition-all shadow-sm">
+                                                        {s.profile?.profilePicture ? (
+                                                            <img
+                                                                src={getImageUrl(s.profile.profilePicture)}
+                                                                alt={s.fullName}
+                                                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                            />
+                                                        ) : (
+                                                            <div className="h-full w-full flex items-center justify-center font-black text-slate-400 group-hover:text-amber-600 transition-colors">
+                                                                {s.fullName.charAt(0)}
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5 italic">
-                                                        <Mail className="w-3 h-3" />
-                                                        {s.email}
-                                                    </p>
+                                                    <div>
+                                                        <div className="flex flex-col">
+                                                            <p className="font-black text-slate-900 tracking-tight leading-none mb-1.5 group-hover:text-amber-700 transition-colors">{s.fullName}</p>
+                                                            {s.isBlocked && (
+                                                                <Badge variant="destructive" className="w-fit h-4 text-[9px] px-1.5 uppercase font-black animate-pulse bg-red-600 text-white border-none">
+                                                                    Blocked
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5 italic">
+                                                            <Mail className="w-3 h-3" />
+                                                            {s.email}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-2">
-                                                    <Hash className="w-3 h-3 text-amber-500" />
-                                                    <span className="font-black text-xs text-slate-900 tracking-wider">ID: {s.registrationNumber}</span>
+                                            </TableCell>
+                                            <TableCell className="px-4 py-4 md:px-8 md:py-6">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Hash className="w-3 h-3 text-amber-500" />
+                                                        <span className="font-black text-xs text-slate-900 tracking-wider">ID: {s.registrationNumber}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Layers className="w-3 h-3 text-slate-300" />
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{getBatchLabel(s.batchId)}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Layers className="w-3 h-3 text-slate-300" />
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{getBatchLabel(s.batchId)}</span>
+                                            </TableCell>
+                                            <TableCell className="px-4 py-4 md:px-8 md:py-6">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <Building2 className="w-3 h-3 text-slate-400" />
+                                                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate max-w-[150px]">
+                                                            {departments.find(d => (d.id || d._id) === s.departmentId)?.name || "N/A"}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <BookOpen className="w-3 h-3 text-slate-300" />
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate max-w-[150px]">
+                                                            {programs.find(p => (p.id || p._id) === s.programId)?.name || "N/A"}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
-                                            <div className="flex flex-col gap-1.5">
-                                                <div className="flex items-center gap-2">
-                                                    <Building2 className="w-3 h-3 text-slate-400" />
-                                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate max-w-[150px]">
-                                                        {departments.find(d => (d.id || d._id) === s.departmentId)?.name || "N/A"}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <BookOpen className="w-3 h-3 text-slate-300" />
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate max-w-[150px]">
-                                                        {programs.find(p => (p.id || p._id) === s.programId)?.name || "N/A"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="px-4 py-4 md:px-8 md:py-6">
-                                            <Badge className={`px-2.5 py-1 rounded-lg font-black text-[9px] uppercase tracking-[0.15em] border-none shadow-sm ${statusColors[s.enrollmentStatus]}`}>
-                                                {s.enrollmentStatus.replace(/_/g, " ")}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="px-8 py-6 text-right">
-                                            {activeTab === "active" ? (
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-amber-600 hover:shadow-md active:scale-95 transition-all">
-                                                        <Eye className="w-4.5 h-4.5" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}/edit`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-blue-600 hover:shadow-md active:scale-95 transition-all">
-                                                        <Edit className="w-4.5 h-4.5" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => s.isBlocked ? handleUnblock(s) : handleBlock(s)}
-                                                        className={cn(
-                                                            "h-10 w-10 rounded-xl hover:bg-white hover:shadow-md active:scale-95 transition-all",
-                                                            s.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
-                                                        )}
-                                                        title={s.isBlocked ? "Unblock Student" : "Block Student"}
-                                                    >
-                                                        {s.isBlocked ? <Unlock className="w-4.5 h-4.5" /> : <Ban className="w-4.5 h-4.5" />}
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-red-600 hover:shadow-md active:scale-95 transition-all">
-                                                        <Trash2 className="w-4.5 h-4.5" />
-                                                    </Button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => handleRestore(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-emerald-600 hover:shadow-md active:scale-95 transition-all" title="Restore">
-                                                        <RotateCcw className="w-4.5 h-4.5" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={() => handlePermanentDelete(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-red-700 hover:shadow-md active:scale-95 transition-all" title="Purge Record">
-                                                        <XCircle className="w-4.5 h-4.5" />
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </TableCell>
-                                    </motion.tr>
-                                ))}
+                                            </TableCell>
+                                            <TableCell className="px-4 py-4 md:px-8 md:py-6">
+                                                <Badge className={`px-2.5 py-1 rounded-lg font-black text-[9px] uppercase tracking-[0.15em] border-none shadow-sm ${statusColors[s.enrollmentStatus]}`}>
+                                                    {s.enrollmentStatus.replace(/_/g, " ")}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="px-8 py-6 text-right">
+                                                {activeTab === "active" ? (
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-amber-600 hover:shadow-md active:scale-95 transition-all">
+                                                            <Eye className="w-4.5 h-4.5" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}/edit`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-blue-600 hover:shadow-md active:scale-95 transition-all">
+                                                            <Edit className="w-4.5 h-4.5" />
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => s.isBlocked ? handleUnblock(s) : handleBlock(s)}
+                                                            className={cn(
+                                                                "h-10 w-10 rounded-xl hover:bg-white hover:shadow-md active:scale-95 transition-all",
+                                                                s.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
+                                                            )}
+                                                            title={s.isBlocked ? "Unblock Student" : "Block Student"}
+                                                        >
+                                                            {s.isBlocked ? <Unlock className="w-4.5 h-4.5" /> : <Ban className="w-4.5 h-4.5" />}
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-red-600 hover:shadow-md active:scale-95 transition-all">
+                                                            <Trash2 className="w-4.5 h-4.5" />
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button variant="ghost" size="icon" onClick={() => handleRestore(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-emerald-600 hover:shadow-md active:scale-95 transition-all" title="Restore">
+                                                            <RotateCcw className="w-4.5 h-4.5" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={() => handlePermanentDelete(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-red-700 hover:shadow-md active:scale-95 transition-all" title="Purge Record">
+                                                            <XCircle className="w-4.5 h-4.5" />
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </TableCell>
+                                        </motion.tr>
+                                    );
+                                })}
                             </AnimatePresence>
+                            {activeTab === "active" && hasMore && !loading && (
+                                <TableRow ref={lastStudentElementRef} className="border-none">
+                                    <TableCell colSpan={5} className="h-1 p-0 border-none opacity-0">Loading Marker</TableCell>
+                                </TableRow>
+                            )}
+                            {loading && (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="py-8 text-center text-slate-400">
+                                        <div className="flex justify-center items-center gap-2">
+                                            <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
+                                            <span className="text-xs font-bold">Loading more students...</span>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            )}
                         </TableBody>
                     </Table>
                     {filteredStudents.length === 0 && (
