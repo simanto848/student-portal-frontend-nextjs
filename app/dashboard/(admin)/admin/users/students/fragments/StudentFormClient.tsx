@@ -307,7 +307,7 @@ export function StudentFormClient({
     };
 
     return (
-        <div className="space-y-10 pb-20">
+        <div className="space-y-6 md:space-y-10 pb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4 sm:gap-6">
                     <button
@@ -321,7 +321,7 @@ export function StudentFormClient({
                             <ShieldPlus className="w-3.5 h-3.5" />
                             <span className="text-[10px] font-black uppercase tracking-widest">{isEdit ? "Update Student" : "Add Student"}</span>
                         </Badge>
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter text-slate-900 leading-none">
                             {isEdit ? `Editing: ${student?.fullName}` : "New Student Registration"}
                         </h1>
                     </div>
@@ -329,7 +329,7 @@ export function StudentFormClient({
             </div>
 
             <div className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
-                <div className="bg-slate-900 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between overflow-x-auto gap-8 no-scrollbar">
+                <div className="bg-slate-900 px-4 py-4 md:px-10 md:py-8 flex items-center justify-between overflow-x-auto gap-4 md:gap-8 no-scrollbar">
                     {steps.map((s, idx) => {
                         const active = step === s.id;
                         const completed = step > s.id;
@@ -348,7 +348,7 @@ export function StudentFormClient({
                     })}
                 </div>
 
-                <div className="p-4 sm:p-6 md:px-6 md:py-8 lg:p-10 min-h-[450px]">
+                <div className="p-4 sm:p-6 md:px-8 md:py-10 lg:p-12 min-h-[450px]">
                     <AnimatePresence mode="wait">
                         {step === 1 && (
                             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
@@ -731,12 +731,12 @@ export function StudentFormClient({
                     </AnimatePresence>
                 </div>
 
-                <div className="bg-slate-50 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between border-t border-slate-100 gap-4">
+                <div className="bg-slate-50 px-4 py-4 md:px-10 md:py-8 flex flex-col-reverse sm:flex-row items-center justify-between border-t border-slate-100 gap-4">
                     <Button
                         variant="ghost"
                         onClick={prevStep}
                         disabled={step === 1 || isSubmitting}
-                        className="h-12 md:h-14 px-4 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 group transition-all"
+                        className="h-12 md:h-14 px-4 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 group transition-all w-full sm:w-auto"
                     >
                         <ChevronLeft className="w-4 h-4 mr-1 md:mr-2 group-hover:-translate-x-1 transition-transform" />
                         <span className="hidden sm:inline">Back</span>
@@ -744,7 +744,7 @@ export function StudentFormClient({
                     {step < 6 ? (
                         <Button
                             onClick={nextStep}
-                            className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 group shadow-lg"
+                            className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 md:gap-3 transition-all active:scale-95 group shadow-lg w-full sm:w-auto"
                         >
                             Next Step
                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -753,7 +753,7 @@ export function StudentFormClient({
                         <Button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-900/30"
+                            className="h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 md:gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-900/30 w-full sm:w-auto"
                         >
                             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
                             Save Student
@@ -792,7 +792,7 @@ function FormGroup({ label, icon: Icon, children, error }: { label: string, icon
 
 function KinInputSection({ label, icon: Icon, data, onChange, hasOccupation = false, hasRelation = false, errors, setErrors }: { label: string, icon: any, data: any, onChange: (v: any) => void, hasOccupation?: boolean, hasRelation?: boolean, errors?: string, setErrors?: any }) {
     return (
-        <div className={`p-8 rounded-[2.5rem] bg-white border-2 ${errors ? 'border-red-500 bg-red-50/10' : 'border-slate-50'} shadow-sm space-y-6 hover:border-amber-500/20 transition-all duration-500`}>
+        <div className={`p-4 sm:p-6 md:p-8 rounded-[2.5rem] bg-white border-2 ${errors ? 'border-red-500 bg-red-50/10' : 'border-slate-50'} shadow-sm space-y-4 md:space-y-6 hover:border-amber-500/20 transition-all duration-500`}>
             <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                     <div className={`h-8 w-8 rounded-xl ${errors ? 'bg-red-100 text-red-500' : 'bg-slate-100 text-slate-400'} flex items-center justify-center`}>

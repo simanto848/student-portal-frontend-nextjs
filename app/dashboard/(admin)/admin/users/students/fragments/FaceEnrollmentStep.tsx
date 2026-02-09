@@ -204,16 +204,16 @@ export function FaceEnrollmentStep({
                             <div className="absolute inset-0 border-[3px] border-dashed border-emerald-500/30 m-8 rounded-full pointer-events-none opacity-50" />
                         </div>
 
-                        <div className="flex items-center gap-3 justify-between">
+                        <div className="flex flex-col-reverse sm:flex-row items-center gap-3 justify-between">
                             <Button
                                 variant="outline"
                                 onClick={handleSkip}
-                                className="border-slate-600 text-slate-400 hover:text-white"
+                                className="border-slate-600 text-slate-400 hover:text-white w-full sm:w-auto"
                             >
                                 Skip
                             </Button>
 
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                                 <input
                                     type="file"
                                     ref={fileInputRef}
@@ -227,7 +227,7 @@ export function FaceEnrollmentStep({
                                     size="lg"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={capturedImages.length >= 10 || isTraining}
-                                    className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-xl"
+                                    className="border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 font-bold rounded-xl w-full sm:w-auto"
                                 >
                                     <Upload className="w-5 h-5 mr-2" />
                                     Upload
@@ -237,7 +237,7 @@ export function FaceEnrollmentStep({
                                     size="lg"
                                     onClick={captureImage}
                                     disabled={capturedImages.length >= 10 || isTraining}
-                                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl px-4"
+                                    className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl px-4 w-full sm:w-auto"
                                 >
                                     <Camera className="w-5 h-5 mr-2" />
                                     ({capturedImages.length}/10)

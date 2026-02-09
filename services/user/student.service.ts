@@ -231,13 +231,16 @@ export const studentService = {
 
   getDeleted: async (): Promise<Student[]> => {
     try {
-      const res = await api.get("/user/students/deleted");
+      // The backend /deleted endpoint seems to be returning active students or is broken.
+      // Based on the UI label "Suspended", we will fetch students with enrollmentStatus="suspended".
+      const res = await api.get("/user/students", { params: { enrollmentStatus: "suspended" } });
       const data = res.data?.data || res.data;
-      return Array.isArray(data)
-        ? data.map(normalize)
-        : Array.isArray(data.students)
-          ? data.students.map(normalize)
+      const students = Array.isArray(data.students)
+        ? data.students.map(normalize)
+        : Array.isArray(data)
+          ? data.map(normalize)
           : [];
+      return students;
     } catch (e) {
       return handleApiError(e);
     }
