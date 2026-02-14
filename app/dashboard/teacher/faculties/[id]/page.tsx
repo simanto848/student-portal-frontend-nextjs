@@ -39,14 +39,10 @@ export default async function TeacherDetailsPage({ params }: PageProps) {
 
         // Access Control
         if (isDeptHead && teacher.departmentId !== (user as any).departmentId) {
-            return notFound(); // Or redirect to unauthorized
+            return notFound();
         }
-        // For Dean, we ideally check if department belongs to faculty
-        // But we might need to fetch department details first if not in teacher object
-        // Assuming teacher.department contains facultyId or we check loosely for now.
-        // If strict compliance needed, we'd filters departmentsRes to find teacher's department and check facultyId.
+
         if (isDean) {
-            // Best effort check if info available, otherwise allow view (or strict check if we trust departmentsRes)
             const dept = (Array.isArray(departmentsRes) ? departmentsRes : []).find((d: any) => d.id === teacher.departmentId);
             if (dept && dept.facultyId !== (user as any).facultyId) {
                 return notFound();

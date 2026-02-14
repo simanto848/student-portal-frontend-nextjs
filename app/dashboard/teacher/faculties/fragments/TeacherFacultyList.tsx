@@ -114,7 +114,7 @@ export function TeacherFacultyList({
             ),
         },
         {
-            header: "Title",
+            header: "Designation",
             accessorKey: "designation",
             cell: (teacher) => (
                 teacher.designation ? (

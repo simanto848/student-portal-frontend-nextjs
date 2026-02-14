@@ -151,7 +151,7 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
                                         {teacher.designation ? designationLabel[teacher.designation] : "FACULTY"}
                                     </span>
                                 </Badge>
-                                <span className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest">ID: {teacher.registrationNumber}</span>
+                                <span className="text-slate-400 dark:text-slate-500 font-black text-[10px] uppercase tracking-widest">Registration Number: <span className="text-[#2dd4bf]">{teacher.registrationNumber}</span></span>
                             </div>
                             <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white leading-none">
                                 {teacher.fullName.split(' ')[0]}<span className="text-[#2dd4bf]"> {teacher.fullName.split(' ').slice(1).join(' ')}</span>
@@ -208,10 +208,10 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
 
                                 <div className="flex-1 space-y-10 pt-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-10 gap-x-12">
-                                        <InfoBlock icon={Mail} label="Academic Email" value={teacher.email} />
-                                        <InfoBlock icon={Calendar} label="Date Joined" value={teacher.joiningDate ? new Date(teacher.joiningDate).toLocaleDateString() : "N/A"} />
-                                        <InfoBlock icon={Network} label="Domain Department" value={departmentName} />
-                                        <InfoBlock icon={Phone} label="Contact Terminal" value={teacher.phone || profile?.phoneNumber || "N/A"} />
+                                        <InfoBlock icon={Mail} label="Email" value={teacher.email} />
+                                        <InfoBlock icon={Calendar} label="Joining Date" value={teacher.joiningDate ? new Date(teacher.joiningDate).toLocaleDateString() : "N/A"} />
+                                        <InfoBlock icon={Network} label="Department" value={departmentName} />
+                                        <InfoBlock icon={Phone} label="Phone Number" value={teacher.phone || profile?.phoneNumber || "N/A"} />
                                     </div>
                                 </div>
                             </div>
@@ -250,7 +250,7 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
 
                                     {profile.addresses && profile.addresses.length > 0 && (
                                         <div className="mt-12 pt-10 border-t border-slate-200/60 dark:border-slate-800/50">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 px-1">Residential Coordinates</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 px-1">Address</p>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 {profile.addresses.map((addr, idx) => (
                                                     <div key={idx} className="p-6 rounded-[2rem] bg-slate-50/50 dark:bg-slate-900/30 border-2 border-slate-100 dark:border-slate-800/50 hover:border-[#2dd4bf]/20 transition-colors group/addr shadow-sm">
@@ -284,21 +284,16 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
                         </div>
                         <div className="relative z-10">
                             <div className="flex items-center justify-between mb-8">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Live Status Awareness</p>
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Last Login</p>
                                 <RefreshCcw className="w-4 h-4 text-[#2dd4bf] animate-spin-slow" />
                             </div>
-                            <h3 className="text-lg font-black text-white mb-2 leading-tight uppercase tracking-tight">
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2 leading-tight uppercase tracking-tight">
                                 {teacher.lastLoginAt ? new Date(teacher.lastLoginAt).toLocaleString() : "NEVER DETECTED"}
                             </h3>
                             <p className="text-[#2dd4bf] font-black text-[10px] uppercase tracking-[0.2em] flex items-center gap-2.5">
                                 <span className="h-2 w-2 rounded-full bg-[#2dd4bf] shadow-[0_0_12px_rgba(45,212,191,0.8)] animate-pulse" />
-                                Log Node: {teacher.lastLoginIp || "N/A"}
+                                Last Login IP: {teacher.lastLoginIp || "N/A"}
                             </p>
-
-                            <div className="mt-12 pt-8 border-t border-slate-800/60">
-                                <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em] mb-1">System Core ID</p>
-                                <p className="text-[10px] font-mono text-slate-500 truncate select-all">{teacher.id}</p>
-                            </div>
                         </div>
                     </GlassCard>
 
@@ -310,14 +305,14 @@ export function TeacherFacultyDetail({ teacher: initialTeacher, profile, departm
                                 </div>
                                 <div className="space-y-1">
                                     <h3 className="text-lg font-black text-slate-900 dark:text-white leading-none">Access Control</h3>
-                                    <p className="text-slate-400 dark:text-slate-500 font-bold text-[9px] uppercase tracking-[0.2em]">Network Node Protection</p>
+                                    <p className="text-slate-400 dark:text-slate-500 font-bold text-[9px] uppercase tracking-[0.2em]">Network Access Control</p>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="flex gap-2 relative">
                                     <Input
-                                        placeholder="Add node identifier (IP)..."
+                                        placeholder="Add IP Address..."
                                         value={ipInput}
                                         onChange={(e) => setIpInput(e.target.value)}
                                         className="h-14 px-6 rounded-[1.25rem] bg-slate-50 dark:bg-slate-900/50 border-2 border-slate-100 dark:border-slate-800 font-bold text-slate-900 dark:text-white focus:ring-[#2dd4bf]/20 focus:border-[#2dd4bf]/30 transition-all pr-16"
