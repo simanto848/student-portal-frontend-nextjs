@@ -79,7 +79,7 @@ export default function StudentDetailsDialog({
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto block p-0 bg-transparent border-0 shadow-none">
-                <DialogTitle className="sr-only">Student Details Identity Node</DialogTitle>
+                <DialogTitle className="sr-only">Student Details</DialogTitle>
                 <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-[3.5rem] p-6 md:p-12 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.3)] dark:shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] relative overflow-hidden min-h-full border border-slate-200/50 dark:border-slate-800/50">
                     <div className="absolute top-0 left-0 w-full h-[600px] bg-gradient-to-b from-[#2dd4bf]/5 to-transparent pointer-events-none" />
 
@@ -235,12 +235,12 @@ export default function StudentDetailsDialog({
 
                         {/* Right Sidebar */}
                         <div className="space-y-8">
-                            <GlassCard className="bg-slate-950 dark:bg-slate-900 text-white border-none rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+                            <GlassCard className="bg-white/50 dark:bg-slate-900/50 text-slate-900 dark:text-white border-slate-200/60 dark:border-slate-800 rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-125 transition-transform duration-1000">
                                     <Clock className="w-48 h-48" />
                                 </div>
                                 <CardContent className="p-12 relative z-10">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 mb-10 px-1">System Details</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400 mb-10 px-1">System Details</p>
                                     <div className="space-y-8">
                                         <StatItem label="Registration Date" value={new Date(student.createdAt || "").toDateString()} />
                                         <StatItem label="System ID" value={student.id.slice(0, 12).toUpperCase()} />
@@ -269,7 +269,7 @@ function InfoBlock({ icon: Icon, label, value }: { icon: any; label: string; val
         <div className="group/block">
             <div className="flex items-center gap-4 mb-2">
                 <Icon className="w-4 h-4 text-slate-400 dark:text-slate-600 group-hover/block:text-[#2dd4bf] transition-colors" />
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 group-hover/block:text-slate-500 transition-colors">{label}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 group-hover/block:text-slate-600 transition-colors">{label}</p>
             </div>
             <p className="text-lg font-black text-slate-900 dark:text-white truncate pl-8 leading-none tracking-tight">{value}</p>
         </div>
@@ -281,7 +281,7 @@ function SummaryItem({ label, value, icon: Icon, highlighted = false }: { label:
         <div className="space-y-3">
             <div className="flex items-center gap-4">
                 <Icon className={`w-4 h-4 ${highlighted ? 'text-[#2dd4bf]' : 'text-slate-400 dark:text-slate-600'}`} />
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-slate-600">{label}</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{label}</p>
             </div>
             <p className={`text-lg font-black px-1 leading-tight tracking-tight ${highlighted ? 'text-[#0d9488] dark:text-[#2dd4bf]' : 'text-slate-800 dark:text-slate-200'}`}>{value}</p>
         </div>
@@ -291,14 +291,14 @@ function SummaryItem({ label, value, icon: Icon, highlighted = false }: { label:
 function LocusItem({ label, value }: { label: string; value: string }) {
     return (
         <div className="space-y-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-600 leading-none">{label}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 leading-none">{label}</p>
             <p className="text-base font-black text-slate-900 dark:text-white leading-tight tracking-tight">{value || "UNDEFINED"}</p>
         </div>
     );
 }
 
 function EmptyLocus() {
-    return <p className="text-[10px] font-black text-slate-300 dark:text-slate-700 uppercase tracking-widest italic pt-4">Data fragment missing from locale</p>;
+    return <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest italic pt-4">Data fragment missing from locale</p>;
 }
 
 function KinBlock({ label, icon: Icon, name, phone, extra, highlighted = false }: { label: string; icon: any; name?: string; phone?: string; extra?: string; highlighted?: boolean }) {
@@ -319,8 +319,8 @@ function KinBlock({ label, icon: Icon, name, phone, extra, highlighted = false }
                     <Icon className="w-6 h-6" />
                 </div>
                 <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 dark:text-slate-600">{label}</p>
-                    <p className="text-xs font-bold text-slate-400">Guardian Node</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{label}</p>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Guardian Information</p>
                 </div>
             </div>
             <div className="space-y-3 px-1 relative z-10">
@@ -347,10 +347,10 @@ function KinBlock({ label, icon: Icon, name, phone, extra, highlighted = false }
 function StatItem({ label, value, highlighted = false }: { label: string; value: string; highlighted?: boolean }) {
     return (
         <div className="space-y-2">
-            <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] leading-none">{label}</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">{label}</p>
             <p className={cn(
                 "text-lg font-black leading-none tracking-tight",
-                highlighted ? "text-[#2dd4bf] shadow-[#2dd4bf]/20 drop-shadow-sm" : "text-white"
+                highlighted ? "text-[#2dd4bf] shadow-[#2dd4bf]/20 drop-shadow-sm" : "text-slate-900 dark:text-white"
             )}>{value}</p>
         </div>
     );

@@ -242,7 +242,7 @@ export default function TeacherBatchDetailsPage() {
   );
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div className="space-y-8 max-w-full mx-auto px-4 sm:px-6 lg:px-8 pb-12">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
@@ -256,7 +256,7 @@ export default function TeacherBatchDetailsPage() {
           </Button>
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Batch <span className="text-[#2dd4bf]">Control Node</span></h1>
+              <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Batch <span className="text-[#2dd4bf]">Details</span></h1>
               <Badge className="bg-[#2dd4bf]/10 text-[#0d9488] dark:text-[#2dd4bf] border-[#2dd4bf]/20 font-black text-[10px] tracking-widest uppercase px-3 py-1 rounded-xl">
                 {batch.status ? "Operational" : "Offline"}
               </Badge>
@@ -265,7 +265,7 @@ export default function TeacherBatchDetailsPage() {
           </div>
         </div>
 
-        <Button 
+        <Button
           className="h-14 px-8 rounded-2xl bg-slate-950 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:scale-[1.02] active:scale-95 transition-all"
         >
           <Sparkles className="h-4 w-4 mr-2 text-[#2dd4bf]" />
@@ -290,8 +290,8 @@ export default function TeacherBatchDetailsPage() {
 
         {/* Academic Info Card */}
         <InfoCard icon={GraduationCap} title="Academic Parameters">
-          <LabelValue label="Primary Program" value={getName(batch.programId)} />
-          <LabelValue label="Department Hub" value={getName(batch.departmentId)} />
+          <LabelValue label="Program" value={getName(batch.programId)} />
+          <LabelValue label="Department" value={getName(batch.departmentId)} />
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div className="bg-slate-50/50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-inner">
               <span className="block text-2xl font-black text-slate-900 dark:text-white leading-none mb-1">{batch.maxStudents}</span>
@@ -299,7 +299,7 @@ export default function TeacherBatchDetailsPage() {
             </div>
             <div className="bg-[#2dd4bf]/5 dark:bg-[#2dd4bf]/10 p-4 rounded-2xl border border-[#2dd4bf]/10 dark:border-[#2dd4bf]/20 shadow-inner">
               <span className="block text-2xl font-black text-[#0d9488] dark:text-[#2dd4bf] leading-none mb-1">{batch.currentStudents}</span>
-              <span className="text-[8px] font-black text-[#0d9488]/60 dark:text-[#2dd4bf]/60 uppercase tracking-[0.15em]">Enrolled Nodes</span>
+              <span className="text-[8px] font-black text-[#0d9488]/60 dark:text-[#2dd4bf]/60 uppercase tracking-[0.15em]">Enrolled Students</span>
             </div>
           </div>
         </InfoCard>
@@ -356,9 +356,9 @@ export default function TeacherBatchDetailsPage() {
             </div>
             <div className="space-y-1">
               <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                Resident Directory
+                Student List
               </h2>
-              <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">{students.length} Synchronized Student Nodes</p>
+              <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-[0.2em]">{students.length} Students</p>
             </div>
           </div>
 
@@ -381,10 +381,10 @@ export default function TeacherBatchDetailsPage() {
             <Table>
               <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
                 <TableRow className="hover:bg-transparent border-slate-200/60 dark:border-slate-800/50">
-                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Vector</TableHead>
-                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Node Identity</TableHead>
-                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Registry ID</TableHead>
-                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Communication Node</TableHead>
+                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">#</TableHead>
+                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Full Name</TableHead>
+                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Registration Number</TableHead>
+                  <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Email</TableHead>
                   <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-right pr-10">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -423,7 +423,7 @@ export default function TeacherBatchDetailsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="p-6">
-                           <span className="font-black text-slate-600 dark:text-slate-400 text-xs tracking-tight bg-slate-100/50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+                          <span className="font-black text-slate-600 dark:text-slate-400 text-xs tracking-tight bg-slate-100/50 dark:bg-slate-800/50 px-3 py-1.5 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
                             {student.registrationNumber}
                           </span>
                         </TableCell>
@@ -506,7 +506,7 @@ export default function TeacherBatchDetailsPage() {
               </CommandList>
             </Command>
           </div>
-          
+
           <DialogFooter className="px-8 py-6 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex gap-3">
             <Button
               variant="ghost"

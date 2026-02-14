@@ -188,7 +188,7 @@ export default function StudentDetailsPage() {
     const semesters = Object.keys(gradesBySemester).sort((a, b) => Number(b) - Number(a)); // Descending order
 
     return (
-        <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+        <div className="space-y-8 max-w-full mx-auto px-4 sm:px-6 lg:px-8 pb-12">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-4">
@@ -311,13 +311,13 @@ export default function StudentDetailsPage() {
                                             <TableRow key={grade.id} className="hover:bg-[#2dd4bf]/5 transition-colors border-b border-slate-100 dark:border-slate-800/50 group/row">
                                                 <TableCell className="p-6">
                                                     <div className="flex flex-col">
-                                                        <span className="font-black text-slate-900 dark:text-white group-hover/row:text-[#2dd4bf] transition-colors leading-tight">{grade.course?.title || "Unknown Module"}</span>
+                                                        <span className="font-black text-slate-900 dark:text-white group-hover/row:text-[#2dd4bf] transition-colors leading-tight">{grade.course?.name || "Unknown Module"}</span>
                                                         <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-tighter mt-1 font-mono">{grade.course?.code}</span>
                                                     </div>
                                                 </TableCell>
                                                 <TableCell className="p-6 text-center">
                                                     <Badge className="bg-slate-950 dark:bg-[#2dd4bf]/10 text-white dark:text-[#2dd4bf] border-none px-3 py-1 rounded-xl text-[10px] font-black tracking-widest">
-                                                        {grade.course?.credits || "-"} CR
+                                                        {grade.course?.credit || "-"} CR
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell className="p-6 text-center font-black text-slate-600 dark:text-slate-400 text-xs tracking-tight">

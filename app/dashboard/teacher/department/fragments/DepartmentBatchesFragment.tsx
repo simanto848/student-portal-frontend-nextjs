@@ -105,11 +105,11 @@ export default function DepartmentBatchesFragment({ batches }: DepartmentBatches
 
                                     <div className="grid grid-cols-2 gap-4 mb-8">
                                         <div className="p-4 rounded-3xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/50">
-                                            <span className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-1">Status</span>
+                                            <span className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-1">Semester</span>
                                             <span className="block text-xs font-black text-slate-700 dark:text-slate-300">Level-Term {batch.currentSemester}</span>
                                         </div>
                                         <div className="p-4 rounded-3xl bg-slate-50/80 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/50">
-                                            <span className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-1">Shift Node</span>
+                                            <span className="block text-[8px] font-black text-slate-400 dark:text-slate-600 uppercase tracking-widest mb-1">Shift</span>
                                             <span className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase">{batch.shift}</span>
                                         </div>
                                     </div>

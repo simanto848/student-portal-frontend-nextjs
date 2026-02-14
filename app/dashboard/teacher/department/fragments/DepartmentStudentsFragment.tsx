@@ -112,7 +112,7 @@ export default function DepartmentStudentsFragment({ students, batches }: Depart
                             <SelectValue placeholder="All Active Batches" />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl">
-                            <SelectItem value="all" className="font-black text-[10px] uppercase tracking-widest">Global Directory</SelectItem>
+                            <SelectItem value="all" className="font-black text-[10px] uppercase tracking-widest">All Batches</SelectItem>
                             {batches.map(batch => (
                                 <SelectItem key={batch.id} value={batch.id} className="font-bold text-xs">
                                     {batch.shift === 'evening' ? 'E' : 'D'}-{batch.name} • {batch.shift?.toUpperCase() || 'N/A'}
@@ -128,10 +128,10 @@ export default function DepartmentStudentsFragment({ students, batches }: Depart
                     <Table>
                         <TableHeader className="bg-slate-50/50 dark:bg-slate-900/50">
                             <TableRow className="hover:bg-transparent border-slate-200/60 dark:border-slate-800/50">
-                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Student Identity</TableHead>
-                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center">Reference ID</TableHead>
-                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center">Batch Assignment</TableHead>
-                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center">Current Phase</TableHead>
+                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Full Name</TableHead>
+                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center">Registration Number</TableHead>
+                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center">Batch</TableHead>
+                                <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-center">Current Semester</TableHead>
                                 <TableHead className="p-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 text-right pr-10">Status</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -144,7 +144,7 @@ export default function DepartmentStudentsFragment({ students, batches }: Depart
                                                 <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] flex items-center justify-center shadow-inner ring-1 ring-slate-100 dark:ring-slate-700">
                                                     <User className="h-10 w-10 text-slate-200 dark:text-slate-700" />
                                                 </div>
-                                                <p className="text-slate-400 dark:text-slate-500 font-black tracking-tight">Zero residents found in this search node.</p>
+                                                <p className="text-slate-400 dark:text-slate-500 font-black tracking-tight">No students found.</p>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -214,7 +214,7 @@ export default function DepartmentStudentsFragment({ students, batches }: Depart
             </GlassCard>
 
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-center text-slate-400 dark:text-slate-600">
-                Synchronized {filteredStudents.length} / {students.length} Academic Nodes
+                Total Students {filteredStudents.length} / {students.length}
             </div>
         </div>
     );
