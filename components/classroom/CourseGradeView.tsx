@@ -63,19 +63,19 @@ export function CourseGradeView({
         : gradesResponse?.grades || [];
       setGrades(gradesList);
 
-      // Fetch workflow status
-      const workflows = await courseGradeService.getWorkflow({
+      // Fetch workflow status — the API returns an object or array
+      const workflowData = await courseGradeService.getWorkflow({
         batchId,
         courseId,
         semester
       });
 
-      if (workflows && workflows.length > 0) {
-        setWorkflowStatus(workflows[0].status.toLowerCase());
-      } else if (gradesList && gradesList.length > 0) {
-        // Fallback if no workflow entry exists yet
-        const firstGrade = gradesList[0];
-        setWorkflowStatus((firstGrade.status || "draft").toLowerCase());
+      // Normalize to single workflow object
+      const workflow = Array.isArray(workflowData) ? workflowData[0] : workflowData;
+
+      if (workflow && workflow.status) {
+        // Backend statuses are uppercase: DRAFT, SUBMITTED_TO_COMMITTEE, etc.
+        setWorkflowStatus(workflow.status.toLowerCase());
       } else {
         setWorkflowStatus("draft");
       }
@@ -164,10 +164,12 @@ export function CourseGradeView({
     return labels[status] || "Unknown";
   };
 
+  // Lock when the workflow has left the teacher's hands or is in restricted states.
   const isMarksLocked =
     workflowStatus === "submitted_to_committee" ||
     workflowStatus === "committee_approved" ||
     workflowStatus === "published" ||
+    workflowStatus === "hand_over" ||
     workflowStatus === "finalized";
 
   if (isLoading) {

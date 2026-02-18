@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -17,7 +16,7 @@ import {
     type CourseGrade,
 } from "@/services/enrollment/courseGrade.service";
 import { studentService } from "@/services/user/student.service";
-import { Loader2, Save, AlertCircle } from "lucide-react";
+import { Loader2, Save, CheckCircle2 } from "lucide-react";
 import { notifyError, notifySuccess, notifyWarning } from "@/components/toast";
 import { motion } from "framer-motion";
 
@@ -66,12 +65,14 @@ interface MarkConfig {
     components: Record<string, unknown>;
 }
 
+// ── MarkInputField ────────────────────────────────────────────────────────────
+
 function MarkInputField({
     maxValue,
     value,
     onChange,
     error,
-    disabled
+    disabled,
 }: {
     maxValue: number;
     value?: number;
@@ -88,6 +89,7 @@ function MarkInputField({
                     min="0"
                     max={maxValue}
                     value={value ?? ""}
+                    onFocus={() => { if (value === 0) onChange(undefined); }}
                     onChange={(e) => {
                         const val = e.target.value;
                         const newVal = val === "" ? undefined : parseFloat(val);
@@ -112,6 +114,8 @@ function MarkInputField({
     );
 }
 
+// ── Props ─────────────────────────────────────────────────────────────────────
+
 interface CourseFinalMarksEntryProps {
     courseId: string;
     batchId: string;
@@ -119,6 +123,8 @@ interface CourseFinalMarksEntryProps {
     isLocked?: boolean;
     onSave?: () => void;
 }
+
+// ── Main Component ────────────────────────────────────────────────────────────
 
 export function CourseFinalMarksEntry({
     courseId,
@@ -129,12 +135,19 @@ export function CourseFinalMarksEntry({
 }: CourseFinalMarksEntryProps) {
     const [students, setStudents] = useState<Student[]>([]);
     const [markConfig, setMarkConfig] = useState<MarkConfig | null>(null);
-    const [markEntries, setMarkEntries] = useState<Map<string, MarkEntry>>(
-        new Map()
-    );
+    const [markEntries, setMarkEntries] = useState<Map<string, MarkEntry>>(new Map());
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState<Map<string, string>>(new Map());
+
+    // Per-row auto-save state: "idle" | "saving" | "saved"
+    const [rowSaveState, setRowSaveState] = useState<Map<string, "saving" | "saved">>(new Map());
+
+    // Ref to hold latest markEntries for use inside event handlers without stale closure
+    const markEntriesRef = useRef(markEntries);
+    useEffect(() => { markEntriesRef.current = markEntries; }, [markEntries]);
+
+    // ── Data loading ──────────────────────────────────────────────────────────
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -151,12 +164,7 @@ export function CourseFinalMarksEntry({
             const config = await courseGradeService.getMarkConfig(courseId);
             setMarkConfig(config);
 
-            const gradesResponse = await courseGradeService.list({
-                courseId,
-                batchId,
-                semester,
-            });
-
+            const gradesResponse = await courseGradeService.list({ courseId, batchId, semester });
             const existingGradesList = Array.isArray(gradesResponse)
                 ? gradesResponse
                 : gradesResponse?.grades || [];
@@ -166,14 +174,13 @@ export function CourseFinalMarksEntry({
                 const existingGrade = existingGradesList.find(
                     (g: CourseGrade) => String(g.studentId) === student.id
                 );
-
                 if (existingGrade) {
                     const gradeRecord = existingGrade as unknown as Record<string, unknown>;
                     entries.set(student.id, {
                         studentId: student.id,
                         enrollmentId: student.enrollmentId,
-                        theoryMarks: gradeRecord.theoryMarks as any,
-                        labMarks: gradeRecord.labMarks as any,
+                        theoryMarks: gradeRecord.theoryMarks as MarkEntry["theoryMarks"],
+                        labMarks: gradeRecord.labMarks as MarkEntry["labMarks"],
                         letterGrade: gradeRecord.letterGrade as string,
                         gradePoint: gradeRecord.gradePoint as number,
                     });
@@ -181,9 +188,7 @@ export function CourseFinalMarksEntry({
                     entries.set(student.id, {
                         studentId: student.id,
                         enrollmentId: student.enrollmentId,
-                        theoryMarks: {
-                            finalExamQuestions: {}
-                        }
+                        theoryMarks: { finalExamQuestions: {} },
                     });
                 }
             }
@@ -195,53 +200,107 @@ export function CourseFinalMarksEntry({
         }
     }, [batchId, courseId, semester]);
 
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
+    useEffect(() => { fetchData(); }, [fetchData]);
 
-    const updateMarkEntry = (
-        studentId: string,
-        path: string,
-        value: number | undefined
-    ) => {
-        const entry = markEntries.get(studentId) || {
-            studentId,
-            enrollmentId: "",
-            theoryMarks: { finalExamQuestions: {} }
-        };
+    // ── Mark update ───────────────────────────────────────────────────────────
 
-        const keys = path.split(".");
-        const current = JSON.parse(JSON.stringify(entry));
+    const updateMarkEntry = (studentId: string, path: string, value: number | undefined) => {
+        setMarkEntries((prev) => {
+            const entry = prev.get(studentId) || {
+                studentId,
+                enrollmentId: "",
+                theoryMarks: { finalExamQuestions: {} },
+            };
+            const keys = path.split(".");
+            const current = JSON.parse(JSON.stringify(entry));
+            let target: Record<string, unknown> = current;
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (!target[keys[i]]) target[keys[i]] = {};
+                target = target[keys[i]] as Record<string, unknown>;
+            }
+            target[keys[keys.length - 1]] = value;
 
-        let target: any = current;
-        for (let i = 0; i < keys.length - 1; i++) {
-            if (!target[keys[i]]) target[keys[i]] = {};
-            target = target[keys[i]];
-        }
-        target[keys[keys.length - 1]] = value;
+            const newEntries = new Map(prev);
+            newEntries.set(studentId, current);
+            return newEntries;
+        });
 
-        const newEntries = new Map(markEntries);
-        newEntries.set(studentId, current);
-        setMarkEntries(newEntries);
-
-        const errorKey = `${studentId}.${path}`;
-        if (errors.has(errorKey)) {
-            const newErrors = new Map(errors);
-            newErrors.delete(errorKey);
-            setErrors(newErrors);
-        }
+        // Clear error for this field
+        setErrors((prev) => {
+            const errorKey = `${studentId}.${path}`;
+            if (!prev.has(errorKey)) return prev;
+            const next = new Map(prev);
+            next.delete(errorKey);
+            return next;
+        });
     };
 
-    const calculateTheoryTotal = (studentId: string): { incourse: number, final: number, total: number } => {
+    // ── Group A real-time enforcement (Q1/Q2/Q3 — max 2 answered) ────────────
+
+    const handleGroupAChange = (studentId: string, qKey: "q1" | "q2" | "q3", value: number | undefined) => {
+        const entry = markEntriesRef.current.get(studentId);
+        const q = entry?.theoryMarks?.finalExamQuestions || {};
+
+        // Count how many of the other two in Group A are already filled
+        const others = (["q1", "q2", "q3"] as const).filter((k) => k !== qKey);
+        const filledOthers = others.filter(
+            (k) => q[k] !== undefined && q[k] !== null && String(q[k]) !== ""
+        ).length;
+
+        if (value !== undefined && filledOthers >= 2) {
+            // All 3 would be filled — block this entry
+            setErrors((prev) => {
+                const next = new Map(prev);
+                next.set(
+                    `${studentId}.theoryMarks.finalExamQuestions.${qKey}`,
+                    "Max 2 from Group A (Q1–Q3)"
+                );
+                return next;
+            });
+            return; // Don't update
+        }
+
+        updateMarkEntry(studentId, `theoryMarks.finalExamQuestions.${qKey}`, value);
+    };
+
+    // ── Group B real-time enforcement (Q4/Q5 — max 1 answered) ──────────────
+
+    const handleGroupBChange = (studentId: string, qKey: "q4" | "q5", value: number | undefined) => {
+        const entry = markEntriesRef.current.get(studentId);
+        const q = entry?.theoryMarks?.finalExamQuestions || {};
+
+        const otherKey = qKey === "q4" ? "q5" : "q4";
+        const otherFilled =
+            q[otherKey] !== undefined && q[otherKey] !== null && String(q[otherKey]) !== "";
+
+        if (value !== undefined && otherFilled) {
+            setErrors((prev) => {
+                const next = new Map(prev);
+                next.set(
+                    `${studentId}.theoryMarks.finalExamQuestions.${qKey}`,
+                    "Max 1 from Group B (Q4–Q5)"
+                );
+                return next;
+            });
+            return;
+        }
+
+        updateMarkEntry(studentId, `theoryMarks.finalExamQuestions.${qKey}`, value);
+    };
+
+    // ── Totals ────────────────────────────────────────────────────────────────
+
+    const calculateTheoryTotal = (studentId: string): { incourse: number; final: number; total: number } => {
         const entry = markEntries.get(studentId);
         if (!entry?.theoryMarks) return { incourse: 0, final: 0, total: 0 };
 
-        const { midterm = 0, attendance = 0, classTest = 0, assignment = 0, continuousAssessment = 0, finalExamQuestions } = entry.theoryMarks;
+        const { midterm = 0, attendance = 0, classTest = 0, assignment = 0, finalExamQuestions } = entry.theoryMarks;
         const incourse = (midterm || 0) + (attendance || 0) + (classTest || 0) + (assignment || 0);
 
         let final = 0;
         if (finalExamQuestions) {
-            final = (finalExamQuestions.q1 || 0) +
+            final =
+                (finalExamQuestions.q1 || 0) +
                 (finalExamQuestions.q2 || 0) +
                 (finalExamQuestions.q3 || 0) +
                 (finalExamQuestions.q4 || 0) +
@@ -261,8 +320,11 @@ export function CourseFinalMarksEntry({
         return labReports + attendance + quizViva + finalLab;
     };
 
-    const validateEntry = (studentId: string): boolean => {
-        const entry = markEntries.get(studentId);
+    // ── Validation ────────────────────────────────────────────────────────────
+
+    const validateEntry = (studentId: string, entriesSnapshot?: Map<string, MarkEntry>): boolean => {
+        const map = entriesSnapshot || markEntries;
+        const entry = map.get(studentId);
         const newErrors = new Map(errors);
         let isValid = true;
 
@@ -270,20 +332,29 @@ export function CourseFinalMarksEntry({
             const theory = entry.theoryMarks;
             if (theory.finalExamQuestions) {
                 const q = theory.finalExamQuestions;
-                const countA = ['q1', 'q2', 'q3'].filter(k => (q as any)[k] !== undefined && (q as any)[k] !== null && String((q as any)[k]) !== '').length;
+
+                const countA = (["q1", "q2", "q3"] as const).filter(
+                    (k) => q[k] !== undefined && q[k] !== null && String(q[k]) !== ""
+                ).length;
                 if (countA > 2) {
-                    ['q1', 'q2', 'q3'].forEach(k => newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 2 in Group A"));
+                    (["q1", "q2", "q3"] as const).forEach((k) =>
+                        newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 2 in Group A")
+                    );
                     isValid = false;
                 }
 
-                const countB = ['q4', 'q5'].filter(k => (q as any)[k] !== undefined && (q as any)[k] !== null && String((q as any)[k]) !== '').length;
+                const countB = (["q4", "q5"] as const).filter(
+                    (k) => q[k] !== undefined && q[k] !== null && String(q[k]) !== ""
+                ).length;
                 if (countB > 1) {
-                    ['q4', 'q5'].forEach(k => newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 1 in Group B"));
+                    (["q4", "q5"] as const).forEach((k) =>
+                        newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 1 in Group B")
+                    );
                     isValid = false;
                 }
 
-                ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'].forEach(k => {
-                    if ((q as any)[k] > 12.5) {
+                (["q1", "q2", "q3", "q4", "q5", "q6"] as const).forEach((k) => {
+                    if ((q[k] ?? 0) > 12.5) {
                         newErrors.set(`${studentId}.theoryMarks.finalExamQuestions.${k}`, "Max 12.5");
                         isValid = false;
                     }
@@ -311,20 +382,16 @@ export function CourseFinalMarksEntry({
         if (markConfig?.courseType === "lab" && entry?.labMarks) {
             const lab = entry.labMarks;
             if (lab.labReports !== undefined && lab.labReports > 10) {
-                newErrors.set(`${studentId}.labMarks.labReports`, "Max 10");
-                isValid = false;
+                newErrors.set(`${studentId}.labMarks.labReports`, "Max 10"); isValid = false;
             }
             if (lab.attendance !== undefined && lab.attendance > 10) {
-                newErrors.set(`${studentId}.labMarks.attendance`, "Max 10");
-                isValid = false;
+                newErrors.set(`${studentId}.labMarks.attendance`, "Max 10"); isValid = false;
             }
             if (lab.quizViva !== undefined && lab.quizViva > 10) {
-                newErrors.set(`${studentId}.labMarks.quizViva`, "Max 10");
-                isValid = false;
+                newErrors.set(`${studentId}.labMarks.quizViva`, "Max 10"); isValid = false;
             }
             if (lab.finalLab !== undefined && lab.finalLab > 20) {
-                newErrors.set(`${studentId}.labMarks.finalLab`, "Max 20");
-                isValid = false;
+                newErrors.set(`${studentId}.labMarks.finalLab`, "Max 20"); isValid = false;
             }
         }
 
@@ -332,16 +399,88 @@ export function CourseFinalMarksEntry({
         return isValid;
     };
 
+    // ── Auto-save single row ──────────────────────────────────────────────────
+
+    const saveDraftForStudent = useCallback(
+        async (studentId: string, entriesSnapshot: Map<string, MarkEntry>) => {
+            if (isLocked) return;
+
+            // Ensure Q6 defaults to 0 if blank
+            const entry = entriesSnapshot.get(studentId);
+            if (entry?.theoryMarks?.finalExamQuestions) {
+                const q = entry.theoryMarks.finalExamQuestions;
+                if (q.q6 === undefined || q.q6 === null || String(q.q6) === "") {
+                    // Mutate snapshot copy for save (state update happens separately)
+                    const updated: MarkEntry = JSON.parse(JSON.stringify(entry));
+                    updated.theoryMarks!.finalExamQuestions!.q6 = 0;
+                    entriesSnapshot = new Map(entriesSnapshot);
+                    entriesSnapshot.set(studentId, updated);
+                    // Also update state so UI reflects the 0
+                    setMarkEntries(entriesSnapshot);
+                }
+            }
+
+            if (!validateEntry(studentId, entriesSnapshot)) return;
+
+            const entryToSave = entriesSnapshot.get(studentId);
+            if (!entryToSave?.theoryMarks && !entryToSave?.labMarks) return;
+
+            setRowSaveState((prev) => new Map(prev).set(studentId, "saving"));
+            try {
+                await courseGradeService.bulkSaveMarks({
+                    courseId,
+                    batchId,
+                    semester,
+                    entries: [entryToSave],
+                });
+                setRowSaveState((prev) => new Map(prev).set(studentId, "saved"));
+                // Clear "saved" indicator after 2 s — no page refresh
+                setTimeout(() => {
+                    setRowSaveState((prev) => {
+                        const next = new Map(prev);
+                        next.delete(studentId);
+                        return next;
+                    });
+                }, 2000);
+                // NOTE: intentionally NOT calling onSave here — that would trigger
+                // a full fetchData() re-render in the parent. The row indicator is
+                // sufficient feedback for auto-saves.
+            } catch {
+                setRowSaveState((prev) => {
+                    const next = new Map(prev);
+                    next.delete(studentId);
+                    return next;
+                });
+                // Silent fail — user can still use the manual Save All Drafts button
+            }
+        },
+        [isLocked, courseId, batchId, semester] // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
+    // ── Row blur handler ──────────────────────────────────────────────────────
+
+    const handleRowBlur = (studentId: string, rowRef: React.RefObject<HTMLTableRowElement | null>) => (
+        e: React.FocusEvent<HTMLTableRowElement>
+    ) => {
+        // relatedTarget is where focus is going next
+        const relatedTarget = e.relatedTarget as Node | null;
+        if (rowRef.current && relatedTarget && rowRef.current.contains(relatedTarget)) {
+            // Focus stayed inside the same row — don't save yet
+            return;
+        }
+        // Focus left the row — auto-save
+        saveDraftForStudent(studentId, markEntriesRef.current);
+    };
+
+    // ── Bulk save (manual button) ─────────────────────────────────────────────
+
     const handleSaveDraft = async () => {
         setIsSaving(true);
         try {
             let allValid = true;
             for (const student of students) {
-                if (!validateEntry(student.id)) {
-                    allValid = false;
-                }
+                if (!validateEntry(student.id)) allValid = false;
             }
-
             if (!allValid) {
                 notifyError("Please fix validation errors before saving");
                 setIsSaving(false);
@@ -351,7 +490,6 @@ export function CourseFinalMarksEntry({
             const entries = Array.from(markEntries.values()).filter(
                 (e) => e.theoryMarks || e.labMarks
             );
-
             if (entries.length === 0) {
                 notifyError("No marks entered");
                 setIsSaving(false);
@@ -380,6 +518,8 @@ export function CourseFinalMarksEntry({
         }
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
+
     if (isLoading) {
         return (
             <div className="flex h-64 items-center justify-center">
@@ -406,7 +546,7 @@ export function CourseFinalMarksEntry({
                             Mark Entry: {markConfig.courseType.toUpperCase()}
                         </h3>
                         <p className="text-slate-500 font-medium text-sm">
-                            Enter marks for all students.
+                            Enter marks for all students. Marks auto-save when you move to the next row.
                         </p>
                     </div>
                 </div>
@@ -415,52 +555,108 @@ export function CourseFinalMarksEntry({
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
-                                <TableHead className="font-black text-slate-800 border-b border-slate-200 min-w-[200px]" rowSpan={2}>
+                                <TableHead
+                                    className="font-black text-slate-800 border-b border-slate-200 min-w-[200px]"
+                                    rowSpan={2}
+                                >
                                     Student
                                 </TableHead>
                                 {isTheory && (
                                     <>
-                                        <TableHead className="font-black text-center text-slate-800 border-b border-slate-200 border-l" colSpan={4}>
+                                        <TableHead
+                                            className="font-black text-center text-slate-800 border-b border-slate-200 border-l"
+                                            colSpan={4}
+                                        >
                                             In-Course
                                         </TableHead>
-                                        <TableHead className="font-black text-center text-slate-900 bg-slate-100 border-b border-slate-200 border-l border-r" rowSpan={2}>
+                                        <TableHead
+                                            className="font-black text-center text-slate-900 bg-slate-100 border-b border-slate-200 border-l border-r"
+                                            rowSpan={2}
+                                        >
                                             Total
                                         </TableHead>
-                                        <TableHead className="font-black text-center text-slate-800 border-b border-slate-200" colSpan={6}>
-                                            Final
+                                        {/* Group A */}
+                                        <TableHead
+                                            className="font-black text-center text-blue-700 bg-blue-50/60 border-b border-slate-200 border-l"
+                                            colSpan={3}
+                                        >
+                                            Final — Group A
+                                            <span className="ml-1 text-[10px] font-bold text-blue-500">(pick any 2)</span>
                                         </TableHead>
-                                        <TableHead className="font-black text-center text-slate-900 bg-slate-100 border-b border-slate-200 border-l border-r" rowSpan={2}>
+                                        {/* Group B */}
+                                        <TableHead
+                                            className="font-black text-center text-emerald-700 bg-emerald-50/60 border-b border-slate-200 border-l"
+                                            colSpan={2}
+                                        >
+                                            Group B
+                                            <span className="ml-1 text-[10px] font-bold text-emerald-500">(pick any 1)</span>
+                                        </TableHead>
+                                        {/* Group C */}
+                                        <TableHead
+                                            className="font-black text-center text-purple-700 bg-purple-50/60 border-b border-slate-200 border-l"
+                                            colSpan={1}
+                                        >
+                                            Q6
+                                            <span className="ml-1 text-[10px] font-bold text-purple-500">(compulsory)</span>
+                                        </TableHead>
+                                        <TableHead
+                                            className="font-black text-center text-slate-900 bg-slate-100 border-b border-slate-200 border-l border-r"
+                                            rowSpan={2}
+                                        >
                                             Final Total
                                         </TableHead>
-                                        <TableHead className="font-black text-center text-slate-900 bg-slate-200 border-b border-slate-300" rowSpan={2}>
+                                        <TableHead
+                                            className="font-black text-center text-slate-900 bg-slate-200 border-b border-slate-300"
+                                            rowSpan={2}
+                                        >
                                             Grand Total
                                         </TableHead>
-                                        <TableHead className="font-black text-center text-slate-900 bg-slate-300 border-b border-slate-300 border-l" rowSpan={2}>
+                                        <TableHead
+                                            className="font-black text-center text-slate-900 bg-slate-300 border-b border-slate-300 border-l"
+                                            rowSpan={2}
+                                        >
                                             Grade
                                         </TableHead>
-                                        <TableHead className="font-black text-center text-slate-900 bg-slate-300 border-b border-slate-300 border-l" rowSpan={2}>
+                                        <TableHead
+                                            className="font-black text-center text-slate-900 bg-slate-300 border-b border-slate-300 border-l"
+                                            rowSpan={2}
+                                        >
                                             Point
+                                        </TableHead>
+                                        <TableHead
+                                            className="font-black text-center text-slate-500 border-b border-slate-200 border-l w-16"
+                                            rowSpan={2}
+                                        >
+                                            {/* auto-save status column */}
                                         </TableHead>
                                     </>
                                 )}
-                                {isLab && <TableHead className="text-center border-b border-slate-200" colSpan={4}>Lab Assessment</TableHead>}
+                                {isLab && (
+                                    <TableHead
+                                        className="text-center border-b border-slate-200"
+                                        colSpan={4}
+                                    >
+                                        Lab Assessment
+                                    </TableHead>
+                                )}
                             </TableRow>
                             <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
                                 {isTheory && (
                                     <>
-                                        {/* Incourse Columns */}
+                                        {/* In-course sub-headers */}
                                         <TableHead className="text-center text-xs font-bold text-slate-500 border-l">Mid Term(20)</TableHead>
                                         <TableHead className="text-center text-xs font-bold text-slate-500">Class Test(10)</TableHead>
                                         <TableHead className="text-center text-xs font-bold text-slate-500">Assignment(10)</TableHead>
                                         <TableHead className="text-center text-xs font-bold text-slate-500">Attendance(10)</TableHead>
-
-                                        {/* Final Columns */}
-                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l">Q1</TableHead>
-                                        <TableHead className="text-center text-xs font-bold text-slate-500">Q2</TableHead>
-                                        <TableHead className="text-center text-xs font-bold text-slate-500">Q3</TableHead>
-                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l border-slate-200">Q4</TableHead>
-                                        <TableHead className="text-center text-xs font-bold text-slate-500">Q5</TableHead>
-                                        <TableHead className="text-center text-xs font-bold text-slate-500 border-l border-slate-200">Q6</TableHead>
+                                        {/* Group A */}
+                                        <TableHead className="text-center text-xs font-bold text-blue-600 bg-blue-50/40 border-l">Q1 (12.5)</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-blue-600 bg-blue-50/40">Q2 (12.5)</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-blue-600 bg-blue-50/40">Q3 (12.5)</TableHead>
+                                        {/* Group B */}
+                                        <TableHead className="text-center text-xs font-bold text-emerald-600 bg-emerald-50/40 border-l">Q4 (12.5)</TableHead>
+                                        <TableHead className="text-center text-xs font-bold text-emerald-600 bg-emerald-50/40">Q5 (12.5)</TableHead>
+                                        {/* Group C */}
+                                        <TableHead className="text-center text-xs font-bold text-purple-600 bg-purple-50/40 border-l">Q6 (12.5)</TableHead>
                                     </>
                                 )}
                                 {isLab && (
@@ -477,186 +673,24 @@ export function CourseFinalMarksEntry({
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {students.map((student) => {
-                                const totals = calculateTheoryTotal(student.id);
-                                return (
-                                    <TableRow key={student.id} className="hover:bg-slate-50 group">
-                                        <TableCell className="font-medium bg-white group-hover:bg-slate-50 sticky left-0 z-10 border-r border-slate-100 shadow-[1px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                                            <div>
-                                                <div className="text-sm font-bold text-slate-900">{student.fullName}</div>
-                                                <div className="text-xs text-slate-500">{student.registrationNumber}</div>
-                                            </div>
-                                        </TableCell>
-
-                                        {isTheory && (
-                                            <>
-                                                {/* Incourse Inputs */}
-                                                <TableCell className="p-2 border-l border-slate-100">
-                                                    <MarkInputField
-                                                        maxValue={20}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.midterm}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.midterm", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.midterm`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-2">
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.classTest}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.classTest", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.classTest`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-2">
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.assignment}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.assignment", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.assignment`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-2">
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.attendance}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.attendance", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.attendance`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
-                                                    {totals.incourse}
-                                                </TableCell>
-
-                                                {/* Final Inputs - Group A */}
-                                                <TableCell className="p-2 border-l border-slate-100 bg-blue-50/10">
-                                                    <MarkInputField
-                                                        maxValue={12.5}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q1}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q1", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q1`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-2 bg-blue-50/10">
-                                                    <MarkInputField
-                                                        maxValue={12.5}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q2}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q2", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q2`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-2 bg-blue-50/10">
-                                                    <MarkInputField
-                                                        maxValue={12.5}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q3}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q3", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q3`)}
-                                                    />
-                                                </TableCell>
-
-                                                {/* Group B */}
-                                                <TableCell className="p-2 border-l border-slate-100 bg-emerald-50/10">
-                                                    <MarkInputField
-                                                        maxValue={12.5}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q4}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q4", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q4`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="p-2 bg-emerald-50/10">
-                                                    <MarkInputField
-                                                        maxValue={12.5}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q5}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q5", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q5`)}
-                                                    />
-                                                </TableCell>
-
-                                                {/* Group C */}
-                                                <TableCell className="p-2 border-l border-slate-100 bg-purple-50/10">
-                                                    <MarkInputField
-                                                        maxValue={12.5}
-                                                        value={markEntries.get(student.id)?.theoryMarks?.finalExamQuestions?.q6}
-                                                        onChange={(val) => updateMarkEntry(student.id, "theoryMarks.finalExamQuestions.q6", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q6`)}
-                                                    />
-                                                </TableCell>
-
-                                                <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
-                                                    {totals.final}
-                                                </TableCell>
-                                                <TableCell className="p-4 text-center font-black text-white bg-slate-900 border-r border-slate-800">
-                                                    {totals.total}
-                                                </TableCell>
-                                                <TableCell className="p-4 text-center font-black text-slate-900 bg-amber-200">
-                                                    {markEntries.get(student.id)?.letterGrade || "-"}
-                                                </TableCell>
-                                                <TableCell className="p-4 text-center font-black text-slate-900 bg-amber-200 rounded-r-lg">
-                                                    {markEntries.get(student.id)?.gradePoint?.toFixed(2) || "-"}
-                                                </TableCell>
-                                            </>
-                                        )}
-                                        {isLab && (
-                                            <>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={markEntries.get(student.id)?.labMarks?.labReports}
-                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.labReports", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.labMarks.labReports`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={markEntries.get(student.id)?.labMarks?.attendance}
-                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.attendance", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.labMarks.attendance`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={10}
-                                                        value={markEntries.get(student.id)?.labMarks?.quizViva}
-                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.quizViva", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.labMarks.quizViva`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell>
-                                                    <MarkInputField
-                                                        maxValue={20}
-                                                        value={markEntries.get(student.id)?.labMarks?.finalLab}
-                                                        onChange={(val) => updateMarkEntry(student.id, "labMarks.finalLab", val)}
-                                                        disabled={isLocked}
-                                                        error={errors.get(`${student.id}.labMarks.finalLab`)}
-                                                    />
-                                                </TableCell>
-                                                <TableCell className="font-bold text-center">
-                                                    {calculateLabTotal(student.id)}/50
-                                                </TableCell>
-                                                <TableCell className="font-bold text-center bg-amber-100/50">
-                                                    {markEntries.get(student.id)?.letterGrade || "-"}
-                                                </TableCell>
-                                                <TableCell className="font-bold text-center bg-amber-100/50">
-                                                    {markEntries.get(student.id)?.gradePoint?.toFixed(2) || "-"}
-                                                </TableCell>
-                                            </>
-                                        )}
-                                    </TableRow>
-                                );
-                            })}
+                            {students.map((student) => (
+                                <StudentMarkRow
+                                    key={student.id}
+                                    student={student}
+                                    isTheory={isTheory}
+                                    isLab={isLab}
+                                    isLocked={isLocked}
+                                    markEntry={markEntries.get(student.id)}
+                                    errors={errors}
+                                    totals={calculateTheoryTotal(student.id)}
+                                    labTotal={calculateLabTotal(student.id)}
+                                    saveState={rowSaveState.get(student.id)}
+                                    onMarkChange={updateMarkEntry}
+                                    onGroupAChange={handleGroupAChange}
+                                    onGroupBChange={handleGroupBChange}
+                                    onRowBlur={handleRowBlur}
+                                />
+                            ))}
                         </TableBody>
                     </Table>
                 </div>
@@ -677,13 +711,248 @@ export function CourseFinalMarksEntry({
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Save Draft
+                                    Save All Drafts
                                 </>
                             )}
                         </Button>
                     )}
                 </div>
-            </motion.div >
-        </div >
+            </motion.div>
+        </div>
+    );
+}
+
+// ── StudentMarkRow (extracted to avoid re-creating row refs) ──────────────────
+
+interface StudentMarkRowProps {
+    student: Student;
+    isTheory: boolean;
+    isLab: boolean;
+    isLocked: boolean;
+    markEntry?: MarkEntry;
+    errors: Map<string, string>;
+    totals: { incourse: number; final: number; total: number };
+    labTotal: number;
+    saveState?: "saving" | "saved";
+    onMarkChange: (studentId: string, path: string, value: number | undefined) => void;
+    onGroupAChange: (studentId: string, qKey: "q1" | "q2" | "q3", value: number | undefined) => void;
+    onGroupBChange: (studentId: string, qKey: "q4" | "q5", value: number | undefined) => void;
+    onRowBlur: (
+        studentId: string,
+        rowRef: React.RefObject<HTMLTableRowElement | null>
+    ) => (e: React.FocusEvent<HTMLTableRowElement>) => void;
+}
+
+function StudentMarkRow({
+    student,
+    isTheory,
+    isLab,
+    isLocked,
+    markEntry,
+    errors,
+    totals,
+    labTotal,
+    saveState,
+    onMarkChange,
+    onGroupAChange,
+    onGroupBChange,
+    onRowBlur,
+}: StudentMarkRowProps) {
+    const rowRef = useRef<HTMLTableRowElement>(null);
+    const q = markEntry?.theoryMarks?.finalExamQuestions || {};
+
+    return (
+        <TableRow
+            ref={rowRef}
+            className="hover:bg-slate-50 group"
+            onBlur={onRowBlur(student.id, rowRef)}
+        >
+            {/* Student name */}
+            <TableCell className="font-medium bg-white group-hover:bg-slate-50 sticky left-0 z-10 border-r border-slate-100 shadow-[1px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                <div>
+                    <div className="text-sm font-bold text-slate-900">{student.fullName}</div>
+                    <div className="text-xs text-slate-500">{student.registrationNumber}</div>
+                </div>
+            </TableCell>
+
+            {isTheory && (
+                <>
+                    {/* In-course */}
+                    <TableCell className="p-2 border-l border-slate-100">
+                        <MarkInputField
+                            maxValue={20}
+                            value={markEntry?.theoryMarks?.midterm}
+                            onChange={(val) => onMarkChange(student.id, "theoryMarks.midterm", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.midterm`)}
+                        />
+                    </TableCell>
+                    <TableCell className="p-2">
+                        <MarkInputField
+                            maxValue={10}
+                            value={markEntry?.theoryMarks?.classTest}
+                            onChange={(val) => onMarkChange(student.id, "theoryMarks.classTest", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.classTest`)}
+                        />
+                    </TableCell>
+                    <TableCell className="p-2">
+                        <MarkInputField
+                            maxValue={10}
+                            value={markEntry?.theoryMarks?.assignment}
+                            onChange={(val) => onMarkChange(student.id, "theoryMarks.assignment", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.assignment`)}
+                        />
+                    </TableCell>
+                    <TableCell className="p-2">
+                        <MarkInputField
+                            maxValue={10}
+                            value={markEntry?.theoryMarks?.attendance}
+                            onChange={(val) => onMarkChange(student.id, "theoryMarks.attendance", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.attendance`)}
+                        />
+                    </TableCell>
+
+                    {/* In-course total */}
+                    <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
+                        {totals.incourse}
+                    </TableCell>
+
+                    {/* Group A — Q1, Q2, Q3 */}
+                    <TableCell className="p-2 border-l border-slate-100 bg-blue-50/20">
+                        <MarkInputField
+                            maxValue={12.5}
+                            value={q.q1}
+                            onChange={(val) => onGroupAChange(student.id, "q1", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q1`)}
+                        />
+                    </TableCell>
+                    <TableCell className="p-2 bg-blue-50/20">
+                        <MarkInputField
+                            maxValue={12.5}
+                            value={q.q2}
+                            onChange={(val) => onGroupAChange(student.id, "q2", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q2`)}
+                        />
+                    </TableCell>
+                    <TableCell className="p-2 bg-blue-50/20">
+                        <MarkInputField
+                            maxValue={12.5}
+                            value={q.q3}
+                            onChange={(val) => onGroupAChange(student.id, "q3", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q3`)}
+                        />
+                    </TableCell>
+
+                    {/* Group B — Q4, Q5 */}
+                    <TableCell className="p-2 border-l border-slate-100 bg-emerald-50/20">
+                        <MarkInputField
+                            maxValue={12.5}
+                            value={q.q4}
+                            onChange={(val) => onGroupBChange(student.id, "q4", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q4`)}
+                        />
+                    </TableCell>
+                    <TableCell className="p-2 bg-emerald-50/20">
+                        <MarkInputField
+                            maxValue={12.5}
+                            value={q.q5}
+                            onChange={(val) => onGroupBChange(student.id, "q5", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q5`)}
+                        />
+                    </TableCell>
+
+                    {/* Group C — Q6 (compulsory, auto-zeros on blur) */}
+                    <TableCell className="p-2 border-l border-slate-100 bg-purple-50/20">
+                        <MarkInputField
+                            maxValue={12.5}
+                            value={q.q6}
+                            onChange={(val) => onMarkChange(student.id, "theoryMarks.finalExamQuestions.q6", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.theoryMarks.finalExamQuestions.q6`)}
+                        />
+                    </TableCell>
+
+                    {/* Totals */}
+                    <TableCell className="p-4 text-center font-black text-slate-700 bg-slate-50 border-l border-r border-slate-100">
+                        {totals.final}
+                    </TableCell>
+                    <TableCell className="p-4 text-center font-black text-white bg-slate-900 border-r border-slate-800">
+                        {totals.total}
+                    </TableCell>
+                    <TableCell className="p-4 text-center font-black text-slate-900 bg-amber-200">
+                        {markEntry?.letterGrade || "-"}
+                    </TableCell>
+                    <TableCell className="p-4 text-center font-black text-slate-900 bg-amber-200 rounded-r-lg">
+                        {markEntry?.gradePoint?.toFixed(2) || "-"}
+                    </TableCell>
+
+                    {/* Auto-save status indicator */}
+                    <TableCell className="p-2 text-center w-16">
+                        {saveState === "saving" && (
+                            <Loader2 className="h-4 w-4 animate-spin text-slate-400 mx-auto" />
+                        )}
+                        {saveState === "saved" && (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-500 mx-auto" />
+                        )}
+                    </TableCell>
+                </>
+            )}
+
+            {isLab && (
+                <>
+                    <TableCell>
+                        <MarkInputField
+                            maxValue={10}
+                            value={markEntry?.labMarks?.labReports}
+                            onChange={(val) => onMarkChange(student.id, "labMarks.labReports", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.labMarks.labReports`)}
+                        />
+                    </TableCell>
+                    <TableCell>
+                        <MarkInputField
+                            maxValue={10}
+                            value={markEntry?.labMarks?.attendance}
+                            onChange={(val) => onMarkChange(student.id, "labMarks.attendance", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.labMarks.attendance`)}
+                        />
+                    </TableCell>
+                    <TableCell>
+                        <MarkInputField
+                            maxValue={10}
+                            value={markEntry?.labMarks?.quizViva}
+                            onChange={(val) => onMarkChange(student.id, "labMarks.quizViva", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.labMarks.quizViva`)}
+                        />
+                    </TableCell>
+                    <TableCell>
+                        <MarkInputField
+                            maxValue={20}
+                            value={markEntry?.labMarks?.finalLab}
+                            onChange={(val) => onMarkChange(student.id, "labMarks.finalLab", val)}
+                            disabled={isLocked}
+                            error={errors.get(`${student.id}.labMarks.finalLab`)}
+                        />
+                    </TableCell>
+                    <TableCell className="font-bold text-center">{labTotal}/50</TableCell>
+                    <TableCell className="font-bold text-center bg-amber-100/50">
+                        {markEntry?.letterGrade || "-"}
+                    </TableCell>
+                    <TableCell className="font-bold text-center bg-amber-100/50">
+                        {markEntry?.gradePoint?.toFixed(2) || "-"}
+                    </TableCell>
+                </>
+            )}
+        </TableRow>
     );
 }
