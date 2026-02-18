@@ -19,6 +19,12 @@ import { studentService } from "@/services/user/student.service";
 import { Loader2, Save, CheckCircle2 } from "lucide-react";
 import { notifyError, notifySuccess, notifyWarning } from "@/components/toast";
 import { motion } from "framer-motion";
+import { attendanceService } from "@/services/enrollment/attendance.service";
+
+const calculateAttendanceMarks = (percentage: number): number => {
+    if (percentage === 0) return 0;
+    return Math.min(10, Math.ceil(percentage / 10));
+};
 
 interface Student {
     id: string;
@@ -65,8 +71,6 @@ interface MarkConfig {
     components: Record<string, unknown>;
 }
 
-// ── MarkInputField ────────────────────────────────────────────────────────────
-
 function MarkInputField({
     maxValue,
     value,
@@ -92,7 +96,10 @@ function MarkInputField({
                     onFocus={() => { if (value === 0) onChange(undefined); }}
                     onChange={(e) => {
                         const val = e.target.value;
-                        const newVal = val === "" ? undefined : parseFloat(val);
+                        let newVal = val === "" ? undefined : parseFloat(val);
+                        if (newVal !== undefined) {
+                            newVal = Math.ceil(newVal);
+                        }
                         if (newVal !== undefined && newVal > maxValue) return;
                         onChange(newVal);
                     }}
@@ -114,8 +121,6 @@ function MarkInputField({
     );
 }
 
-// ── Props ─────────────────────────────────────────────────────────────────────
-
 interface CourseFinalMarksEntryProps {
     courseId: string;
     batchId: string;
@@ -123,8 +128,6 @@ interface CourseFinalMarksEntryProps {
     isLocked?: boolean;
     onSave?: () => void;
 }
-
-// ── Main Component ────────────────────────────────────────────────────────────
 
 export function CourseFinalMarksEntry({
     courseId,
@@ -140,14 +143,10 @@ export function CourseFinalMarksEntry({
     const [isSaving, setIsSaving] = useState(false);
     const [errors, setErrors] = useState<Map<string, string>>(new Map());
 
-    // Per-row auto-save state: "idle" | "saving" | "saved"
     const [rowSaveState, setRowSaveState] = useState<Map<string, "saving" | "saved">>(new Map());
 
-    // Ref to hold latest markEntries for use inside event handlers without stale closure
     const markEntriesRef = useRef(markEntries);
     useEffect(() => { markEntriesRef.current = markEntries; }, [markEntries]);
-
-    // ── Data loading ──────────────────────────────────────────────────────────
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
@@ -164,36 +163,70 @@ export function CourseFinalMarksEntry({
             const config = await courseGradeService.getMarkConfig(courseId);
             setMarkConfig(config);
 
-            const gradesResponse = await courseGradeService.list({ courseId, batchId, semester });
+            const [gradesResponse, attendanceReport] = await Promise.all([
+                courseGradeService.list({ courseId, batchId, semester }),
+                attendanceService.getCourseReport(courseId, batchId)
+            ]);
+
             const existingGradesList = Array.isArray(gradesResponse)
                 ? gradesResponse
                 : gradesResponse?.grades || [];
+
+            const attendanceMap = new Map<string, number>();
+            if (Array.isArray(attendanceReport)) {
+                attendanceReport.forEach((record: any) => {
+                    if (record.studentId && record.stats?.attendancePercentage) {
+                        attendanceMap.set(record.studentId, parseFloat(record.stats.attendancePercentage));
+                    }
+                });
+            }
 
             const entries = new Map<string, MarkEntry>();
             for (const student of studentList) {
                 const existingGrade = existingGradesList.find(
                     (g: CourseGrade) => String(g.studentId) === student.id
                 );
+
+                const attendancePct = attendanceMap.get(student.id) || 0;
+                const autoAttendanceMark = calculateAttendanceMarks(attendancePct);
+
                 if (existingGrade) {
-                    const gradeRecord = existingGrade as unknown as Record<string, unknown>;
-                    entries.set(student.id, {
+                    const gradeRecord = existingGrade as unknown as Record<string, any>;
+                    const entry: MarkEntry = {
                         studentId: student.id,
                         enrollmentId: student.enrollmentId,
                         theoryMarks: gradeRecord.theoryMarks as MarkEntry["theoryMarks"],
                         labMarks: gradeRecord.labMarks as MarkEntry["labMarks"],
                         letterGrade: gradeRecord.letterGrade as string,
                         gradePoint: gradeRecord.gradePoint as number,
-                    });
+                    };
+
+                    if (entry.theoryMarks && (entry.theoryMarks.attendance === undefined || entry.theoryMarks.attendance === null)) {
+                        entry.theoryMarks.attendance = autoAttendanceMark;
+                    }
+
+                    if (entry.labMarks && (entry.labMarks.attendance === undefined || entry.labMarks.attendance === null)) {
+                        entry.labMarks.attendance = autoAttendanceMark;
+                    }
+
+                    entries.set(student.id, entry);
                 } else {
                     entries.set(student.id, {
                         studentId: student.id,
                         enrollmentId: student.enrollmentId,
-                        theoryMarks: { finalExamQuestions: {} },
+                        theoryMarks: {
+                            attendance: autoAttendanceMark,
+                            finalExamQuestions: {}
+                        },
+                        labMarks: {
+                            attendance: autoAttendanceMark
+                        }
                     });
                 }
             }
             setMarkEntries(entries);
-        } catch {
+        } catch (error) {
+            console.error("Fetch Error:", error);
             notifyError("Failed to fetch data");
         } finally {
             setIsLoading(false);
@@ -201,8 +234,6 @@ export function CourseFinalMarksEntry({
     }, [batchId, courseId, semester]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
-
-    // ── Mark update ───────────────────────────────────────────────────────────
 
     const updateMarkEntry = (studentId: string, path: string, value: number | undefined) => {
         setMarkEntries((prev) => {
@@ -225,7 +256,6 @@ export function CourseFinalMarksEntry({
             return newEntries;
         });
 
-        // Clear error for this field
         setErrors((prev) => {
             const errorKey = `${studentId}.${path}`;
             if (!prev.has(errorKey)) return prev;
@@ -235,20 +265,16 @@ export function CourseFinalMarksEntry({
         });
     };
 
-    // ── Group A real-time enforcement (Q1/Q2/Q3 — max 2 answered) ────────────
-
     const handleGroupAChange = (studentId: string, qKey: "q1" | "q2" | "q3", value: number | undefined) => {
         const entry = markEntriesRef.current.get(studentId);
         const q = entry?.theoryMarks?.finalExamQuestions || {};
 
-        // Count how many of the other two in Group A are already filled
         const others = (["q1", "q2", "q3"] as const).filter((k) => k !== qKey);
         const filledOthers = others.filter(
             (k) => q[k] !== undefined && q[k] !== null && String(q[k]) !== ""
         ).length;
 
         if (value !== undefined && filledOthers >= 2) {
-            // All 3 would be filled — block this entry
             setErrors((prev) => {
                 const next = new Map(prev);
                 next.set(
@@ -257,13 +283,11 @@ export function CourseFinalMarksEntry({
                 );
                 return next;
             });
-            return; // Don't update
+            return;
         }
 
         updateMarkEntry(studentId, `theoryMarks.finalExamQuestions.${qKey}`, value);
     };
-
-    // ── Group B real-time enforcement (Q4/Q5 — max 1 answered) ──────────────
 
     const handleGroupBChange = (studentId: string, qKey: "q4" | "q5", value: number | undefined) => {
         const entry = markEntriesRef.current.get(studentId);
@@ -287,8 +311,6 @@ export function CourseFinalMarksEntry({
 
         updateMarkEntry(studentId, `theoryMarks.finalExamQuestions.${qKey}`, value);
     };
-
-    // ── Totals ────────────────────────────────────────────────────────────────
 
     const calculateTheoryTotal = (studentId: string): { incourse: number; final: number; total: number } => {
         const entry = markEntries.get(studentId);
@@ -319,8 +341,6 @@ export function CourseFinalMarksEntry({
         const { labReports = 0, attendance = 0, quizViva = 0, finalLab = 0 } = entry.labMarks;
         return labReports + attendance + quizViva + finalLab;
     };
-
-    // ── Validation ────────────────────────────────────────────────────────────
 
     const validateEntry = (studentId: string, entriesSnapshot?: Map<string, MarkEntry>): boolean => {
         const map = entriesSnapshot || markEntries;
@@ -399,23 +419,18 @@ export function CourseFinalMarksEntry({
         return isValid;
     };
 
-    // ── Auto-save single row ──────────────────────────────────────────────────
-
     const saveDraftForStudent = useCallback(
         async (studentId: string, entriesSnapshot: Map<string, MarkEntry>) => {
             if (isLocked) return;
 
-            // Ensure Q6 defaults to 0 if blank
             const entry = entriesSnapshot.get(studentId);
             if (entry?.theoryMarks?.finalExamQuestions) {
                 const q = entry.theoryMarks.finalExamQuestions;
                 if (q.q6 === undefined || q.q6 === null || String(q.q6) === "") {
-                    // Mutate snapshot copy for save (state update happens separately)
                     const updated: MarkEntry = JSON.parse(JSON.stringify(entry));
                     updated.theoryMarks!.finalExamQuestions!.q6 = 0;
                     entriesSnapshot = new Map(entriesSnapshot);
                     entriesSnapshot.set(studentId, updated);
-                    // Also update state so UI reflects the 0
                     setMarkEntries(entriesSnapshot);
                 }
             }
@@ -434,7 +449,6 @@ export function CourseFinalMarksEntry({
                     entries: [entryToSave],
                 });
                 setRowSaveState((prev) => new Map(prev).set(studentId, "saved"));
-                // Clear "saved" indicator after 2 s — no page refresh
                 setTimeout(() => {
                     setRowSaveState((prev) => {
                         const next = new Map(prev);
@@ -442,37 +456,26 @@ export function CourseFinalMarksEntry({
                         return next;
                     });
                 }, 2000);
-                // NOTE: intentionally NOT calling onSave here — that would trigger
-                // a full fetchData() re-render in the parent. The row indicator is
-                // sufficient feedback for auto-saves.
             } catch {
                 setRowSaveState((prev) => {
                     const next = new Map(prev);
                     next.delete(studentId);
                     return next;
                 });
-                // Silent fail — user can still use the manual Save All Drafts button
             }
         },
         [isLocked, courseId, batchId, semester] // eslint-disable-line react-hooks/exhaustive-deps
     );
 
-    // ── Row blur handler ──────────────────────────────────────────────────────
-
     const handleRowBlur = (studentId: string, rowRef: React.RefObject<HTMLTableRowElement | null>) => (
         e: React.FocusEvent<HTMLTableRowElement>
     ) => {
-        // relatedTarget is where focus is going next
         const relatedTarget = e.relatedTarget as Node | null;
         if (rowRef.current && relatedTarget && rowRef.current.contains(relatedTarget)) {
-            // Focus stayed inside the same row — don't save yet
             return;
         }
-        // Focus left the row — auto-save
         saveDraftForStudent(studentId, markEntriesRef.current);
     };
-
-    // ── Bulk save (manual button) ─────────────────────────────────────────────
 
     const handleSaveDraft = async () => {
         setIsSaving(true);
