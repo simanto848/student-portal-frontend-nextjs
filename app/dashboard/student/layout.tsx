@@ -244,7 +244,7 @@ export default function StudentLayout({
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.5, type: "spring", stiffness: 100 }}
-                    className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[100] px-4 pointer-events-none"
+                    className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-1 px-4 pointer-events-none"
                 >
                     <div className="glass-panel px-6 py-3 rounded-full flex items-center gap-6 border border-white/60 dark:border-slate-700/60 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.3)] dark:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.5)] backdrop-blur-2xl pointer-events-auto">
                         <Link href="/dashboard/student/classroom">
@@ -271,7 +271,7 @@ export default function StudentLayout({
                         {/* Center Home Button - Elevated */}
                         <Link href="/dashboard/student">
                             <button className="flex flex-col items-center group relative cursor-pointer outline-none -mt-4">
-                                <div className="h-14 w-14 bg-gradient-to-br from-primary-nexus to-teal-400 rounded-2xl flex items-center justify-center text-white transition-all duration-300 shadow-lg shadow-primary-nexus/30 border-2 border-white/50 group-hover:scale-110 group-active:scale-95 group-hover:shadow-xl group-hover:shadow-primary-nexus/40">
+                                <div className="h-14 w-14 bg-linear-to-br from-primary-nexus to-teal-400 rounded-2xl flex items-center justify-center text-white transition-all duration-300 shadow-lg shadow-primary-nexus/30 border-2 border-white/50 group-hover:scale-110 group-active:scale-95 group-hover:shadow-xl group-hover:shadow-primary-nexus/40">
                                     <span className="material-icons-outlined text-2xl">home</span>
                                 </div>
                                 <span className="text-[8px] font-black text-primary-nexus mt-1 uppercase tracking-wider">

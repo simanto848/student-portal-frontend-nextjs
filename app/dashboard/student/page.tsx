@@ -301,75 +301,50 @@ export default function StudentDashboard() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto no-scrollbar pb-24 pr-2">
           {/* Stats Section */}
-          <motion.section variants={itemVariants} className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-8">
-            {/* Performance Vector Chart */}
-            <div className="xl:col-span-2 glass-panel rounded-[2.5rem] p-8 relative overflow-hidden group min-h-[300px] flex flex-col cursor-pointer border border-white/50 shadow-xl hover:shadow-2xl transition-all">
-              <div className="absolute top-0 right-0 w-80 h-80 bg-primary-nexus/15 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none group-hover:bg-primary-nexus/2 transition-all duration-1000" />
-              <div className="flex justify-between items-start mb-10 z-10">
-                <div>
-                  <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-1">Performance Vector</h2>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium tracking-wide leading-relaxed">Real-time academic analysis</p>
+          <motion.section variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* CGPA Card */}
+            <motion.div variants={itemVariants} className="clay-card p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-blue-900/40 text-primary-nexus shadow-sm border border-white/40">
+                  <span className="material-icons-outlined text-2xl font-bold">rocket_launch</span>
                 </div>
-                <div className="bg-white dark:bg-black/30 backdrop-blur-md rounded-full px-5 py-2 border border-white/20 shadow-sm">
-                  <span className="text-[11px] font-black text-primary-nexus uppercase tracking-widest">Live Data</span>
+                <div className="bg-blue-100/60 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-blue-200/40">
+                  {cgpa >= 3.5 ? "Distinction" : cgpa >= 3.0 ? "Merit" : "Pass"}
                 </div>
               </div>
-              <div className="flex-1 w-full relative flex items-end">
-                <svg className="w-full h-56 drop-shadow-[0_15px_15px_rgba(0,136,169,0.2)]" preserveAspectRatio="none" viewBox="0 0 1440 320">
-                  <defs>
-                    <linearGradient id="gradientPrimary" x1="0%" x2="0%" y1="0%" y2="100%">
-                      <stop offset="0%" style={{ stopColor: "#0088A9", stopOpacity: 0.5 }} />
-                      <stop offset="100%" style={{ stopColor: "#0088A9", stopOpacity: 0 }} />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,192C672,181,768,139,864,133.3C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-                    fill="url(#gradientPrimary)"
-                    className="transition-all duration-1000"
-                  />
-                  <path
-                    d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,192C672,181,768,139,864,133.3C960,128,1056,160,1152,165.3C1248,171,1344,149,1392,138.7L1440,128"
-                    fill="none"
-                    stroke="#0088A9"
-                    strokeWidth="4"
-                    strokeLinecap="round"
-                    className="transition-all duration-1000"
-                  />
-                </svg>
-                {/* Floating Indicators */}
-                <div className="absolute top-1/4 left-1/4 h-4 w-4 bg-white dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-primary-nexus animate-float z-20" />
-                <div className="absolute top-1/3 left-2/3 h-4 w-4 bg-white dark:bg-gray-800 rounded-full shadow-[0_0_20px_rgba(0,136,169,0.5)] border-2 border-primary-nexus animate-float z-20" style={{ animationDelay: "2s" }} />
-              </div>
-            </div>
+              <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{cgpa.toFixed(2)}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Overall CGPA</p>
+            </motion.div>
 
-            {/* GPA & Attendance Cards */}
-            <div className="flex flex-col gap-8 h-full">
-              <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
+            {/* Attendance Card */}
+            <Link href="/dashboard/student/attendances">
+              <motion.div variants={itemVariants} className="clay-card p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40 h-full">
                 <div className="flex justify-between items-start mb-4">
-                  <div className="p-3.5 rounded-2xl bg-white dark:bg-blue-900/40 text-primary-nexus shadow-sm border border-white/40">
-                    <span className="material-icons-outlined text-2xl font-bold">rocket_launch</span>
+                  <div className="p-3.5 rounded-2xl bg-white dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
+                    <span className="material-icons-outlined text-2xl font-bold">fact_check</span>
                   </div>
-                  <span className="text-green-500 text-sm font-black tracking-tight">{credits} Credits</span>
+                  <div className="bg-green-100/60 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-green-200/40">
+                    {attendance >= 85 ? "Excellent" : "Regular"}
+                  </div>
                 </div>
-                <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{cgpa.toFixed(2)}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Overall CGPA</p>
+                <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{attendance}%</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Academic Presence</p>
               </motion.div>
+            </Link>
 
-              <Link href="/dashboard/student/attendances">
-                <motion.div variants={itemVariants} className="clay-card flex-1 p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-3.5 rounded-2xl bg-white dark:bg-purple-900/40 text-purple-600 dark:text-purple-400 shadow-sm border border-white/40">
-                      <span className="material-icons-outlined text-2xl font-bold">fact_check</span>
-                    </div>
-                    <div className="bg-green-100/60 dark:bg-green-900/40 text-green-600 dark:text-green-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-green-200/40">
-                      {attendance >= 85 ? "Excellent" : "Regular"}
-                    </div>
-                  </div>
-                  <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{attendance}%</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Academic Presence</p>
-                </motion.div>
-              </Link>
-            </div>
+            {/* Credits Card */}
+            <motion.div variants={itemVariants} className="clay-card p-8 relative flex flex-col justify-center cursor-pointer transition-all hover:scale-[1.03] active:scale-[0.98] border border-white/40">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3.5 rounded-2xl bg-white dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 shadow-sm border border-white/40">
+                  <span className="material-icons-outlined text-2xl font-bold">workspace_premium</span>
+                </div>
+                <div className="bg-emerald-100/60 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-4 py-1.5 rounded-full tracking-widest uppercase shadow-sm border border-emerald-200/40">
+                  {courses.length} Courses
+                </div>
+              </div>
+              <h3 className="text-5xl font-black text-slate-800 dark:text-white mt-2 tracking-tighter">{credits}</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-black uppercase tracking-widest mt-1 opacity-70">Total Credits</p>
+            </motion.div>
           </motion.section>
 
           {/* Course Progress Section */}
