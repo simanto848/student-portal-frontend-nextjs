@@ -38,6 +38,8 @@ export interface ScheduleGenerationOptions {
         theory?: string;
         lab?: string;
     };
+    targetShift?: 'day' | 'evening'; // Force all batches to use this shift instead of their natural shift
+    groupLabsTogether?: boolean; // Try to schedule all labs for a batch on the same day
 }
 
 export interface ScheduleValidationResult {
@@ -59,6 +61,14 @@ export interface ScheduleGenerationResult {
     stats: {
         scheduled: number;
         unscheduled: number;
+        unscheduledCourses: Array<{
+            courseCode: string;
+            courseName: string;
+            courseType: string;
+            batchName: string;
+            teacherName: string;
+            reason: string;
+        }>;
         conflicts: Array<{ type: string; reason?: string }>;
         warnings: string[];
     };

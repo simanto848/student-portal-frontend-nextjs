@@ -56,6 +56,10 @@ import { TimePicker } from "@/components/ui/time-picker"; // Added TimePicker im
 
 type SelectionMode = 'all' | 'department' | 'multi_batch' | 'single_batch';
 
+/** Returns D-<name> for day shift, E-<name> for evening shift */
+const batchDisplayName = (name: string, shift?: string) =>
+    `${shift === 'evening' ? 'E' : 'D'}-${name}`;
+
 interface UnassignedCourse {
     batchId: string;
     batchName: string;
@@ -83,20 +87,24 @@ export default function AISchedulerClient() {
 
     // Class duration settings (in minutes)
     const [classDurationMinutes, setClassDurationMinutes] = useState<number>(75);
-    const [labDurationMinutes, setLabDurationMinutes] = useState<number>(150);
+    const [labDurationMinutes, setLabDurationMinutes] = useState<number>(100);
     const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+
+    // Scheduling preferences
+    const [targetShift, setTargetShift] = useState<string | null>(null);
+    const [groupLabsTogether, setGroupLabsTogether] = useState<boolean>(true);
 
     // Working days settings
     const allDays = ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'] as const;
-    const [offDays, setOffDays] = useState<string[]>(['Monday', 'Tuesday', 'Friday']);
+    const [offDays, setOffDays] = useState<string[]>(['Friday']);
 
     // Custom time settings
-    const [dayStartTime, setDayStartTime] = useState<string>("08:00");
-    const [dayEndTime, setDayEndTime] = useState<string>("15:00");
-    const [breakStartTime, setBreakStartTime] = useState<string>("13:00"); // Added break start
-    const [breakEndTime, setBreakEndTime] = useState<string>("14:00");   // Added break end
-    const [eveningStartTime, setEveningStartTime] = useState<string>("15:30");
-    const [eveningEndTime, setEveningEndTime] = useState<string>("21:00");
+    const [dayStartTime, setDayStartTime] = useState<string>("08:30");
+    const [dayEndTime, setDayEndTime] = useState<string>("17:20");
+    const [breakStartTime, setBreakStartTime] = useState<string>("13:30"); // Updated
+    const [breakEndTime, setBreakEndTime] = useState<string>("14:00");
+    const [eveningStartTime, setEveningStartTime] = useState<string>("18:00");
+    const [eveningEndTime, setEveningEndTime] = useState<string>("21:40");
 
     // Room preferences
     const [preferredTheoryRoom, setPreferredTheoryRoom] = useState<string>("");
@@ -114,6 +122,18 @@ export default function AISchedulerClient() {
     // Validation state
     const [validationResult, setValidationResult] = useState<ScheduleValidationResult | null>(null);
     const [showValidation, setShowValidation] = useState(false);
+
+    // Unscheduled courses after generation
+    const [unscheduledCourses, setUnscheduledCourses] = useState<Array<{
+        courseCode: string;
+        courseName: string;
+        courseType: string;
+        batchName: string;
+        batchShift?: string;
+        teacherName: string;
+        reason: string;
+    }>>([]);
+    const [showUnscheduled, setShowUnscheduled] = useState(false);
 
     // Load initial data
     useEffect(() => {
@@ -255,8 +275,8 @@ export default function AISchedulerClient() {
                 day: {
                     startTime: dayStartTime,
                     endTime: dayEndTime,
-                    breakStart: breakStartTime, // Use state
-                    breakEnd: breakEndTime     // Use state
+                    breakStart: breakStartTime,
+                    breakEnd: breakEndTime
                 },
                 evening: {
                     startTime: eveningStartTime,
@@ -266,7 +286,9 @@ export default function AISchedulerClient() {
             preferredRooms: {
                 theory: preferredTheoryRoom || undefined,
                 lab: preferredLabRoom || undefined
-            }
+            },
+            targetShift: (targetShift || undefined) as "evening" | "day" | undefined,
+            groupLabsTogether
         };
 
         switch (selectionMode) {
@@ -284,7 +306,7 @@ export default function AISchedulerClient() {
         }
 
         return options;
-    }, [selectedSessionId, selectionMode, selectedDepartmentId, selectedBatchIds, classDurationMinutes, labDurationMinutes, offDays, dayStartTime, dayEndTime, breakStartTime, breakEndTime, eveningStartTime, eveningEndTime, preferredTheoryRoom, preferredLabRoom]);
+    }, [selectedSessionId, selectionMode, selectedDepartmentId, selectedBatchIds, classDurationMinutes, labDurationMinutes, offDays, dayStartTime, dayEndTime, breakStartTime, breakEndTime, eveningStartTime, eveningEndTime, preferredTheoryRoom, preferredLabRoom, targetShift, groupLabsTogether]);
 
     // Validate prerequisites
     const handleValidate = async () => {
@@ -326,12 +348,18 @@ export default function AISchedulerClient() {
         }
 
         setIsGenerating(true);
+        setUnscheduledCourses([]);
+        setShowUnscheduled(false);
         try {
             const options = buildGenerationOptions();
             const result = await generateSchedule(options);
 
             const stats = result.stats;
+            const unscheduled = stats.unscheduledCourses || [];
+
             if (stats.unscheduled > 0) {
+                setUnscheduledCourses(unscheduled);
+                setShowUnscheduled(true);
                 notifyWarning(`Schedule generated with ${stats.scheduled} classes. ${stats.unscheduled} could not be scheduled.`);
             } else {
                 notifySuccess(`Schedule generated successfully! ${stats.scheduled} classes scheduled.`);
@@ -471,11 +499,11 @@ export default function AISchedulerClient() {
                     <div className="flex flex-wrap gap-4 mt-6">
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                             <Sun className="w-4 h-4 text-amber-300" />
-                            <span className="text-sm font-medium">Day: 08:00 - 15:00</span>
+                            <span className="text-sm font-medium">Day: 08:30 - 17:20 (Split)</span>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                             <Moon className="w-4 h-4 text-blue-300" />
-                            <span className="text-sm font-medium">Evening: 15:30 - 21:00</span>
+                            <span className="text-sm font-medium">Evening: Tue/Fri Specific</span>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                             <Zap className="w-4 h-4 text-yellow-300" />
@@ -665,7 +693,7 @@ export default function AISchedulerClient() {
                                                 />
                                                 <div>
                                                     <p className="font-medium text-slate-800">
-                                                        {batch.code || batch.name}
+                                                        {batchDisplayName(batch.code || batch.name, batch.shift)}
                                                     </p>
                                                     <p className="text-xs text-slate-500">
                                                         Sem {batch.currentSemester} • {batch.currentStudents} students
@@ -695,7 +723,7 @@ export default function AISchedulerClient() {
                                     <SelectContent className="rounded-xl max-h-[300px]">
                                         {batches.map((batch) => (
                                             <SelectItem key={batch.id} value={batch.id}>
-                                                {batch.code || batch.name} - Semester {batch.currentSemester} ({batch.currentStudents} students)
+                                                {batchDisplayName(batch.code || batch.name, batch.shift)} - Semester {batch.currentSemester} ({batch.currentStudents} students)
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -802,6 +830,58 @@ export default function AISchedulerClient() {
                                     <p className="text-xs text-slate-400">
                                         Working days: {allDays.filter(d => !offDays.includes(d)).join(', ') || 'None'}
                                     </p>
+                                </div>
+
+                                {/* Scheduling Preferences */}
+                                <div className="space-y-3 pt-4 border-t border-slate-200">
+                                    <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                                        <Settings className="w-4 h-4 text-slate-400" />
+                                        Scheduling Preferences
+                                    </label>
+
+                                    {/* Shift Selection */}
+                                    <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+                                        <label className="text-xs font-semibold text-slate-600">Shift Override</label>
+                                        <p className="text-xs text-slate-400">Force all batches to use a specific shift, or use each batch&apos;s natural shift</p>
+                                        <Select value={targetShift || "auto"} onValueChange={(v) => setTargetShift(v === "auto" ? null : v)}>
+                                            <SelectTrigger className="bg-white border-slate-200 h-9">
+                                                <SelectValue placeholder="Select shift mode" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="auto">
+                                                    <div className="flex items-center gap-2">
+                                                        <Layers className="w-4 h-4 text-slate-400" />
+                                                        <span>Auto (Use Batch&apos;s Natural Shift)</span>
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="day">
+                                                    <div className="flex items-center gap-2">
+                                                        <Sun className="w-4 h-4 text-amber-500" />
+                                                        <span>Force Day Shift</span>
+                                                    </div>
+                                                </SelectItem>
+                                                <SelectItem value="evening">
+                                                    <div className="flex items-center gap-2">
+                                                        <Moon className="w-4 h-4 text-indigo-500" />
+                                                        <span>Force Evening Shift</span>
+                                                    </div>
+                                                </SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* Lab Grouping */}
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                                        <div>
+                                            <label className="text-xs font-semibold text-slate-600">Group Lab Classes</label>
+                                            <p className="text-xs text-slate-400">Try to schedule all labs for a batch on the same day</p>
+                                        </div>
+                                        <Checkbox
+                                            checked={groupLabsTogether}
+                                            onCheckedChange={(checked) => setGroupLabsTogether(checked as boolean)}
+                                            className="data-[state=checked]:bg-violet-600"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Custom Time Settings */}
@@ -1079,6 +1159,82 @@ export default function AISchedulerClient() {
                             </div>
                         </CardContent>
                     )}
+                </Card>
+            )}
+
+            {/* Unscheduled Courses Panel */}
+            {showUnscheduled && unscheduledCourses.length > 0 && (
+                <Card className="border-2 border-amber-300 bg-amber-50/60 rounded-2xl overflow-hidden p-0">
+                    <CardHeader className="pb-3 bg-amber-100/60 border-b border-amber-200">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <AlertTriangle className="w-6 h-6 text-amber-600" />
+                                <div>
+                                    <h3 className="font-bold text-amber-900">
+                                        {unscheduledCourses.length} Course{unscheduledCourses.length > 1 ? 's' : ''} Could Not Be Scheduled
+                                    </h3>
+                                    <p className="text-sm text-amber-700">
+                                        These courses were skipped due to time slot or room conflicts.
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowUnscheduled(false)}
+                                className="text-amber-700 hover:text-amber-900 hover:bg-amber-200"
+                            >
+                                Dismiss
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                        <div className="max-h-[320px] overflow-y-auto space-y-2">
+                            {unscheduledCourses.map((course, idx) => (
+                                <div
+                                    key={idx}
+                                    className="flex items-center justify-between p-3 bg-white rounded-xl border border-amber-200 shadow-sm"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${course.courseType === 'lab' ? 'bg-blue-500' : 'bg-slate-400'
+                                            }`} />
+                                        <div>
+                                            <p className="font-semibold text-slate-800 text-sm">
+                                                {course.courseCode} — {course.courseName}
+                                            </p>
+                                            <p className="text-xs text-slate-500 mt-0.5">
+                                                Batch: <span className="font-medium text-slate-700">{batchDisplayName(course.batchName, course.batchShift)}</span>
+                                                {' · '}
+                                                Teacher: <span className="font-medium text-slate-700">{course.teacherName}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                        <Badge
+                                            variant="outline"
+                                            className={`text-xs capitalize ${course.courseType === 'lab'
+                                                ? 'border-blue-300 text-blue-700 bg-blue-50'
+                                                : 'border-slate-300 text-slate-600'
+                                                }`}
+                                        >
+                                            {course.courseType}
+                                        </Badge>
+                                        <Badge variant="destructive" className="text-xs">
+                                            No Slot
+                                        </Badge>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Alert className="mt-4 bg-white border-amber-200">
+                            <Info className="w-4 h-4 text-amber-600" />
+                            <AlertTitle className="text-amber-800 text-sm">Why did this happen?</AlertTitle>
+                            <AlertDescription className="text-amber-700 text-xs">
+                                Common causes: teacher already scheduled at all available times, no suitable room available,
+                                or working days are too limited. Try adding more working days or adjusting time slots.
+                            </AlertDescription>
+                        </Alert>
+                    </CardContent>
                 </Card>
             )}
 

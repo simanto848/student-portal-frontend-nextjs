@@ -9,8 +9,6 @@ import {
     CheckCircle2,
     Clock,
     MapPin,
-    Users,
-    BookOpen,
     Sparkles,
     Loader2,
     ChevronDown,
@@ -19,8 +17,8 @@ import {
     Moon,
     Zap,
     User2,
-    Calendar, // Added Calendar
-    GraduationCap // Added GraduationCap
+    Calendar,
+    GraduationCap
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -76,8 +74,10 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
             const data = await fetchProposalById(id);
             setProposal(data);
             if (data?.scheduleData) {
-                // Initialize all batches as expanded
-                const batches = new Set(data.scheduleData.map(item => item.batchName || 'Unknown Batch'));
+                const batches = new Set(data.scheduleData.map(item => {
+                    const prefix = item.batchShift === 'evening' ? 'E' : 'D';
+                    return `${prefix}-${item.batchName || 'Unknown Batch'}`;
+                }));
                 const initialExpandState: Record<string, boolean> = {};
                 batches.forEach(b => initialExpandState[b as string] = true);
                 setExpandedBatchGroups(initialExpandState);
@@ -110,7 +110,9 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
         const batchMap: Record<string, Record<string, ProposalScheduleItem[]>> = {};
 
         proposal.scheduleData.forEach(item => {
-            const batchName = item.batchName || 'Unknown Batch';
+            const rawName = item.batchName || 'Unknown Batch';
+            const prefix = item.batchShift === 'evening' ? 'E' : 'D';
+            const batchName = `${prefix}-${rawName}`;
             if (!batchMap[batchName]) {
                 batchMap[batchName] = {};
             }
@@ -342,7 +344,7 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
                 </div>
 
                 {Object.entries(groupedSchedules).map(([batchName, daysMap]) => (
-                    <Card key={batchName} className="border-0 shadow-md shadow-slate-200/50 rounded-2xl overflow-hidden bg-white">
+                    <Card key={batchName} className="border-0 shadow-md shadow-slate-200/50 rounded-2xl overflow-hidden bg-white p-0">
                         <button
                             onClick={() => toggleBatchGroup(batchName)}
                             className="w-full px-6 py-5 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white hover:bg-slate-50/80 transition-all duration-200 border-b border-slate-100"
