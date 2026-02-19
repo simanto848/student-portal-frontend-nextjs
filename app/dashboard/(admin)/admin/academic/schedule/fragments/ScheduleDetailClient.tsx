@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { CourseSchedule, SessionCourse, Batch } from "@/services/academic/types";
 import {
     CalendarClock,
@@ -8,17 +8,14 @@ import {
     Users,
     MapPin,
     Clock,
-    GraduationCap,
     Building2,
     Calendar,
     Hash,
     Mail,
     User,
-    Award,
     CheckCircle2,
     XCircle,
     RefreshCw,
-    FileText,
     Layers,
     ArrowLeft
 } from "lucide-react";
@@ -26,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
+import { to12Hour } from "@/lib/utils/timeFormat";
 
 interface ScheduleDetailClientProps {
     schedule: CourseSchedule;
@@ -42,14 +40,6 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
     const teacher = teacherProp || (typeof schedule.teacherId === 'object' ? (schedule.teacherId as any) : schedule.teacher);
     const classroom = typeof schedule.classroomId === 'object' ? (schedule.classroomId as any) : (schedule as any).classroom;
     const department = batch?.departmentId || sessionCourse?.departmentId || (schedule as any).department;
-
-    const getName = (item: any): string => {
-        if (!item) return "N/A";
-        if (typeof item === 'string') return item;
-        if (typeof item === 'object' && item.name) return item.name;
-        if (typeof item === 'object' && item.fullName) return item.fullName;
-        return "N/A";
-    };
 
     const containerVariants = {
         hidden: { opacity: 0, y: 20 },
@@ -150,7 +140,7 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                 {/* Timing Card */}
-                <motion.div variants={cardVariants} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
+                <motion.div variants={cardVariants} className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
                             <Clock className="w-6 h-6" />
@@ -175,18 +165,18 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-4 bg-amber-50/30 rounded-2xl border border-amber-100/50">
                                 <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Start</p>
-                                <p className="text-lg font-black text-slate-800">{schedule.startTime}</p>
+                                <p className="text-lg font-black text-slate-800">{to12Hour(schedule.startTime)}</p>
                             </div>
                             <div className="p-4 bg-amber-50/30 rounded-2xl border border-amber-100/50">
                                 <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">End</p>
-                                <p className="text-lg font-black text-slate-800">{schedule.endTime}</p>
+                                <p className="text-lg font-black text-slate-800">{to12Hour(schedule.endTime)}</p>
                             </div>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Location Card */}
-                <motion.div variants={cardVariants} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
+                <motion.div variants={cardVariants} className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
                             <MapPin className="w-6 h-6" />
@@ -198,7 +188,7 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
                     </div>
 
                     <div className="space-y-4">
-                        <div className="p-5 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 rounded-2xl border border-blue-100">
+                        <div className="p-5 bg-linear-to-br from-blue-50/50 to-indigo-50/50 rounded-2xl border border-blue-100">
                             <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-2">Allocated Room</p>
                             <div className="flex items-center gap-3">
                                 <Building2 className="w-8 h-8 text-blue-400" />
@@ -217,7 +207,7 @@ export function ScheduleDetailClient({ schedule, teacher: teacherProp }: Schedul
                 </motion.div>
 
                 {/* Teacher Profile Card */}
-                <motion.div variants={cardVariants} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
+                <motion.div variants={cardVariants} className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
                     <div className="flex items-center gap-4 mb-6">
                         <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
                             <User className="w-6 h-6" />

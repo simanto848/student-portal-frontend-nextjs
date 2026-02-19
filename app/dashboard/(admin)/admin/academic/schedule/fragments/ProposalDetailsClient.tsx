@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -20,8 +21,9 @@ import {
     Calendar,
     GraduationCap
 } from "lucide-react";
+import { formatTimeRange } from "@/lib/utils/timeFormat";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { fetchProposalById, applyProposal } from "../ai-scheduler/actions";
 
@@ -170,7 +172,7 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
         return (
             <div className="p-6 max-w-7xl mx-auto space-y-8">
                 <div className="animate-pulse">
-                    <div className="h-40 bg-gradient-to-r from-slate-200 to-slate-100 rounded-3xl mb-8" />
+                    <div className="h-40 bg-linear-to-r from-slate-200 to-slate-100 rounded-3xl mb-8" />
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
                         {[1, 2, 3, 4].map(i => (
                             <div key={i} className="h-24 bg-slate-100 rounded-2xl" />
@@ -218,7 +220,7 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
     return (
         <div className="max-w-7xl mx-auto space-y-8">
             {/* Premium Header */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 p-8 text-white shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-violet-600 via-purple-600 to-indigo-700 p-8 text-white shadow-2xl">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
                 <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
                 <div className="absolute -left-20 -bottom-20 h-48 w-48 rounded-full bg-purple-300/20 blur-3xl" />
@@ -347,7 +349,7 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
                     <Card key={batchName} className="border-0 shadow-md shadow-slate-200/50 rounded-2xl overflow-hidden bg-white p-0">
                         <button
                             onClick={() => toggleBatchGroup(batchName)}
-                            className="w-full px-6 py-5 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white hover:bg-slate-50/80 transition-all duration-200 border-b border-slate-100"
+                            className="w-full px-6 py-5 flex items-center justify-between bg-linear-to-r from-slate-50 to-white hover:bg-slate-50/80 transition-all duration-200 border-b border-slate-100"
                         >
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-violet-100 rounded-xl">
@@ -399,7 +401,7 @@ export default function ProposalDetailsClient({ proposalId }: ProposalDetailsCli
                                                             <tr key={index} className="hover:bg-slate-50/80 transition-colors">
                                                                 <td className="px-5 py-3 whitespace-nowrap">
                                                                     <div className="font-medium text-slate-700">
-                                                                        {item.startTime} - {item.endTime}
+                                                                        {formatTimeRange(item.startTime || '', item.endTime || '')}
                                                                     </div>
                                                                 </td>
                                                                 <td className="px-5 py-3">

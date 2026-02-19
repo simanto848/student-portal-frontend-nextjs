@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
@@ -12,6 +13,7 @@ import {
 import { Teacher } from "@/services/teacher.service";
 import { notifySuccess, notifyError } from "@/components/toast";
 import { CalendarClock, Sparkles, Filter, Clock, MapPin, User, CheckCircle2, XCircle, Archive } from "lucide-react";
+import { formatTimeRange } from "@/lib/utils/timeFormat";
 import { ScheduleFormModal } from "./ScheduleFormModal";
 import { ScheduleDeleteModal } from "./ScheduleDeleteModal";
 import {
@@ -217,7 +219,7 @@ export function ScheduleManagementClient() {
                     </span>
                     <div className="flex items-center gap-1 text-slate-500 mt-0.5">
                         <Clock className="w-3 h-3 text-amber-500" />
-                        <span className="text-[11px] font-medium">{item.startTime} - {item.endTime}</span>
+                        <span className="text-[11px] font-medium">{formatTimeRange(item.startTime, item.endTime)}</span>
                     </div>
                 </div>
             ),
@@ -266,6 +268,7 @@ export function ScheduleManagementClient() {
                 );
             },
         },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     ], [batches, sessionCourses, classrooms, teachers]);
 
     const searchableData: SearchableSchedule[] = useMemo(() => {
@@ -430,7 +433,7 @@ export function ScheduleManagementClient() {
 
             {/* Schedule Status Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-4 border border-emerald-200/60 shadow-sm">
+                <div className="bg-linear-to-br from-emerald-50 to-emerald-100/50 rounded-2xl p-4 border border-emerald-200/60 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-emerald-500/10 rounded-xl">
@@ -445,7 +448,7 @@ export function ScheduleManagementClient() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-2xl p-4 border border-slate-200/60 shadow-sm">
+                <div className="bg-linear-to-br from-slate-50 to-slate-100/50 rounded-2xl p-4 border border-slate-200/60 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-slate-500/10 rounded-xl">
@@ -460,7 +463,7 @@ export function ScheduleManagementClient() {
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50/50 rounded-2xl p-4 border border-amber-200/60 shadow-sm">
+                <div className="bg-linear-to-br from-amber-50 to-orange-50/50 rounded-2xl p-4 border border-amber-200/60 shadow-sm">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2.5 bg-amber-500/10 rounded-xl">
@@ -526,7 +529,7 @@ export function ScheduleManagementClient() {
                     </div>
 
                     {/* Day Filter */}
-                    <div className="w-[160px]">
+                    <div className="w-40">
                         <Select value={selectedDay} onValueChange={setSelectedDay}>
                             <SelectTrigger className="w-full rounded-xl border-slate-200 bg-white/50 focus:ring-amber-500 font-medium h-12">
                                 <SelectValue placeholder="Day of Week" />
@@ -569,13 +572,6 @@ export function ScheduleManagementClient() {
                             });
 
                             if (batchSchedules.length === 0 && selectedBatch !== "all") return null;
-                            
-                            const classesPerDay = batchSchedules.reduce((acc, curr) => {
-                                curr.daysOfWeek?.forEach(day => {
-                                    acc[day] = (acc[day] || 0) + 1;
-                                });
-                                return acc;
-                            }, {} as Record<string, number>);
 
                             return (
                                 <Accordion type="single" collapsible key={batch.id} className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">

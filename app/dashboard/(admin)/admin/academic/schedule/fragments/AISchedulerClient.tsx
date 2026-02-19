@@ -166,6 +166,7 @@ export default function AISchedulerClient() {
             loadProposals(selectedSessionId);
             fetchBatches().then(setBatches).catch(() => notifyError("Failed to load batches"));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedSessionId]);
 
     // ── Options builder ───────────────────────────────────────────────────────
@@ -363,7 +364,7 @@ export default function AISchedulerClient() {
             <SchedulerHeader />
 
             <Card className="border-0 shadow-xl shadow-slate-200/50 bg-white/80 backdrop-blur-md rounded-2xl overflow-hidden p-0">
-                <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-100 pb-4">
+                <CardHeader className="bg-linear-to-r from-slate-50 to-slate-100/50 border-b border-slate-100 pb-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-violet-100 rounded-xl">
                             <Calendar className="w-5 h-5 text-violet-600" />

@@ -186,7 +186,7 @@ export function BatchSelector({
                                         />
                                         <div>
                                             <p className="font-medium text-slate-800">
-                                                {batchDisplayName(batch.code || batch.name, batch.shift)}
+                                                {batch.code || batchDisplayName(batch.name, batch.shift)}
                                             </p>
                                             <p className="text-xs text-slate-500">
                                                 Sem {batch.currentSemester} • {batch.currentStudents} students
@@ -216,7 +216,7 @@ export function BatchSelector({
                             <SelectContent className="rounded-xl max-h-[300px]">
                                 {batches.map((batch) => (
                                     <SelectItem key={batch.id} value={batch.id}>
-                                        {batchDisplayName(batch.code || batch.name, batch.shift)} - Semester{" "}
+                                        {batch.code || batchDisplayName(batch.name, batch.shift)} - Semester{" "}
                                         {batch.currentSemester} ({batch.currentStudents} students)
                                     </SelectItem>
                                 ))}
