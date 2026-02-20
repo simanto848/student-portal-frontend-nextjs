@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InstructorAssignmentForm } from "@/components/enrollment/InstructorAssignmentForm";
-import { ArrowLeft, UserPlus, Cpu, Satellite, Zap } from "lucide-react";
+import { ArrowLeft, UserPlus, Zap } from "lucide-react";
 
 export default function InstructorCreateClient() {
     const router = useRouter();
@@ -28,23 +28,9 @@ export default function InstructorCreateClient() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-10">
-                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
-                        <div className="absolute top-0 right-0 p-10 opacity-[0.03] rotate-12">
-                            <Cpu className="w-40 h-40 text-slate-900" />
-                        </div>
-                        <CardHeader className="p-10 pb-0 relative z-10">
-                            <div className="flex items-center gap-4 mb-2">
-                                <div className="h-12 w-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-inner">
-                                    <Satellite className="w-6 h-6" />
-                                </div>
-                                <CardTitle className="text-2xl font-black text-slate-800 tracking-tight">Core Configuration</CardTitle>
-                            </div>
-                            <CardDescription className="text-slate-400 font-bold tracking-tight">Allocate teaching staff to course streams and batches</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-10 relative z-10">
-                            <InstructorAssignmentForm />
-                        </CardContent>
-                    </Card>
+                    <div className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
+                        <InstructorAssignmentForm />
+                    </div>
                 </div>
 
                 <div className="space-y-10">

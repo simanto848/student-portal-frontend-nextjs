@@ -210,7 +210,7 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
-            <GlassCard className="p-8 border-slate-200/60 bg-gradient-to-br from-white to-slate-50/50 shadow-sm" delay={0.1}>
+            <GlassCard className="p-8 border-slate-200/60 bg-linear-to-br from-white to-slate-50/50 shadow-sm" delay={0.1}>
                 <div className="flex items-center gap-3 mb-8">
                     <div className={cn("p-2.5 rounded-xl ring-1 shadow-sm", theme.colors.accent.secondary.replace('bg-', 'bg-') + '/10 ring-' + theme.colors.accent.secondary.replace('bg-', '') + '/20')}>
                         <Building2 className={cn("h-5 w-5", theme.colors.accent.primary)} />
@@ -257,7 +257,7 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
             {selectedBatchId && (
                 <div className="space-y-6">
                     {!isEditing && (
-                        <GlassCard className="p-6 border-indigo-100/50 bg-gradient-to-br from-white to-indigo-50/30 shadow-sm" delay={0.2}>
+                        <GlassCard className="p-6 border-indigo-100/50 bg-linear-to-br from-white to-indigo-50/30 shadow-sm" delay={0.2}>
                             <div className="flex flex-col sm:flex-row items-center gap-6 justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2.5 rounded-xl bg-indigo-50 ring-1 ring-indigo-100 shadow-sm">
@@ -293,7 +293,7 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
                     )}
 
                     <GlassCard className="overflow-hidden border-slate-200/60 p-0 shadow-md bg-white" delay={0.3}>
-                        <div className="p-6 bg-gradient-to-r from-slate-50/80 to-white border-b border-slate-100 flex items-center justify-between">
+                        <div className="p-6 bg-linear-to-r from-slate-50/80 to-white border-b border-slate-100 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="p-2.5 rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
                                     <BookOpen className="h-5 w-5 text-slate-600" />
@@ -368,7 +368,7 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
                         </div>
                     </GlassCard>
 
-                    <div className="flex items-center justify-between pt-6">
+                    <div className="flex items-center justify-between p-6 border-t border-slate-100">
                         <Button
                             variant="ghost"
                             onClick={() => router.back()}
