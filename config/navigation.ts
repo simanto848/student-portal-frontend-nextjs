@@ -24,6 +24,7 @@ import {
   FileCheck,
   Megaphone,
   Shield,
+  ScanFace,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { User, UserRole, isTeacherUser } from "@/types/user";
@@ -170,6 +171,11 @@ export const adminNavigation: NavItem[] = [
       { href: "/dashboard/admin/users/students", label: "Students" },
       { href: "/dashboard/admin/users/moderators", label: "Moderators" },
     ],
+  },
+  {
+    href: "/dashboard/admin/face-recognition",
+    label: "AI System",
+    icon: ScanFace,
   },
   {
     href: "/dashboard/admin/reports",

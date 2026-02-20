@@ -308,6 +308,7 @@ export function StudentDetailClient({
                     onClose={() => setEnrollmentOpen(false)}
                     studentName={student.fullName}
                     studentId={student.registrationNumber}
+                    studentDepartment={getName(departments, student.departmentId)}
                     onComplete={() => {
                         setEnrollmentOpen(false);
                         notifySuccess("Face enrollment completed successfully");
@@ -390,11 +391,10 @@ function ActionButton({ label, icon: Icon, onClick, highlighted = false }: { lab
     return (
         <button
             onClick={onClick}
-            className={`w-full h-10 rounded-lg border flex items-center justify-between px-4 transition-colors ${
-                highlighted 
-                    ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' 
+            className={`w-full h-10 rounded-lg border flex items-center justify-between px-4 transition-colors ${highlighted
+                    ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-            }`}
+                }`}
         >
             <div className="flex items-center gap-3">
                 <Icon className={`w-4 h-4 ${highlighted ? 'text-amber-600' : 'text-slate-400'}`} />

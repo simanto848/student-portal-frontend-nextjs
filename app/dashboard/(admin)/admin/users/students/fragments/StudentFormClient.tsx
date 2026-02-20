@@ -729,6 +729,7 @@ export function StudentFormClient({
                         onClose={() => setEnrollmentData(null)}
                         studentName={enrollmentData.studentName}
                         studentId={enrollmentData.studentId}
+                        studentDepartment={departments.find(d => (d.id || d._id) === basic.departmentId)?.name || "UNKNOWN"}
                         onComplete={handleEnrollmentComplete}
                     />
                 )}

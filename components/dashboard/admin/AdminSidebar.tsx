@@ -17,7 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { adminNavigation, NavItem } from "@/config/navigation";
 
-const GROUP_ORDER = ["Overview", "Academic Management", "Enrollment Management", "User Management", "Actions"];
+const GROUP_ORDER = ["Overview", "Academic Management", "Enrollment Management", "User Management", "AI System", "Actions"];
 
 interface SidebarStats {
     students: number;
@@ -56,6 +56,8 @@ export function AdminSidebar({
                 groupName = "Enrollment Management";
             } else if (item.href?.includes("users")) {
                 groupName = "User Management";
+            } else if (item.href?.includes("face-recognition")) {
+                groupName = "AI System";
             } else if (item.href?.includes("approvals") || item.href?.includes("reports") || item.href?.includes("messages")) {
                 groupName = "Actions";
             }

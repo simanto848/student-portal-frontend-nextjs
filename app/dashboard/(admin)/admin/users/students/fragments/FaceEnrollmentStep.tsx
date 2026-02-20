@@ -6,13 +6,14 @@ import { Camera, RefreshCw, CheckCircle2, UserPlus, X, AlertTriangle, Upload } f
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-const PYTHON_API_URL = "http://localhost:5000";
+const PYTHON_API_URL = process.env.NEXT_PUBLIC_FACE_DETECTION;
 
 interface FaceEnrollmentStepProps {
     isOpen: boolean;
     onClose: () => void;
     studentName: string;
-    studentId: string; // This is the registration number
+    studentId: string;
+    studentDepartment: string;
     onComplete: () => void;
 }
 
@@ -21,6 +22,7 @@ export function FaceEnrollmentStep({
     onClose,
     studentName,
     studentId,
+    studentDepartment,
     onComplete
 }: FaceEnrollmentStepProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -48,7 +50,6 @@ export function FaceEnrollmentStep({
                     }
                 })
                 .catch(err => {
-                    console.error("Camera error:", err);
                     let msg = "Failed to access camera.";
                     if (err.name === 'NotAllowedError') msg = "Camera permission denied.";
                     if (err.name === 'NotFoundError') msg = "No camera found.";
@@ -134,6 +135,7 @@ export function FaceEnrollmentStep({
                 body: JSON.stringify({
                     id: studentId,
                     name: studentName,
+                    dept: studentDepartment,
                     images: capturedImages
                 })
             });
