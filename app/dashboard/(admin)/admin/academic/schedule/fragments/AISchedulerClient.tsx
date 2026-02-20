@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { notifySuccess, notifyError, notifyWarning } from "@/components/toast";
-import { ScheduleGenerationOptions, ScheduleValidationResult } from "@/services/academic/schedule.service";
+import { ScheduleGenerationOptions, ScheduleValidationResult, ShiftTimeConfig } from "@/services/academic/schedule.service";
 import {
     fetchSessions,
     fetchDepartments,
@@ -32,9 +32,19 @@ import {
     ScheduleStatusSummary,
 } from "./scheduler/types";
 
+// ── Shift configuration (module-level constants) ──────────────────────────────
+const SHIFT_WORKING_DAYS: Record<string, string[]> = {
+    day: ["Saturday", "Sunday", "Wednesday", "Thursday"],
+    evening: ["Tuesday", "Friday"],
+};
+const SHIFT_OFF_DAYS: Record<string, string[]> = {
+    day: ["Monday", "Tuesday", "Friday"],
+    evening: ["Saturday", "Sunday", "Monday", "Wednesday", "Thursday"],
+};
+
 import { SchedulerHeader } from "./scheduler/SchedulerHeader";
 import { BatchSelector } from "./scheduler/BatchSelector";
-import { AdvancedSettings } from "./scheduler/AdvancedSettings";
+import { AdvancedSettings, DEFAULT_SHIFT_TIME_SLOTS } from "./scheduler/AdvancedSettings";
 import { ScheduleStatusBar } from "./scheduler/ScheduleStatusBar";
 import { GenerateActions } from "./scheduler/GenerateActions";
 import { ValidationPanel } from "./scheduler/ValidationPanel";
@@ -61,17 +71,14 @@ export default function AISchedulerClient() {
     const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
     // ── Scheduling preferences ────────────────────────────────────────────────
-    const [targetShift, setTargetShift] = useState<string | null>(null);
+    const [targetShift, setTargetShift] = useState<"day" | "evening" | null>(null);
     const [groupLabsTogether, setGroupLabsTogether] = useState<boolean>(true);
 
-    // ── Time settings ─────────────────────────────────────────────────────────
-    const [offDays, setOffDays] = useState<string[]>(["Friday"]);
-    const [dayStartTime, setDayStartTime] = useState<string>("08:30");
-    const [dayEndTime, setDayEndTime] = useState<string>("17:20");
-    const [breakStartTime, setBreakStartTime] = useState<string>("13:30");
-    const [breakEndTime, setBreakEndTime] = useState<string>("14:00");
-    const [eveningStartTime, setEveningStartTime] = useState<string>("18:00");
-    const [eveningEndTime, setEveningEndTime] = useState<string>("21:40");
+    // ── Time settings (off days driven by shift selection) ────────────────────
+    const [offDays, setOffDays] = useState<string[]>(["Monday", "Tuesday", "Friday"]);
+    const [shiftTimeSlots, setShiftTimeSlots] = useState<Record<string, ShiftTimeConfig>>(
+        () => JSON.parse(JSON.stringify(DEFAULT_SHIFT_TIME_SLOTS))
+    );
 
     // ── Room preferences ──────────────────────────────────────────────────────
     const [preferredTheoryRoom, setPreferredTheoryRoom] = useState<string>("");
@@ -91,25 +98,31 @@ export default function AISchedulerClient() {
     const [showUnscheduled, setShowUnscheduled] = useState(false);
 
     // ── Derived ───────────────────────────────────────────────────────────────
+    // Filter batches by selected shift first, then by department
+    const shiftFilteredBatches = targetShift
+        ? batches.filter((b) => (b.shift || "day") === targetShift)
+        : batches;
+
     const filteredBatches = selectedDepartmentId
-        ? batches.filter((b) => {
+        ? shiftFilteredBatches.filter((b) => {
             const deptId = typeof b.departmentId === "object" ? b.departmentId.id : b.departmentId;
             return deptId === selectedDepartmentId;
         })
-        : batches;
+        : shiftFilteredBatches;
 
     const selectionSummary = (() => {
+        const shiftLabel = targetShift ? ` (${targetShift} shift)` : "";
         switch (selectionMode) {
             case "all":
-                return `All batches (${batches.length})`;
+                return `All ${targetShift || ""} batches (${shiftFilteredBatches.length})${shiftLabel}`;
             case "department": {
                 const dept = departments.find((d) => d.id === selectedDepartmentId);
-                return dept ? `${dept.shortName} - ${filteredBatches.length} batches` : "Select department";
+                return dept ? `${dept.shortName} - ${filteredBatches.length} batches${shiftLabel}` : "Select department";
             }
             case "single_batch":
             case "multi_batch":
                 return selectedBatchIds.length > 0
-                    ? `${selectedBatchIds.length} batch${selectedBatchIds.length > 1 ? "es" : ""} selected`
+                    ? `${selectedBatchIds.length} batch${selectedBatchIds.length > 1 ? "es" : ""} selected${shiftLabel}`
                     : "Select batches";
             default:
                 return "";
@@ -171,6 +184,10 @@ export default function AISchedulerClient() {
 
     // ── Options builder ───────────────────────────────────────────────────────
     const buildGenerationOptions = useCallback((): ScheduleGenerationOptions => {
+        // Always derive working days from offDays
+        const workingDays = (["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"] as const)
+            .filter(d => !offDays.includes(d));
+
         const options: ScheduleGenerationOptions = {
             sessionId: selectedSessionId,
             selectionMode,
@@ -180,10 +197,10 @@ export default function AISchedulerClient() {
                 lab: labDurationMinutes,
                 project: labDurationMinutes,
             },
-            offDays: offDays as ScheduleGenerationOptions["offDays"],
+            workingDays: workingDays as unknown as ScheduleGenerationOptions["workingDays"],
             customTimeSlots: {
-                day: { startTime: dayStartTime, endTime: dayEndTime, breakStart: breakStartTime, breakEnd: breakEndTime },
-                evening: { startTime: eveningStartTime, endTime: eveningEndTime },
+                day: shiftTimeSlots.day,
+                evening: shiftTimeSlots.evening,
             },
             preferredRooms: {
                 theory: preferredTheoryRoom || undefined,
@@ -203,9 +220,7 @@ export default function AISchedulerClient() {
         return options;
     }, [
         selectedSessionId, selectionMode, selectedDepartmentId, selectedBatchIds,
-        classDurationMinutes, labDurationMinutes, offDays,
-        dayStartTime, dayEndTime, breakStartTime, breakEndTime,
-        eveningStartTime, eveningEndTime,
+        classDurationMinutes, labDurationMinutes, offDays, shiftTimeSlots,
         preferredTheoryRoom, preferredLabRoom, targetShift, groupLabsTogether,
     ]);
 
@@ -215,6 +230,21 @@ export default function AISchedulerClient() {
         setSelectedBatchIds([]);
         setValidationResult(null);
         setShowValidation(false);
+    };
+
+    const handleShiftChange = (shift: "day" | "evening" | null) => {
+        setTargetShift(shift);
+        setSelectedBatchIds([]);
+        setValidationResult(null);
+        setShowValidation(false);
+        // Reset time slots to defaults
+        setShiftTimeSlots(JSON.parse(JSON.stringify(DEFAULT_SHIFT_TIME_SLOTS)));
+        // Auto-update working days based on shift
+        if (shift && SHIFT_OFF_DAYS[shift]) {
+            setOffDays(SHIFT_OFF_DAYS[shift]);
+        } else {
+            setOffDays(["Monday", "Tuesday", "Friday"]);
+        }
     };
 
     const handleDepartmentChange = (id: string) => {
@@ -390,9 +420,12 @@ export default function AISchedulerClient() {
                         onDepartmentChange={handleDepartmentChange}
                         batches={batches}
                         filteredBatches={filteredBatches}
+                        shiftFilteredBatches={shiftFilteredBatches}
                         selectedBatchIds={selectedBatchIds}
                         onBatchToggle={handleBatchToggle}
                         onSelectAllBatches={handleSelectAllBatches}
+                        targetShift={targetShift}
+                        onShiftChange={handleShiftChange}
                     />
 
                     <AdvancedSettings
@@ -405,21 +438,10 @@ export default function AISchedulerClient() {
                         offDays={offDays}
                         onOffDaysChange={setOffDays}
                         targetShift={targetShift}
-                        onTargetShiftChange={setTargetShift}
                         groupLabsTogether={groupLabsTogether}
                         onGroupLabsChange={setGroupLabsTogether}
-                        dayStartTime={dayStartTime}
-                        onDayStartChange={setDayStartTime}
-                        dayEndTime={dayEndTime}
-                        onDayEndChange={setDayEndTime}
-                        breakStartTime={breakStartTime}
-                        onBreakStartChange={setBreakStartTime}
-                        breakEndTime={breakEndTime}
-                        onBreakEndChange={setBreakEndTime}
-                        eveningStartTime={eveningStartTime}
-                        onEveningStartChange={setEveningStartTime}
-                        eveningEndTime={eveningEndTime}
-                        onEveningEndChange={setEveningEndTime}
+                        shiftTimeSlots={shiftTimeSlots}
+                        onShiftTimeSlotsChange={setShiftTimeSlots}
                         preferredTheoryRoom={preferredTheoryRoom}
                         onTheoryRoomChange={setPreferredTheoryRoom}
                         preferredLabRoom={preferredLabRoom}

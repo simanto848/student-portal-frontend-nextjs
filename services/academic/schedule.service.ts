@@ -7,19 +7,28 @@ export interface ClassDurations {
     project?: number;
 }
 
+/** A single contiguous time range within a day */
+export interface TimeBlock {
+    start: string;  // "HH:MM" e.g. "08:30"
+    end: string;    // "HH:MM" e.g. "13:00"
+}
+
+/** Configuration for a specific day: one or more time blocks */
+export interface DaySlotConfig {
+    blocks: TimeBlock[];
+    classTypeConstraint?: "theory" | "lab";  // e.g. Friday evening = "theory", Tuesday evening = "lab"
+}
+
+/** Per-shift configuration: default blocks + per-day overrides */
+export interface ShiftTimeConfig {
+    defaultBlocks: TimeBlock[];
+    dayOverrides?: Record<string, DaySlotConfig>;  // e.g. { Friday: { blocks: [...] } }
+}
+
+/** Multi-block time-slot configuration for both shifts */
 export interface CustomTimeSlots {
-    day?: {
-        startTime?: string;  // "08:30"
-        endTime?: string;    // "15:00"
-        breakStart?: string; // "12:00"
-        breakEnd?: string;   // "13:00"
-    };
-    evening?: {
-        startTime?: string;  // "15:30"
-        endTime?: string;    // "21:00"
-        breakStart?: string;
-        breakEnd?: string;
-    };
+    day?: ShiftTimeConfig;
+    evening?: ShiftTimeConfig;
 }
 
 export type DayOfWeek = 'Saturday' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday';
@@ -33,7 +42,7 @@ export interface ScheduleGenerationOptions {
     classDurations?: ClassDurations; // Duration per class type
     workingDays?: DayOfWeek[];      // e.g., ['Saturday', 'Sunday', 'Wednesday', 'Thursday']
     offDays?: DayOfWeek[];          // e.g., ['Monday', 'Tuesday', 'Friday']
-    customTimeSlots?: CustomTimeSlots; // Custom start/end times for day and evening shifts
+    customTimeSlots?: CustomTimeSlots; // Multi-block time slots for day and evening shifts
     preferredRooms?: {
         theory?: string;
         lab?: string;
