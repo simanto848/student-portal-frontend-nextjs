@@ -33,7 +33,6 @@ import {
 import { adminService } from "@/services/user/admin.service";
 import { getImageUrl } from "@/lib/utils";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { motion, AnimatePresence } from "framer-motion";
 import {
     deleteTeacherAction,
     restoreTeacherAction,
@@ -247,180 +246,149 @@ export function FacultyManagementClient({
     };
 
     return (
-        <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-6 pb-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
+                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 w-fit shadow-sm">
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Faculty List</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#92400E]">Overview</span>
                     </Badge>
-                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none">Faculty</h1>
-                    <p className="text-slate-500 font-bold mt-2 md:mt-3 text-sm md:text-lg">Manage teachers and faculty members in the system.</p>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Faculty Management</h1>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button
-                        onClick={() => router.push("/dashboard/admin/users/faculty/create")}
-                        className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
-                    >
-                        <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        <span>Add Faculty</span>
-                    </Button>
-                </div>
+                <Button
+                    onClick={() => router.push("/dashboard/admin/users/faculty/create")}
+                    className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-amber-600 text-white shadow-sm font-medium flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+                >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Faculty</span>
+                </Button>
             </div>
 
-            <Tabs defaultValue="active" className="w-full" onValueChange={setActiveTab}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-                    <div className="bg-white p-1.5 rounded-[2rem] border-2 border-slate-100 shadow-lg shadow-slate-200/30 flex w-fit">
-                        <TabsList className="bg-transparent h-12 gap-1 p-0">
-                            <TabsTrigger
-                                value="active"
-                                className="h-10 px-8 rounded-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all"
-                            >
-                                <Sparkles className="w-3.5 h-3.5 mr-2" />
-                                Active
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="deleted"
-                                className="h-10 px-8 rounded-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all"
-                            >
-                                <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                Deleted Staff
-                            </TabsTrigger>
-                        </TabsList>
-                    </div>
+            <Tabs defaultValue="active" className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" onValueChange={setActiveTab}>
+                <div className="bg-slate-50/50 px-4 py-4 md:px-6 md:py-5 border-b border-slate-200 flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
+                    <TabsList className="bg-slate-100 p-1 rounded-lg h-auto flex w-full sm:w-auto">
+                        <TabsTrigger
+                            value="active"
+                            className="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all text-center"
+                        >
+                            Active Faculty
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="deleted"
+                            className="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm transition-all text-center"
+                        >
+                            Deleted Faculty
+                        </TabsTrigger>
+                    </TabsList>
                 </div>
 
-                <AnimatePresence mode="wait">
-                    <TabsContent value="active" key="active-tab" className="mt-0 focus-visible:outline-none">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] p-4 sm:p-6 md:p-8 shadow-2xl shadow-slate-200/30 overflow-hidden relative group"
-                        >
-                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                                <GraduationCap className="w-48 h-48 text-slate-900" />
-                            </div>
-                            <DataTable
-                                data={teachers}
-                                columns={columns}
-                                searchKey="fullName"
-                                searchPlaceholder="Search academic staff..."
-                                onView={(item) => router.push(`/dashboard/admin/users/faculty/${item.id}`)}
-                                onEdit={(item) => router.push(`/dashboard/admin/users/faculty/${item.id}/edit`)}
-                                onDelete={handleDelete}
-                                renderExtraActions={(teacher) => (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            teacher.isBlocked ? handleUnblock(teacher) : handleBlock(teacher);
-                                        }}
-                                        className={`h-9 w-9 rounded-xl hover:bg-white hover:shadow-md active:scale-95 transition-all ${teacher.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
-                                            }`}
-                                        title={teacher.isBlocked ? "Unblock Faculty" : "Block Faculty"}
-                                    >
-                                        {teacher.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-                                    </Button>
-                                )}
-                            />
-                        </motion.div>
-                    </TabsContent>
-
-                    <TabsContent value="deleted" key="deleted-tab" className="mt-0 focus-visible:outline-none">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl shadow-slate-200/30"
-                        >
-                            <div className="flex items-center gap-4 mb-10">
-                                <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-inner">
-                                    <Clock className="w-7 h-7" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-black text-slate-900">Deleted Faculty</h2>
-                                    <p className="text-slate-500 font-bold text-sm italic">Records of faculty members removed from the active system.</p>
-                                </div>
-                            </div>
-
-                            {deletedTeachers.length === 0 ? (
-                                <div className="py-20 text-center space-y-4">
-                                    <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto opacity-50 border-4 border-white shadow-2xl shadow-slate-100">
-                                        <Users className="w-10 h-10 text-slate-300" />
-                                    </div>
-                                    <p className="text-slate-400 font-black italic text-lg decoration-slate-200 underline underline-offset-8">No deleted faculty found</p>
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-inner">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-slate-50/50">
-                                            <tr>
-                                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Name</th>
-                                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Title</th>
-                                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Restore Access</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {deletedTeachers.map((teacher, index) => (
-                                                <motion.tr
-                                                    key={teacher.id}
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: index * 0.05 }}
-                                                    className="hover:bg-slate-50/30 transition-colors group"
-                                                >
-                                                    <td className="p-6">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400 grayscale group-hover:grayscale-0 transition-all">
-                                                                {teacher.fullName.charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-black text-slate-800">{teacher.fullName}</p>
-                                                                <p className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">{teacher.email}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-6">
-                                                        {teacher.designation ? (
-                                                            <Badge className={`${designationColor[teacher.designation]} grayscale border px-2 py-0.5 rounded-lg flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider shadow-sm w-fit`}>
-                                                                {designationLabel[teacher.designation]}
-                                                            </Badge>
-                                                        ) : (
-                                                            <span className="text-[10px] font-bold text-slate-300 italic">Unassigned</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-6 text-right">
-                                                        <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleRestore(teacher.id)}
-                                                                className="h-10 px-5 rounded-xl border border-emerald-100 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-black tracking-tight flex items-center gap-2"
-                                                            >
-                                                                <RotateCcw className="h-3.5 w-3.5" />
-                                                                Restore
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handlePermanentDelete(teacher.id)}
-                                                                className="h-10 px-5 rounded-xl border border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-black tracking-tight flex items-center gap-2"
-                                                            >
-                                                                <Trash2 className="h-3.5 w-3.5" />
-                                                                Purge
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </motion.tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                <TabsContent value="active" className="m-0 p-0">
+                    <div className="p-4 sm:p-6">
+                        <DataTable
+                            data={teachers}
+                            columns={columns}
+                            searchKey="fullName"
+                            searchPlaceholder="Search academic staff..."
+                            onView={(item) => router.push(`/dashboard/admin/users/faculty/${item.id}`)}
+                            onEdit={(item) => router.push(`/dashboard/admin/users/faculty/${item.id}/edit`)}
+                            onDelete={handleDelete}
+                            renderExtraActions={(teacher) => (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        teacher.isBlocked ? handleUnblock(teacher) : handleBlock(teacher);
+                                    }}
+                                    className={`h-8 w-8 rounded-md hover:bg-slate-100 transition-colors ${teacher.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
+                                        }`}
+                                    title={teacher.isBlocked ? "Unblock Faculty" : "Block Faculty"}
+                                >
+                                    {teacher.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+                                </Button>
                             )}
-                        </motion.div>
-                    </TabsContent>
-                </AnimatePresence>
+                        />
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="deleted" className="m-0 p-0">
+                    <div className="p-4 sm:p-6">
+                        {deletedTeachers.length === 0 ? (
+                            <div className="py-16 flex flex-col items-center justify-center gap-3">
+                                <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                    <Users className="w-8 h-8" />
+                                </div>
+                                <div className="text-center px-4">
+                                    <p className="text-sm font-medium text-slate-900">No deleted faculty found</p>
+                                    <p className="text-sm text-slate-500">There are no deleted faculty records in the system.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-slate-50/50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="px-4 py-3 text-xs font-medium text-slate-500">Name</th>
+                                            <th className="px-4 py-3 text-xs font-medium text-slate-500">Title</th>
+                                            <th className="px-4 py-3 text-xs font-medium text-slate-500 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {deletedTeachers.map((teacher) => (
+                                            <tr
+                                                key={teacher.id}
+                                                className="hover:bg-slate-50/50 transition-colors group"
+                                            >
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center font-medium text-slate-400 border border-slate-200">
+                                                            {teacher.fullName.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm text-slate-900">{teacher.fullName}</p>
+                                                            <p className="text-xs text-slate-500">{teacher.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {teacher.designation ? (
+                                                        <Badge className={`${designationColor[teacher.designation]} border-none px-2 py-0.5 rounded-md font-medium text-xs`}>
+                                                            {designationLabel[teacher.designation]}
+                                                        </Badge>
+                                                    ) : (
+                                                        <span className="text-xs text-slate-500 italic">Unassigned</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleRestore(teacher.id)}
+                                                            className="h-8 px-3 rounded-md text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-medium text-xs"
+                                                        >
+                                                            <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                                            Restore
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handlePermanentDelete(teacher.id)}
+                                                            className="h-8 px-3 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 font-medium text-xs"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                                            Purge
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
             </Tabs>
 
             <DeleteModal

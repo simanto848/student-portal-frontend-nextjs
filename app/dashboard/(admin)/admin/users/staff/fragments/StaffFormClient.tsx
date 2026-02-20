@@ -46,7 +46,6 @@ import {
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 import { DatePicker } from "@/components/ui/date-picker";
 import { parseISO, format as formatDate } from "date-fns";
 
@@ -257,449 +256,388 @@ export function StaffFormClient({ staff, profile, departments }: StaffFormClient
     ];
 
     return (
-        <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-4 sm:gap-6">
-                    <button
+        <div className="space-y-6 pb-10 mx-auto">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Button
+                        variant="outline"
+                        size="icon"
                         onClick={() => router.back()}
-                        className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-amber-600 hover:border-amber-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
+                        className="h-10 w-10 rounded-full"
                     >
-                        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
-                    </button>
+                        <ArrowLeft className="w-5 h-5" />
+                    </Button>
                     <div>
-                        <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
-                            <ShieldPlus className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">{isEdit ? "Update Staff" : "Add Staff"}</span>
-                        </Badge>
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tighter text-slate-900 leading-none">
-                            {isEdit ? `Edit: ${staff?.fullName}` : "New Staff Member"}
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                            {isEdit ? `Edit Staff: ${staff?.fullName}` : "New Staff Member"}
                         </h1>
+                        <p className="text-sm text-slate-500">
+                            {isEdit ? "Update staff information and details." : "Enter the details to add a new staff member into the system."}
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
-                <div className="bg-slate-900 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between overflow-x-auto gap-8 no-scrollbar">
+            <Card className="overflow-hidden border-slate-200 shadow-sm">
+                <div className="bg-slate-50/50 px-6 py-4 border-b border-slate-100 flex items-center justify-between overflow-x-auto gap-4 no-scrollbar">
                     {steps.map((s, idx) => {
                         const active = step === s.id;
                         const completed = step > s.id;
                         return (
-                            <div key={s.id} className="flex items-center gap-4 flex-shrink-0 group cursor-pointer" onClick={() => step > s.id && setStep(s.id)}>
-                                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-500 ${active ? 'bg-amber-500 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)] scale-110' : completed ? 'bg-emerald-500 text-white' : 'bg-white/10 text-slate-500'}`}>
-                                    {completed ? <CheckCircle2 className="w-6 h-6" /> : <s.icon className="w-6 h-6" />}
+                            <div key={s.id} className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => step > s.id && setStep(s.id)}>
+                                <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${active ? 'bg-blue-600 text-white' : completed ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                                    {completed ? <CheckCircle2 className="w-4 h-4" /> : s.id}
                                 </div>
                                 <div className="hidden sm:block">
-                                    <p className={`text-[10px] font-black uppercase tracking-widest leading-none mb-1 ${active ? 'text-amber-500' : 'text-slate-500'}`}>Step 0{s.id}</p>
-                                    <p className={`text-sm font-black tracking-tight ${active ? 'text-white' : 'text-slate-400'}`}>{s.label}</p>
+                                    <p className={`text-sm font-medium ${active ? 'text-slate-900' : 'text-slate-500'}`}>{s.label}</p>
                                 </div>
-                                {idx < steps.length - 1 && <div className="hidden lg:block h-0.5 w-8 bg-slate-800" />}
+                                {idx < steps.length - 1 && <div className="hidden lg:block h-px w-12 bg-slate-200 mx-2" />}
                             </div>
                         );
                     })}
                 </div>
 
-                <div className="p-4 sm:p-6 md:px-6 md:py-8 lg:p-10 min-h-[400px]">
-                    <AnimatePresence mode="wait">
-                        {step === 1 && (
-                            <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
-                                    <FormGroup label="Full Name" icon={UserIcon} error={errors.fullName}>
+                <div className="p-6 md:p-8 min-h-[400px]">
+                    {step === 1 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormGroup label="Full Name" error={errors.fullName}>
+                                    <Input
+                                        value={basic.fullName}
+                                        onChange={e => {
+                                            setBasic({ ...basic, fullName: e.target.value });
+                                            if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
+                                        }}
+                                        placeholder="Enter full name"
+                                        className={`h-10 ${errors.fullName ? 'border-red-500' : ''}`}
+                                    />
+                                </FormGroup>
+                                {!isEdit && (
+                                    <FormGroup label="Email Address" error={errors.email}>
                                         <Input
-                                            value={basic.fullName}
+                                            value={basic.email}
                                             onChange={e => {
-                                                setBasic({ ...basic, fullName: e.target.value });
-                                                if (errors.fullName) setErrors(prev => ({ ...prev, fullName: "" }));
+                                                setBasic({ ...basic, email: e.target.value });
+                                                if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
                                             }}
-                                            placeholder="Enter full name"
-                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.fullName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}
+                                            placeholder="email@university.edu"
+                                            className={`h-10 ${errors.email ? 'border-red-500' : ''}`}
                                         />
                                     </FormGroup>
-                                    {!isEdit && (
-                                        <FormGroup label="Email Address" icon={Mail} error={errors.email}>
-                                            <Input
-                                                value={basic.email}
-                                                onChange={e => {
-                                                    setBasic({ ...basic, email: e.target.value });
-                                                    if (errors.email) setErrors(prev => ({ ...prev, email: "" }));
-                                                }}
-                                                placeholder="email@university.edu"
-                                                className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.email ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}
-                                            />
-                                        </FormGroup>
-                                    )}
-                                    <FormGroup label="Department" icon={Building2} error={errors.departmentId}>
-                                        <Select
-                                            value={basic.departmentId}
-                                            onValueChange={(v) => {
-                                                setBasic({ ...basic, departmentId: v });
-                                                if (errors.departmentId) setErrors(prev => ({ ...prev, departmentId: "" }));
-                                            }}
+                                )}
+                                <FormGroup label="Department" error={errors.departmentId}>
+                                    <Select
+                                        value={basic.departmentId}
+                                        onValueChange={(v) => {
+                                            setBasic({ ...basic, departmentId: v });
+                                            if (errors.departmentId) setErrors(prev => ({ ...prev, departmentId: "" }));
+                                        }}
+                                    >
+                                        <SelectTrigger className={`h-10 ${errors.departmentId ? 'border-red-500' : ''}`}>
+                                            <SelectValue placeholder="Select Department" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments.map(d => (
+                                                <SelectItem key={d.id || d._id} value={(d.id || d._id) as string}>
+                                                    {d.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormGroup>
+                                <FormGroup label="Staff Role">
+                                    <Select value={basic.role} onValueChange={(v) => setBasic({ ...basic, role: v as StaffRole })}>
+                                        <SelectTrigger className="h-10">
+                                            <SelectValue placeholder="Select Role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {Object.entries(roleLabel).map(([key, label]) => (
+                                                <SelectItem key={key} value={key}>
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </FormGroup>
+                                <FormGroup label="Registration Number">
+                                    <Input
+                                        value={isEdit ? basic.registrationNumber : "Auto-generated by system"}
+                                        readOnly
+                                        className="h-10 bg-slate-50 text-slate-500 cursor-not-allowed"
+                                    />
+                                </FormGroup>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormGroup label="Joining Date" error={errors.joiningDate}>
+                                    <DatePicker
+                                        date={advanced.joiningDate ? parseISO(advanced.joiningDate) : undefined}
+                                        onChange={d => {
+                                            setAdvanced({ ...advanced, joiningDate: d ? formatDate(d, "yyyy-MM-dd") : "" });
+                                            if (errors.joiningDate) setErrors(prev => ({ ...prev, joiningDate: "" }));
+                                        }}
+                                    />
+                                </FormGroup>
+                                <FormGroup label="IP address restrictions">
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={advanced.ipInput}
+                                            onChange={e => setAdvanced({ ...advanced, ipInput: e.target.value })}
+                                            placeholder="e.g. 192.168.1.1"
+                                            className="h-10 flex-1"
+                                        />
+                                        <Button
+                                            type="button"
+                                            onClick={handleAddIp}
+                                            variant="secondary"
+                                            className="h-10"
                                         >
-                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.departmentId ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900 focus:ring-amber-500/20`}>
-                                                <SelectValue placeholder="Select Department" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
-                                                {departments.map(d => (
-                                                    <SelectItem key={d.id || d._id} value={(d.id || d._id) as string} className="py-3 font-bold text-slate-700 m-1 rounded-xl">
-                                                        {d.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </FormGroup>
-                                    <FormGroup label="Staff Role" icon={Briefcase}>
-                                        <Select value={basic.role} onValueChange={(v) => setBasic({ ...basic, role: v as StaffRole })}>
-                                            <SelectTrigger className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20">
-                                                <SelectValue placeholder="Select Role" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
-                                                {Object.entries(roleLabel).map(([key, label]) => (
-                                                    <SelectItem key={key} value={key} className="py-3 font-bold text-slate-700 m-1 rounded-xl">
-                                                        {label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </FormGroup>
-                                    <FormGroup label="Registration Number" icon={Network}>
-                                        <div className="relative">
-                                            <Input
-                                                value={isEdit ? basic.registrationNumber : "Auto-generated by system"}
-                                                readOnly
-                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-100 border-2 border-slate-200 font-bold text-slate-500 cursor-not-allowed opacity-70"
-                                            />
-                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                                <Lock className="w-4 h-4 text-slate-400" />
-                                            </div>
-                                        </div>
-                                    </FormGroup>
-                                </div>
-                            </motion.div>
-                        )}
+                                            Add
+                                        </Button>
+                                    </div>
+                                </FormGroup>
+                            </div>
 
-                        {step === 2 && (
-                            <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <FormGroup label="Joining Date" icon={Calendar} error={errors.joiningDate}>
-                                        <DatePicker
-                                            date={advanced.joiningDate ? parseISO(advanced.joiningDate) : undefined}
-                                            onChange={d => {
-                                                setAdvanced({ ...advanced, joiningDate: d ? formatDate(d, "yyyy-MM-dd") : "" });
-                                                if (errors.joiningDate) setErrors(prev => ({ ...prev, joiningDate: "" }));
-                                            }}
+                            <div className="pt-4">
+                                <p className="text-sm font-medium text-slate-700 mb-3">Allowed IP addresses</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {advanced.registeredIps.length === 0 ? (
+                                        <div className="w-full p-4 border border-dashed border-slate-200 rounded-lg text-sm text-slate-500 text-center">
+                                            No restrictions (Open Access)
+                                        </div>
+                                    ) : (
+                                        advanced.registeredIps.map(ip => (
+                                            <Badge key={ip} variant="secondary" className="px-3 py-1.5 flex items-center gap-2">
+                                                {ip}
+                                                <Trash2 className="w-3.5 h-3.5 text-slate-400 hover:text-red-500 cursor-pointer" onClick={() => handleRemoveIp(ip)} />
+                                            </Badge>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 3 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <FormGroup label="First Name" error={errors.firstName}>
+                                    <Input
+                                        value={profileForm.firstName}
+                                        onChange={e => {
+                                            setProfileForm({ ...profileForm, firstName: e.target.value });
+                                            if (errors.firstName) setErrors(prev => ({ ...prev, firstName: "" }));
+                                        }}
+                                        placeholder="First Name"
+                                        className={`h-10 ${errors.firstName ? 'border-red-500' : ''}`}
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Middle Name">
+                                    <Input value={profileForm.middleName} onChange={e => setProfileForm({ ...profileForm, middleName: e.target.value })} placeholder="Middle Name" className="h-10" />
+                                </FormGroup>
+                                <FormGroup label="Last Name" error={errors.lastName}>
+                                    <Input
+                                        value={profileForm.lastName}
+                                        onChange={e => {
+                                            setProfileForm({ ...profileForm, lastName: e.target.value });
+                                            if (errors.lastName) setErrors(prev => ({ ...prev, lastName: "" }));
+                                        }}
+                                        placeholder="Last Name"
+                                        className={`h-10 ${errors.lastName ? 'border-red-500' : ''}`}
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Date of Birth">
+                                    <DatePicker
+                                        date={profileForm.dateOfBirth ? parseISO(profileForm.dateOfBirth) : undefined}
+                                        onChange={d => setProfileForm({ ...profileForm, dateOfBirth: d ? formatDate(d, "yyyy-MM-dd") : "" })}
+                                    />
+                                </FormGroup>
+                                <FormGroup label="Phone Number">
+                                    <Input value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value })} placeholder="+X XXX XXX XXXX" className="h-10" />
+                                </FormGroup>
+                                <FormGroup label="Gender" error={errors.gender}>
+                                    <Select
+                                        value={profileForm.gender}
+                                        onValueChange={(v) => {
+                                            setProfileForm({ ...profileForm, gender: v });
+                                            if (errors.gender) setErrors(prev => ({ ...prev, gender: "" }));
+                                        }}
+                                    >
+                                        <SelectTrigger className={`h-10 ${errors.gender ? 'border-red-500' : ''}`}>
+                                            <SelectValue placeholder="Select" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Male">Male</SelectItem>
+                                            <SelectItem value="Female">Female</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </FormGroup>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-100">
+                                <p className="text-sm font-medium text-slate-700 mb-4">Profile Picture</p>
+                                <div className="flex items-center gap-6">
+                                    <div className="h-24 w-24 rounded-full overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0">
+                                        {previewUrl ? (
+                                            <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                                        ) : (
+                                            <UserIcon className="w-8 h-8 text-slate-300" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1">
+                                        <Input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={e => setProfilePicture(e.target.files?.[0] || null)}
+                                            className="hidden"
+                                            id="pfp-upload"
                                         />
-                                    </FormGroup>
-                                    <FormGroup label="IP address restrictions" icon={Lock}>
-                                        <div className="relative">
-                                            <Input
-                                                value={advanced.ipInput}
-                                                onChange={e => setAdvanced({ ...advanced, ipInput: e.target.value })}
-                                                placeholder="e.g. 192.168.1.1"
-                                                className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20"
-                                            />
+                                        <label
+                                            htmlFor="pfp-upload"
+                                            className="inline-flex items-center justify-center px-4 py-2 border border-slate-200 rounded-md shadow-sm text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 cursor-pointer"
+                                        >
+                                            <UploadCloud className="w-4 h-4 mr-2" />
+                                            {profilePicture ? profilePicture.name : "Upload Picture"}
+                                        </label>
+                                        <p className="text-xs text-slate-500 mt-2">PNG, JPG or WEBP (MAX. 2MB)</p>
+                                        {profilePicture && (
                                             <button
-                                                type="button"
-                                                onClick={handleAddIp}
-                                                className="absolute right-2 top-2 h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-amber-600 transition-all active:scale-95"
+                                                onClick={() => setProfilePicture(null)}
+                                                className="text-xs text-red-500 hover:text-red-600 mt-2 block"
                                             >
-                                                <ShieldPlus className="w-5 h-5" />
+                                                Remove picture
                                             </button>
-                                        </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {step === 4 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div className="space-y-6">
+                                    <FormGroup label="Address">
+                                        <Input value={addressDraft.street} onChange={e => setAddressDraft({ ...addressDraft, street: e.target.value })} className="h-10" />
                                     </FormGroup>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <FormGroup label="City">
+                                            <Input value={addressDraft.city} onChange={e => setAddressDraft({ ...addressDraft, city: e.target.value })} className="h-10" />
+                                        </FormGroup>
+                                        <FormGroup label="State">
+                                            <Input value={addressDraft.state} onChange={e => setAddressDraft({ ...addressDraft, state: e.target.value })} className="h-10" />
+                                        </FormGroup>
+                                    </div>
+                                    <FormGroup label="Country">
+                                        <Input value={addressDraft.country} onChange={e => setAddressDraft({ ...addressDraft, country: e.target.value })} className="h-10" />
+                                    </FormGroup>
+                                    <div className="flex items-center justify-between">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="checkbox" className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked={addressDraft.isPrimary} onChange={e => setAddressDraft({ ...addressDraft, isPrimary: e.target.checked })} />
+                                            <span className="text-sm text-slate-700">Set as Primary Address</span>
+                                        </label>
+                                        <Button type="button" onClick={addAddress} variant="secondary">Add Address</Button>
+                                    </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-slate-100">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Allowed IP addresses</p>
-                                    <div className="flex flex-wrap gap-3 min-h-[60px]">
-                                        {advanced.registeredIps.length === 0 ? (
-                                            <div className="w-full h-16 flex items-center justify-center border-2 border-dashed border-slate-100 rounded-2xl text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                                No restrictions (Open Access)
+                                <div className="bg-slate-50 rounded-lg border border-slate-200 p-6">
+                                    <p className="text-sm font-medium text-slate-700 mb-4">Added Addresses</p>
+                                    <div className="space-y-3">
+                                        {addresses.length === 0 ? (
+                                            <div className="py-8 text-center text-slate-500 text-sm">
+                                                No addresses added yet
                                             </div>
                                         ) : (
-                                            advanced.registeredIps.map(ip => (
-                                                <Badge key={ip} className="h-10 px-4 rounded-xl bg-white border-2 border-slate-100 text-slate-700 font-black text-xs flex items-center gap-3 shadow-sm group hover:border-red-200 transition-all">
-                                                    {ip}
-                                                    <Trash2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-red-500 cursor-pointer" onClick={() => handleRemoveIp(ip)} />
-                                                </Badge>
+                                            addresses.map((a, idx) => (
+                                                <div key={idx} className="bg-white p-4 rounded-md border border-slate-200 relative">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        {a.isPrimary && <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-50">Primary</Badge>}
+                                                        <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500 cursor-pointer" onClick={() => setAddresses(addresses.filter((_, i) => i !== idx))} />
+                                                    </div>
+                                                    <p className="text-sm font-medium text-slate-900">{a.street || "Empty Address"}, {a.city}</p>
+                                                    <p className="text-xs text-slate-500 mt-1">{a.country} • {a.zipCode}</p>
+                                                </div>
                                             ))
                                         )}
                                     </div>
                                 </div>
-                            </motion.div>
-                        )}
+                            </div>
+                        </div>
+                    )}
 
-                        {step === 3 && (
-                            <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                    <FormGroup label="First Name" icon={UserIcon} error={errors.firstName}>
-                                        <Input
-                                            value={profileForm.firstName}
-                                            onChange={e => {
-                                                setProfileForm({ ...profileForm, firstName: e.target.value });
-                                                if (errors.firstName) setErrors(prev => ({ ...prev, firstName: "" }));
-                                            }}
-                                            placeholder="First Name"
-                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.firstName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup label="Middle Name" icon={UserIcon}>
-                                        <Input value={profileForm.middleName} onChange={e => setProfileForm({ ...profileForm, middleName: e.target.value })} placeholder="Middle Name" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                    </FormGroup>
-                                    <FormGroup label="Last Name" icon={UserIcon} error={errors.lastName}>
-                                        <Input
-                                            value={profileForm.lastName}
-                                            onChange={e => {
-                                                setProfileForm({ ...profileForm, lastName: e.target.value });
-                                                if (errors.lastName) setErrors(prev => ({ ...prev, lastName: "" }));
-                                            }}
-                                            placeholder="Last Name"
-                                            className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.lastName ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup label="Date of Birth" icon={Calendar}>
-                                        <DatePicker
-                                            date={profileForm.dateOfBirth ? parseISO(profileForm.dateOfBirth) : undefined}
-                                            onChange={d => setProfileForm({ ...profileForm, dateOfBirth: d ? formatDate(d, "yyyy-MM-dd") : "" })}
-                                        />
-                                    </FormGroup>
-                                    <FormGroup label="Phone Number" icon={Phone}>
-                                        <Input value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value })} placeholder="+X XXX XXX XXXX" className="h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                    </FormGroup>
-                                    <FormGroup label="Gender" icon={Sparkles} error={errors.gender}>
-                                        <Select
-                                            value={profileForm.gender}
-                                            onValueChange={(v) => {
-                                                setProfileForm({ ...profileForm, gender: v });
-                                                if (errors.gender) setErrors(prev => ({ ...prev, gender: "" }));
-                                            }}
-                                        >
-                                            <SelectTrigger className={`h-12 md:h-14 px-4 md:px-6 rounded-xl md:rounded-2xl bg-slate-50 border-2 ${errors.gender ? 'border-red-500' : 'border-slate-100'} font-bold text-slate-900`}>
-                                                <SelectValue placeholder="Select" />
-                                            </SelectTrigger>
-                                            <SelectContent className="rounded-2xl border-2 border-slate-100 shadow-2xl">
-                                                <SelectItem value="Male" className="py-3 font-bold text-slate-700 m-1 rounded-xl">Male</SelectItem>
-                                                <SelectItem value="Female" className="py-3 font-bold text-slate-700 m-1 rounded-xl">Female</SelectItem>
-                                                <SelectItem value="Other" className="py-3 font-bold text-slate-700 m-1 rounded-xl">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </FormGroup>
+                    {step === 5 && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="bg-slate-50 p-6 rounded-lg border border-slate-200">
+                                <h3 className="text-lg font-semibold text-slate-900 mb-4">Review Details</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                    <SummaryItem label="Full Name" value={basic.fullName} />
+                                    {!isEdit && <SummaryItem label="Email" value={basic.email} />}
+                                    <SummaryItem label="Department" value={departments.find(d => (d.id || d._id) === basic.departmentId)?.name || "UNKNOWN"} />
+                                    <SummaryItem label="Staff Role" value={roleLabel[basic.role]} />
+                                    <SummaryItem label="Staff ID" value={basic.registrationNumber} />
+                                    <SummaryItem label="Joining Date" value={advanced.joiningDate || "N/A"} />
+                                    <SummaryItem label="IP Restrictions" value={`${advanced.registeredIps.length} IPs Registered`} />
                                 </div>
-
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-2 px-1">
-                                        <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Profile Picture</p>
-                                    </div>
-
-                                    <div className="flex flex-col sm:flex-row items-center gap-8 p-8 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 shadow-inner">
-                                        <div className="relative group">
-                                            <div className="h-32 w-32 rounded-[2rem] overflow-hidden border-4 border-white shadow-xl bg-white flex items-center justify-center relative z-10 font-black text-slate-200">
-                                                {previewUrl ? (
-                                                    <img
-                                                        src={previewUrl}
-                                                        alt="Preview"
-                                                        className="h-full w-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <UserIcon className="w-12 h-12" />
-                                                )}
-                                            </div>
-                                            <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg z-20">
-                                                <Sparkles className="w-5 h-5" />
-                                            </div>
-                                        </div>
-
-                                        <div className="flex-1 space-y-4 w-full">
-                                            <div className="relative group/input">
-                                                <Input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={e => setProfilePicture(e.target.files?.[0] || null)}
-                                                    className="hidden"
-                                                    id="pfp-upload"
-                                                />
-                                                <label
-                                                    htmlFor="pfp-upload"
-                                                    className="flex flex-col items-center justify-center w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-white hover:bg-slate-50 hover:border-amber-500/30 transition-all cursor-pointer group/label"
-                                                >
-                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                        <UploadCloud className="w-8 h-8 text-slate-400 mb-2 group-hover/label:text-amber-500 transition-colors" />
-                                                        <p className="text-xs font-black text-slate-500 uppercase tracking-widest text-center px-4">
-                                                            {profilePicture ? profilePicture.name : "Choose profile picture"}
-                                                        </p>
-                                                        <p className="text-[9px] text-slate-400 font-bold mt-1 uppercase tracking-tighter">PNG, JPG or WEBP (MAX. 2MB)</p>
-                                                    </div>
-                                                </label>
-                                            </div>
-
-                                            {profilePicture && (
-                                                <div className="flex items-center justify-between px-2">
-                                                    <p className="text-[10px] font-black text-amber-600 uppercase flex items-center gap-2">
-                                                        <CheckCircle2 className="w-3 h-3" />
-                                                        Ready for upload
-                                                    </p>
-                                                    <button
-                                                        onClick={() => setProfilePicture(null)}
-                                                        className="text-[10px] font-black text-red-500 uppercase hover:text-red-600 transition-colors"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {step === 4 && (
-                            <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-8">
-                                        <FormGroup label="Address" icon={Globe}>
-                                            <Input value={addressDraft.street} onChange={e => setAddressDraft({ ...addressDraft, street: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                        </FormGroup>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <FormGroup label="City" icon={MapPin}>
-                                                <Input value={addressDraft.city} onChange={e => setAddressDraft({ ...addressDraft, city: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                            </FormGroup>
-                                            <FormGroup label="State" icon={MapPin}>
-                                                <Input value={addressDraft.state} onChange={e => setAddressDraft({ ...addressDraft, state: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                            </FormGroup>
-                                        </div>
-                                        <FormGroup label="Country" icon={Globe}>
-                                            <Input value={addressDraft.country} onChange={e => setAddressDraft({ ...addressDraft, country: e.target.value })} className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900" />
-                                        </FormGroup>
-                                        <div className="flex items-center justify-between gap-4">
-                                            <label className="flex items-center gap-3 cursor-pointer group">
-                                                <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${addressDraft.isPrimary ? 'bg-amber-500 border-amber-500' : 'bg-white border-slate-200 group-hover:border-amber-300'}`}>
-                                                    {addressDraft.isPrimary && <CheckCircle2 className="w-4 h-4 text-white" />}
-                                                </div>
-                                                <input type="checkbox" className="hidden" checked={addressDraft.isPrimary} onChange={e => setAddressDraft({ ...addressDraft, isPrimary: e.target.checked })} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-amber-600 transition-colors">Primary Address</span>
-                                            </label>
-                                            <Button type="button" onClick={addAddress} className="bg-slate-900 text-white rounded-2xl px-8 font-black text-xs uppercase tracking-widest h-12 hover:bg-amber-600 transition-all">Add Address</Button>
-                                        </div>
-                                    </div>
-
-                                    <div className="bg-slate-50 rounded-[2.5rem] border-2 border-slate-100 p-8">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 px-1">Added Addresses</p>
-                                        <div className="space-y-4">
-                                            {addresses.length === 0 ? (
-                                                <div className="py-12 text-center">
-                                                    <MapPin className="w-10 h-10 text-slate-200 mx-auto mb-3" />
-                                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">No addresses added yet</p>
-                                                </div>
-                                            ) : (
-                                                addresses.map((a, idx) => (
-                                                    <div key={idx} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm relative group">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            {a.isPrimary && <Badge className="bg-emerald-100 text-emerald-700 font-black text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-md">Primary Address</Badge>}
-                                                            <Trash2 className="w-4 h-4 text-slate-300 hover:text-red-500 cursor-pointer transition-colors" onClick={() => setAddresses(addresses.filter((_, i) => i !== idx))} />
-                                                        </div>
-                                                        <p className="font-black text-slate-800 text-sm leading-tight">{a.street || "Empty Address"}, {a.city}</p>
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{a.country} • {a.zipCode}</p>
-                                                    </div>
-                                                ))
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {step === 5 && (
-                            <motion.div key="step5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                                <div className="bg-amber-50 p-8 rounded-[2.5rem] border-2 border-amber-100 space-y-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-14 w-14 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
-                                            <Settings2 className="w-7 h-7" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-black text-slate-900 leading-none mb-1">Review Details</h3>
-                                            <p className="text-amber-700 font-bold text-xs italic">Please review the details below before saving the staff member.</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 lg:gap-8 pt-4">
-                                        <SummaryItem label="Full Name" value={basic.fullName} />
-                                        {!isEdit && <SummaryItem label="Email" value={basic.email} />}
-                                        <SummaryItem label="Department" value={departments.find(d => (d.id || d._id) === basic.departmentId)?.name || "UNKNOWN"} highlighted />
-                                        <SummaryItem label="Staff Role" value={roleLabel[basic.role]} />
-                                        <SummaryItem label="Staff ID" value={basic.registrationNumber} />
-                                        <SummaryItem label="Joining Date" value={advanced.joiningDate || "N/A"} />
-                                        <SummaryItem label="IP Restrictions" value={`${advanced.registeredIps.length} IPs Registered`} />
-                                    </div>
-
-                                    {!isEdit && (
-                                        <div className="p-6 rounded-3xl bg-slate-900 text-white flex items-start gap-4">
-                                            <Sparkles className="w-6 h-6 text-amber-500 flex-shrink-0 mt-1" />
-                                            <p className="text-[11px] font-bold leading-relaxed text-slate-300">
-                                                A temporary password will be sent to the staff member's email address upon creation.
-                                                Please ensure all information is correct before saving.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
-                <div className="bg-slate-50 px-6 py-6 md:px-10 md:py-8 flex items-center justify-between border-t border-slate-100 gap-4">
+                <div className="bg-slate-50 px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         onClick={prevStep}
                         disabled={step === 1 || isSubmitting}
-                        className="h-12 md:h-14 px-4 md:px-8 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-500 hover:text-slate-900 group"
+                        className="h-10"
                     >
-                        <ChevronLeft className="w-4 h-4 mr-1 md:mr-2 group-hover:-translate-x-1 transition-transform" />
-                        <span className="hidden sm:inline">Back</span>
+                        Back
                     </Button>
                     {step < 5 ? (
                         <Button
                             onClick={nextStep}
-                            className="h-12 md:h-14 px-6 md:px-10 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 group"
+                            className="h-10 bg-blue-600 hover:bg-blue-700 text-white"
                         >
                             Next Step
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     ) : (
                         <Button
                             onClick={handleSubmit}
                             disabled={isSubmitting}
-                            className="h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-slate-900 hover:bg-amber-600 text-white font-black text-xs uppercase tracking-widest flex items-center gap-2 md:gap-3 transition-all active:scale-95 shadow-2xl shadow-slate-900/30"
+                            className="h-10 bg-blue-600 hover:bg-blue-700 text-white"
                         >
-                            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                            {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                             Save Staff Member
                         </Button>
                     )}
                 </div>
-            </div>
+            </Card>
         </div>
     );
 }
 
-function FormGroup({ label, icon: Icon, children, error }: { label: string, icon: any, children: React.ReactNode, error?: string }) {
+function FormGroup({ label, children, error }: { label: string, children: React.ReactNode, error?: string }) {
     return (
-        <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
-                    <Icon className={`w-3.5 h-3.5 ${error ? 'text-red-500' : 'text-slate-400'}`} />
-                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${error ? 'text-red-500' : 'text-slate-400'}`}>{label}</p>
-                </div>
-                {error && <p className="text-[9px] font-black text-red-500 uppercase tracking-tighter">{error}</p>}
-            </div>
+        <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700">
+                {label}
+            </label>
             {children}
+            {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
     );
 }
 
-function SummaryItem({ label, value, highlighted = false }: { label: string, value: string | undefined, highlighted?: boolean }) {
+function SummaryItem({ label, value }: { label: string, value: string | undefined }) {
     return (
-        <div className="space-y-1">
-            <p className="text-[9px] font-black uppercase tracking-widest text-amber-700/60 leading-none">{label}</p>
-            <p className={`text-base font-black truncate leading-tight ${highlighted ? 'text-amber-600 font-black' : 'text-slate-900 font-bold'}`}>{value || "N/A"}</p>
+        <div>
+            <p className="text-xs font-medium text-slate-500 mb-1">{label}</p>
+            <p className="text-sm font-medium text-slate-900">{value || "N/A"}</p>
         </div>
     );
 }

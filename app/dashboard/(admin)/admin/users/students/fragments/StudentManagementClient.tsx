@@ -47,7 +47,6 @@ import {
 import { adminService } from "@/services/user/admin.service";
 import { getImageUrl, cn } from "@/lib/utils";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { motion, AnimatePresence } from "framer-motion";
 import { deleteStudentAction, restoreStudentAction, permanentDeleteStudentAction } from "../actions";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
@@ -258,43 +257,43 @@ export function StudentManagementClient({
     };
 
     return (
-        <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-6 pb-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
+                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 w-fit shadow-sm">
                         <GraduationCap className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-[#92400E]">Overview</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#92400E]">Overview</span>
                     </Badge>
-                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tighter text-slate-900 leading-none">Student Management</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Student Management</h1>
                 </div>
                 <Button
                     onClick={() => router.push("/dashboard/admin/users/students/create")}
-                    className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center justify-center gap-3 active:scale-95 transition-all group w-full sm:w-auto"
+                    className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-amber-600 text-white shadow-sm font-medium flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
                 >
-                    <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                    <Plus className="w-4 h-4" />
                     <span>Add Student</span>
                 </Button>
             </div>
 
-            <Tabs defaultValue="active" onValueChange={setActiveTab} className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden">
-                <div className="bg-slate-50 px-4 py-4 md:px-8 md:py-8 border-b border-slate-100 flex flex-col lg:flex-row gap-6 md:gap-8 lg:items-center justify-between">
-                    <TabsList className="bg-slate-200/50 p-1.5 rounded-2xl h-auto flex w-full sm:w-auto">
-                        <TabsTrigger value="active" className="flex-1 sm:flex-none px-4 sm:px-8 py-3 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-lg transition-all text-center">Active Students</TabsTrigger>
-                        <TabsTrigger value="suspended" className="flex-1 sm:flex-none px-4 sm:px-8 py-3 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-lg transition-all text-center">Suspended</TabsTrigger>
+            <Tabs defaultValue="active" onValueChange={setActiveTab} className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-slate-50/50 px-4 py-4 md:px-6 md:py-5 border-b border-slate-200 flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
+                    <TabsList className="bg-slate-100 p-1 rounded-lg h-auto flex w-full sm:w-auto">
+                        <TabsTrigger value="active" className="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all text-center">Active Students</TabsTrigger>
+                        <TabsTrigger value="suspended" className="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm transition-all text-center">Suspended</TabsTrigger>
                     </TabsList>
 
-                    <div className="flex-1 flex flex-wrap items-center gap-4 max-w-4xl">
+                    <div className="flex-1 flex flex-wrap items-center gap-3 max-w-4xl">
                         <div className="relative flex-1 min-w-[200px]">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <Input
                                 placeholder="Search student by name or ID..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="h-12 pl-14 pr-6 rounded-2xl bg-white border-2 border-slate-100 font-bold text-slate-900 text-sm focus:ring-amber-500/20 transition-all shadow-sm"
+                                className="h-10 pl-9 pr-4 rounded-lg bg-white border border-slate-200 text-sm focus:ring-1 focus:ring-amber-500/20 transition-all shadow-sm"
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full lg:w-auto">
                             <FilterWrapper label="Dept">
                                 <SearchableSelect
                                     options={[{ label: "All Depts", value: "all" }, ...departments.map(d => ({ label: d.name, value: d.id || d._id }))]}
@@ -331,134 +330,128 @@ export function StudentManagementClient({
                     </div>
                 </div>
 
-                <div className="p-2 overflow-x-auto">
+                <div className="overflow-x-auto">
                     <Table>
                         <TableHeader>
-                            <TableRow className="hover:bg-transparent border-none">
-                                <TableHead className="px-3 py-3 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Student Name</TableHead>
-                                <TableHead className="px-3 py-3 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Registration ID</TableHead>
-                                <TableHead className="px-3 py-3 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Academic Info</TableHead>
-                                <TableHead className="px-3 py-3 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</TableHead>
-                                <TableHead className="px-3 py-3 md:px-8 md:py-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-right">Actions</TableHead>
+                            <TableRow className="hover:bg-transparent border-b border-slate-200 bg-slate-50/50">
+                                <TableHead className="px-4 py-3 text-xs font-medium text-slate-500">Student Name</TableHead>
+                                <TableHead className="px-4 py-3 text-xs font-medium text-slate-500">Registration ID</TableHead>
+                                <TableHead className="px-4 py-3 text-xs font-medium text-slate-500">Academic Info</TableHead>
+                                <TableHead className="px-4 py-3 text-xs font-medium text-slate-500">Status</TableHead>
+                                <TableHead className="px-4 py-3 text-xs font-medium text-slate-500 text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            <AnimatePresence mode="popLayout">
-                                {filteredStudents.map((s, index) => {
-                                    const isLast = index === filteredStudents.length - 1;
-                                    return (
-                                        <motion.tr
-                                            layout
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, scale: 0.95 }}
-                                            key={s.id}
-                                            className="group border-b border-slate-50 last:border-none hover:bg-amber-50/30 transition-colors"
-                                        >
-                                            <TableCell className="px-3 py-3 md:px-8 md:py-6">
-                                                <div className="flex items-center gap-5">
-                                                    <div className="h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border-2 border-slate-100 group-hover:border-amber-200 transition-all shadow-sm">
-                                                        {s.profile?.profilePicture ? (
-                                                            <img
-                                                                src={getImageUrl(s.profile.profilePicture)}
-                                                                alt={s.fullName}
-                                                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                                            />
-                                                        ) : (
-                                                            <div className="h-full w-full flex items-center justify-center font-black text-slate-400 group-hover:text-amber-600 transition-colors">
-                                                                {s.fullName.charAt(0)}
-                                                            </div>
+                            {filteredStudents.map((s, index) => {
+                                const isLast = index === filteredStudents.length - 1;
+                                return (
+                                    <TableRow
+                                        key={s.id}
+                                        className="group border-b border-slate-100 last:border-none hover:bg-slate-50/50 transition-colors"
+                                    >
+                                        <TableCell className="px-4 py-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-10 w-10 rounded-full bg-slate-100 overflow-hidden shrink-0 border border-slate-200">
+                                                    {s.profile?.profilePicture ? (
+                                                        <img
+                                                            src={getImageUrl(s.profile.profilePicture)}
+                                                            alt={s.fullName}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="h-full w-full flex items-center justify-center font-medium text-slate-400">
+                                                            {s.fullName.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                        <p className="font-medium text-sm text-slate-900">{s.fullName}</p>
+                                                        {s.isBlocked && (
+                                                            <Badge variant="destructive" className="h-4 text-[10px] px-1.5 bg-red-100 text-red-700 border-none">
+                                                                Blocked
+                                                            </Badge>
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <div className="flex flex-col">
-                                                            <p className="font-black text-slate-900 tracking-tight leading-none mb-1.5 group-hover:text-amber-700 transition-colors">{s.fullName}</p>
-                                                            {s.isBlocked && (
-                                                                <Badge variant="destructive" className="w-fit h-4 text-[9px] px-1.5 uppercase font-black animate-pulse bg-red-600 text-white border-none">
-                                                                    Blocked
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5 italic">
-                                                            <Mail className="w-3 h-3" />
-                                                            {s.email}
-                                                        </p>
-                                                    </div>
+                                                    <p className="text-xs text-slate-500 flex items-center gap-1">
+                                                        <Mail className="w-3 h-3" />
+                                                        {s.email}
+                                                    </p>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell className="px-3 py-3 md:px-8 md:py-6">
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <Hash className="w-3 h-3 text-amber-500" />
-                                                        <span className="font-black text-xs text-slate-900 tracking-wider">ID: {s.registrationNumber}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Layers className="w-3 h-3 text-slate-300" />
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{getBatchLabel(s.batchId)}</span>
-                                                    </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Hash className="w-3.5 h-3.5 text-slate-400" />
+                                                    <span className="font-medium text-sm text-slate-900">{s.registrationNumber}</span>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell className="px-3 py-3 md:px-8 md:py-6">
-                                                <div className="flex flex-col gap-1.5">
-                                                    <div className="flex items-center gap-2">
-                                                        <Building2 className="w-3 h-3 text-slate-400" />
-                                                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest truncate max-w-[150px]">
-                                                            {departments.find(d => (d.id || d._id) === s.departmentId)?.name || "N/A"}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <BookOpen className="w-3 h-3 text-slate-300" />
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate max-w-[150px]">
-                                                            {programs.find(p => (p.id || p._id) === s.programId)?.name || "N/A"}
-                                                        </span>
-                                                    </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <Layers className="w-3.5 h-3.5 text-slate-400" />
+                                                    <span className="text-xs text-slate-500">{getBatchLabel(s.batchId)}</span>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell className="px-3 py-3 md:px-8 md:py-6">
-                                                <Badge className={`px-2.5 py-1 rounded-lg font-black text-[9px] uppercase tracking-[0.15em] border-none shadow-sm ${statusColors[s.enrollmentStatus]}`}>
-                                                    {s.enrollmentStatus.replace(/_/g, " ")}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="px-3 py-3 md:px-8 md:py-6 text-right">
-                                                {activeTab === "active" ? (
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-amber-600 hover:shadow-md active:scale-95 transition-all">
-                                                            <Eye className="w-4.5 h-4.5" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}/edit`)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-blue-600 hover:shadow-md active:scale-95 transition-all">
-                                                            <Edit className="w-4.5 h-4.5" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            onClick={() => s.isBlocked ? handleUnblock(s) : handleBlock(s)}
-                                                            className={cn(
-                                                                "h-10 w-10 rounded-xl hover:bg-white hover:shadow-md active:scale-95 transition-all",
-                                                                s.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
-                                                            )}
-                                                            title={s.isBlocked ? "Unblock Student" : "Block Student"}
-                                                        >
-                                                            {s.isBlocked ? <Unlock className="w-4.5 h-4.5" /> : <Ban className="w-4.5 h-4.5" />}
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-red-600 hover:shadow-md active:scale-95 transition-all">
-                                                            <Trash2 className="w-4.5 h-4.5" />
-                                                        </Button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <Button variant="ghost" size="icon" onClick={() => handleRestore(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-emerald-600 hover:shadow-md active:scale-95 transition-all" title="Restore">
-                                                            <RotateCcw className="w-4.5 h-4.5" />
-                                                        </Button>
-                                                        <Button variant="ghost" size="icon" onClick={() => handlePermanentDelete(s)} className="h-10 w-10 rounded-xl hover:bg-white hover:text-red-700 hover:shadow-md active:scale-95 transition-all" title="Purge Record">
-                                                            <XCircle className="w-4.5 h-4.5" />
-                                                        </Button>
-                                                    </div>
-                                                )}
-                                            </TableCell>
-                                        </motion.tr>
-                                    );
-                                })}
-                            </AnimatePresence>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                                                    <span className="text-xs text-slate-700 truncate max-w-[150px]">
+                                                        {departments.find(d => (d.id || d._id) === s.departmentId)?.name || "N/A"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5">
+                                                    <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                                                    <span className="text-xs text-slate-500 truncate max-w-[150px]">
+                                                        {programs.find(p => (p.id || p._id) === s.programId)?.name || "N/A"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3">
+                                            <Badge className={`px-2 py-0.5 rounded-md font-medium text-xs border-none ${statusColors[s.enrollmentStatus]}`}>
+                                                {s.enrollmentStatus.replace(/_/g, " ")}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="px-4 py-3 text-right">
+                                            {activeTab === "active" ? (
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}`)} className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-900">
+                                                        <Eye className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => router.push(`/dashboard/admin/users/students/${s.id}/edit`)} className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-blue-600">
+                                                        <Edit className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => s.isBlocked ? handleUnblock(s) : handleBlock(s)}
+                                                        className={cn(
+                                                            "h-8 w-8 rounded-md hover:bg-slate-100",
+                                                            s.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
+                                                        )}
+                                                        title={s.isBlocked ? "Unblock Student" : "Block Student"}
+                                                    >
+                                                        {s.isBlocked ? <Unlock className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(s)} className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-red-600">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <Button variant="ghost" size="icon" onClick={() => handleRestore(s)} className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-emerald-600" title="Restore">
+                                                        <RotateCcw className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" onClick={() => handlePermanentDelete(s)} className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-500 hover:text-red-600" title="Purge Record">
+                                                        <XCircle className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
                             {activeTab === "active" && hasMore && !loading && (
                                 <TableRow ref={lastStudentElementRef} className="border-none">
                                     <TableCell colSpan={5} className="h-1 p-0 border-none opacity-0">Loading Marker</TableCell>
@@ -466,10 +459,10 @@ export function StudentManagementClient({
                             )}
                             {loading && (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="py-8 text-center text-slate-400">
+                                    <TableCell colSpan={5} className="py-6 text-center text-slate-500">
                                         <div className="flex justify-center items-center gap-2">
-                                            <Loader2 className="w-5 h-5 animate-spin text-amber-500" />
-                                            <span className="text-xs font-bold">Loading more students...</span>
+                                            <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+                                            <span className="text-sm font-medium">Loading more students...</span>
                                         </div>
                                     </TableCell>
                                 </TableRow>
@@ -477,13 +470,13 @@ export function StudentManagementClient({
                         </TableBody>
                     </Table>
                     {filteredStudents.length === 0 && (
-                        <div className="py-20 md:py-32 flex flex-col items-center justify-center gap-4">
-                            <div className="h-20 w-20 md:h-24 md:w-24 rounded-[2rem] bg-slate-50 flex items-center justify-center text-slate-200">
-                                <GraduationCap className="w-10 h-10 md:w-12 md:h-12" />
+                        <div className="py-16 flex flex-col items-center justify-center gap-3">
+                            <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                <GraduationCap className="w-8 h-8" />
                             </div>
                             <div className="text-center px-4">
-                                <p className="text-sm font-black text-slate-900 tracking-tight">No students found</p>
-                                <p className="text-xs font-bold text-slate-400 italic">Adjust your filters to see more students.</p>
+                                <p className="text-sm font-medium text-slate-900">No students found</p>
+                                <p className="text-sm text-slate-500">Adjust your filters to see more students.</p>
                             </div>
                         </div>
                     )}

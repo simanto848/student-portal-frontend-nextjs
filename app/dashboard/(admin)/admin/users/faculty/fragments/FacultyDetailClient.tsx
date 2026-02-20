@@ -25,11 +25,11 @@ import {
     Sparkles,
     RefreshCcw,
     Bookmark,
-    Plus
+    Plus,
+    Hash
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { motion } from "framer-motion";
 import { updateTeacherIpAction, deleteTeacherAction } from "../actions";
 
 interface FacultyDetailClientProps {
@@ -123,77 +123,75 @@ export function FacultyDetailClient({ teacher: initialTeacher, profile, departme
     };
 
     return (
-        <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
+        <div className="space-y-6 pb-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="h-14 w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-amber-600 hover:border-amber-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
+                        className="h-10 w-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-amber-600 hover:border-amber-500/30 transition-colors shadow-sm"
                     >
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Badge className="bg-amber-100 text-amber-700 border-none px-2.5 py-0.5 rounded-md flex items-center gap-1.5 shadow-sm">
                                 <GraduationCap className="w-3 h-3" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">
+                                <span className="text-[10px] font-medium uppercase tracking-wider">
                                     {teacher.designation ? designationLabel[teacher.designation] : "FACULTY"}
                                 </span>
                             </Badge>
-                            <span className="text-slate-300 font-black text-xs uppercase tracking-widest">ID: {teacher.registrationNumber}</span>
+                            <span className="text-slate-500 font-medium text-xs flex items-center gap-1">
+                                <Hash className="w-3 h-3" />
+                                {teacher.registrationNumber}
+                            </span>
                         </div>
-                        <h1 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">{teacher.fullName}</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{teacher.fullName}</h1>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
                         onClick={handleDeleteTeacher}
                         disabled={isDeleting}
-                        className="h-14 px-8 rounded-[2rem] border-2 border-red-100 text-red-600 hover:bg-red-50 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all"
+                        className="h-10 px-4 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-medium transition-colors"
                     >
-                        <Trash2 className="w-5 h-5" />
+                        <Trash2 className="w-4 h-4 mr-2" />
                         Delete Account
                     </Button>
                     <Button
                         onClick={() => router.push(`/dashboard/admin/users/faculty/${teacher.id}/edit`)}
-                        className="h-14 px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
+                        className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-amber-600 text-white shadow-sm font-medium flex items-center gap-2 transition-colors"
                     >
-                        <Edit3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <Edit3 className="w-4 h-4" />
                         Edit Profile
                     </Button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative group">
-                        <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-                            <Bookmark className="w-48 h-48 text-slate-900" />
-                        </div>
-                        <CardContent className="p-10 pt-16">
-                            <div className="flex flex-col sm:flex-row gap-10 items-start">
-                                <div className="relative flex-shrink-0 group/img">
-                                    <div className="h-40 w-40 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative z-10 bg-slate-50">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative">
+                        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-slate-100 to-slate-50" />
+                        <CardContent className="p-6 pt-12">
+                            <div className="flex flex-col sm:flex-row gap-6 items-start">
+                                <div className="relative flex-shrink-0">
+                                    <div className="h-32 w-32 rounded-xl overflow-hidden border-4 border-white shadow-md relative z-10 bg-slate-100">
                                         {profile?.profilePicture ? (
                                             <img
                                                 src={getImageUrl(profile.profilePicture)}
                                                 alt={teacher.fullName}
-                                                className="h-full w-full object-cover group-hover/img:scale-110 transition-transform duration-700"
+                                                className="h-full w-full object-cover"
                                             />
                                         ) : (
-                                            <div className="h-full w-full flex items-center justify-center text-amber-600 font-black text-5xl">
+                                            <div className="h-full w-full flex items-center justify-center text-slate-400 font-medium text-3xl">
                                                 {teacher.fullName.charAt(0)}
                                             </div>
                                         )}
                                     </div>
-                                    <div className="absolute -bottom-4 -right-4 h-14 w-14 rounded-2xl bg-white border-2 border-slate-50 shadow-xl flex items-center justify-center text-amber-600 z-20 group-hover/img:scale-110 transition-transform">
-                                        <Sparkles className="w-7 h-7" />
-                                    </div>
                                 </div>
 
-                                <div className="flex-1 space-y-8 pt-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div className="flex-1 space-y-6 pt-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <InfoBlock icon={Mail} label="Email Address" value={teacher.email} />
                                         <InfoBlock icon={Calendar} label="Joining Date" value={teacher.joiningDate ? new Date(teacher.joiningDate).toLocaleDateString() : "N/A"} />
                                         <InfoBlock icon={Network} label="Department" value={departmentName} />
@@ -205,132 +203,120 @@ export function FacultyDetailClient({ teacher: initialTeacher, profile, departme
                     </Card>
 
                     {profile && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                        >
-                            <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 relative group overflow-hidden">
-                                <div className="absolute top-0 left-0 p-10 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
-                                    <UserIcon className="w-40 h-40 text-slate-900" />
+                        <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                            <CardContent className="p-6">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="h-10 w-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                        <UserIcon className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold text-slate-900">Personal Details</h2>
+                                        <p className="text-slate-500 text-xs">Additional information for faculty records.</p>
+                                    </div>
                                 </div>
-                                <CardContent className="p-10">
-                                    <div className="flex items-center gap-4 mb-10">
-                                        <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
-                                            <UserIcon className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-black text-slate-900">Personal Details</h2>
-                                            <p className="text-slate-500 font-bold text-sm italic">Additional information for faculty records.</p>
-                                        </div>
-                                    </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-                                        <ProfileItem label="First Name" value={profile.firstName} />
-                                        <ProfileItem label="Middle Name" value={profile.middleName || "N/A"} />
-                                        <ProfileItem label="Last Name" value={profile.lastName} />
-                                        <ProfileItem label="Date of Birth" value={profile.dateOfBirth ? new Date(profile.dateOfBirth).toDateString() : "N/A"} />
-                                        <ProfileItem label="Gender" value={profile.gender || "N/A"} />
-                                        <ProfileItem label="Status" value="ACTIVE" highlighted />
-                                    </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <ProfileItem label="First Name" value={profile.firstName} />
+                                    <ProfileItem label="Middle Name" value={profile.middleName || "N/A"} />
+                                    <ProfileItem label="Last Name" value={profile.lastName} />
+                                    <ProfileItem label="Date of Birth" value={profile.dateOfBirth ? new Date(profile.dateOfBirth).toDateString() : "N/A"} />
+                                    <ProfileItem label="Gender" value={profile.gender || "N/A"} />
+                                    <ProfileItem label="Status" value="ACTIVE" highlighted />
+                                </div>
 
-                                    {profile.addresses && profile.addresses.length > 0 && (
-                                        <div className="mt-12 pt-10 border-t border-slate-100">
-                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 px-1">Addresses</p>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                {profile.addresses.map((addr, idx) => (
-                                                    <div key={idx} className="p-6 rounded-3xl bg-slate-50/50 border-2 border-slate-100 hover:border-amber-500/20 transition-colors group/addr">
-                                                        <div className="flex items-start justify-between mb-3">
-                                                            <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-slate-400 group-hover/addr:text-amber-600 transition-colors">
-                                                                <Globe className="w-4 h-4" />
-                                                            </div>
-                                                            {addr.isPrimary && (
-                                                                <Badge className="bg-slate-900 text-white font-black text-[8px] uppercase tracking-widest px-2 py-0.5 rounded-md">Primary Address</Badge>
-                                                            )}
+                                {profile.addresses && profile.addresses.length > 0 && (
+                                    <div className="mt-8 pt-6 border-t border-slate-100">
+                                        <p className="text-xs font-semibold text-slate-500 mb-4">Addresses</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {profile.addresses.map((addr, idx) => (
+                                                <div key={idx} className="p-4 rounded-lg bg-slate-50 border border-slate-100">
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div className="h-8 w-8 rounded-md bg-white flex items-center justify-center text-slate-400 border border-slate-200">
+                                                            <Globe className="w-4 h-4" />
                                                         </div>
-                                                        <p className="text-sm font-black text-slate-800 leading-tight">
-                                                            {[addr.street, addr.city, addr.state].filter(Boolean).join(', ')}
-                                                        </p>
-                                                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{addr.country} • {addr.zipCode}</p>
+                                                        {addr.isPrimary && (
+                                                            <Badge className="bg-slate-900 text-white font-medium text-[10px] px-2 py-0.5 rounded">Primary</Badge>
+                                                        )}
                                                     </div>
-                                                ))}
-                                            </div>
+                                                    <p className="text-sm font-medium text-slate-800">
+                                                        {[addr.street, addr.city, addr.state].filter(Boolean).join(', ')}
+                                                    </p>
+                                                    <p className="text-xs text-slate-500 mt-1">{addr.country} • {addr.zipCode}</p>
+                                                </div>
+                                            ))}
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-                        </motion.div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
                     )}
                 </div>
 
-                <div className="space-y-8">
-                    <Card className="bg-slate-900 text-white border-none rounded-[3rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000">
-                            <Clock className="w-32 h-32" />
-                        </div>
-                        <CardContent className="p-10 relative z-10">
-                            <div className="flex items-center justify-between mb-8">
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Login Status</p>
-                                <RefreshCcw className="w-4 h-4 text-amber-500 animate-spin-slow" />
+                <div className="space-y-6">
+                    <Card className="bg-slate-900 text-white border-none rounded-xl shadow-sm overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <p className="text-xs font-medium text-slate-400">Login Status</p>
+                                <RefreshCcw className="w-4 h-4 text-amber-500" />
                             </div>
-                            <h3 className="text-xl font-black text-white mb-2 leading-tight uppercase">
+                            <h3 className="text-lg font-bold text-white mb-1">
                                 {teacher.lastLoginAt ? new Date(teacher.lastLoginAt).toLocaleString() : "NEVER LOGGED IN"}
                             </h3>
-                            <p className="text-emerald-400 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                            <p className="text-emerald-400 text-xs flex items-center gap-1.5">
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                                 Last IP: {teacher.lastLoginIp || "N/A"}
                             </p>
 
-                            <div className="mt-12 space-y-1">
-                                <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Database ID</p>
-                                <p className="text-[10px] font-mono text-slate-400 truncate opacity-50">{teacher.id}</p>
+                            <div className="mt-8 space-y-1">
+                                <p className="text-xs font-medium text-slate-500">Database ID</p>
+                                <p className="text-xs font-mono text-slate-400 truncate">{teacher.id}</p>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden group">
-                        <CardContent className="p-10">
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                    <Lock className="w-6 h-6" />
+                    <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-10 w-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                    <Lock className="w-5 h-5" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900">IP Restrictions</h3>
-                                    <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Allowed IP Addresses</p>
+                                    <h3 className="text-lg font-bold text-slate-900">IP Restrictions</h3>
+                                    <p className="text-slate-500 text-xs">Allowed IP Addresses</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 <div className="flex gap-2 relative">
                                     <Input
                                         placeholder="Add network node (IP)..."
                                         value={ipInput}
                                         onChange={(e) => setIpInput(e.target.value)}
-                                        className="h-14 px-6 rounded-2xl bg-slate-50 border-2 border-slate-100 font-bold text-slate-900 focus:ring-amber-500/20 transition-all pr-16"
+                                        className="h-10 px-3 rounded-lg bg-white border border-slate-200 text-sm focus:ring-amber-500/20 pr-12"
                                         disabled={isIpUpdating}
                                     />
                                     <button
                                         onClick={handleAddIp}
                                         disabled={isIpUpdating}
-                                        className="absolute right-2 top-2 h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-amber-600 transition-all active:scale-95 z-10"
+                                        className="absolute right-1 top-1 h-8 w-8 rounded-md bg-slate-900 text-white flex items-center justify-center hover:bg-amber-600 transition-colors"
                                     >
                                         {isIpUpdating ? (
-                                            <RefreshCcw className="w-4 h-4 animate-spin" />
+                                            <RefreshCcw className="w-3 h-3 animate-spin" />
                                         ) : (
-                                            <Plus className="w-5 h-5" />
+                                            <Plus className="w-4 h-4" />
                                         )}
                                     </button>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2 min-h-[50px]">
+                                <div className="flex flex-wrap gap-2">
                                     {teacher.registeredIpAddress && teacher.registeredIpAddress.length > 0 ? (
                                         teacher.registeredIpAddress.map((ip) => (
-                                            <Badge key={ip} className="bg-white border-2 border-slate-100 text-slate-700 font-black text-[10px] px-3 py-1.5 rounded-xl flex items-center gap-3 transition-all hover:border-red-200 group/ip">
+                                            <Badge key={ip} className="bg-slate-50 border border-slate-200 text-slate-700 font-medium text-xs px-2.5 py-1 rounded-md flex items-center gap-2">
                                                 {ip}
                                                 <button
                                                     type="button"
                                                     onClick={() => handleRemoveIp(ip)}
-                                                    className="text-slate-300 hover:text-red-500 transition-colors group-hover/ip:text-red-400"
+                                                    className="text-slate-400 hover:text-red-500 transition-colors"
                                                     disabled={isIpUpdating}
                                                 >
                                                     <Trash2 className="h-3 w-3" />
@@ -338,9 +324,9 @@ export function FacultyDetailClient({ teacher: initialTeacher, profile, departme
                                             </Badge>
                                         ))
                                     ) : (
-                                        <div className="w-full py-8 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100 flex flex-col items-center gap-2">
-                                            <Globe className="w-6 h-6 text-slate-200" />
-                                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none text-center">No IP Restrictions</p>
+                                        <div className="w-full py-6 text-center bg-slate-50 rounded-lg border border-dashed border-slate-200 flex flex-col items-center gap-2">
+                                            <Globe className="w-5 h-5 text-slate-300" />
+                                            <p className="text-xs font-medium text-slate-400">No IP Restrictions</p>
                                         </div>
                                     )}
                                 </div>
@@ -355,12 +341,12 @@ export function FacultyDetailClient({ teacher: initialTeacher, profile, departme
 
 function InfoBlock({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
     return (
-        <div className="group/block">
-            <div className="flex items-center gap-3 mb-1.5">
-                <Icon className="w-3.5 h-3.5 text-slate-400 group-hover/block:text-amber-500 transition-colors" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/block:text-slate-600 transition-colors">{label}</p>
+        <div>
+            <div className="flex items-center gap-2 mb-1">
+                <Icon className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">{label}</p>
             </div>
-            <p className="text-base font-black text-slate-900 truncate pl-6.5">{value}</p>
+            <p className="text-sm font-medium text-slate-900 truncate pl-6">{value}</p>
         </div>
     );
 }
@@ -368,8 +354,8 @@ function InfoBlock({ icon: Icon, label, value }: { icon: any; label: string; val
 function ProfileItem({ label, value, highlighted = false }: { label: string; value: string; highlighted?: boolean }) {
     return (
         <div className="space-y-1">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
-            <p className={`text-sm font-black transition-colors ${highlighted ? 'text-amber-600 italic' : 'text-slate-800'}`}>{value}</p>
+            <p className="text-xs font-medium text-slate-500">{label}</p>
+            <p className={`text-sm font-medium ${highlighted ? 'text-amber-600' : 'text-slate-900'}`}>{value}</p>
         </div>
     );
 }

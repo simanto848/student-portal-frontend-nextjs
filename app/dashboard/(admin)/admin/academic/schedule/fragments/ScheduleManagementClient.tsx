@@ -102,12 +102,12 @@ export function ScheduleManagementClient() {
     const filteredTeacherOptions = useMemo(() => {
         let opts = teachers;
         if (selectedDepartment !== "all") {
-            opts = opts.filter(t => {
+            opts = opts.filter((t: any) => {
                 if (!t.departmentId) return true;
                 return t.departmentId === selectedDepartment;
             });
         }
-        return opts.map(t => ({
+        return opts.map((t: any) => ({
             value: t.id,
             label: t.fullName,
             description: t.email

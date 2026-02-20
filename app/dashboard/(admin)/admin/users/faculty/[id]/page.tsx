@@ -7,8 +7,8 @@ import { requireUser } from "@/lib/auth/userAuth";
 import { UserRole } from "@/types/user";
 
 export const metadata = {
-  title: "Faculty Intelligence | Academic Matrix",
-  description: "In-depth synchronization of scholar metadata",
+  title: "Faculty Details",
+  description: "View detailed information about a faculty member.",
 };
 
 interface TeacherDetailsPageProps {
@@ -30,17 +30,7 @@ export default async function TeacherDetailsPage({ params }: TeacherDetailsPageP
       return notFound();
     }
   } catch {
-    return (
-      <div className="flex flex-col items-center justify-center p-20 text-center space-y-6">
-        <div className="h-20 w-20 rounded-full bg-red-50 flex items-center justify-center">
-          <span className="text-4xl">📚</span>
-        </div>
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 italic uppercase">ACADEMIC BRAIN DISCONNECTED</h1>
-          <p className="text-slate-500 font-bold mt-2">The requested faculty synchronization is currently unreachable.</p>
-        </div>
-      </div>
-    );
+    return notFound();
   }
 
   let profile = null;

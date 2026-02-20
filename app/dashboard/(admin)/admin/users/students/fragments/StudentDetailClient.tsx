@@ -39,7 +39,6 @@ import {
 } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { motion, AnimatePresence } from "framer-motion";
 import { deleteStudentAction } from "../actions";
 
 interface StudentDetailClientProps {
@@ -97,93 +96,90 @@ export function StudentDetailClient({
     };
 
     return (
-        <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
+        <div className="space-y-6 pb-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
                     <button
                         onClick={() => router.back()}
-                        className="h-14 w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center text-slate-400 hover:text-amber-600 hover:border-amber-500/30 transition-all shadow-lg shadow-slate-200/40 active:scale-95 group"
+                        className="h-10 w-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-amber-600 hover:border-amber-500/30 transition-colors shadow-sm"
                     >
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        <ArrowLeft className="w-5 h-5" />
                     </button>
                     <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Badge className="bg-amber-100 text-amber-700 border-none px-2.5 py-0.5 rounded-md flex items-center gap-1.5 shadow-sm">
                                 <GraduationCap className="w-3 h-3" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Student Profile</span>
+                                <span className="text-[10px] font-medium uppercase tracking-wider">Student Profile</span>
                             </Badge>
-                            <span className="text-slate-300 font-black text-xs uppercase tracking-widest flex items-center gap-1.5">
+                            <span className="text-slate-500 font-medium text-xs flex items-center gap-1">
                                 <Hash className="w-3 h-3" />
                                 {student.registrationNumber}
                             </span>
                         </div>
-                        <h1 className="text-4xl font-black tracking-tighter text-slate-900 leading-none">{student.fullName}</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">{student.fullName}</h1>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <Button
-                        variant="ghost"
+                        variant="outline"
                         onClick={handleDelete}
                         disabled={isDeleting}
-                        className="h-14 px-6 rounded-2xl border-2 border-red-100 text-red-600 hover:bg-red-50 font-black tracking-tight transition-all active:scale-95"
+                        className="h-10 px-4 rounded-lg border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 font-medium transition-colors"
                     >
-                        <Trash2 className="w-5 h-5 mr-2" />
+                        <Trash2 className="w-4 h-4 mr-2" />
                         Suspend Student
                     </Button>
                     <Button
                         onClick={() => router.push(`/dashboard/admin/users/students/${student.id}/edit`)}
-                        className="h-14 px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
+                        className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-amber-600 text-white shadow-sm font-medium flex items-center gap-2 transition-colors"
                     >
-                        <Edit3 className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                        <Edit3 className="w-4 h-4" />
                         Edit Profile
                     </Button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 overflow-hidden relative">
-                        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-amber-500/10 via-slate-100 to-amber-500/5" />
-                        <CardContent className="p-10 pt-16">
-                            <div className="flex flex-col sm:flex-row gap-10 items-start">
-                                <div className="relative flex-shrink-0 group">
-                                    <div className="h-44 w-44 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-[1.02]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden relative">
+                        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-slate-100 to-slate-50" />
+                        <CardContent className="p-6 pt-12">
+                            <div className="flex flex-col sm:flex-row gap-6 items-start">
+                                <div className="relative flex-shrink-0">
+                                    <div className="h-32 w-32 rounded-xl overflow-hidden border-4 border-white shadow-md relative z-10 bg-slate-100">
                                         {student.profile?.profilePicture ? (
                                             <img
                                                 src={getImageUrl(student.profile.profilePicture)}
                                                 alt={student.fullName}
-                                                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                className="h-full w-full object-cover"
                                             />
                                         ) : (
-                                            <div className="h-full w-full flex items-center justify-center bg-amber-50 text-amber-600 font-black text-5xl">
+                                            <div className="h-full w-full flex items-center justify-center text-slate-400 font-medium text-3xl">
                                                 {student.fullName.charAt(0)}
                                             </div>
                                         )}
                                     </div>
-                                    <div className="absolute -bottom-4 -right-4 h-14 w-14 rounded-2xl bg-white border-2 border-slate-50 shadow-xl flex items-center justify-center text-amber-600 z-20 group-hover:scale-110 transition-transform">
-                                        <Sparkles className="w-7 h-7" />
-                                    </div>
                                 </div>
 
-                                <div className="flex-1 space-y-8 pt-4">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div className="flex-1 space-y-6 pt-2">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         <InfoBlock icon={Mail} label="Email Address" value={student.email} />
                                         <InfoBlock icon={Calendar} label="Admission Date" value={new Date(student.admissionDate).toLocaleDateString()} />
                                         <InfoBlock icon={Building2} label="Department" value={getName(departments, student.departmentId)} />
                                         <InfoBlock icon={Phone} label="Phone Number" value={profile?.studentMobile || "N/A"} />
                                     </div>
 
-                                    <div className="flex flex-wrap gap-3 pt-4">
-                                        <Badge className="px-4 py-2 rounded-xl bg-amber-50 border-2 border-amber-100/50 text-amber-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
-                                            <Layers className="w-3 h-3" />
+                                    <div className="flex flex-wrap gap-2 pt-2">
+                                        <Badge className="px-3 py-1 rounded-md bg-slate-100 text-slate-700 font-medium text-xs flex items-center gap-1.5 border-none">
+                                            <Layers className="w-3 h-3 text-slate-400" />
                                             {getBatchLabel(student.batchId)}
                                         </Badge>
-                                        <Badge className="px-4 py-2 rounded-xl bg-slate-900 border-none text-white font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-lg">
+                                        <Badge className="px-3 py-1 rounded-md bg-slate-900 text-white font-medium text-xs flex items-center gap-1.5 border-none">
                                             <BookOpen className="w-3 h-3 text-amber-400" />
                                             {getName(programs, student.programId)}
                                         </Badge>
-                                        <Badge className="px-4 py-2 rounded-xl bg-emerald-100 border-none text-emerald-700 font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                        <Badge className="px-3 py-1 rounded-md bg-emerald-50 text-emerald-700 font-medium text-xs flex items-center gap-1.5 border border-emerald-200">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                                             {student.enrollmentStatus.replace(/_/g, " ")}
                                         </Badge>
                                     </div>
@@ -193,101 +189,95 @@ export function StudentDetailClient({
                     </Card>
 
                     <Tabs defaultValue="academic" className="w-full">
-                        <TabsList className="bg-slate-100/50 p-1.5 rounded-[2rem] gap-2 mb-8 inline-flex">
-                            <TabsTrigger value="academic" className="px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-xl transition-all">Academic Info</TabsTrigger>
-                            <TabsTrigger value="personal" className="px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-xl transition-all">Personal Info</TabsTrigger>
-                            <TabsTrigger value="locus" className="px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-xl transition-all">Addresses</TabsTrigger>
-                            <TabsTrigger value="kin" className="px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-xl transition-all">Guardian Info</TabsTrigger>
+                        <TabsList className="bg-slate-100 p-1 rounded-lg gap-1 mb-6 inline-flex w-full sm:w-auto overflow-x-auto">
+                            <TabsTrigger value="academic" className="px-4 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap">Academic Info</TabsTrigger>
+                            <TabsTrigger value="personal" className="px-4 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap">Personal Info</TabsTrigger>
+                            <TabsTrigger value="locus" className="px-4 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap">Addresses</TabsTrigger>
+                            <TabsTrigger value="kin" className="px-4 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all whitespace-nowrap">Guardian Info</TabsTrigger>
                         </TabsList>
 
-                        <AnimatePresence mode="wait">
-                            <TabsContent value="academic" key="academic">
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-10">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                            <SummaryItem label="Current Semester" value={`Semester ${student.currentSemester || 1}`} icon={Layers} />
-                                            <SummaryItem label="Session" value={getName(sessions, student.sessionId)} icon={Clock} />
-                                            <SummaryItem label="Enrollment Status" value={student.enrollmentStatus.replace(/_/g, " ")} icon={GraduationCap} highlighted />
-                                            <SummaryItem label="University Email" value={student.email} icon={Mail} />
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            </TabsContent>
+                        <TabsContent value="academic" className="mt-0">
+                            <Card className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <SummaryItem label="Current Semester" value={`Semester ${student.currentSemester || 1}`} icon={Layers} />
+                                    <SummaryItem label="Session" value={getName(sessions, student.sessionId)} icon={Clock} />
+                                    <SummaryItem label="Enrollment Status" value={student.enrollmentStatus.replace(/_/g, " ")} icon={GraduationCap} highlighted />
+                                    <SummaryItem label="University Email" value={student.email} icon={Mail} />
+                                </div>
+                            </Card>
+                        </TabsContent>
 
-                            <TabsContent value="personal" key="personal">
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-10">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                                            <SummaryItem label="Date of Birth" value={profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : "N/A"} icon={Calendar} />
-                                            <SummaryItem label="Gender" value={profile?.gender || "N/A"} icon={UserIcon} />
-                                            <SummaryItem label="Blood Group" value={profile?.bloodGroup || "N/A"} icon={Heart} />
-                                            <SummaryItem label="Nationality" value={profile?.nationality || "N/A"} icon={Flag} />
-                                            <SummaryItem label="NID/Passport" value={profile?.nidOrPassportNo || "N/A"} icon={CreditCard} />
-                                            <SummaryItem label="Religion" value={profile?.religion || "N/A"} icon={Sparkles} />
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            </TabsContent>
+                        <TabsContent value="personal" className="mt-0">
+                            <Card className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <SummaryItem label="Date of Birth" value={profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : "N/A"} icon={Calendar} />
+                                    <SummaryItem label="Gender" value={profile?.gender || "N/A"} icon={UserIcon} />
+                                    <SummaryItem label="Blood Group" value={profile?.bloodGroup || "N/A"} icon={Heart} />
+                                    <SummaryItem label="Nationality" value={profile?.nationality || "N/A"} icon={Flag} />
+                                    <SummaryItem label="NID/Passport" value={profile?.nidOrPassportNo || "N/A"} icon={CreditCard} />
+                                    <SummaryItem label="Religion" value={profile?.religion || "N/A"} icon={Sparkles} />
+                                </div>
+                            </Card>
+                        </TabsContent>
 
-                            <TabsContent value="locus" key="locus">
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-8">
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                                                <Home className="w-5 h-5" />
-                                            </div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Permanent Address</p>
+                        <TabsContent value="locus" className="mt-0">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Card className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                            <Home className="w-4 h-4" />
                                         </div>
-                                        {profile?.permanentAddress ? (
-                                            <div className="space-y-4">
-                                                <LocusItem label="Street" value={profile.permanentAddress.street || ""} />
-                                                <LocusItem label="City" value={profile.permanentAddress.city || ""} />
-                                                <LocusItem label="Country" value={profile.permanentAddress.country || ""} />
-                                            </div>
-                                        ) : <EmptyLocus />}
-                                    </Card>
-                                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-8">
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
-                                                <MapPin className="w-5 h-5" />
-                                            </div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Mailing Address</p>
-                                        </div>
-                                        {profile?.mailingAddress ? (
-                                            <div className="space-y-4">
-                                                <LocusItem label="Street" value={profile.mailingAddress.street || ""} />
-                                                <LocusItem label="City" value={profile.mailingAddress.city || ""} />
-                                                <LocusItem label="Country" value={profile.mailingAddress.country || ""} />
-                                            </div>
-                                        ) : <EmptyLocus />}
-                                    </Card>
-                                </motion.div>
-                            </TabsContent>
-
-                            <TabsContent value="kin" key="kin">
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div className="space-y-6">
-                                        <KinBlock label="Father's Info" icon={UserIcon} name={profile?.father?.name} phone={profile?.father?.cell} />
-                                        <KinBlock label="Mother's Info" icon={UserIcon} name={profile?.mother?.name} phone={profile?.mother?.cell} />
+                                        <p className="text-xs font-medium text-slate-700">Permanent Address</p>
                                     </div>
-                                    <div className="space-y-6">
-                                        <KinBlock label="Primary Guardian" icon={ShieldAlert} name={profile?.guardian?.name} phone={profile?.guardian?.cell} extra={profile?.guardian?.occupation} />
-                                        <KinBlock label="Emergency Contact" icon={Contact} name={profile?.emergencyContact?.name} phone={profile?.emergencyContact?.cell} extra={profile?.emergencyContact?.relation} highlighted />
+                                    {profile?.permanentAddress ? (
+                                        <div className="space-y-3">
+                                            <LocusItem label="Street" value={profile.permanentAddress.street || ""} />
+                                            <LocusItem label="City" value={profile.permanentAddress.city || ""} />
+                                            <LocusItem label="Country" value={profile.permanentAddress.country || ""} />
+                                        </div>
+                                    ) : <EmptyLocus />}
+                                </Card>
+                                <Card className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="h-8 w-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4" />
+                                        </div>
+                                        <p className="text-xs font-medium text-slate-700">Mailing Address</p>
                                     </div>
-                                </motion.div>
-                            </TabsContent>
-                        </AnimatePresence>
+                                    {profile?.mailingAddress ? (
+                                        <div className="space-y-3">
+                                            <LocusItem label="Street" value={profile.mailingAddress.street || ""} />
+                                            <LocusItem label="City" value={profile.mailingAddress.city || ""} />
+                                            <LocusItem label="Country" value={profile.mailingAddress.country || ""} />
+                                        </div>
+                                    ) : <EmptyLocus />}
+                                </Card>
+                            </div>
+                        </TabsContent>
+
+                        <TabsContent value="kin" className="mt-0">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <KinBlock label="Father's Info" icon={UserIcon} name={profile?.father?.name} phone={profile?.father?.cell} />
+                                    <KinBlock label="Mother's Info" icon={UserIcon} name={profile?.mother?.name} phone={profile?.mother?.cell} />
+                                </div>
+                                <div className="space-y-4">
+                                    <KinBlock label="Primary Guardian" icon={ShieldAlert} name={profile?.guardian?.name} phone={profile?.guardian?.cell} extra={profile?.guardian?.occupation} />
+                                    <KinBlock label="Emergency Contact" icon={Contact} name={profile?.emergencyContact?.name} phone={profile?.emergencyContact?.cell} extra={profile?.emergencyContact?.relation} highlighted />
+                                </div>
+                            </div>
+                        </TabsContent>
                     </Tabs>
                 </div>
 
-                <div className="space-y-8">
-                    <Card className="bg-slate-900 text-white border-none rounded-[3rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-1000">
-                            <Clock className="w-32 h-32" />
+                <div className="space-y-6">
+                    <Card className="bg-slate-900 text-white border-none rounded-xl shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-10">
+                            <Clock className="w-24 h-24" />
                         </div>
-                        <CardContent className="p-10 relative z-10">
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8 px-1">System Info</p>
-                            <div className="space-y-6">
+                        <CardContent className="p-6 relative z-10">
+                            <p className="text-xs font-medium text-slate-400 mb-6">System Info</p>
+                            <div className="space-y-4">
                                 <StatItem label="Registration Date" value={new Date(student.createdAt || "").toDateString()} />
                                 <StatItem label="Infrastructure" value="Portal Core" />
                                 <StatItem label="Validation" value="ACTIVE" highlighted />
@@ -295,20 +285,17 @@ export function StudentDetailClient({
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white border-2 border-slate-100 rounded-[3rem] shadow-2xl shadow-slate-200/40 p-10 overflow-hidden relative group">
-                        <div className="absolute -bottom-10 -right-10 opacity-[0.03] group-hover:rotate-12 transition-transform duration-700">
-                            <Sparkles className="w-40 h-40" />
-                        </div>
-                        <h3 className="text-xl font-black text-slate-900 mb-6 underline decoration-amber-500/30 decoration-4 underline-offset-4">Quick Actions</h3>
-                        <div className="space-y-4 relative z-10">
-                            <ActionButton label="View Transcripts" icon={Layers} color="slate" />
-                            <ActionButton label="Financial Info" icon={CreditCard} color="slate" />
-                            <ActionButton label="Attendance Log" icon={Clock} color="slate" />
+                    <Card className="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
+                        <h3 className="text-lg font-bold text-slate-900 mb-4">Quick Actions</h3>
+                        <div className="space-y-3">
+                            <ActionButton label="View Transcripts" icon={Layers} />
+                            <ActionButton label="Financial Info" icon={CreditCard} />
+                            <ActionButton label="Attendance Log" icon={Clock} />
                             <ActionButton
                                 label="Enroll Face ID"
                                 icon={Sparkles}
-                                color="amber"
                                 onClick={() => setEnrollmentOpen(true)}
+                                highlighted
                             />
                         </div>
                     </Card>
@@ -334,57 +321,57 @@ export function StudentDetailClient({
 
 function InfoBlock({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
     return (
-        <div className="group/block">
-            <div className="flex items-center gap-3 mb-1.5">
-                <Icon className="w-3.5 h-3.5 text-slate-400 group-hover/block:text-amber-500 transition-colors" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover/block:text-slate-600 transition-colors">{label}</p>
+        <div>
+            <div className="flex items-center gap-2 mb-1">
+                <Icon className="w-4 h-4 text-slate-400" />
+                <p className="text-xs font-medium text-slate-500">{label}</p>
             </div>
-            <p className="text-base font-black text-slate-900 truncate pl-6.5">{value}</p>
+            <p className="text-sm font-medium text-slate-900 truncate pl-6">{value}</p>
         </div>
     );
 }
 
 function SummaryItem({ label, value, icon: Icon, highlighted = false }: { label: string; value: string; icon: any; highlighted?: boolean }) {
     return (
-        <div className="space-y-2">
-            <div className="flex items-center gap-3">
-                <Icon className={`w-3.5 h-3.5 ${highlighted ? 'text-amber-500' : 'text-slate-400'}`} />
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
+        <div className="space-y-1">
+            <div className="flex items-center gap-2">
+                <Icon className={`w-4 h-4 ${highlighted ? 'text-amber-500' : 'text-slate-400'}`} />
+                <p className="text-xs font-medium text-slate-500">{label}</p>
             </div>
-            <p className={`text-base font-black px-1 ${highlighted ? 'text-amber-600' : 'text-slate-800'}`}>{value}</p>
+            <p className={`text-sm font-medium pl-6 ${highlighted ? 'text-amber-600' : 'text-slate-900'}`}>{value}</p>
         </div>
     );
 }
 
 function LocusItem({ label, value }: { label: string; value: string }) {
     return (
-        <div className="space-y-1">
-            <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none">{label}</p>
-            <p className="text-sm font-black text-slate-900 leading-tight">{value || "N/A"}</p>
+        <div className="space-y-0.5">
+            <p className="text-xs text-slate-500">{label}</p>
+            <p className="text-sm font-medium text-slate-900">{value || "N/A"}</p>
         </div>
     );
 }
 
 function EmptyLocus() {
-    return <p className="text-[10px] font-black text-slate-300 uppercase italic">Address not provided</p>;
+    return <p className="text-sm text-slate-400 italic">Address not provided</p>;
 }
 
 function KinBlock({ label, icon: Icon, name, phone, extra, highlighted = false }: { label: string; icon: any; name?: string; phone?: string; extra?: string; highlighted?: boolean }) {
     return (
-        <Card className={`p-6 rounded-[2.5rem] border-2 transition-all ${highlighted ? 'bg-amber-50 border-amber-100 shadow-xl' : 'bg-white border-slate-50'}`}>
-            <div className="flex items-center gap-4 mb-4">
-                <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${highlighted ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/30' : 'bg-slate-100 text-slate-400'}`}>
-                    <Icon className="w-5 h-5" />
+        <Card className={`p-4 rounded-xl border transition-colors ${highlighted ? 'bg-amber-50/50 border-amber-200' : 'bg-white border-slate-200'}`}>
+            <div className="flex items-center gap-3 mb-3">
+                <div className={`h-8 w-8 rounded-lg flex items-center justify-center ${highlighted ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'}`}>
+                    <Icon className="w-4 h-4" />
                 </div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{label}</p>
+                <p className="text-xs font-medium text-slate-700">{label}</p>
             </div>
-            <div className="space-y-1.5 px-1">
-                <p className={`text-lg font-black leading-tight ${highlighted ? 'text-amber-700' : 'text-slate-900'}`}>{name || "N/A"}</p>
-                <div className="flex items-center gap-2 text-xs font-black text-slate-400 italic">
+            <div className="space-y-1 pl-11">
+                <p className={`text-sm font-medium ${highlighted ? 'text-amber-700' : 'text-slate-900'}`}>{name || "N/A"}</p>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500">
                     <Phone className="w-3 h-3" />
                     {phone || "N/A"}
                 </div>
-                {extra && <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest bg-slate-100 w-fit px-2 py-0.5 rounded-md mt-2">{extra}</p>}
+                {extra && <p className="text-xs text-slate-500 mt-1">{extra}</p>}
             </div>
         </Card>
     );
@@ -393,22 +380,27 @@ function KinBlock({ label, icon: Icon, name, phone, extra, highlighted = false }
 function StatItem({ label, value, highlighted = false }: { label: string; value: string; highlighted?: boolean }) {
     return (
         <div className="space-y-1">
-            <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none">{label}</p>
-            <p className={`text-sm font-black leading-none ${highlighted ? 'text-amber-500' : 'text-white'}`}>{value}</p>
+            <p className="text-xs text-slate-400">{label}</p>
+            <p className={`text-sm font-medium ${highlighted ? 'text-amber-400' : 'text-white'}`}>{value}</p>
         </div>
     );
 }
 
-function ActionButton({ label, icon: Icon, color, onClick }: { label: string; icon: any; color: string; onClick?: () => void }) {
+function ActionButton({ label, icon: Icon, onClick, highlighted = false }: { label: string; icon: any; onClick?: () => void; highlighted?: boolean }) {
     return (
         <button
             onClick={onClick}
-            className={`w-full h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between px-6 group hover:bg-slate-900 hover:text-white transition-all active:scale-95 duration-500`}>
-            <div className="flex items-center gap-4">
-                <Icon className={`w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors`} />
-                <span className="text-xs font-black uppercase tracking-widest">{label}</span>
+            className={`w-full h-10 rounded-lg border flex items-center justify-between px-4 transition-colors ${
+                highlighted 
+                    ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100' 
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+            }`}
+        >
+            <div className="flex items-center gap-3">
+                <Icon className={`w-4 h-4 ${highlighted ? 'text-amber-600' : 'text-slate-400'}`} />
+                <span className="text-sm font-medium">{label}</span>
             </div>
-            <ArrowLeft className="w-4 h-4 rotate-180 group-hover:translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4 rotate-180 opacity-50" />
         </button>
     );
 }

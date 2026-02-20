@@ -210,9 +210,9 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
-            <GlassCard className="p-8 border-amber-100/50" delay={0.1}>
+            <GlassCard className="p-8 border-slate-200/60 bg-gradient-to-br from-white to-slate-50/50 shadow-sm" delay={0.1}>
                 <div className="flex items-center gap-3 mb-8">
-                    <div className={cn("p-2.5 rounded-xl ring-1 shadow-sm", theme.colors.sidebar.active.replace('bg-', 'bg-') + '/10 ring-' + theme.colors.sidebar.active.replace('bg-', '') + '/20')}>
+                    <div className={cn("p-2.5 rounded-xl ring-1 shadow-sm", theme.colors.accent.secondary.replace('bg-', 'bg-') + '/10 ring-' + theme.colors.accent.secondary.replace('bg-', '') + '/20')}>
                         <Building2 className={cn("h-5 w-5", theme.colors.accent.primary)} />
                     </div>
                     <div>
@@ -257,7 +257,7 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
             {selectedBatchId && (
                 <div className="space-y-6">
                     {!isEditing && (
-                        <GlassCard className="p-6 border-indigo-100/50" delay={0.2}>
+                        <GlassCard className="p-6 border-indigo-100/50 bg-gradient-to-br from-white to-indigo-50/30 shadow-sm" delay={0.2}>
                             <div className="flex flex-col sm:flex-row items-center gap-6 justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="p-2.5 rounded-xl bg-indigo-50 ring-1 ring-indigo-100 shadow-sm">
@@ -292,8 +292,8 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
                         </GlassCard>
                     )}
 
-                    <GlassCard className="overflow-hidden border-slate-200/60 p-0 shadow-xl" delay={0.3}>
-                        <div className="p-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+                    <GlassCard className="overflow-hidden border-slate-200/60 p-0 shadow-md bg-white" delay={0.3}>
+                        <div className="p-6 bg-gradient-to-r from-slate-50/80 to-white border-b border-slate-100 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <div className="p-2.5 rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
                                     <BookOpen className="h-5 w-5 text-slate-600" />
@@ -311,8 +311,8 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
                         </div>
                         <div className="overflow-x-auto">
                             <Table>
-                                <TableHeader className="bg-slate-50/80">
-                                    <TableRow className="hover:bg-transparent border-slate-200">
+                                <TableHeader className="bg-slate-50/50">
+                                    <TableRow className="hover:bg-transparent border-slate-100">
                                         <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-[120px]">Code</TableHead>
                                         <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest min-w-[200px]">Course Name</TableHead>
                                         <TableHead className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-[320px]">Instructor Assignment</TableHead>
@@ -380,9 +380,9 @@ export function InstructorAssignmentForm({ assignmentId }: InstructorAssignmentF
                             onClick={handleSubmit}
                             disabled={isLoading || assignments.length === 0}
                             className={cn(
-                                "h-12 px-10 rounded-2xl font-black tracking-tight gap-2 shadow-lg transition-all active:scale-95 text-white",
-                                theme.colors.sidebar.active,
-                                theme.colors.sidebar.active.replace('bg-', 'shadow-').replace('600', '200') + '/50'
+                                "h-12 px-10 rounded-2xl font-black tracking-tight gap-2 shadow-lg transition-all active:scale-95 text-white hover:opacity-90",
+                                theme.colors.accent.secondary,
+                                theme.colors.accent.secondary.replace('bg-', 'shadow-').replace('600', '200') + '/50'
                             )}
                         >
                             {isLoading ? (

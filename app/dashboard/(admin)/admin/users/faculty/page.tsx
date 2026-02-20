@@ -4,8 +4,8 @@ import { requireUser } from "@/lib/auth/userAuth";
 import { UserRole } from "@/types/user";
 
 export const metadata = {
-  title: "Faculty Management | Academic Matrix",
-  description: "Manage the educators and scholars within the constellation",
+  title: "Faculty Management",
+  description: "Manage the educators and scholars within the system",
 };
 
 export default async function FacultyPage() {
@@ -19,8 +19,8 @@ export default async function FacultyPage() {
     ]);
   } catch {
     return (
-      <div className="flex items-center justify-center p-20 text-slate-400 font-black italic">
-        THE ACADEMIC MATRIX IS UNREACHABLE AT THIS TIME.
+      <div className="flex items-center justify-center p-20 text-slate-500 font-medium">
+        Failed to load faculty data.
       </div>
     );
   }

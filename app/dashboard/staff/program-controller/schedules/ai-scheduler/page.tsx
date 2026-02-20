@@ -81,7 +81,7 @@ export default function AISchedulerPage() {
         setIsGenerating(true);
         try {
             const deptId = selectedDepartmentId === "all" ? undefined : selectedDepartmentId;
-            await scheduleService.generateSchedule(selectedSessionId, deptId);
+            await scheduleService.generateSchedule({ sessionId: selectedSessionId, departmentId: deptId });
             notifySuccess("Schedule generated successfully!");
             loadProposals(selectedSessionId);
         } catch (error) {

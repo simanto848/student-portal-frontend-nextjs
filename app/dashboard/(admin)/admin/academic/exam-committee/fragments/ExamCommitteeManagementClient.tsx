@@ -116,7 +116,7 @@ export function ExamCommitteeManagementClient() {
         });
 
         return data.map(committee => {
-            const foundTeacher = teachers.find(t => t.id === committee.teacherId);
+            const foundTeacher = teachers.find((t: any) => t.id === committee.teacherId);
             const teacher = foundTeacher || committee.teacher;
 
             const deptId = (committee.departmentId && typeof committee.departmentId === 'object')

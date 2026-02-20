@@ -12,6 +12,6 @@ interface SyllabusDetailsPageProps {
 
 export default function SyllabusDetailsPage({ params }: SyllabusDetailsPageProps) {
     return (
-        <SyllabusDetailClient id={params.id} />
+        <SyllabusDetailClient />
     );
 }

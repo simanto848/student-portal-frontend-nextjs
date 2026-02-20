@@ -30,7 +30,6 @@ import {
 import { getImageUrl, cn } from "@/lib/utils";
 import { adminService } from "@/services/user/admin.service";
 import { notifySuccess, notifyError } from "@/components/toast";
-import { motion, AnimatePresence } from "framer-motion";
 import {
     deleteStaffAction,
     restoreStaffAction,
@@ -262,41 +261,37 @@ export function StaffManagementClient({
     };
 
     return (
-        <div className="space-y-10 pb-20">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-6 pb-10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 sm:mb-4 w-fit shadow-sm">
+                    <Badge className="bg-amber-100 text-amber-700 border-none px-3 py-1 rounded-full flex items-center gap-2 mb-2 w-fit shadow-sm">
                         <Briefcase className="w-3.5 h-3.5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#92400E]">Overview</span>
                     </Badge>
-                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none">Staff Management</h1>
-                    <p className="text-slate-500 font-bold mt-2 md:mt-3 text-sm md:text-lg">Manage and configure the staff members of the university.</p>
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Staff Management</h1>
                 </div>
-                <div className="flex items-center gap-3">
-                    <Button
-                        onClick={() => router.push("/dashboard/admin/users/staff/create")}
-                        className="h-12 md:h-14 px-6 md:px-8 rounded-[2rem] bg-slate-900 hover:bg-amber-600 text-white shadow-2xl shadow-slate-900/20 font-black tracking-tight flex items-center gap-3 active:scale-95 transition-all group"
-                    >
-                        <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        <span>Add Staff Member</span>
-                    </Button>
-                </div>
+                <Button
+                    onClick={() => router.push("/dashboard/admin/users/staff/create")}
+                    className="h-10 px-6 rounded-lg bg-slate-900 hover:bg-amber-600 text-white shadow-sm font-medium flex items-center justify-center gap-2 transition-colors w-full sm:w-auto"
+                >
+                    <UserPlus className="w-4 h-4" />
+                    <span>Add Staff Member</span>
+                </Button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-                <Card className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[2.5rem] shadow-xl shadow-slate-200/40 group hover:border-amber-500/50 transition-all duration-500">
-                    <CardContent className="p-6 md:p-8">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-500">
-                                <Users className="h-6 w-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <Card className="bg-white border border-slate-200 rounded-xl shadow-sm">
+                    <CardContent className="p-5">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="h-10 w-10 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center">
+                                <Users className="h-5 w-5" />
                             </div>
-                            <div className="h-px w-12 bg-slate-100" />
                         </div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Total Staff</p>
-                        <h3 className="text-4xl font-black text-slate-900 mt-1">{statistics.total}</h3>
+                        <p className="text-xs font-medium text-slate-500">Total Staff</p>
+                        <h3 className="text-2xl font-bold text-slate-900 mt-1">{statistics.total}</h3>
                     </CardContent>
                 </Card>
-                {["program_controller", "admission", "library", "it", "exam_controller"].map((role, index) => {
+                {["program_controller", "admission", "library", "it", "exam_controller"].map((role) => {
                     const map: any = {
                         program_controller: { icon: Cpu, label: "Controllers" },
                         admission: { icon: UserPlus, label: "Admission" },
@@ -307,54 +302,49 @@ export function StaffManagementClient({
                     const { icon: Icon, label } = map[role];
                     const count = statistics.byRole[role] || 0;
                     return (
-                        <Card key={role} className="bg-white border-2 border-slate-100 rounded-[2.5rem] shadow-xl shadow-slate-200/40 group hover:border-amber-500/50 transition-all duration-500">
-                            <CardContent className="p-6 md:p-8">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="h-12 w-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform duration-500">
-                                        <Icon className="h-6 h-6" />
+                        <Card key={role} className="bg-white border border-slate-200 rounded-xl shadow-sm">
+                            <CardContent className="p-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="h-10 w-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                                        <Icon className="h-5 w-5" />
                                     </div>
-                                    <Badge variant="outline" className="text-[10px] font-bold border-slate-100 text-slate-400 rounded-lg uppercase">CATEGORY</Badge>
                                 </div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{label}</p>
-                                <h3 className="text-4xl font-black text-slate-900 mt-1">{count}</h3>
+                                <p className="text-xs font-medium text-slate-500">{label}</p>
+                                <h3 className="text-2xl font-bold text-slate-900 mt-1">{count}</h3>
                             </CardContent>
                         </Card>
                     );
                 })}
             </div>
 
-            <Tabs defaultValue="active" className="w-full" onValueChange={setActiveTab}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
-                    <div className="bg-white p-1.5 rounded-[2rem] border-2 border-slate-100 shadow-lg shadow-slate-200/30 flex w-fit">
-                        <TabsList className="bg-transparent h-12 gap-1 p-0">
-                            <TabsTrigger
-                                value="active"
-                                className="h-10 px-8 rounded-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-slate-900 data-[state=active]:text-white transition-all"
-                            >
-                                <Sparkles className="w-3.5 h-3.5 mr-2" />
-                                Active Staff
-                            </TabsTrigger>
-                            <TabsTrigger
-                                value="deleted"
-                                className="h-10 px-8 rounded-full font-black text-xs uppercase tracking-widest data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all"
-                            >
-                                <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                Suspended
-                            </TabsTrigger>
-                        </TabsList>
-                    </div>
+            <Tabs defaultValue="active" className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" onValueChange={setActiveTab}>
+                <div className="bg-slate-50/50 px-4 py-4 md:px-6 md:py-5 border-b border-slate-200 flex flex-col lg:flex-row gap-4 lg:items-center justify-between">
+                    <TabsList className="bg-slate-100 p-1 rounded-lg h-auto flex w-full sm:w-auto">
+                        <TabsTrigger
+                            value="active"
+                            className="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-amber-600 data-[state=active]:shadow-sm transition-all text-center"
+                        >
+                            Active Staff
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="deleted"
+                            className="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-md font-medium text-xs data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm transition-all text-center"
+                        >
+                            Suspended
+                        </TabsTrigger>
+                    </TabsList>
 
                     {activeTab === "active" && (
-                        <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-200 overflow-x-auto no-scrollbar max-w-full">
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-full">
                             {["all", "program_controller", "admission", "library", "it", "exam_controller"].map((role) => (
                                 <button
                                     key={role}
                                     onClick={() => setFilterRole(role as StaffRole | "all")}
                                     className={`
-                                        h-9 px-5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all
+                                        h-8 px-4 rounded-md text-xs font-medium transition-colors whitespace-nowrap
                                         ${filterRole === role
-                                            ? "bg-white text-slate-900 shadow-md ring-1 ring-slate-100"
-                                            : "text-slate-400 hover:text-slate-600 hover:bg-white/50"
+                                            ? "bg-slate-900 text-white"
+                                            : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                                         }
                                     `}
                                 >
@@ -365,131 +355,107 @@ export function StaffManagementClient({
                     )}
                 </div>
 
-                <AnimatePresence mode="wait">
-                    <TabsContent value="active" key="active-tab" className="mt-0 focus-visible:outline-none">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.98 }}
-                            className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] p-4 sm:p-6 md:p-8 shadow-2xl shadow-slate-200/30 overflow-hidden relative group"
-                        >
-                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                                <Briefcase className="w-40 h-40 text-slate-900" />
-                            </div>
-                            <DataTable
-                                data={filteredStaff}
-                                columns={columns}
-                                searchKey="fullName"
-                                searchPlaceholder="Search staff by name..."
-                                onView={(item) => router.push(`/dashboard/admin/users/staff/${item.id}`)}
-                                onEdit={(item) => router.push(`/dashboard/admin/users/staff/${item.id}/edit`)}
-                                onDelete={handleDelete}
-                                renderExtraActions={(member) => (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            member.isBlocked ? handleUnblock(member) : handleBlock(member);
-                                        }}
-                                        className={cn(
-                                            "h-9 w-9 rounded-xl hover:bg-white hover:shadow-md active:scale-95 transition-all",
-                                            member.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
-                                        )}
-                                        title={member.isBlocked ? "Unblock Staff" : "Block Staff"}
-                                    >
-                                        {member.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
-                                    </Button>
-                                )}
-                            />
-                        </motion.div>
-                    </TabsContent>
-
-                    <TabsContent value="deleted" key="deleted-tab" className="mt-0 focus-visible:outline-none">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-white border-2 border-slate-100 rounded-3xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl shadow-slate-200/30"
-                        >
-                            <div className="flex items-center gap-4 mb-10">
-                                <div className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shadow-inner">
-                                    <Clock className="w-7 h-7" />
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-black text-slate-900">Suspended Staff</h2>
-                                    <p className="text-slate-500 font-bold text-sm italic">Historical record of staff members who have been suspended.</p>
-                                </div>
-                            </div>
-
-                            {deletedStaff.length === 0 ? (
-                                <div className="py-20 text-center space-y-4">
-                                    <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto opacity-50 border-4 border-white shadow-2xl shadow-slate-100">
-                                        <Briefcase className="w-10 h-10 text-slate-300" />
-                                    </div>
-                                    <p className="text-slate-400 font-black italic text-lg decoration-slate-200 underline underline-offset-8">No staff in suspension</p>
-                                </div>
-                            ) : (
-                                <div className="overflow-x-auto rounded-3xl border border-slate-100 shadow-inner">
-                                    <table className="w-full text-left border-collapse">
-                                        <thead className="bg-slate-50/50">
-                                            <tr>
-                                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Name</th>
-                                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400">Role</th>
-                                                <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Restore Access</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {deletedStaff.map((member, index) => (
-                                                <motion.tr
-                                                    key={member.id}
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: index * 0.05 }}
-                                                    className="hover:bg-slate-50/30 transition-colors group"
-                                                >
-                                                    <td className="p-6">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400 grayscale group-hover:grayscale-0 transition-all">
-                                                                {member.fullName.charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <p className="font-black text-slate-800">{member.fullName}</p>
-                                                                <p className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">{member.email}</p>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="p-6">{roleBadge(member.role)}</td>
-                                                    <td className="p-6 text-right">
-                                                        <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleRestore(member.id)}
-                                                                className="h-10 px-5 rounded-xl border border-emerald-100 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-black tracking-tight flex items-center gap-2"
-                                                            >
-                                                                <RotateCcw className="h-3.5 w-3.5" />
-                                                                Restore
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handlePermanentDelete(member.id)}
-                                                                className="h-10 px-5 rounded-xl border border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700 font-black tracking-tight flex items-center gap-2"
-                                                            >
-                                                                <Trash2 className="h-3.5 w-3.5" />
-                                                                Permanently Delete
-                                                            </Button>
-                                                        </div>
-                                                    </td>
-                                                </motion.tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                <TabsContent value="active" className="m-0 p-0">
+                    <div className="p-4 sm:p-6">
+                        <DataTable
+                            data={filteredStaff}
+                            columns={columns}
+                            searchKey="fullName"
+                            searchPlaceholder="Search staff by name..."
+                            onView={(item) => router.push(`/dashboard/admin/users/staff/${item.id}`)}
+                            onEdit={(item) => router.push(`/dashboard/admin/users/staff/${item.id}/edit`)}
+                            onDelete={handleDelete}
+                            renderExtraActions={(member) => (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        member.isBlocked ? handleUnblock(member) : handleBlock(member);
+                                    }}
+                                    className={cn(
+                                        "h-8 w-8 rounded-md hover:bg-slate-100 transition-colors",
+                                        member.isBlocked ? "text-emerald-600 hover:text-emerald-700" : "text-amber-600 hover:text-amber-700"
+                                    )}
+                                    title={member.isBlocked ? "Unblock Staff" : "Block Staff"}
+                                >
+                                    {member.isBlocked ? <Unlock className="h-4 w-4" /> : <Ban className="h-4 w-4" />}
+                                </Button>
                             )}
-                        </motion.div>
-                    </TabsContent>
-                </AnimatePresence>
+                        />
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="deleted" className="m-0 p-0">
+                    <div className="p-4 sm:p-6">
+                        {deletedStaff.length === 0 ? (
+                            <div className="py-16 flex flex-col items-center justify-center gap-3">
+                                <div className="h-16 w-16 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                    <Briefcase className="w-8 h-8" />
+                                </div>
+                                <div className="text-center px-4">
+                                    <p className="text-sm font-medium text-slate-900">No suspended staff found</p>
+                                    <p className="text-sm text-slate-500">There are no suspended staff records in the system.</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-slate-50/50 border-b border-slate-200">
+                                        <tr>
+                                            <th className="px-4 py-3 text-xs font-medium text-slate-500">Name</th>
+                                            <th className="px-4 py-3 text-xs font-medium text-slate-500">Role</th>
+                                            <th className="px-4 py-3 text-xs font-medium text-slate-500 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {deletedStaff.map((member) => (
+                                            <tr
+                                                key={member.id}
+                                                className="hover:bg-slate-50/50 transition-colors group"
+                                            >
+                                                <td className="px-4 py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center font-medium text-slate-400 border border-slate-200">
+                                                            {member.fullName.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-sm text-slate-900">{member.fullName}</p>
+                                                            <p className="text-xs text-slate-500">{member.email}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-3">{roleBadge(member.role)}</td>
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleRestore(member.id)}
+                                                            className="h-8 px-3 rounded-md text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 font-medium text-xs"
+                                                        >
+                                                            <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                                                            Restore
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handlePermanentDelete(member.id)}
+                                                            className="h-8 px-3 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 font-medium text-xs"
+                                                        >
+                                                            <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                                                            Purge
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
             </Tabs>
 
             <DeleteModal
