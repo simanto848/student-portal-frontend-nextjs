@@ -1,27 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { staffService, StaffRole, StaffCreatePayload } from "@/services/user/staff.service";
-import { staffProfileService, StaffProfilePayload } from "@/services/user/staffProfile.service";
-import { departmentService } from "@/services/academic/department.service";
+import { adminService, AdminRole } from "@/services/user/admin.service";
+import { adminProfileService } from "@/services/user/adminProfile.service";
 import { toast } from "sonner";
-import { Users, Loader2, CheckCircle2, User, Home, ShieldCheck, Globe, Mail, Phone, Calendar } from "lucide-react";
+import { ShieldCheck, Loader2, CheckCircle2, User, Mail, Home, Globe } from "lucide-react";
 
-interface StaffForm {
+interface ModeratorForm {
     fullName: string;
     email: string;
-    departmentId: string;
-    role?: StaffRole;
     registrationNumber: string;
     joiningDate: string;
-    phone: string;
     profile: {
         firstName: string;
         lastName: string;
@@ -39,14 +35,11 @@ interface StaffForm {
     };
 }
 
-const initialForm: StaffForm = {
+const initialForm: ModeratorForm = {
     fullName: "",
     email: "",
-    departmentId: "",
-    role: undefined,
     registrationNumber: "",
     joiningDate: new Date().toISOString().split("T")[0],
-    phone: "",
     profile: {
         firstName: "",
         lastName: "",
@@ -64,28 +57,11 @@ const initialForm: StaffForm = {
     },
 };
 
-export default function CreateStaffPage() {
+export default function CreateModeratorPage() {
     const router = useRouter();
-    const [formData, setFormData] = useState<StaffForm>(initialForm);
+    const [formData, setFormData] = useState<ModeratorForm>(initialForm);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [departments, setDepartments] = useState<any[]>([]);
-    const [loadingDepartments, setLoadingDepartments] = useState(true);
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
-
-    useEffect(() => {
-        const loadDepartments = async () => {
-            setLoadingDepartments(true);
-            try {
-                const d = await departmentService.getAllDepartments();
-                setDepartments(Array.isArray(d) ? d : []);
-            } catch (e: any) {
-                toast.error(e?.message || "Failed to load departments");
-            } finally {
-                setLoadingDepartments(false);
-            }
-        };
-        loadDepartments();
-    }, []);
 
     const handleChange = (section: string, field: string, value: string) => {
         if (section === "root") {
@@ -99,46 +75,42 @@ export default function CreateStaffPage() {
     };
 
     const handleSubmit = async () => {
-        if (!formData.fullName || !formData.email || !formData.departmentId || !formData.registrationNumber) {
+        if (!formData.fullName || !formData.email || !formData.registrationNumber) {
             toast.error("Please fill all required fields");
             return;
         }
 
         setIsSubmitting(true);
         try {
-            const payload: StaffCreatePayload = {
+            const payload = {
                 fullName: formData.fullName,
                 email: formData.email,
-                departmentId: formData.departmentId,
-                role: formData.role,
                 registrationNumber: formData.registrationNumber,
                 joiningDate: formData.joiningDate,
-                phone: formData.phone || undefined,
+                role: "moderator" as AdminRole,
             };
 
-            let dataToSend: StaffCreatePayload | FormData = payload;
-
+            let dataToSend: any = payload;
             if (profilePicture) {
                 const fd = new FormData();
-                fd.append('data', JSON.stringify(payload));
-                fd.append('profilePicture', profilePicture);
+                fd.append("data", JSON.stringify(payload));
+                fd.append("profilePicture", profilePicture);
                 dataToSend = fd;
             }
 
-            const created = await staffService.create(dataToSend);
+            const created = await adminService.create(dataToSend);
 
             if (formData.profile.firstName && formData.profile.lastName) {
-                const profilePayload: StaffProfilePayload = {
+                await adminProfileService.create(created.id, {
                     ...formData.profile,
-                    addresses: [{ ...formData.address, isPrimary: true }],
-                };
-                await staffProfileService.create(created.id, profilePayload);
+                    addresses: [{ ...formData.address, isPrimary: true }]
+                });
             }
 
-            toast.success("Staff member created successfully");
-            router.push(`/dashboard/super-admin/users/staff`);
+            toast.success("Moderator created successfully");
+            router.push(`/dashboard/super-admin/users/moderators`);
         } catch (error: any) {
-            toast.error(error?.message || "Failed to create staff");
+            toast.error(error?.message || "Failed to create moderator");
         } finally {
             setIsSubmitting(false);
         }
@@ -147,20 +119,19 @@ export default function CreateStaffPage() {
     return (
         <div className="space-y-6 pb-20">
             <PageHeader
-                title="Create Staff"
-                subtitle="Enroll a new administrative or support member"
-                icon={Users}
-                onBack={() => router.push("/dashboard/super-admin/users/staff")}
+                title="Create Moderator"
+                subtitle="Provision a new administrative moderator"
+                icon={ShieldCheck}
+                onBack={() => router.push("/dashboard/super-admin/users/moderators")}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    {/* Role & Department Section */}
                     <Card className="border-slate-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
                             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-amber-500" />
-                                Professional Assignment
+                                <Mail className="w-4 h-4 text-amber-500" />
+                                Account Details
                             </h3>
                         </div>
                         <CardContent className="p-6">
@@ -170,53 +141,27 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.fullName}
                                         onChange={(e) => handleChange("root", "fullName", e.target.value)}
-                                        placeholder="Full legal name"
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        placeholder="Enter full name"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Department *</label>
-                                    <Select
-                                        value={formData.departmentId}
-                                        onValueChange={(v) => handleChange("root", "departmentId", v)}
-                                    >
-                                        <SelectTrigger className="h-10 rounded-lg border-slate-200 shadow-none">
-                                            {loadingDepartments ? <Loader2 className="w-4 h-4 animate-spin text-amber-500" /> : <SelectValue placeholder="Select Department" />}
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {departments.map((dept) => (
-                                                <SelectItem key={dept.id || dept._id} value={dept.id || dept._id}>
-                                                    {dept.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Email Address *</label>
+                                    <Input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => handleChange("root", "email", e.target.value)}
+                                        placeholder="email@example.com"
+                                        className="h-10 rounded-lg border-slate-200"
+                                    />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Role</label>
-                                    <Select
-                                        value={formData.role}
-                                        onValueChange={(v) => handleChange("root", "role", v as StaffRole)}
-                                    >
-                                        <SelectTrigger className="h-10 rounded-lg border-slate-200 shadow-none">
-                                            <SelectValue placeholder="Select Role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="admission">Admission</SelectItem>
-                                            <SelectItem value="exam_controller">Exam Controller</SelectItem>
-                                            <SelectItem value="program_controller">Program Controller</SelectItem>
-                                            <SelectItem value="library">Library</SelectItem>
-                                            <SelectItem value="it">IT Support</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Staff ID *</label>
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Registration ID *</label>
                                     <Input
                                         value={formData.registrationNumber}
                                         onChange={(e) => handleChange("root", "registrationNumber", e.target.value)}
-                                        placeholder="STF-202X-XXXX"
-                                        className="h-10 rounded-lg border-slate-200 shadow-none font-mono"
+                                        placeholder="EMP-001"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -225,29 +170,18 @@ export default function CreateStaffPage() {
                                         type="date"
                                         value={formData.joiningDate}
                                         onChange={(e) => handleChange("root", "joiningDate", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">System Email *</label>
-                                    <Input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => handleChange("root", "email", e.target.value)}
-                                        placeholder="staff.name@institution.edu"
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Profile Section */}
                     <Card className="border-slate-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
                             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                 <User className="w-4 h-4 text-indigo-500" />
-                                Personal Profile Information
+                                Profile Information
                             </h3>
                         </div>
                         <CardContent className="p-6">
@@ -257,7 +191,7 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.profile.firstName}
                                         onChange={(e) => handleChange("profile", "firstName", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -265,7 +199,7 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.profile.middleName}
                                         onChange={(e) => handleChange("profile", "middleName", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -273,7 +207,7 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.profile.lastName}
                                         onChange={(e) => handleChange("profile", "lastName", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -281,16 +215,7 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.profile.phoneNumber}
                                         onChange={(e) => handleChange("profile", "phoneNumber", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
-                                    <Input
-                                        type="date"
-                                        value={formData.profile.dateOfBirth}
-                                        onChange={(e) => handleChange("profile", "dateOfBirth", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -299,7 +224,7 @@ export default function CreateStaffPage() {
                                         value={formData.profile.gender}
                                         onValueChange={(v) => handleChange("profile", "gender", v)}
                                     >
-                                        <SelectTrigger className="h-10 rounded-lg border-slate-200 shadow-none">
+                                        <SelectTrigger className="h-10 rounded-lg border-slate-200">
                                             <SelectValue placeholder="Select" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -309,26 +234,35 @@ export default function CreateStaffPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
+                                    <Input
+                                        type="date"
+                                        value={formData.profile.dateOfBirth}
+                                        onChange={(e) => handleChange("profile", "dateOfBirth", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200"
+                                    />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Address Section */}
                     <Card className="border-slate-200 shadow-sm overflow-hidden">
                         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
                             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                 <Home className="w-4 h-4 text-emerald-500" />
-                                Residential Data
+                                Address Details
                             </h3>
                         </div>
                         <CardContent className="p-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="col-span-2 space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Street</label>
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Street Address</label>
                                     <Input
                                         value={formData.address.street}
                                         onChange={(e) => handleChange("address", "street", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        placeholder="123 Main St"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -336,7 +270,7 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.address.city}
                                         onChange={(e) => handleChange("address", "city", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -344,15 +278,15 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.address.state}
                                         onChange={(e) => handleChange("address", "state", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Zip Code</label>
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Zip / Postal Code</label>
                                     <Input
                                         value={formData.address.zipCode}
                                         onChange={(e) => handleChange("address", "zipCode", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none font-mono"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                                 <div className="space-y-2">
@@ -360,7 +294,7 @@ export default function CreateStaffPage() {
                                     <Input
                                         value={formData.address.country}
                                         onChange={(e) => handleChange("address", "country", e.target.value)}
-                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                        className="h-10 rounded-lg border-slate-200"
                                     />
                                 </div>
                             </div>
@@ -373,25 +307,25 @@ export default function CreateStaffPage() {
                         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
                             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                                 <CheckCircle2 className="w-4 h-4 text-blue-500" />
-                                Execution Control
+                                Action Center
                             </h3>
                         </div>
                         <CardContent className="p-6 space-y-4">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Profile Picture</label>
-                                <div className="border border-dashed border-slate-300 rounded-lg p-4 text-center bg-slate-50 hover:bg-white transition-colors cursor-pointer group">
+                                <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-amber-500/50 transition-colors bg-slate-50/50">
                                     <Input
                                         type="file"
                                         accept="image/*"
                                         onChange={(e) => setProfilePicture(e.target.files?.[0] || null)}
                                         className="hidden"
-                                        id="avatar-upload"
+                                        id="pfp-upload"
                                     />
-                                    <label htmlFor="avatar-upload" className="cursor-pointer flex flex-col items-center gap-1">
-                                        <div className="h-10 w-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors">
-                                            <Globe className="w-5 h-5" />
+                                    <label htmlFor="pfp-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                                        <div className="w-12 h-12 rounded-lg bg-white shadow-sm flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors">
+                                            <Globe className="w-6 h-6" />
                                         </div>
-                                        <span className="text-xs text-slate-500">{profilePicture ? profilePicture.name : "Select Image"}</span>
+                                        <span className="text-xs font-medium text-slate-600">{profilePicture ? profilePicture.name : "Click to upload image"}</span>
                                     </label>
                                 </div>
                             </div>
@@ -399,15 +333,15 @@ export default function CreateStaffPage() {
                             <Button
                                 onClick={handleSubmit}
                                 disabled={isSubmitting}
-                                className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold shadow-sm shadow-amber-200 transition-transform active:scale-95"
+                                className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold shadow-sm shadow-amber-200 transition-all active:scale-95"
                             >
                                 {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
-                                Provision Staff Member
+                                Create Moderator
                             </Button>
                             <Button
                                 variant="outline"
                                 onClick={() => router.back()}
-                                className="w-full h-11 border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                                className="w-full h-12 rounded-lg border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
                             >
                                 Cancel
                             </Button>

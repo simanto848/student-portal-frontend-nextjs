@@ -58,7 +58,7 @@ export default function StudentDetailsPage() {
       setSessions(Array.isArray(sessionsData) ? sessionsData : []);
     } catch (error) {
       toast.error("Failed to load student details");
-      router.push("/dashboard/admin/users/students");
+      router.push("/dashboard/super-admin/users/students");
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +70,7 @@ export default function StudentDetailsPage() {
     try {
       await studentService.delete(id);
       toast.success("Student deleted");
-      router.push("/dashboard/admin/users/students");
+      router.push("/dashboard/super-admin/users/students");
     } catch (error) {
       toast.error("Failed to delete student");
     } finally {
@@ -109,9 +109,9 @@ export default function StudentDetailsPage() {
         title={student.fullName}
         subtitle={student.registrationNumber}
         icon={GraduationCap}
-        onBack={() => router.push("/dashboard/admin/users/students")}
+        onBack={() => router.push("/dashboard/super-admin/users/students")}
         actionLabel="Edit"
-        onAction={() => router.push(`/dashboard/admin/users/students/${id}/edit`)}
+        onAction={() => router.push(`/dashboard/super-admin/users/students/${id}/edit`)}
         extraActions={
           <Button variant="outline" size="sm" onClick={handleDelete} disabled={isDeleting} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800">
             {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}

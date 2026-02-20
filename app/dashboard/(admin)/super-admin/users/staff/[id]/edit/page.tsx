@@ -66,7 +66,7 @@ export default function EditStaffPage() {
         }
       } catch { }
       try { const d = await departmentService.getAllDepartments(); setDepartments(Array.isArray(d) ? d : []); } catch { }
-    } catch (e: any) { toast.error(e?.message || "Failed to load staff"); router.push("/dashboard/admin/users/staff"); }
+    } catch (e: any) { toast.error(e?.message || "Failed to load staff"); router.push("/dashboard/super-admin/users/staff"); }
     finally { setIsLoading(false); }
   };
 
@@ -149,7 +149,7 @@ export default function EditStaffPage() {
       }
 
       toast.success("Staff updated successfully");
-      router.push(`/dashboard/admin/users/staff/${updatedStaff.id}`);
+      router.push(`/dashboard/super-admin/users/staff/${updatedStaff.id}`);
     } catch (e: any) { toast.error(e?.message || "Failed to update staff"); }
     finally { setIsSubmitting(false); }
   };
@@ -205,7 +205,7 @@ export default function EditStaffPage() {
         title={`Edit ${staff.fullName}`}
         subtitle="Update staff information"
         icon={Users}
-        onBack={() => router.push(`/dashboard/admin/users/staff/${staff.id}`)}
+        onBack={() => router.push(`/dashboard/super-admin/users/staff/${staff.id}`)}
       />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>

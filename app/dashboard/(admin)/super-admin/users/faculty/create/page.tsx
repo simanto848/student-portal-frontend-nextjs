@@ -2,625 +2,417 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { PageHeader } from "@/components/dashboard/shared/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { teacherService, TeacherDesignation, TeacherCreatePayload } from "@/services/user/teacher.service";
 import { teacherProfileService, TeacherProfilePayload } from "@/services/user/teacherProfile.service";
 import { departmentService } from "@/services/academic/department.service";
 import { toast } from "sonner";
-import { GraduationCap, ChevronRight, ChevronLeft, CheckCircle2, Network, User, MapPin, Loader2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { GraduationCap, Loader2, CheckCircle2, User, Home, Zap, MapPin, Globe, Mail, Phone, Calendar } from "lucide-react";
 
-interface BasicForm {
-  fullName: string;
-  email: string;
-  departmentId: string;
-  designation?: TeacherDesignation;
-  registrationNumber: string;
-  phone?: string;
+interface TeacherForm {
+    fullName: string;
+    email: string;
+    departmentId: string;
+    designation: TeacherDesignation;
+    registrationNumber: string;
+    joiningDate: string;
+    phone: string;
+    profile: {
+        firstName: string;
+        lastName: string;
+        middleName: string;
+        phoneNumber: string;
+        dateOfBirth: string;
+        gender: string;
+    };
+    address: {
+        street: string;
+        city: string;
+        state: string;
+        zipCode: string;
+        country: string;
+    };
 }
 
-interface AdvancedForm {
-  joiningDate: string;
-  registeredIps: string[];
-  ipInput: string;
-}
-
-interface ProfileForm {
-  firstName: string;
-  lastName: string;
-  middleName: string;
-  phoneNumber: string;
-  dateOfBirth: string;
-  gender: string;
-}
-
-interface AddressForm {
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  isPrimary: boolean;
-}
-
-const initialBasic: BasicForm = {
-  fullName: "",
-  email: "",
-  departmentId: "",
-  designation: undefined,
-  registrationNumber: "",
-  phone: "",
-};
-
-const initialAdvanced: AdvancedForm = {
-  joiningDate: "",
-  registeredIps: [],
-  ipInput: "",
-};
-
-const initialProfile: ProfileForm = {
-  firstName: "",
-  lastName: "",
-  middleName: "",
-  phoneNumber: "",
-  dateOfBirth: "",
-  gender: "",
+const initialForm: TeacherForm = {
+    fullName: "",
+    email: "",
+    departmentId: "",
+    designation: "lecturer",
+    registrationNumber: "",
+    joiningDate: new Date().toISOString().split("T")[0],
+    phone: "",
+    profile: {
+        firstName: "",
+        lastName: "",
+        middleName: "",
+        phoneNumber: "",
+        dateOfBirth: "",
+        gender: "",
+    },
+    address: {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "Bangladesh",
+    },
 };
 
 export default function CreateFacultyPage() {
-  const router = useRouter();
-  const [step, setStep] = useState<number>(1);
-  const [useAdvanced, setUseAdvanced] = useState(false);
-  const [useProfile, setUseProfile] = useState(false);
-  const [useAddressStep, setUseAddressStep] = useState(false);
+    const router = useRouter();
+    const [formData, setFormData] = useState<TeacherForm>(initialForm);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [departments, setDepartments] = useState<any[]>([]);
+    const [loadingDepartments, setLoadingDepartments] = useState(true);
+    const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
-  const [basic, setBasic] = useState<BasicForm>(initialBasic);
-  const [advanced, setAdvanced] = useState<AdvancedForm>(initialAdvanced);
-  const [profile, setProfile] = useState<ProfileForm>(initialProfile);
-  const [addresses, setAddresses] = useState<AddressForm[]>([]);
-  const [addressDraft, setAddressDraft] = useState<AddressForm>({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [loadingDepartments, setLoadingDepartments] = useState(true);
-  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+    useEffect(() => {
+        const loadDepartments = async () => {
+            setLoadingDepartments(true);
+            try {
+                const d = await departmentService.getAllDepartments();
+                setDepartments(Array.isArray(d) ? d : []);
+            } catch (e: any) {
+                toast.error(e?.message || "Failed to load departments");
+            } finally {
+                setLoadingDepartments(false);
+            }
+        };
+        loadDepartments();
+    }, []);
 
-  useEffect(() => {
-    const loadDepartments = async () => {
-      setLoadingDepartments(true);
-      try {
-        const d = await departmentService.getAllDepartments();
-        setDepartments(Array.isArray(d) ? d : []);
-      } catch (e: any) {
-        toast.error(e?.message || "Failed to load departments");
-      } finally {
-        setLoadingDepartments(false);
-      }
-    };
-    loadDepartments();
-  }, []);
-
-  const designationLabels: Record<TeacherDesignation, string> = {
-    professor: "Professor",
-    associate_professor: "Associate Professor",
-    assistant_professor: "Assistant Professor",
-    lecturer: "Lecturer",
-    senior_lecturer: "Senior Lecturer",
-  };
-
-  const generateRegistrationNumber = () => {
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const value = `TCHR-${new Date().getFullYear()}-${rand}`;
-    setBasic(prev => ({ ...prev, registrationNumber: value }));
-  };
-
-  const updateBasic = (key: keyof BasicForm, value: any) => setBasic(prev => ({ ...prev, [key]: value }));
-  const updateAdvanced = (key: keyof AdvancedForm, value: any) => setAdvanced(prev => ({ ...prev, [key]: value }));
-  const updateProfile = (key: keyof ProfileForm, value: any) => setProfile(prev => ({ ...prev, [key]: value }));
-
-  const addIp = () => {
-    const ip = advanced.ipInput.trim();
-    if (!ip) return;
-    if (advanced.registeredIps.includes(ip)) { toast.error("IP already added"); return; }
-    setAdvanced(prev => ({ ...prev, registeredIps: [...prev.registeredIps, ip], ipInput: "" }));
-  };
-  const removeIp = (ip: string) => setAdvanced(prev => ({ ...prev, registeredIps: prev.registeredIps.filter(i => i !== ip) }));
-
-  const clearAddressDraft = () => setAddressDraft({ street: "", city: "", state: "", zipCode: "", country: "", isPrimary: false });
-  const addAddress = () => {
-    if (!addressDraft.street && !addressDraft.city && !addressDraft.country) {
-      toast.error("Provide at least street/city/country");
-      return;
-    }
-    setAddresses(prev => {
-      let next = [...prev];
-      if (addressDraft.isPrimary) next = next.map(a => ({ ...a, isPrimary: false }));
-      next.push(addressDraft);
-      return next;
-    });
-    clearAddressDraft();
-  };
-  const removeAddress = (idx: number) => setAddresses(prev => prev.filter((_, i) => i !== idx));
-  const makePrimary = (idx: number) => setAddresses(prev => prev.map((a, i) => ({ ...a, isPrimary: i === idx })));
-
-  const canProceedBasic = () => {
-    return (
-      basic.fullName.trim().length >= 3 &&
-      /.+@.+\..+/.test(basic.email.trim()) &&
-      basic.departmentId.trim().length > 0
-    );
-  };
-
-  const nextStep = () => {
-    if (step === 1) {
-      if (!canProceedBasic()) { toast.error("Provide valid name, email, department"); return; }
-      if (!basic.registrationNumber.trim()) generateRegistrationNumber();
-      if (useAdvanced) setStep(2);
-      else if (useProfile) setStep(3);
-      else if (useAddressStep) setStep(4);
-      else setStep(5);
-    } else if (step === 2) {
-      if (useProfile) setStep(3);
-      else if (useAddressStep) setStep(4);
-      else setStep(5);
-    } else if (step === 3) {
-      if (useAddressStep) setStep(4); else setStep(5);
-    } else if (step === 4) { setStep(5); }
-  };
-
-  const prevStep = () => {
-    if (step === 5) {
-      if (useAddressStep) setStep(4);
-      else if (useProfile) setStep(3);
-      else if (useAdvanced) setStep(2);
-      else setStep(1);
-    } else if (step === 4) {
-      if (useProfile) setStep(3);
-      else if (useAdvanced) setStep(2);
-      else setStep(1);
-    } else if (step === 3) {
-      if (useAdvanced) setStep(2); else setStep(1);
-    } else if (step === 2) setStep(1);
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-    try {
-      const payload: TeacherCreatePayload = {
-        fullName: basic.fullName.trim(),
-        email: basic.email.trim().toLowerCase(),
-        departmentId: basic.departmentId,
-        designation: basic.designation,
-        phone: basic.phone?.trim() || undefined,
-        registrationNumber: basic.registrationNumber.trim(),
-        joiningDate: useAdvanced && advanced.joiningDate ? advanced.joiningDate : undefined,
-        registeredIpAddress: useAdvanced && advanced.registeredIps.length ? advanced.registeredIps : undefined,
-      } as any;
-
-      let dataToSend: TeacherCreatePayload | FormData = payload;
-
-      if (profilePicture) {
-        const formData = new FormData();
-        formData.append('data', JSON.stringify(payload));
-        formData.append('profilePicture', profilePicture);
-        dataToSend = formData;
-      }
-
-      const created = await teacherService.create(dataToSend);
-
-      if (useProfile && profile.firstName && profile.lastName) {
-        try {
-          const profilePayload: TeacherProfilePayload = {
-            firstName: profile.firstName.trim(),
-            lastName: profile.lastName.trim(),
-            middleName: profile.middleName ? profile.middleName.trim() : undefined,
-            phoneNumber: profile.phoneNumber ? profile.phoneNumber.trim() : undefined,
-            dateOfBirth: profile.dateOfBirth || undefined,
-            gender: profile.gender || undefined,
-            addresses: useAddressStep && addresses.length ? addresses.map(a => ({ ...a })) : undefined,
-          };
-          await teacherProfileService.create(created.id, profilePayload);
-        } catch (profileError: any) {
-          toast.warning(`Teacher created but profile failed: ${profileError?.message || 'Unknown error'}`);
+    const handleChange = (section: string, field: string, value: string) => {
+        if (section === "root") {
+            setFormData(prev => ({ ...prev, [field]: value }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [section]: { ...(prev as any)[section], [field]: value }
+            }));
         }
-      }
+    };
 
-      toast.success("Teacher created successfully");
-      router.push(`/dashboard/admin/users/faculty/${created.id}`);
-    } catch (error: any) {
-      toast.error(error?.message || "Failed to create teacher");
-    } finally { setIsSubmitting(false); }
-  };
+    const handleSubmit = async () => {
+        if (!formData.fullName || !formData.email || !formData.departmentId || !formData.registrationNumber) {
+            toast.error("Please fill all required fields");
+            return;
+        }
 
-  const StepIndicator = () => {
-    const steps = [
-      { id: 1, label: "Basic" },
-      ...(useAdvanced ? [{ id: 2, label: "Advanced" }] : []),
-      ...(useProfile ? [{ id: 3, label: "Profile" }] : []),
-      ...(useAddressStep ? [{ id: 4, label: "Addresses" }] : []),
-      { id: 5, label: "Review" },
-    ];
+        setIsSubmitting(true);
+        try {
+            const payload: TeacherCreatePayload = {
+                fullName: formData.fullName,
+                email: formData.email,
+                departmentId: formData.departmentId,
+                designation: formData.designation,
+                registrationNumber: formData.registrationNumber,
+                joiningDate: formData.joiningDate,
+                phone: formData.phone || undefined,
+            };
+
+            let dataToSend: TeacherCreatePayload | FormData = payload;
+
+            if (profilePicture) {
+                const fd = new FormData();
+                fd.append('data', JSON.stringify(payload));
+                fd.append('profilePicture', profilePicture);
+                dataToSend = fd;
+            }
+
+            const created = await teacherService.create(dataToSend);
+
+            if (formData.profile.firstName && formData.profile.lastName) {
+                const profilePayload: TeacherProfilePayload = {
+                    ...formData.profile,
+                    addresses: [{ ...formData.address, isPrimary: true }],
+                };
+                await teacherProfileService.create(created.id, profilePayload);
+            }
+
+            toast.success("Faculty member created successfully");
+            router.push(`/dashboard/super-admin/users/faculty`);
+        } catch (error: any) {
+            toast.error(error?.message || "Failed to create teacher");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        {steps.map((s, idx) => {
-          const active = step === s.id;
-          const completed = s.id < step;
-          return (
-            <div key={s.id} className="flex items-center gap-2">
-              <motion.div
-                initial={false}
-                animate={{ scale: active ? 1.05 : 1 }}
-                className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors",
-                  active && "bg-indigo-600 text-white border-indigo-600",
-                  completed && "bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600",
-                  !active && !completed && "bg-white text-slate-600 border-slate-200 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-700"
-                )}
-              >
-                {completed ? <CheckCircle2 className="h-4 w-4" /> : <span className="h-4 w-4 flex items-center justify-center text-xs font-bold">{idx + 1}</span>}
-                {s.label}
-              </motion.div>
-              {idx < steps.length - 1 && <ChevronRight className="h-4 w-4 text-slate-400" />}
+        <div className="space-y-6 pb-20">
+            <PageHeader
+                title="Create Faculty"
+                subtitle="Provision a new teaching member"
+                icon={GraduationCap}
+                onBack={() => router.push("/dashboard/super-admin/users/faculty")}
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Academic Section */}
+                    <Card className="border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-amber-500" />
+                                Academic Identifiers
+                            </h3>
+                        </div>
+                        <CardContent className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Full Name *</label>
+                                    <Input 
+                                        value={formData.fullName} 
+                                        onChange={(e) => handleChange("root", "fullName", e.target.value)}
+                                        placeholder="Full legal name"
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Department *</label>
+                                    <Select 
+                                        value={formData.departmentId} 
+                                        onValueChange={(v) => handleChange("root", "departmentId", v)}
+                                    >
+                                        <SelectTrigger className="h-10 rounded-lg border-slate-200 shadow-none">
+                                            {loadingDepartments ? <Loader2 className="w-4 h-4 animate-spin text-amber-500" /> : <SelectValue placeholder="Select Department" />}
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {departments.map((dept) => (
+                                                <SelectItem key={dept.id || dept._id} value={dept.id || dept._id}>
+                                                    {dept.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Designation *</label>
+                                    <Select 
+                                        value={formData.designation} 
+                                        onValueChange={(v) => handleChange("root", "designation", v)}
+                                    >
+                                        <SelectTrigger className="h-10 rounded-lg border-slate-200 shadow-none">
+                                            <SelectValue placeholder="Select" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="lecturer">Lecturer</SelectItem>
+                                            <SelectItem value="assistant_professor">Assistant Professor</SelectItem>
+                                            <SelectItem value="associate_professor">Associate Professor</SelectItem>
+                                            <SelectItem value="professor">Professor</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Registration Code *</label>
+                                    <Input 
+                                        value={formData.registrationNumber} 
+                                        onChange={(e) => handleChange("root", "registrationNumber", e.target.value)}
+                                        placeholder="FAC-XXX-YYY"
+                                        className="h-10 rounded-lg border-slate-200 shadow-none font-mono"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Joining Date</label>
+                                    <Input 
+                                        type="date"
+                                        value={formData.joiningDate} 
+                                        onChange={(e) => handleChange("root", "joiningDate", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">System Email *</label>
+                                    <Input 
+                                        type="email"
+                                        value={formData.email} 
+                                        onChange={(e) => handleChange("root", "email", e.target.value)}
+                                        placeholder="faculty@institution.edu"
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Profile Section */}
+                    <Card className="border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <User className="w-4 h-4 text-indigo-500" />
+                                Personal Profile Information
+                            </h3>
+                        </div>
+                        <CardContent className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">First Name</label>
+                                    <Input 
+                                        value={formData.profile.firstName} 
+                                        onChange={(e) => handleChange("profile", "firstName", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Middle Name</label>
+                                    <Input 
+                                        value={formData.profile.middleName} 
+                                        onChange={(e) => handleChange("profile", "middleName", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Last Name</label>
+                                    <Input 
+                                        value={formData.profile.lastName} 
+                                        onChange={(e) => handleChange("profile", "lastName", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Phone Number</label>
+                                    <Input 
+                                        value={formData.profile.phoneNumber} 
+                                        onChange={(e) => handleChange("profile", "phoneNumber", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Date of Birth</label>
+                                    <Input 
+                                        type="date"
+                                        value={formData.profile.dateOfBirth} 
+                                        onChange={(e) => handleChange("profile", "dateOfBirth", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Gender</label>
+                                    <Select 
+                                        value={formData.profile.gender} 
+                                        onValueChange={(v) => handleChange("profile", "gender", v)}
+                                    >
+                                        <SelectTrigger className="h-10 rounded-lg border-slate-200 shadow-none">
+                                            <SelectValue placeholder="Select" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Male">Male</SelectItem>
+                                            <SelectItem value="Female">Female</SelectItem>
+                                            <SelectItem value="Other">Other</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Address Section */}
+                    <Card className="border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <Home className="w-4 h-4 text-emerald-500" />
+                                Residential Data
+                            </h3>
+                        </div>
+                        <CardContent className="p-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="col-span-2 space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Street</label>
+                                    <Input 
+                                        value={formData.address.street} 
+                                        onChange={(e) => handleChange("address", "street", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">City</label>
+                                    <Input 
+                                        value={formData.address.city} 
+                                        onChange={(e) => handleChange("address", "city", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">State / Province</label>
+                                    <Input 
+                                        value={formData.address.state} 
+                                        onChange={(e) => handleChange("address", "state", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Zip Code</label>
+                                    <Input 
+                                        value={formData.address.zipCode} 
+                                        onChange={(e) => handleChange("address", "zipCode", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none font-mono"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Country</label>
+                                    <Input 
+                                        value={formData.address.country} 
+                                        onChange={(e) => handleChange("address", "country", e.target.value)}
+                                        className="h-10 rounded-lg border-slate-200 shadow-none"
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="space-y-6">
+                    <Card className="border-slate-200 shadow-sm overflow-hidden sticky top-6">
+                        <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                                Execution Control
+                            </h3>
+                        </div>
+                        <CardContent className="p-6 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Profile Picture</label>
+                                <div className="border border-dashed border-slate-300 rounded-lg p-4 text-center bg-slate-50 hover:bg-white transition-colors cursor-pointer group">
+                                    <Input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        onChange={(e) => setProfilePicture(e.target.files?.[0] || null)}
+                                        className="hidden" 
+                                        id="avatar-upload"
+                                    />
+                                    <label htmlFor="avatar-upload" className="cursor-pointer flex flex-col items-center gap-1">
+                                        <div className="h-10 w-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:text-amber-500 transition-colors">
+                                            <Globe className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-xs text-slate-500">{profilePicture ? profilePicture.name : "Select Image"}</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <Button 
+                                onClick={handleSubmit} 
+                                disabled={isSubmitting}
+                                className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-bold shadow-sm shadow-amber-200 transition-transform active:scale-95"
+                            >
+                                {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <CheckCircle2 className="w-5 h-5 mr-2" />}
+                                Provision Faculty
+                            </Button>
+                            <Button 
+                                variant="outline" 
+                                onClick={() => router.back()}
+                                className="w-full h-11 border-slate-200 text-slate-600 font-bold hover:bg-slate-50"
+                            >
+                                Cancel
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-          );
-        })}
-      </div>
+        </div>
     );
-  };
-
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Create New Teacher"
-        subtitle="Provision a new faculty member"
-        icon={GraduationCap}
-        onBack={() => router.push("/dashboard/admin/users/faculty")}
-      />
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card className="border-slate-200 dark:border-slate-700">
-          <CardHeader className="pb-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <StepIndicator />
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button
-                  type="button"
-                  variant={useAdvanced ? "default" : "outline"}
-                  onClick={() => { if (useAdvanced && step === 2) setStep(1); setUseAdvanced(v => !v); }}
-                  className={cn("text-sm", useAdvanced && "bg-indigo-600 hover:bg-indigo-700")}
-                  size="sm"
-                >
-                  <Network className="h-4 w-4 mr-1" />
-                  Advanced
-                </Button>
-                <Button
-                  type="button"
-                  variant={useProfile ? "default" : "outline"}
-                  onClick={() => { if (useProfile && step === 3) setStep(useAdvanced ? 2 : 1); setUseProfile(v => !v); }}
-                  className={cn("text-sm", useProfile && "bg-indigo-600 hover:bg-indigo-700")}
-                  size="sm"
-                >
-                  <User className="h-4 w-4 mr-1" />
-                  Profile
-                </Button>
-                <Button
-                  type="button"
-                  variant={useAddressStep ? "default" : "outline"}
-                  onClick={() => { if (useAddressStep && step === 4) setStep(useProfile ? 3 : (useAdvanced ? 2 : 1)); setUseAddressStep(v => !v); }}
-                  className={cn("text-sm", useAddressStep && "bg-indigo-600 hover:bg-indigo-700")}
-                  size="sm"
-                >
-                  <MapPin className="h-4 w-4 mr-1" />
-                  Addresses
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <AnimatePresence mode="wait">
-              {step === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name <span className="text-red-500">*</span></label>
-                      <Input
-                        value={basic.fullName}
-                        onChange={e => updateBasic("fullName", e.target.value)}
-                        placeholder="Dr. Jane Smith"
-                        className="border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email <span className="text-red-500">*</span></label>
-                      <Input
-                        type="email"
-                        value={basic.email}
-                        onChange={e => updateBasic("email", e.target.value)}
-                        placeholder="teacher@example.com"
-                        className="border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                        Department <span className="text-red-500">*</span>
-                        {loadingDepartments && <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />}
-                      </label>
-                      <Select value={basic.departmentId} onValueChange={(v) => updateBasic("departmentId", v)}>
-                        <SelectTrigger className="border-slate-200 dark:border-slate-700">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {departments.map(d => <SelectItem key={d.id || d._id} value={d.id || d._id}>{d.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Designation</label>
-                      <Select value={basic.designation || ""} onValueChange={(v) => updateBasic("designation", v as TeacherDesignation)}>
-                        <SelectTrigger className="border-slate-200 dark:border-slate-700">
-                          <SelectValue placeholder="Select designation" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(designationLabels).map(([key, label]) => (
-                            <SelectItem key={key} value={key}>{label}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</label>
-                      <Input
-                        value={basic.phone}
-                        onChange={e => updateBasic("phone", e.target.value)}
-                        placeholder="Optional phone"
-                        className="border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                        Registration Number
-                        <Button type="button" variant="outline" size="sm" onClick={generateRegistrationNumber} className="h-7 text-xs">
-                          Generate
-                        </Button>
-                      </label>
-                      <Input
-                        value={basic.registrationNumber}
-                        onChange={e => updateBasic("registrationNumber", e.target.value)}
-                        placeholder="TCHR-2025-XXXX"
-                        className="border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 2 && useAdvanced && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Joining Date</label>
-                      <Input type="date" value={advanced.joiningDate} onChange={e => updateAdvanced("joiningDate", e.target.value)} className="border-slate-200 dark:border-slate-700" />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">Add IP Address <Network className="h-4 w-4" /></label>
-                      <div className="flex gap-2">
-                        <Input value={advanced.ipInput} onChange={e => updateAdvanced("ipInput", e.target.value)} placeholder="e.g. 192.168.1.10" className="border-slate-200 dark:border-slate-700 flex-1" onKeyDown={(e) => e.key === 'Enter' && addIp()} />
-                        <Button type="button" onClick={addIp} variant="secondary" size="sm">Add</Button>
-                      </div>
-                    </div>
-                  </div>
-                  {advanced.registeredIps.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Registered IPs</p>
-                      <div className="flex flex-wrap gap-2">
-                        {advanced.registeredIps.map(ip => (
-                          <Badge key={ip} variant="secondary" className="flex items-center gap-1">
-                            {ip}
-                            <button type="button" onClick={() => removeIp(ip)} className="ml-1 hover:text-red-500 transition-colors"><X className="h-3 w-3" /></button>
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
-              {step === 3 && useProfile && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">First Name <span className="text-red-500">*</span></label><Input value={profile.firstName} onChange={e => updateProfile("firstName", e.target.value)} className="border-slate-200 dark:border-slate-700" placeholder="Jane" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Last Name <span className="text-red-500">*</span></label><Input value={profile.lastName} onChange={e => updateProfile("lastName", e.target.value)} className="border-slate-200 dark:border-slate-700" placeholder="Doe" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Middle Name</label><Input value={profile.middleName} onChange={e => updateProfile("middleName", e.target.value)} className="border-slate-200 dark:border-slate-700" placeholder="Optional" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone Number</label><Input value={profile.phoneNumber} onChange={e => updateProfile("phoneNumber", e.target.value)} className="border-slate-200 dark:border-slate-700" placeholder="+1 234 567 890" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</label><Input type="date" value={profile.dateOfBirth} onChange={e => updateProfile("dateOfBirth", e.target.value)} className="border-slate-200 dark:border-slate-700" /></div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Gender</label>
-                      <Select value={profile.gender} onValueChange={(v) => updateProfile("gender", v)}>
-                        <SelectTrigger className="border-slate-200 dark:border-slate-700"><SelectValue placeholder="Select gender" /></SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Male">Male</SelectItem>
-                          <SelectItem value="Female">Female</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">Profile Picture <User className="h-4 w-4" /></label>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => { const file = e.target.files?.[0]; setProfilePicture(file || null); }}
-                        className="border-slate-200 dark:border-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                      />
-                      {profilePicture && <p className="text-sm text-indigo-600 dark:text-indigo-400">Selected: {profilePicture.name}</p>}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-
-              {step === 4 && useAddressStep && (
-                <motion.div
-                  key="step4"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Street</label><Input value={addressDraft.street} onChange={e => setAddressDraft(prev => ({ ...prev, street: e.target.value }))} className="border-slate-200 dark:border-slate-700" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">City</label><Input value={addressDraft.city} onChange={e => setAddressDraft(prev => ({ ...prev, city: e.target.value }))} className="border-slate-200 dark:border-slate-700" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">State</label><Input value={addressDraft.state} onChange={e => setAddressDraft(prev => ({ ...prev, state: e.target.value }))} className="border-slate-200 dark:border-slate-700" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Zip Code</label><Input value={addressDraft.zipCode} onChange={e => setAddressDraft(prev => ({ ...prev, zipCode: e.target.value }))} className="border-slate-200 dark:border-slate-700" /></div>
-                    <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300">Country</label><Input value={addressDraft.country} onChange={e => setAddressDraft(prev => ({ ...prev, country: e.target.value }))} className="border-slate-200 dark:border-slate-700" /></div>
-                    <div className="space-y-2 flex items-end gap-2">
-                      <Button type="button" variant={addressDraft.isPrimary ? "default" : "outline"} onClick={() => setAddressDraft(prev => ({ ...prev, isPrimary: !prev.isPrimary }))} className={cn(addressDraft.isPrimary && "bg-indigo-600 hover:bg-indigo-700")}>{addressDraft.isPrimary ? 'Primary' : 'Set Primary'}</Button>
-                      <Button type="button" onClick={addAddress} className="bg-indigo-600 hover:bg-indigo-700 ml-auto">Add Address</Button>
-                    </div>
-                  </div>
-                  {addresses.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300">Addresses</p>
-                      <div className="space-y-2">
-                        {addresses.map((addr, idx) => (
-                          <motion.div key={idx} initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-start justify-between">
-                            <div>
-                              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-2">{[addr.street, addr.city, addr.state].filter(Boolean).join(', ') || '(No street)'} {addr.isPrimary && <Badge className="bg-indigo-600">PRIMARY</Badge>}</p>
-                              <p className="text-xs text-slate-500 dark:text-slate-400">{[addr.country, addr.zipCode].filter(Boolean).join(' - ') || '(No country)'}</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {!addr.isPrimary && <Button variant="outline" size="sm" onClick={() => makePrimary(idx)}>Make Primary</Button>}
-                              <Button variant="outline" size="sm" onClick={() => removeAddress(idx)} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">Remove</Button>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
-              {step === 5 && (
-                <motion.div
-                  key="step5"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-6"
-                >
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-3">
-                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2"><GraduationCap className="h-4 w-4" /> Basic Information</p>
-                      <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2 text-sm">
-                        <SummaryItem label="Name" value={basic.fullName} />
-                        <SummaryItem label="Email" value={basic.email} />
-                        <SummaryItem label="Department" value={departments.find(d => (d.id || d._id) === basic.departmentId)?.name || basic.departmentId} />
-                        {basic.designation && <SummaryItem label="Designation" value={designationLabels[basic.designation]} />}
-                        <SummaryItem label="Registration" value={basic.registrationNumber} />
-                        {basic.phone && <SummaryItem label="Phone" value={basic.phone} />}
-                      </div>
-                    </div>
-                    {useAdvanced && (
-                      <div className="space-y-3">
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2"><Network className="h-4 w-4" /> Advanced</p>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2 text-sm">
-                          {advanced.joiningDate && <SummaryItem label="Joining Date" value={new Date(advanced.joiningDate).toLocaleDateString()} />}
-                          {advanced.registeredIps.length > 0 && (
-                            <div className="space-y-1">
-                              <p className="text-xs text-slate-500 dark:text-slate-400">Registered IPs:</p>
-                              <div className="flex flex-wrap gap-1">
-                                {advanced.registeredIps.map(ip => <Badge key={ip} variant="secondary">{ip}</Badge>)}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    {useProfile && (profile.firstName || profile.lastName) && (
-                      <div className="space-y-3">
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2"><User className="h-4 w-4" /> Profile</p>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2 text-sm">
-                          <SummaryItem label="Full Name" value={`${profile.firstName} ${profile.middleName ? profile.middleName + ' ' : ''}${profile.lastName}`} />
-                          {profile.phoneNumber && <SummaryItem label="Phone" value={profile.phoneNumber} />}
-                          {profile.gender && <SummaryItem label="Gender" value={profile.gender} />}
-                          {profile.dateOfBirth && <SummaryItem label="Date of Birth" value={new Date(profile.dateOfBirth).toLocaleDateString()} />}
-                        </div>
-                      </div>
-                    )}
-                    {useAddressStep && addresses.length > 0 && (
-                      <div className="space-y-3 md:col-span-2">
-                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2"><MapPin className="h-4 w-4" /> Addresses</p>
-                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 space-y-2 text-sm">
-                          {addresses.map((a, i) => (
-                            <div key={i} className="flex items-start justify-between p-2 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700">
-                              <p className="flex-1">{[a.street, a.city, a.state, a.country, a.zipCode].filter(Boolean).join(', ')}</p>
-                              {a.isPrimary && <Badge className="bg-indigo-600 ml-2">PRIMARY</Badge>}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex items-center justify-between pt-6 border-t border-slate-200 dark:border-slate-700">
-              <Button type="button" variant="outline" onClick={prevStep} disabled={step === 1}>
-                <ChevronLeft className="h-4 w-4 mr-1" /> Back
-              </Button>
-              <div className="flex gap-2">
-                {step < 5 && <Button type="button" onClick={nextStep} className="bg-indigo-600 hover:bg-indigo-700">Next <ChevronRight className="h-4 w-4 ml-1" /></Button>}
-                {step === 5 && (
-                  <Button type="button" onClick={handleSubmit} disabled={isSubmitting} className="bg-indigo-600 hover:bg-indigo-700">
-                    {isSubmitting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Creating...</> : <><CheckCircle2 className="h-4 w-4 mr-2" />Create Teacher</>}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
-  );
-}
-
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-700 last:border-0">
-      <span className="text-slate-500 dark:text-slate-400">{label}:</span>
-      <span className="font-medium text-slate-900 dark:text-slate-100">{value}</span>
-    </div>
-  );
 }

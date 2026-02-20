@@ -236,7 +236,7 @@ export default function CreateAdminPage() {
 
       const created = await adminService.create(dataToSend);
       toast.success("Admin created successfully");
-      router.push(`/dashboard/admin/users/admins/${created.id}`);
+      router.push(`/dashboard/super-admin/users/admins/${created.id}`);
     } catch (error: any) {
       const message = error?.message || "Failed to create admin";
       toast.error(message);
@@ -287,7 +287,7 @@ export default function CreateAdminPage() {
         title="Create New Admin"
         subtitle="Provision a new administrator account"
         icon={ShieldPlus}
-        onBack={() => router.push("/dashboard/admin/users/admins")}
+        onBack={() => router.push("/dashboard/super-admin/users/admins")}
       />
 
       <motion.div

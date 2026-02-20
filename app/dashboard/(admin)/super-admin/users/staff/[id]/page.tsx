@@ -57,7 +57,7 @@ export default function StaffDetailsPage() {
       } catch { }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load staff");
-      router.push("/dashboard/admin/users/staff");
+      router.push("/dashboard/super-admin/users/staff");
     } finally { setIsLoading(false); }
   };
 
@@ -85,7 +85,7 @@ export default function StaffDetailsPage() {
     if (!staff) return;
     if (!confirm(`Delete ${staff.fullName}?`)) return;
     setIsDeleting(true);
-    try { await staffService.delete(staff.id); toast.success("Staff deleted"); router.push("/dashboard/admin/users/staff"); }
+    try { await staffService.delete(staff.id); toast.success("Staff deleted"); router.push("/dashboard/super-admin/users/staff"); }
     catch (e: any) { toast.error(e?.message || "Failed to delete staff"); }
     finally { setIsDeleting(false); }
   };
@@ -107,9 +107,9 @@ export default function StaffDetailsPage() {
         title={staff.fullName}
         subtitle="Staff profile overview"
         icon={Users}
-        onBack={() => router.push("/dashboard/admin/users/staff")}
+        onBack={() => router.push("/dashboard/super-admin/users/staff")}
         actionLabel="Edit"
-        onAction={() => router.push(`/dashboard/admin/users/staff/${staff.id}/edit`)}
+        onAction={() => router.push(`/dashboard/super-admin/users/staff/${staff.id}/edit`)}
         extraActions={
           <Button variant="outline" size="sm" onClick={handleDeleteStaff} disabled={isDeleting} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800">
             {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -207,7 +207,7 @@ export default function StaffDetailsPage() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">No Profile Information</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">This staff member doesn&apos;t have an extended profile yet.</p>
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/admin/users/staff/${staff.id}/edit`)}>
+                      <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/super-admin/users/staff/${staff.id}/edit`)}>
                         <UserIcon className="h-3 w-3 mr-1" /> Add Profile Information
                       </Button>
                     </div>

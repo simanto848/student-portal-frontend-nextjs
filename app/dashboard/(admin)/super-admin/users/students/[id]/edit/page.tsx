@@ -88,7 +88,7 @@ export default function EditStudentPage() {
       }
     } catch (error) {
       toast.error("Failed to load student data");
-      router.push("/dashboard/admin/users/students");
+      router.push("/dashboard/super-admin/users/students");
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +122,7 @@ export default function EditStudentPage() {
       await studentProfileService.upsert(id, profileData);
 
       toast.success("Student updated successfully");
-      router.push(`/dashboard/admin/users/students/${id}`);
+      router.push(`/dashboard/super-admin/users/students/${id}`);
     } catch (error) {
       const err = error as Error;
       toast.error(err?.message || "Failed to update student");
@@ -145,7 +145,7 @@ export default function EditStudentPage() {
         title="Edit Student"
         subtitle="Update student information"
         icon={GraduationCap}
-        onBack={() => router.push(`/dashboard/admin/users/students/${id}`)}
+        onBack={() => router.push(`/dashboard/super-admin/users/students/${id}`)}
       />
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>

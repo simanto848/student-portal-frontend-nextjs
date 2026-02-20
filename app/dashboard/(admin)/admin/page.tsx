@@ -60,10 +60,10 @@ export default function AdminDashboard() {
         {
             title: "User Management",
             items: [
-                { title: "Students", href: "/dashboard/admin/users/students", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-                { title: "Faculty", href: "/dashboard/admin/users/faculty", icon: GraduationCap, color: "text-emerald-600", bg: "bg-emerald-50" },
-                { title: "Moderators", href: "/dashboard/admin/users/moderators", icon: Shield, color: "text-purple-600", bg: "bg-purple-50" },
-                { title: "Staff", href: "/dashboard/admin/users/staff", icon: UserCog, color: "text-orange-600", bg: "bg-orange-50" },
+                { title: "Students", href: "/dashboard/super-admin/users/students", icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+                { title: "Faculty", href: "/dashboard/super-admin/users/faculty", icon: GraduationCap, color: "text-emerald-600", bg: "bg-emerald-50" },
+                { title: "Moderators", href: "/dashboard/super-admin/users/moderators", icon: Shield, color: "text-purple-600", bg: "bg-purple-50" },
+                { title: "Staff", href: "/dashboard/super-admin/users/staff", icon: UserCog, color: "text-orange-600", bg: "bg-orange-50" },
             ]
         },
         {

@@ -56,7 +56,7 @@ export default function AdminDetailsPage() {
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to load admin");
-            router.push("/dashboard/admin/users/admins");
+            router.push("/dashboard/super-admin/users/admins");
         } finally {
             setIsLoading(false);
         }
@@ -127,9 +127,9 @@ export default function AdminDetailsPage() {
                 title={admin.fullName}
                 subtitle="Administrator profile overview"
                 icon={Shield}
-                onBack={() => router.push("/dashboard/admin/users/admins")}
+                onBack={() => router.push("/dashboard/super-admin/users/admins")}
                 actionLabel="Edit"
-                onAction={() => router.push(`/dashboard/admin/users/admins/${admin.id}/edit`)}
+                onAction={() => router.push(`/dashboard/super-admin/users/admins/${admin.id}/edit`)}
             />
 
             <div className="grid gap-6 md:grid-cols-3">
@@ -286,7 +286,7 @@ export default function AdminDetailsPage() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                onClick={() => router.push(`/dashboard/admin/users/admins/${admin.id}/edit`)}
+                                                onClick={() => router.push(`/dashboard/super-admin/users/admins/${admin.id}/edit`)}
                                             >
                                                 <UserIcon className="h-3 w-3 mr-1" />
                                                 Add Profile Information

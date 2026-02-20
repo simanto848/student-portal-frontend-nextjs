@@ -5,12 +5,12 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-    Users, 
-    GraduationCap, 
-    Building2, 
-    ShieldCheck, 
-    ChevronRight, 
+import {
+    Users,
+    GraduationCap,
+    Building2,
+    ShieldCheck,
+    ChevronRight,
     RefreshCw,
     Plus,
     UserPlus,
@@ -113,10 +113,10 @@ export default function UsersManagementPage() {
                 icon={Users}
                 extraActions={
                     <div className="flex items-center gap-2">
-                        <Button 
-                            onClick={fetchStats} 
-                            variant="outline" 
-                            size="sm" 
+                        <Button
+                            onClick={fetchStats}
+                            variant="outline"
+                            size="sm"
                             className="gap-2 border-slate-200 dark:border-slate-700"
                         >
                             <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
@@ -170,8 +170,8 @@ export default function UsersManagementPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {userCategories.map((category) => (
                     <Link key={category.title} href={`${category.href}/create`}>
-                        <Button 
-                            variant="outline" 
+                        <Button
+                            variant="outline"
                             className={cn(
                                 "w-full justify-start gap-2 h-auto py-3 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800",
                                 category.borderColor
@@ -230,13 +230,13 @@ export default function UsersManagementPage() {
                                     <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                                         {category.description}
                                     </p>
-                                    
+
                                     {/* Features */}
                                     <div className="flex flex-wrap gap-2">
                                         {category.features.map((feature) => (
-                                            <Badge 
-                                                key={feature} 
-                                                variant="secondary" 
+                                            <Badge
+                                                key={feature}
+                                                variant="secondary"
                                                 className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                                             >
                                                 {feature}
@@ -257,7 +257,7 @@ export default function UsersManagementPage() {
             </div>
 
             {/* Summary Card */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+            <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-linear-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
                 <CardContent className="p-6">
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">

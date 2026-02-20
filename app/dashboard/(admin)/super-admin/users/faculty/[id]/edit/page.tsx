@@ -66,7 +66,7 @@ export default function EditFacultyPage() {
         }
       } catch { }
       try { const d = await departmentService.getAllDepartments(); setDepartments(Array.isArray(d) ? d : []); } catch { }
-    } catch (e: any) { toast.error(e?.message || "Failed to load teacher"); router.push("/dashboard/admin/users/faculty"); }
+    } catch (e: any) { toast.error(e?.message || "Failed to load teacher"); router.push("/dashboard/super-admin/users/faculty"); }
     finally { setIsLoading(false); }
   };
 
@@ -147,7 +147,7 @@ export default function EditFacultyPage() {
       }
 
       toast.success("Teacher updated successfully");
-      router.push(`/dashboard/admin/users/faculty/${updatedTeacher.id}`);
+      router.push(`/dashboard/super-admin/users/faculty/${updatedTeacher.id}`);
     } catch (e: any) { toast.error(e?.message || "Failed to update teacher"); }
     finally { setIsSubmitting(false); }
   };
@@ -203,7 +203,7 @@ export default function EditFacultyPage() {
         title={`Edit ${teacher.fullName}`}
         subtitle="Update teacher information"
         icon={GraduationCap}
-        onBack={() => router.push(`/dashboard/admin/users/faculty/${teacher.id}`)}
+        onBack={() => router.push(`/dashboard/super-admin/users/faculty/${teacher.id}`)}
       />
 
       <motion.div

@@ -460,6 +460,7 @@ export default function AdminManagementPage() {
                 onView={(item) =>
                   router.push(`/dashboard/super-admin/users/admins/${item.id}`)
                 }
+                onEdit={handleEdit}
                 onDelete={handleDelete}
                 renderExtraActions={(admin) => (
                   canBlockAdmin(admin) && (

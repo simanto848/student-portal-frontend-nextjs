@@ -59,7 +59,7 @@ export default function TeacherDetailsPage() {
       } catch { }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load teacher");
-      router.push("/dashboard/admin/users/faculty");
+      router.push("/dashboard/super-admin/users/faculty");
     } finally { setIsLoading(false); }
   };
 
@@ -87,7 +87,7 @@ export default function TeacherDetailsPage() {
     if (!teacher) return;
     if (!confirm(`Delete ${teacher.fullName}?`)) return;
     setIsDeleting(true);
-    try { await teacherService.delete(teacher.id); toast.success("Teacher deleted"); router.push("/dashboard/admin/users/faculty"); }
+    try { await teacherService.delete(teacher.id); toast.success("Teacher deleted"); router.push("/dashboard/super-admin/users/faculty"); }
     catch (e: any) { toast.error(e?.message || "Failed to delete teacher"); }
     finally { setIsDeleting(false); }
   };
@@ -109,9 +109,9 @@ export default function TeacherDetailsPage() {
         title={teacher.fullName}
         subtitle="Teacher profile overview"
         icon={GraduationCap}
-        onBack={() => router.push("/dashboard/admin/users/faculty")}
+        onBack={() => router.push("/dashboard/super-admin/users/faculty")}
         actionLabel="Edit"
-        onAction={() => router.push(`/dashboard/admin/users/faculty/${teacher.id}/edit`)}
+        onAction={() => router.push(`/dashboard/super-admin/users/faculty/${teacher.id}/edit`)}
         extraActions={
           <Button variant="outline" size="sm" onClick={handleDeleteTeacher} disabled={isDeleting} className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-800">
             {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -211,7 +211,7 @@ export default function TeacherDetailsPage() {
                     <div className="flex-1">
                       <p className="text-sm font-medium text-slate-900 dark:text-slate-100 mb-1">No Profile Information</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">This teacher doesn&apos;t have an extended profile yet.</p>
-                      <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/admin/users/faculty/${teacher.id}/edit`)}>
+                      <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/super-admin/users/faculty/${teacher.id}/edit`)}>
                         <UserIcon className="h-3 w-3 mr-1" /> Add Profile Information
                       </Button>
                     </div>

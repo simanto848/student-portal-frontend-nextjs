@@ -150,7 +150,7 @@ export default function EditAdminPage() {
 
             await adminService.update(admin.id, dataToSend);
             toast.success("Admin updated successfully");
-            router.push(`/dashboard/admin/users/admins/${admin.id}`);
+            router.push(`/dashboard/super-admin/users/admins/${admin.id}`);
         } catch (error) {
             toast.error(error instanceof Error ? error.message : "Failed to save changes");
         } finally {
@@ -176,7 +176,7 @@ export default function EditAdminPage() {
                 title={`Edit ${admin.fullName}`}
                 subtitle="Update administrator information"
                 icon={Shield}
-                onBack={() => router.push(`/dashboard/admin/users/admins/${admin.id}`)}
+                onBack={() => router.push(`/dashboard/super-admin/users/admins/${admin.id}`)}
             />
 
             <form onSubmit={handleSubmit} className="space-y-6">
