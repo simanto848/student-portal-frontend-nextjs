@@ -265,6 +265,11 @@ export const teacherNavigation: NavItem[] = [
     icon: Building2,
   },
   {
+    href: "/dashboard/teacher/classroom-booking",
+    label: "Book Classroom",
+    icon: Calendar,
+  },
+  {
     href: "/dashboard/teacher/attendance",
     label: "Attendance",
     icon: CheckSquare,
